@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>Launch Screen</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIUserInterfaceStyle</key>
