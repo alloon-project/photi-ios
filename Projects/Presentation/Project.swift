@@ -58,6 +58,18 @@ let project = Project.make(
 			product: .staticLibrary,
 			bundleId: "com.alloon.myPage",
 			sources: ["MyPage/Interfaces/**"]
+		),
+		.make(
+			name: "HomeImpl",
+			product: .staticLibrary,
+			bundleId: "com.alloon.homeImpl",
+			sources: ["Home/Implementations/**"]
+		),
+		.make(
+			name: "Home",
+			product: .staticLibrary,
+			bundleId: "com.alloon.home",
+			sources: ["Home/Interfaces/**"]
 		)
 	]
 )
