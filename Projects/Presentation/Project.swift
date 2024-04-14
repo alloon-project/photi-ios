@@ -15,61 +15,121 @@ let project = Project.make(
 			name: "LogInImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.logInImpl",
-			sources: ["LogIn/Implementations/**"]
+			sources: ["LogIn/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.LogIn,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
 		),
 		.make(
 			name: "LogIn",
 			product: .staticLibrary,
 			bundleId: "com.alloon.logIn",
-			sources: ["LogIn/Interfaces/**"]
+			sources: ["LogIn/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
 		),
 		.make(
 			name: "OnBoardingImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.onBoardingImpl",
-			sources: ["OnBoarding/Implementations/**"]
+			sources: ["OnBoarding/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.OnBoarding,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
 		),
 		.make(
 			name: "OnBoarding",
 			product: .staticLibrary,
 			bundleId: "com.alloon.onBoarding",
-			sources: ["OnBoarding/Interfaces/**"]
+			sources: ["OnBoarding/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
 		),
 		.make(
 			name: "MyMissionImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.myMissionImpl",
-			sources: ["MyMission/Implementations/**"]
+			sources: ["MyMission/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.MyMission,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
 		),
 		.make(
 			name: "MyMission",
 			product: .staticLibrary,
 			bundleId: "com.alloon.myMission",
-			sources: ["MyMission/Interfaces/**"]
+			sources: ["MyMission/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
 		),
 		.make(
 			name: "MyPageImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.myPageImpl",
-			sources: ["MyPage/Implementations/**"]
+			sources: ["MyPage/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.MyPage,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
 		),
 		.make(
 			name: "MyPage",
 			product: .staticLibrary,
 			bundleId: "com.alloon.myPage",
-			sources: ["MyPage/Interfaces/**"]
+			sources: ["MyPage/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
 		),
 		.make(
 			name: "HomeImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.homeImpl",
-			sources: ["Home/Implementations/**"]
+			sources: ["Home/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.Home,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
 		),
 		.make(
 			name: "Home",
 			product: .staticLibrary,
 			bundleId: "com.alloon.home",
-			sources: ["Home/Interfaces/**"]
+			sources: ["Home/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
 		)
 	]
 )

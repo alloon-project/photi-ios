@@ -21,13 +21,22 @@ let project = Project.make(
 			name: "DataMapper",
 			product: .staticLibrary,
 			bundleId: "com.alloon.dataMapper",
-			sources: ["DataMapper/**"]
+			sources: ["DataMapper/**"],
+			dependencies: [
+				.Project.Data.DTO,
+				.Project.Domain.Entity
+			]
 		),
 		.make(
 			name: "RepositoryImpl",
 			product: .staticLibrary,
 			bundleId: "com.alloon.repositoryImpl",
-			sources: ["Repository/Implementations/**"]
+			sources: ["Repository/Implementations/**"],
+			dependencies: [
+				.Project.Data.DTO,
+				.Project.Data.DataMapper,
+				.Project.Domain.Repository
+			]
 		)
 	]
 )

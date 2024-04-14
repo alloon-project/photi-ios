@@ -12,8 +12,8 @@ let project = Project.make(
 	name:"DesignSystem",
 	targets: [
 		.make(
-			name: "DesignKit",
-			product: .staticLibrary,
+			name: "DesignSystem",
+			product: .framework,
 			bundleId: "com.alloon.designSystem",
 			sources: ["Sources/**"],
 			resources: ["Resources/**"]

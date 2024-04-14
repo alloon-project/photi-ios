@@ -18,6 +18,15 @@ let project = Project.make(
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
+			dependencies: [
+				.Project.Presentation.HomeImpl,
+				.Project.Presentation.MyMissionImpl,
+				.Project.Presentation.MyPageImpl,
+				.Project.Presentation.OnBoardingImpl,
+				.Project.Presentation.LogInImpl,
+				.Project.Domain.UseCaseImpl,
+				.Project.Data.RepositoryImpl
+			],
 			settings: .settings(
 				base: [
 					"ASSETCATALOG_COMPILER_APPICON_NAME": "DevAppIcon",
@@ -35,6 +44,15 @@ let project = Project.make(
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
+			dependencies: [
+				.Project.Presentation.HomeImpl,
+				.Project.Presentation.MyMissionImpl,
+				.Project.Presentation.MyPageImpl,
+				.Project.Presentation.OnBoardingImpl,
+				.Project.Presentation.LogInImpl,
+				.Project.Domain.UseCaseImpl,
+				.Project.Data.RepositoryImpl
+			],
 			settings: .settings(
 				base: [
 					"ASSETCATALOG_COMPILER_APPICON_NAME": "ProdAppIcon",
