@@ -7,21 +7,27 @@
 //
 
 import UIKit
+import Core
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-  
+  private var appCoordinater: Coordinater?
   var window: UIWindow?
   
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    let viewController = ViewController()
-    window?.rootViewController = viewController
-    window?.makeKeyAndVisible()
+    let navigationController = UINavigationController()
+    let appContainer = AppContainer(dependency: AppDependency())
+    
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    window.rootViewController = navigationController
+    window.makeKeyAndVisible()
+    self.window = window
+    
+    self.appCoordinater = appContainer.coordinate()
+    self.appCoordinater?.start(at: navigationController)
     
     return true
   }
