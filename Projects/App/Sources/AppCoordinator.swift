@@ -9,9 +9,9 @@
 import UIKit
 import Core
 
-final class AppCoordinator: Coordinater {
+final class AppCoordinator: Coordinator {
   private let loggedInContainer: LoggedInContainable
-  private var loggedInCoordinate: Coordinating?
+  private var loggedInCoordinator: Coordinating?
   
   init(loggedInContainer: LoggedInContainable) {
     self.loggedInContainer = loggedInContainer
@@ -26,12 +26,12 @@ final class AppCoordinator: Coordinater {
   }
   
   func attachLoggedIn() {
-    if loggedInCoordinate != nil { return }
+    if loggedInCoordinator != nil { return }
     
-    let coordinate = loggedInContainer.coordinator(listener: self)
-    coordinate.start(at: self.navigationController)
+    let coordinator = loggedInContainer.coordinator(listener: self)
+    coordinator.start(at: self.navigationController)
     
-    self.loggedInCoordinate = coordinate
+    self.loggedInCoordinator = coordinator
   }
 }
 

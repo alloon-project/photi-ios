@@ -22,7 +22,7 @@ public protocol Coordinating: AnyObject {
   func removeChild(_ coordinator: Coordinating)
 }
 
-open class Coordinater: Coordinating {
+open class Coordinator: Coordinating {
   public var navigationController: UINavigationController?
   public final var children: [Coordinating] = []
   

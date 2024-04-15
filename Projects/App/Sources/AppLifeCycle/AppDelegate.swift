@@ -11,7 +11,7 @@ import Core
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-  private var appCoordinater: Coordinater?
+  private var appCoordinator: Coordinating?
   var window: UIWindow?
   
   func application(
@@ -26,8 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     window.makeKeyAndVisible()
     self.window = window
     
-    self.appCoordinater = appContainer.coordinate()
-    self.appCoordinater?.start(at: navigationController)
+    self.appCoordinator = appContainer.coordinator()
+    self.appCoordinator?.start(at: navigationController)
     
     return true
   }

@@ -11,14 +11,14 @@ import Core
 final class AppDependency: Dependency { }
 
 protocol AppContainable: Containable {
-  func coordinate() -> Coordinater
+  func coordinator() -> Coordinating
 }
 
 final class AppContainer:
   Container<AppDependency>,
   AppContainable,
   LoggedInDependency {
-  func coordinate() -> Coordinater {
+  func coordinator() -> Coordinating {
     return AppCoordinator(
       loggedInContainer: LoggedInContainer(dependency: self)
     )

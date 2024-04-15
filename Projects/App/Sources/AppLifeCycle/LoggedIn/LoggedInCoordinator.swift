@@ -11,7 +11,7 @@ import Core
 
 protocol LoggedInListener: AnyObject { }
 
-final class LoggedInCoordinator: Coordinater {
+final class LoggedInCoordinator: Coordinator {
   weak var listener: LoggedInListener?
   
   private let viewController: LoggedInViewController

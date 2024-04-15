@@ -11,11 +11,11 @@ import Core
 protocol LoggedInDependency: Dependency { }
 
 protocol LoggedInContainable: Containable {
-  func coordinator(listener: LoggedInListener) -> Coordinater
+  func coordinator(listener: LoggedInListener) -> Coordinating
 }
 
 final class LoggedInContainer: Container<LoggedInDependency>, LoggedInContainable {
-  func coordinator(listener: LoggedInListener) -> Coordinater {
+  func coordinator(listener: LoggedInListener) -> Coordinating {
     let coordinator = LoggedInCoordinator()
     coordinator.listener = listener
     return coordinator
