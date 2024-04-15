@@ -17,10 +17,12 @@ protocol AppContainable: Containable {
 final class AppContainer:
   Container<AppDependency>,
   AppContainable,
-  LoggedInDependency {
+  LoggedInDependency,
+  LoggedOutDependency {
   func coordinator() -> Coordinating {
     return AppCoordinator(
-      loggedInContainer: LoggedInContainer(dependency: self)
+      loggedInContainer: LoggedInContainer(dependency: self),
+      loggedOutContainer: LoggedOutContainer(dependency: self)
     )
   }
 }

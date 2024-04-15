@@ -6,4 +6,31 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Foundation
+import UIKit
+import Core
+
+protocol LoggedOutListener: AnyObject {
+  func didFinishLoggedOut()
+}
+
+final class LoggedOutCoordinator: Coordinator {
+  weak var listener: LoggedOutListener?
+  
+  private let viewController: LoggedOutViewController
+  
+  override init() {
+    self.viewController = LoggedOutViewController()
+    super.init()
+  }
+  
+  override func start(at navigationController: UINavigationController?) {
+    super.start(at: navigationController)
+    
+    navigationController?.pushViewController(viewController, animated: true)
+  }
+  
+  override func stop() {
+    super.stop()
+    listener?.didFinishLoggedOut()
+  }
+}

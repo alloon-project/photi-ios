@@ -13,8 +13,15 @@ final class AppCoordinator: Coordinator {
   private let loggedInContainer: LoggedInContainable
   private var loggedInCoordinator: Coordinating?
   
-  init(loggedInContainer: LoggedInContainable) {
+  private let loggedOutContainer: LoggedOutContainable
+  private var loggedOutCoordinator: Coordinating?
+  
+  init(
+    loggedInContainer: LoggedInContainable,
+    loggedOutContainer: LoggedOutContainable
+  ) {
     self.loggedInContainer = loggedInContainer
+    self.loggedOutContainer = loggedOutContainer
     super.init()
   }
   
@@ -22,18 +29,44 @@ final class AppCoordinator: Coordinator {
     super.start(at: navigationController)
     
     navigationController?.pushViewController(AppViewController(), animated: true)
-    attachLoggedIn()
+    attachLoggedOut()
   }
   
   func attachLoggedIn() {
     if loggedInCoordinator != nil { return }
     
     let coordinator = loggedInContainer.coordinator(listener: self)
+    self.addChild(coordinator)
     coordinator.start(at: self.navigationController)
     
     self.loggedInCoordinator = coordinator
+  }
+  
+  func attachLoggedOut() { 
+    if loggedOutCoordinator != nil { return }
+    
+    let coordinator = loggedOutContainer.coordinator(listener: self)
+    self.addChild(coordinator)
+    coordinator.start(at: self.navigationController)
+    
+    self.loggedOutCoordinator = coordinator
+  }
+  
+  func detachLoggedOut() { 
+    guard let coordinator = loggedOutCoordinator else { return }
+    
+    removeChild(coordinator)
+    navigationController?.popViewController(animated: true)
   }
 }
 
 // MARK: - LoggedInListener
 extension AppCoordinator: LoggedInListener { }
+
+// MARK: - LoggedOutListener
+extension AppCoordinator: LoggedOutListener {
+  func didFinishLoggedOut() {
+    detachLoggedOut()
+    attachLoggedIn()
+  }
+}
