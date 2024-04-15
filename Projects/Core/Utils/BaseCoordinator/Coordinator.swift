@@ -16,7 +16,7 @@ public protocol Coordinating: AnyObject {
   var navigationController: UINavigationController? { get set }
   var children: [Coordinating] { get }
   
-  func start(at navigationController: UINavigationController)
+  func start(at navigationController: UINavigationController?)
   func stop()
   func addChild(_ coordinator: Coordinating)
   func removeChild(_ coordinator: Coordinating)
@@ -43,7 +43,7 @@ open class Coordinater: Coordinating {
    }
    ```
    */
-  open func start(at navigationController: UINavigationController) {
+  open func start(at navigationController: UINavigationController?) {
     self.navigationController = navigationController
   }
   

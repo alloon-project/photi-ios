@@ -14,8 +14,13 @@ protocol AppContainable: Containable {
   func coordinate() -> Coordinater
 }
 
-final class AppContainer: Container<AppDependency>, AppContainable {
+final class AppContainer:
+  Container<AppDependency>,
+  AppContainable,
+  LoggedInDependency {
   func coordinate() -> Coordinater {
-    return AppCoordinator()
+    return AppCoordinator(
+      loggedInContainer: LoggedInContainer(dependency: self)
+    )
   }
 }
