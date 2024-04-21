@@ -30,7 +30,7 @@ public extension Target {
 			infoPlist: infoPlist,
 			sources: sources,
 			resources: resources,
-			scripts: scripts,
+			scripts: scripts + [.swiftLint],
 			dependencies: dependencies,
 			settings: settings
 		)
