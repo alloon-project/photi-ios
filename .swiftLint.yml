@@ -54,9 +54,6 @@ opt_in_rules:
 # comma 사용 시 앞 공백 필수, 뒷 공백이 있으면 안 됨
 - comma
 
-# ExpressibleByArrayLiteral를 직접 호출하면 안 됨
-- compiler_protocol_init
-
 # first(where:) != nil, firstIndex(where:) != nil 대신 contains 사용을 권장 (https://realm.github.io/SwiftLint/contains_over_first_not_nil.html)
 - contains_over_first_not_nil
 
