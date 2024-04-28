@@ -21,4 +21,13 @@ public enum TaskType {
   
   /// request body에 `Encodable`을  custom encoder를 통해 저장합니다.
   case requestCustomJSONEncodable(Encodable, encoder: JSONEncoder)
+  
+  /// request에 `parameters`를 저장합니다. `encoding`을 통해 URL인지 JSON인지 결정할 수 있습니다.
+  case requestParameters(parameters: [String: Any], encoding: ParameterEncoding)
+  
+  /// request body에 data를 저장하고, , `urlParameters`를 저장합니다.
+  case requestCompositeData(bodyData: Data, urlParameters: [String: Any])
+  
+  /// request body에 `bodyParameters`를 저장하고, `urlParameters`를 저장합니다.
+  case requestCompositeParameters(bodyParameters: [String: Any], urlParameters: [String: Any])
 }

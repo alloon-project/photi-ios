@@ -55,6 +55,17 @@ extension EndPoint {
         
       case let .requestCustomJSONEncodable(encodable, encoder):
         return try request.encoded(encodable, encoder: encoder)
+        
+      case let .requestParameters(parameters, encoding):
+        return try request.encoded(parameters, parameterEncoding: encoding)
+      
+      case let .requestCompositeData(bodyData, urlParameters):
+        request.httpBody = bodyData
+        return try request.encoded(urlParameters, parameterEncoding: URLEncoding.queryString)
+        
+      case let .requestCompositeParameters(bodyParameters, urlParameters):
+        request = try request.encoded(bodyParameters, parameterEncoding: URLEncoding.httpBody)
+        return try request.encoded(urlParameters, parameterEncoding: URLEncoding.queryString)
     }
   }
 }
