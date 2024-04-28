@@ -27,7 +27,15 @@ extension URLRequest {
       
       return self
     } catch {
-      throw NetworkError.parameterEncodingFailed(reason: .jsonEncodingFailed(error: error))
+      throw NetworkError.networkFailed(reason: .encodableMapping)
+    }
+  }
+  
+  func encoded(_ parameters: [String: Any], parameterEncoding: ParameterEncoding) throws -> URLRequest {
+    do {
+      return try parameterEncoding.encode(self, with: parameters)
+    } catch {
+      throw error
     }
   }
 }
