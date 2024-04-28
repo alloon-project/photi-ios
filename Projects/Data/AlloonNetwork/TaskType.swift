@@ -30,4 +30,7 @@ public enum TaskType {
   
   /// request body에 `bodyParameters`를 저장하고, `urlParameters`를 저장합니다.
   case requestCompositeParameters(bodyParameters: [String: Any], urlParameters: [String: Any])
+  
+  /// "multipart/form-data"를 upload합니다.
+  case uploadMultipartFormData(multipart: MultipartFormData)
 }

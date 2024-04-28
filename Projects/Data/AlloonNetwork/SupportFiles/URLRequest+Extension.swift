@@ -38,4 +38,8 @@ extension URLRequest {
       throw error
     }
   }
+  
+  func encoded(_ multiparts: MultipartFormData, multipartEncoding: MultipartEncoding = .default) -> URLRequest {
+    return multipartEncoding.encode(self, with: multiparts)
+  }
 }
