@@ -9,7 +9,7 @@ import ProjectDescriptionHelpers
 import ProjectDescription
 
 let project = Project.make(
-	name:"DesignSystem",
+	name: "DesignSystem",
 	targets: [
 		.make(
 			name: "DesignSystem",
@@ -18,5 +18,8 @@ let project = Project.make(
 			sources: ["Sources/**"],
 			resources: ["Resources/**"]
 		)
+	],
+	resourceSynthesizers: [
+		.custom(name: "Colors", parser: .assets, extensions: ["xcassets"]),
 	]
 )
