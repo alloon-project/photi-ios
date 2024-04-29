@@ -20,6 +20,7 @@ let project = Project.make(
 		)
 	],
 	resourceSynthesizers: [
+		.fonts(),
 		.custom(name: "Colors", parser: .assets, extensions: ["xcassets"]),
 	]
 )
