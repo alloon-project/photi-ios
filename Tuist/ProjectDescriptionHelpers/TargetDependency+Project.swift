@@ -91,6 +91,11 @@ public extension TargetDependency.Project.Data {
 		target: "RepositoryImpl",
 		path: .relativeToRoot("Projects/Data")
 	)
+	
+	static let AlloonNetwork = TargetDependency.project(
+		target: "AlloonNetwork",
+		path: .relativeToRoot("Projects/Data")
+	)
 }
 
 // MARK: - Domain

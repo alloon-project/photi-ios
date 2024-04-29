@@ -18,10 +18,6 @@ let dependencies = Dependencies(
 					requirement: .exact("5.6.0")
 				),
 				.remote(
-					url: "https://github.com/SnapKit/SnapKit.git",
-					requirement: .exact("5.6.0")
-				),
-				.remote(
 					url: "https://github.com/RxSwiftCommunity/RxGesture.git",
 					requirement: .exact("4.0.1")
 				)

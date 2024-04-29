@@ -35,7 +35,17 @@ let project = Project.make(
 			dependencies: [
 				.Project.Data.DTO,
 				.Project.Data.DataMapper,
+				.Project.Data.AlloonNetwork,
 				.Project.Domain.Repository
+			]
+		),
+		.make(
+			name: "AlloonNetwork",
+			product: .staticLibrary,
+			bundleId: "com.alloon.alloonNetwork",
+			sources: ["AlloonNetwork/**"],
+			dependencies: [
+				.SPM.RxSwift
 			]
 		)
 	]
