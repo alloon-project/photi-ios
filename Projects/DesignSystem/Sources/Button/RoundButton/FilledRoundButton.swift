@@ -17,7 +17,7 @@ public final class FilledRoundButton: RoundButton {
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
-  public var mode: RoundButtonMode {
+  public var mode: ButtonMode {
     didSet {
       setupUI(type: type, mode: mode)
     }
@@ -27,8 +27,8 @@ public final class FilledRoundButton: RoundButton {
   public init(
     text: String,
     type: RoundButtonType,
-    size: RoundButtonSize,
-    mode: RoundButtonMode = .default
+    size: ButtonSize,
+    mode: ButtonMode = .default
   ) {
     self.type = type
     self.mode = mode
@@ -56,7 +56,7 @@ public final class FilledRoundButton: RoundButton {
 
 // MARK: - Private Methods
 private extension FilledRoundButton {
-  func setupUI(type: RoundButtonType, mode: RoundButtonMode) {
+  func setupUI(type: RoundButtonType, mode: ButtonMode) {
     self.backgroundColor = backGroundColor(type: self.type, mode: mode)
     
     if case .quaternary = type {
@@ -64,7 +64,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func backGroundColor(type: RoundButtonType, mode: RoundButtonMode) -> UIColor {
+  func backGroundColor(type: RoundButtonType, mode: ButtonMode) -> UIColor {
     switch type {
       case .primary:
         return primaryBackGroundColor(for: mode)
@@ -77,7 +77,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func primaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func primaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .green400
@@ -88,7 +88,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func secondaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func secondaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .pink400
@@ -99,7 +99,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func teritiaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func teritiaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .blue400
@@ -110,7 +110,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func quaternaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func quaternaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .gray100
@@ -119,7 +119,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func quaternaryTextColor(for mode: RoundButtonMode) -> UIColor {
+  func quaternaryTextColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .gray600
@@ -132,7 +132,7 @@ private extension FilledRoundButton {
 }
 
 public extension Reactive where Base: FilledRoundButton {
-  var mode: Binder<RoundButtonMode> {
+  var mode: Binder<ButtonMode> {
     return Binder(self.base) { button, value in
       button.mode = value
     }

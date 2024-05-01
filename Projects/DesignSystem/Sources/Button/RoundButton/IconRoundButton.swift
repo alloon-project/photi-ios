@@ -30,7 +30,7 @@ public final class IconRoundButton: RoundButton {
     text: String,
     icon: UIImage,
     type: RoundButtonType,
-    size: RoundButtonSize
+    size: ButtonSize
   ) {
     self.type = type
     super.init(size: size)
@@ -76,7 +76,7 @@ private extension IconRoundButton {
     self.stackView.addArrangedSubviews(imageView, label)
   }
   
-  func innerViewHeight(for size: RoundButtonSize) -> CGFloat {
+  func innerViewHeight(for size: ButtonSize) -> CGFloat {
     switch size {
       case .xLarge:
         return 24
