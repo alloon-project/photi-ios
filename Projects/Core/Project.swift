@@ -9,11 +9,11 @@ import ProjectDescriptionHelpers
 import ProjectDescription
 
 let project = Project.make(
-	name:"Core",
+	name: "Core",
 	targets: [
 		.make(
 			name: "Core",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.alloon.core",
 			sources: [
 				"Extensions/**",

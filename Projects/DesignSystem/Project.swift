@@ -16,7 +16,12 @@ let project = Project.make(
 			product: .framework,
 			bundleId: "com.alloon.designSystem",
 			sources: ["Sources/**"],
-			resources: ["Resources/**"]
+			resources: ["Resources/**"],
+			dependencies: [
+				.SPM.RxCocoa,
+				.SPM.RxSwift,
+				.SPM.SnapKit
+			]
 		)
 	],
 	resourceSynthesizers: [
