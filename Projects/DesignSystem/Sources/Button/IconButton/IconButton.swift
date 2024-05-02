@@ -91,10 +91,10 @@ public final class IconButton: UIButton {
   
   // MARK: - Setup UI
   func setupUI() {
-    self.backgroundColor = .gray100
+    self.backgroundColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.3)
     
     var config = UIButton.Configuration.plain()
-    config.baseBackgroundColor = .gray100
+    config.baseBackgroundColor = .clear
     self.configuration = config
     
     let imageSize = imageSize(for: size)
