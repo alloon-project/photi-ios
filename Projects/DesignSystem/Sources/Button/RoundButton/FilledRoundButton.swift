@@ -7,8 +7,6 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
 import Core
 
 /// 내부가 색으로 채워진 Round Button입니다.
@@ -17,9 +15,21 @@ public final class FilledRoundButton: RoundButton {
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
-  public var mode: RoundButtonMode {
+  public private(set) var mode: ButtonMode {
     didSet {
       setupUI(type: type, mode: mode)
+    }
+  }
+  
+  public override var isHighlighted: Bool {
+    didSet {
+      self.mode = isHighlighted ? .pressed : .default
+    }
+  }
+  
+  public override var isEnabled: Bool {
+    didSet {
+      self.mode = isEnabled ? .default : .disabled
     }
   }
   
@@ -27,8 +37,8 @@ public final class FilledRoundButton: RoundButton {
   public init(
     text: String,
     type: RoundButtonType,
-    size: RoundButtonSize,
-    mode: RoundButtonMode = .default
+    size: ButtonSize,
+    mode: ButtonMode = .default
   ) {
     self.type = type
     self.mode = mode
@@ -51,20 +61,28 @@ public final class FilledRoundButton: RoundButton {
     super.setupUI()
     
     self.setupUI(type: type, mode: mode)
+    
+    if case .quaternary = type {
+      quaternarySetupUI()
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension FilledRoundButton {
-  func setupUI(type: RoundButtonType, mode: RoundButtonMode) {
+  func setupUI(type: RoundButtonType, mode: ButtonMode) {
     self.backgroundColor = backGroundColor(type: self.type, mode: mode)
-    
-    if case .quaternary = type {
-      self.setAttributedTitleColor(quaternaryTextColor(for: mode))
-    }
   }
   
-  func backGroundColor(type: RoundButtonType, mode: RoundButtonMode) -> UIColor {
+  func quaternarySetupUI() {
+    guard let attributedTitle = self.attributedTitle(for: .normal) else { return }
+    
+    setAttributedTitle(attributedTitle.setColor(.gray600), for: .normal)
+    setAttributedTitle(attributedTitle.setColor(.gray800), for: .highlighted)
+    setAttributedTitle(attributedTitle.setColor(.gray500), for: .disabled)
+  }
+  
+  func backGroundColor(type: RoundButtonType, mode: ButtonMode) -> UIColor {
     switch type {
       case .primary:
         return primaryBackGroundColor(for: mode)
@@ -77,7 +95,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func primaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func primaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .green400
@@ -88,7 +106,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func secondaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func secondaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .pink400
@@ -99,7 +117,7 @@ private extension FilledRoundButton {
     }
   }
   
-  func teritiaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func teritiaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .blue400
@@ -110,31 +128,12 @@ private extension FilledRoundButton {
     }
   }
   
-  func quaternaryBackGroundColor(for mode: RoundButtonMode) -> UIColor {
+  func quaternaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
         return .gray100
       case .pressed, .disabled:
         return .gray200
-    }
-  }
-  
-  func quaternaryTextColor(for mode: RoundButtonMode) -> UIColor {
-    switch mode {
-      case .default:
-        return .gray600
-      case .pressed:
-        return .gray800
-      case .disabled:
-        return .gray500
-    }
-  }
-}
-
-public extension Reactive where Base: FilledRoundButton {
-  var mode: Binder<RoundButtonMode> {
-    return Binder(self.base) { button, value in
-      button.mode = value
     }
   }
 }

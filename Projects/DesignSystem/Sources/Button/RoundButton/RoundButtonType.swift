@@ -13,19 +13,3 @@ public enum RoundButtonType {
   case tertiary
   case quaternary
 }
-
-/// RoundButton의 모드 및 상태를 나타냅니다.
-public enum RoundButtonMode {
-  case `default`
-  case pressed
-  case disabled
-}
-
-/// RoundButton의 size를 나타냅니다. 
-public enum RoundButtonSize {
-  case xLarge
-  case large
-  case medium
-  case small
-  case xSmall
-}
