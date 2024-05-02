@@ -7,8 +7,6 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
 import Core
 
 /// 내부가 색으로 채워진 Round Button입니다.
@@ -17,9 +15,21 @@ public final class FilledRoundButton: RoundButton {
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
-  public var mode: ButtonMode {
+  public private(set) var mode: ButtonMode {
     didSet {
       setupUI(type: type, mode: mode)
+    }
+  }
+  
+  public override var isHighlighted: Bool {
+    didSet {
+      self.mode = isHighlighted ? .pressed : .default
+    }
+  }
+  
+  public override var isEnabled: Bool {
+    didSet {
+      self.mode = isEnabled ? .default : .disabled
     }
   }
   
@@ -51,6 +61,10 @@ public final class FilledRoundButton: RoundButton {
     super.setupUI()
     
     self.setupUI(type: type, mode: mode)
+    
+    if case .quaternary = type {
+      quaternarySetupUI()
+    }
   }
 }
 
@@ -58,10 +72,14 @@ public final class FilledRoundButton: RoundButton {
 private extension FilledRoundButton {
   func setupUI(type: RoundButtonType, mode: ButtonMode) {
     self.backgroundColor = backGroundColor(type: self.type, mode: mode)
+  }
+  
+  func quaternarySetupUI() {
+    guard let attributedTitle = self.attributedTitle(for: .normal) else { return }
     
-    if case .quaternary = type {
-      self.setAttributedTitleColor(quaternaryTextColor(for: mode))
-    }
+    setAttributedTitle(attributedTitle.setColor(.gray600), for: .normal)
+    setAttributedTitle(attributedTitle.setColor(.gray800), for: .highlighted)
+    setAttributedTitle(attributedTitle.setColor(.gray500), for: .disabled)
   }
   
   func backGroundColor(type: RoundButtonType, mode: ButtonMode) -> UIColor {
@@ -116,25 +134,6 @@ private extension FilledRoundButton {
         return .gray100
       case .pressed, .disabled:
         return .gray200
-    }
-  }
-  
-  func quaternaryTextColor(for mode: ButtonMode) -> UIColor {
-    switch mode {
-      case .default:
-        return .gray600
-      case .pressed:
-        return .gray800
-      case .disabled:
-        return .gray500
-    }
-  }
-}
-
-public extension Reactive where Base: FilledRoundButton {
-  var mode: Binder<ButtonMode> {
-    return Binder(self.base) { button, value in
-      button.mode = value
     }
   }
 }

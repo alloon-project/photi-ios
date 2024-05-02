@@ -70,18 +70,4 @@ extension RoundButton {
         return CGSize(width: 70, height: 34)
     }
   }
-  
-  func setAttributedTitleColor(_ color: UIColor) {
-    guard let currentAttributedTitle = self.attributedTitle(for: .normal) else {
-      return
-    }
-    
-    let attributedTitle = NSMutableAttributedString(attributedString: currentAttributedTitle)
-    attributedTitle.addAttribute(
-      .foregroundColor,
-      value: color, range: NSRange(location: 0, length: currentAttributedTitle.length)
-    )
-    
-    self.setAttributedTitle(attributedTitle, for: state)
-  }
 }
