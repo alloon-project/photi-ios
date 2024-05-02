@@ -1,5 +1,5 @@
 //
-//  ButtonState.swift
+//  ButtonMode.swift
 //  DesignSystem
 //
 //  Created by jung on 5/1/24.
