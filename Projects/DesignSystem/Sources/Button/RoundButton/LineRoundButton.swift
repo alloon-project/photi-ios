@@ -18,7 +18,7 @@ public final class LineRoundButton: RoundButton {
   public init(
     text: String,
     type: RoundButtonType,
-    size: RoundButtonSize
+    size: ButtonSize
   ) {
     self.type = type
     super.init(size: size)

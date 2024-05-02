@@ -10,13 +10,13 @@ import UIKit
 
 open class RoundButton: UIButton {
   /// Round Button의 size입니다.
-  public let size: RoundButtonSize
+  public let size: ButtonSize
   
   open override var intrinsicContentSize: CGSize {
     self.cgSize(for: size)
   }
   
-  public init(size: RoundButtonSize) {
+  public init(size: ButtonSize) {
     self.size = size
     super.init(frame: .zero)
   }
@@ -34,7 +34,7 @@ open class RoundButton: UIButton {
 
 // MARK: - Internal Methods
 extension RoundButton {
-  func cornerRadius(for size: RoundButtonSize) -> CGFloat {
+  func cornerRadius(for size: ButtonSize) -> CGFloat {
     switch size {
       case .xLarge, .large:
         return 16
@@ -47,7 +47,7 @@ extension RoundButton {
     }
   }
   
-  func font(for size: RoundButtonSize) -> UIFont {
+  func font(for size: ButtonSize) -> UIFont {
     switch size {
       case .xLarge, .large, .medium:
         return .body1
@@ -56,7 +56,7 @@ extension RoundButton {
     }
   }
   
-  func cgSize(for size: RoundButtonSize) -> CGSize {
+  func cgSize(for size: ButtonSize) -> CGSize {
     switch size {
       case .xLarge:
         return CGSize(width: 327, height: 56)
@@ -69,19 +69,5 @@ extension RoundButton {
       case .xSmall:
         return CGSize(width: 70, height: 34)
     }
-  }
-  
-  func setAttributedTitleColor(_ color: UIColor) {
-    guard let currentAttributedTitle = self.attributedTitle(for: .normal) else {
-      return
-    }
-    
-    let attributedTitle = NSMutableAttributedString(attributedString: currentAttributedTitle)
-    attributedTitle.addAttribute(
-      .foregroundColor,
-      value: color, range: NSRange(location: 0, length: currentAttributedTitle.length)
-    )
-    
-    self.setAttributedTitle(attributedTitle, for: state)
   }
 }
