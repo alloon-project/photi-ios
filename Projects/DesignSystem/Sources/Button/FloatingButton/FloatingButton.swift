@@ -17,7 +17,7 @@ public final class FloatingButton: UIButton {
   /// Floating Button의 type입니다.
   public let type: FloatingButtonType
   
-  /// Round Button의 mode입니다.
+  /// Floating Button의 mode입니다.
   public private(set) var mode: ButtonMode {
     didSet {
       setupUI(type: type, mode: mode)
