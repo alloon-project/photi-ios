@@ -10,8 +10,9 @@ import UIKit
 import RxCocoa
 import RxSwift
 
+/// Button이 포함된 TextField입니다.
 public final class ButtonTextField: LineTextField {
-  fileprivate let button: FilledRoundButton
+  public let button: FilledRoundButton
   
   public var buttonIsEnabled: Bool {
     get { button.isEnabled }
@@ -45,6 +46,7 @@ public final class ButtonTextField: LineTextField {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - Setup UI
   override func setupUI() {
     super.setupUI()
     
