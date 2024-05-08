@@ -7,14 +7,18 @@
 //
 
 import UIKit
+
 import Core
+
 import SnapKit
 
+//
 public final class PrimaryNavigationView: UIView {
   public let textType: PrimaryNavigationTextType
   public let iconType: PrimaryNavigationIconType
-  public let leftImageView = UIImageView(image: UIImage(systemName: "chevron.left"))
-  public let leftButton = UIButton(type: .custom)
+  public var leftImageView = UIImageView(image:
+                                          UIImage(systemName: "chevron.left")?
+                                          .withTintColor(.white, renderingMode: .alwaysOriginal))
   public var titleLabel = {
     let label = UILabel()
     label.textColor = .gray900
@@ -23,24 +27,6 @@ public final class PrimaryNavigationView: UIView {
     return label
   }()
   public let rightImageView = UIImageView()
-  public let rightButton = UIButton(type: .custom)
-
-  public var leftAction: (() -> Void)? {
-    didSet {
-      leftButton.addAction(UIAction { [weak self] _ in
-        if let action = self?.leftAction {
-          action()
-        }}, for: .touchUpInside)
-    }
-  }
-  public var rightAction: (() -> Void)? {
-    didSet {
-      rightButton.addAction(UIAction { [weak self] (action) in
-        if let leftAction = self?.leftAction {
-          leftAction()
-        }}, for: .touchUpInside)
-    }
-  }
   
   // MARK: - Initalizers
   public init(
@@ -69,6 +55,7 @@ private extension PrimaryNavigationView {
     makeIconType()
   }
   
+  // MARK: - Private Methods
   func makeTextType() {
     switch self.textType {
     case .none:
@@ -79,20 +66,13 @@ private extension PrimaryNavigationView {
       makeCenter()
     }
   }
+  
   func makeNone() {
-    guard let leftAction = self.leftAction else { return }
-    
     self.addSubview(leftImageView)
-    leftImageView.addSubview(leftButton)
-    
     leftImageView.snp.makeConstraints {
       $0.width.height.equalTo(32)
       $0.top.equalToSuperview().offset(12)
       $0.leading.equalToSuperview().offset(13)
-    }
-    leftButton.snp.makeConstraints {
-      $0.width.height.equalToSuperview()
-      $0.center.equalToSuperview()
     }
   }
   
@@ -107,16 +87,10 @@ private extension PrimaryNavigationView {
   
   func makeCenter() {
     self.addSubviews(leftImageView, titleLabel)
-    // 좌측 버튼 (버튼에 이미지를 직접 넣으면 다루기 복잡해져서 이미지 위에 투명 버튼 얹어서 사용)
-    leftImageView.addSubview(leftButton)
     leftImageView.snp.makeConstraints {
       $0.width.height.equalTo(32)
       $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(13)
-    }
-    leftButton.snp.makeConstraints {
-      $0.width.height.equalToSuperview()
-      $0.center.equalToSuperview()
     }
     
     titleLabel.snp.makeConstraints {
@@ -154,12 +128,6 @@ private extension PrimaryNavigationView {
       $0.width.height.equalTo(32)
       $0.top.equalToSuperview().offset(12)
       $0.trailing.equalToSuperview().offset(-13)
-    }
-    
-    rightImageView.addSubview(rightButton)
-    rightButton.snp.makeConstraints {
-      $0.width.height.equalToSuperview()
-      $0.center.equalToSuperview()
     }
   }
 }
