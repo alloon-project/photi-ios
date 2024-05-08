@@ -13,7 +13,7 @@ import Core
 /// Icon과 Text가 같이 있는 버튼입니다.
 public final class IconTextButton: UIButton {
   /// Icon Text Button의 size입니다.
-  public  let size: ButtonSize
+  public let size: ButtonSize
  
   /// Icon Text Button의 text입니다.
   public var text: String {
