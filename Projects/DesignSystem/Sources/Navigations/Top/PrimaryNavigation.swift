@@ -12,13 +12,15 @@ import Core
 
 import SnapKit
 
-//
+/// 앱 상단에 삽입되는 PrimaryNavigationView 입니다.
 public final class PrimaryNavigationView: UIView {
+  /// text의 타입을 나타냅니다
   public let textType: PrimaryNavigationTextType
+  /// icon의 타입을 나타냅니다.
   public let iconType: PrimaryNavigationIconType
   public var leftImageView = UIImageView(image:
-                                          UIImage(systemName: "chevron.left")?
-                                          .withTintColor(.white, renderingMode: .alwaysOriginal))
+                                          UIImage(resource: .leftBackButton))
+  /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   public var titleLabel = {
     let label = UILabel()
     label.textColor = .gray900
@@ -56,6 +58,7 @@ private extension PrimaryNavigationView {
   }
   
   // MARK: - Private Methods
+  /// TextType에 맞추어 좌/우 버튼 종류 & 타이틀의 배치를 결정합니다.
   func makeTextType() {
     switch self.textType {
     case .none:
@@ -99,7 +102,7 @@ private extension PrimaryNavigationView {
       $0.trailing.equalToSuperview().offset(-58)
     }
   }
-  
+  /// Icon Type 에 맞추어 우측 버튼의 유무를 결정합니다.
   func makeIconType() {
     switch self.iconType {
     case .one:
@@ -118,7 +121,7 @@ private extension PrimaryNavigationView {
     case .none:
       rightImageView.image = UIImage(resource: .ellipsisVertical)
     case .left:
-      rightImageView.image = UIImage(systemName: "magnifyingglass")
+      rightImageView.image = UIImage(resource: .iconSearch)
     case .center:
       rightImageView.image = UIImage(resource: .ellipsisVertical)
     }

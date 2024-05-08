@@ -8,8 +8,6 @@
 	<string>Launch Screen</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
 	<key>CFBundleVersion</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleExecutable</key>
