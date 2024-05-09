@@ -11,13 +11,17 @@ import Core
 import SnapKit
 
 /// 앱 상단에 삽입되는 PrimaryNavigationView 입니다.
+///
+/// default Color type은 dark 입니다.
 public final class PrimaryNavigationView: UIView {
   /// text의 타입을 나타냅니다
   public let textType: PrimaryNavigationTextType
   /// icon의 타입을 나타냅니다.
   public let iconType: PrimaryNavigationIconType
+  /// 컴포넌트의 컬러 타입을 나타냅니다. (default : dark)
+  public let colorType : PrimaryNavigationColorType
   public var leftImageView = UIImageView(image:
-                                          UIImage(resource: .leftBackButton))
+                                          UIImage(resource: .leftBackButtonDark))
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   public var titleLabel = {
     let label = UILabel()
@@ -32,10 +36,12 @@ public final class PrimaryNavigationView: UIView {
   public init(
     textType: PrimaryNavigationTextType, 
     iconType: PrimaryNavigationIconType,
+    colorType: PrimaryNavigationColorType = .dark,
     titleText: String?
   ) {
     self.textType = textType
     self.iconType = iconType
+    self.colorType = colorType
     self.titleLabel.text = titleText
     super.init(frame: .zero)
     
@@ -53,6 +59,7 @@ private extension PrimaryNavigationView {
   func setupUI() {
     makeTextType()
     makeIconType()
+    makeColorType()
   }
   
   // MARK: - Private Methods
@@ -115,11 +122,11 @@ private extension PrimaryNavigationView {
   func makeTwo() {
     switch self.textType {
     case .none:
-      rightImageView.image = UIImage(resource: .ellipsisVertical)
+      rightImageView.image = self.colorType == .light ? UIImage(resource: .ellipsisVerticalLight) : UIImage(resource: .ellipsisVerticalDark)
     case .left:
-      rightImageView.image = UIImage(resource: .iconSearch)
+      rightImageView.image = self.colorType == .light ? UIImage(resource: .iconSearchLight) : UIImage(resource: .iconSearchDark)
     case .center:
-      rightImageView.image = UIImage(resource: .ellipsisVertical)
+      rightImageView.image = self.colorType == .light ? UIImage(resource: .ellipsisVerticalLight) : UIImage(resource: .ellipsisVerticalDark)
     }
     
     self.addSubview(rightImageView)
@@ -127,6 +134,18 @@ private extension PrimaryNavigationView {
       $0.width.height.equalTo(24)
       $0.top.equalToSuperview().offset(12)
       $0.trailing.equalToSuperview().offset(-13)
+    }
+  }
+  
+  /// Color Type 에 맞추어 색상을 결정합니다.
+  func makeColorType() {
+    switch self.colorType {
+    case .light:
+      leftImageView.image = UIImage(resource: .leftBackButtonLight)
+      titleLabel.textColor = .white
+    case .dark:
+      leftImageView.image = UIImage(resource: .leftBackButtonDark)
+      titleLabel.textColor = .gray900
     }
   }
 }

@@ -17,3 +17,9 @@ public enum PrimaryNavigationIconType {
   case one
   case two
 }
+
+/// PrimaryNavigation의 Color Type을 나타냅니다 (ex. Light, Dark)
+public enum PrimaryNavigationColorType {
+  case light
+  case dark
+}
