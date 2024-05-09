@@ -7,9 +7,7 @@
 //
 
 import UIKit
-
 import Core
-
 import SnapKit
 
 /// 앱 상단에 삽입되는 PrimaryNavigationView 입니다.
@@ -23,7 +21,7 @@ public final class PrimaryNavigationView: UIView {
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   public var titleLabel = {
     let label = UILabel()
-    label.textColor = .title
+    label.textColor = .gray900
     label.font = .body1Bold
     label.textAlignment = .center
     return label
@@ -39,7 +37,7 @@ public final class PrimaryNavigationView: UIView {
     self.textType = textType
     self.iconType = iconType
     self.titleLabel.text = titleText
-    super.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+    super.init(frame: .zero)
     
     setupUI()
   }
@@ -73,7 +71,7 @@ private extension PrimaryNavigationView {
   func makeNone() {
     self.addSubview(leftImageView)
     leftImageView.snp.makeConstraints {
-      $0.width.height.equalTo(32)
+      $0.width.height.equalTo(24)
       $0.top.equalToSuperview().offset(12)
       $0.leading.equalToSuperview().offset(13)
     }
@@ -108,14 +106,10 @@ private extension PrimaryNavigationView {
   func makeIconType() {
     switch self.iconType {
     case .one:
-      makeOne()
+      break
     case .two:
       makeTwo()
     }
-  }
-  
-  func makeOne() {
-    // 아직 내용 없음
   }
   
   func makeTwo() {
@@ -130,7 +124,7 @@ private extension PrimaryNavigationView {
     
     self.addSubview(rightImageView)
     rightImageView.snp.makeConstraints {
-      $0.width.height.equalTo(32)
+      $0.width.height.equalTo(24)
       $0.top.equalToSuperview().offset(12)
       $0.trailing.equalToSuperview().offset(-13)
     }

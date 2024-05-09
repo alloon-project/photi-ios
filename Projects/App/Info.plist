@@ -10,6 +10,8 @@
 	<true/>
 	<key>CFBundleVersion</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
