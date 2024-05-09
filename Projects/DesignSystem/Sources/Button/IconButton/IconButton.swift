@@ -7,17 +7,22 @@
 //
 
 import UIKit
+import Core
 
 /// Icon으로만 구성된 버튼입니다.
 public final class IconButton: UIButton {
   /// Icon Button의 size입니다.
   private let size: ButtonSize
   
+  public var selectedTintColor: UIColor = .alloonWhite
+  public var unSelectedTintColor: UIColor = .alloonWhite
+  
   /// 선택되었을 때의 이미지입니다.
   public var selectedIcon: UIImage {
     didSet {
       let imageSize = imageSize(for: size)
-      resizeSelectedIcon = selectedIcon.resize(imageSize).withTintColor(.alloonWhite)
+      resizeSelectedIcon = selectedIcon.resize(imageSize).withTintColor(selectedTintColor)
+      setImage(for: isSelected)
     }
   }
   
@@ -25,7 +30,8 @@ public final class IconButton: UIButton {
   public var unSelectedIcon: UIImage {
     didSet {
       let imageSize = imageSize(for: size)
-      resizeUnSelectedIcon = unSelectedIcon.resize(imageSize).withTintColor(.alloonWhite)
+      resizeUnSelectedIcon = unSelectedIcon.resize(imageSize).withTintColor(unSelectedTintColor)
+      setImage(for: isSelected)
     }
   }
   
@@ -98,8 +104,8 @@ public final class IconButton: UIButton {
     self.configuration = config
     
     let imageSize = imageSize(for: size)
-    self.selectedIcon = selectedIcon.resize(imageSize).withTintColor(.alloonWhite)
-    self.unSelectedIcon = unSelectedIcon.resize(imageSize).withTintColor(.alloonWhite)
+    self.selectedIcon = selectedIcon.resize(imageSize).withTintColor(selectedTintColor)
+    self.unSelectedIcon = unSelectedIcon.resize(imageSize).withTintColor(unSelectedTintColor)
     
     setImage(for: isSelected)
   }
