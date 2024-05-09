@@ -23,7 +23,7 @@ public final class PrimaryNavigationView: UIView {
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   public var titleLabel = {
     let label = UILabel()
-    label.textColor = .gray900
+    label.textColor = .title
     label.font = .body1Bold
     label.textAlignment = .center
     return label
@@ -86,6 +86,8 @@ private extension PrimaryNavigationView {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-56)
     }
+    titleLabel.textAlignment = .left
+    titleLabel.font = .heading1
   }
   
   func makeCenter() {

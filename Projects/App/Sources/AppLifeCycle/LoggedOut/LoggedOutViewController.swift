@@ -14,7 +14,7 @@ import DesignSystem
 
 final class LoggedOutViewController: UIViewController {
   private let navigations = PrimaryNavigationView(
-    textType: .center,
+    textType: .left,
     iconType: .two,
     titleText: "테스트"
   )
