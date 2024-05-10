@@ -19,6 +19,8 @@ public final class ToastView: UIView {
     case rightTop, rightBottom
   }
   
+  /// toastView를 띄울 Constraint를 적용합니다.
+  private var toastViewConstraints: ((ConstraintMaker) -> Void)?
   private let tipPosition: TipPosition
   private let text: String
   private let icon: UIImage
@@ -123,6 +125,37 @@ private extension ToastView {
         
       default: break
     }
+  }
+}
+
+// MARK: - Public Methods
+public extension ToastView {
+  func setConstraints(_ closure: @escaping (_ make: ConstraintMaker) -> Void) {
+    self.toastViewConstraints = closure
+  }
+  
+  func present(
+    to viewController: UIViewController,
+    animted: Bool,
+    duration: CGFloat = 3.0,
+    completion: (() -> Void)? = nil
+  ) {
+    guard let constraint = toastViewConstraints else { return }
+    
+    viewController.view.addSubview(self)
+    self.snp.makeConstraints(constraint)
+    
+    UIView.animate(
+      withDuration: 0.4,
+      delay: duration,
+      options: .curveEaseOut,
+      animations: {
+        self.alpha = 0.0
+      },
+      completion: { _ in
+        self.removeFromSuperview()
+        completion?()
+      })
   }
 }
 
