@@ -126,8 +126,8 @@ private extension AlertViewController {
     
     // subTitle이 존재하는 경우, subTitleLabel의 bottom으로
     // 반대의 경우 mainTitleLabel의 bottom으로 지정합니다.
-    var buttonConstraintTarget = (subTitle == nil) ? mainTitleLabel.snp.bottom : subTitleLabel.snp.bottom
-    var buttonOffset = (subTitle == nil) ? 24 : 32
+    let buttonConstraintTarget = (subTitle == nil) ? mainTitleLabel.snp.bottom : subTitleLabel.snp.bottom
+    let buttonOffset = (subTitle == nil) ? 24 : 32
     
     switch type {
       case .confirm:
