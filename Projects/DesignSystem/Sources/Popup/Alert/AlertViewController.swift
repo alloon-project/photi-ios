@@ -7,10 +7,11 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 
-/// alertViewController입니다.
 final public class AlertViewController: UIViewController {
   // MARK: - AlertType
   /// Alert의 버튼 갯수를 정의합니다.
@@ -20,6 +21,7 @@ final public class AlertViewController: UIViewController {
   }
   
   // MARK: - Properties
+  private let disposeBag = DisposeBag()
   private let type: AlertType
   private let mainTitle: String
   private let subTitle: String?
@@ -68,6 +70,7 @@ final public class AlertViewController: UIViewController {
     
     super.init(nibName: nil, bundle: nil)
     setupUI()
+    bind()
   }
   
   @available(*, unavailable)
@@ -78,7 +81,7 @@ final public class AlertViewController: UIViewController {
 
 // MARK: - UI Methods
 private extension AlertViewController {
-  func setupUI() { 
+  func setupUI() {
     setViewHierarchy(for: type)
     setConstraints(for: type)
     
@@ -147,6 +150,25 @@ private extension AlertViewController {
   }
 }
 
+// MARK: - Bind Methods
+private extension AlertViewController {
+  func bind() {
+    confirmButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.confirmButtonDidTap()
+      }
+      .disposed(by: disposeBag)
+    
+    if case .canCancel = type {
+      cancelButton.rx.tap
+        .bind(with: self) { owner, _ in
+          owner.confirmButtonDidTap()
+        }
+        .disposed(by: disposeBag)
+    }
+  }
+}
+
 // MARK: - Public Methods
 public extension AlertViewController {
   func present(
@@ -184,5 +206,24 @@ private extension AlertViewController {
       font: .body2,
       color: .gray600
     )
+  }
+  
+  func confirmButtonDidTap() {
+    self.dismiss(animated: true)
+  }
+  
+  func cancelButtonDidTap() {
+    self.dismiss(animated: true)
+  }
+}
+
+// MARK: - Reactive Extension
+public extension Reactive where Base: AlertViewController {
+  var didTapConfirmButton: ControlEvent<Void> {
+    return base.confirmButton.rx.tap
+  }
+  
+  var didTapCancelButton: ControlEvent<Void> {
+    return base.cancelButton.rx.tap
   }
 }
