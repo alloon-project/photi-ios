@@ -60,6 +60,5 @@ private extension IconTextField {
   func setIconView(_ icon: UIImage) {
     imageView.image = icon.resize(CGSize(width: 16, height: 16)).withTintColor(.gray600)
     imageView.contentMode = .center
-    
   }
 }
