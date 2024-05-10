@@ -29,6 +29,7 @@ public final class ToastView: UIView {
   private let label = UILabel()
   private let iconView = UIImageView()
   private lazy var tipView: TipView? = nil
+  private var isRemoved = false
   
   // MARK: - Initializers
   public init(
@@ -48,6 +49,12 @@ public final class ToastView: UIView {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  // MARK: - UIResponder Override
+  public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+    self.remove()
+  }
 }
 
 // MARK: - UI Methods
@@ -58,7 +65,7 @@ private extension ToastView {
     setTipView(for: tipPosition)
     setIconView(icon)
     setLabel(text)
-
+    
     setViewHierarchy()
     setConstraints(for: tipPosition)
   }
@@ -92,7 +99,7 @@ private extension ToastView {
           $0.centerX.equalToSuperview()
           $0.bottom.equalTo(self.snp.top).offset(5)
         }
-    
+        
       case .leftTop:
         tipView.snp.makeConstraints {
           $0.leading.equalToSuperview().offset(32)
@@ -142,20 +149,15 @@ public extension ToastView {
   ) {
     guard let constraint = toastViewConstraints else { return }
     
+    self.isRemoved = false
     viewController.view.addSubview(self)
     self.snp.makeConstraints(constraint)
     
-    UIView.animate(
-      withDuration: 0.4,
-      delay: duration,
-      options: .curveEaseOut,
-      animations: {
-        self.alpha = 0.0
-      },
-      completion: { _ in
-        self.removeFromSuperview()
-        completion?()
-      })
+    DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+      guard let self else { return }
+    
+      self.remove(completion)
+    }
   }
 }
 
@@ -182,5 +184,17 @@ private extension ToastView {
     iconView.contentMode = .scaleAspectFit
     iconView.image = icon
     iconView.tintColor = .gray200
+  }
+  
+  func remove(_ completion: (() -> Void)? = nil) {
+    guard !isRemoved else { return }
+    
+    self.isRemoved = true
+    UIView.animate(withDuration: 0.4) {
+      self.alpha = 0.0
+    } completion: { _ in
+      self.removeFromSuperview()
+      completion?()
+    }
   }
 }
