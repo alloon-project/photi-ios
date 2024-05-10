@@ -7,10 +7,10 @@
 //
 
 import UIKit
-
 final class AppViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
-    print("viewDidLoad")
+    self.navigationController?.setNavigationBarHidden(true, animated: false)
+    print("App VC viewDidLoad")
   }
 }

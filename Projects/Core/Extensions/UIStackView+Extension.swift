@@ -1,5 +1,5 @@
 //
-//  UIStackView+Exntension.swift
+//  UIStackView+Extension.swift
 //  Core
 //
 //  Created by jung on 4/30/24.
