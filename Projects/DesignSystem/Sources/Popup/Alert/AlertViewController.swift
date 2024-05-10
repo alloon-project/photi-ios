@@ -147,6 +147,29 @@ private extension AlertViewController {
   }
 }
 
+// MARK: - Public Methods
+public extension AlertViewController {
+  func present(
+    to viewController: UIViewController,
+    animted: Bool,
+    completion: (() -> Void)? = nil
+  ) {
+    self.modalPresentationStyle = .overFullScreen
+    self.modalTransitionStyle = .crossDissolve
+    viewController.present(self, animated: true, completion: completion)
+  }
+  
+  func setConfirmButtonText(_ text: String, for state: UIControl.State) {
+    confirmButton.setText(text, for: state)
+  }
+  
+  func setCancelButtonText(_ text: String, for state: UIControl.State) {
+    guard case .canCancel = type else { return }
+    
+    cancelButton.setText(text, for: state)
+  }
+}
+
 // MARK: - Private Methods
 private extension AlertViewController {
   func setMainTitle(_ text: String) {
