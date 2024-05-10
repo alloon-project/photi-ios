@@ -10,6 +10,7 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import DesignSystem
 
 final class LoggedOutViewController: UIViewController {
   override func viewDidLoad() {
