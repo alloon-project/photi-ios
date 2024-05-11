@@ -25,7 +25,7 @@ public final class ButtonTextField: LineTextField {
     type: TextFieldType,
     mode: TextFieldMode = .default
   ) {
-    self.button = FilledRoundButton(text: buttonText, type: .primary, size: .xSmall)
+    self.button = FilledRoundButton(type: .primary, size: .xSmall, text: buttonText)
     super.init(type: type, mode: mode)
   }
   
