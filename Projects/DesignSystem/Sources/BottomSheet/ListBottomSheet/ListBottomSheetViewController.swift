@@ -73,7 +73,7 @@ public final class ListBottomSheetViewController: BottomSheetViewController {
   
   // MARK: - Initializers
   public init(
-    title: String,
+    title: String = "",
     button: String = "확인",
     dataSource: [String] = []
   ) {
