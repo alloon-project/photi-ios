@@ -103,6 +103,9 @@ private extension ListBottomSheetViewController {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
+    
+    setTitleLabel(titleText)
+    button.setText(buttonText, for: .normal)
   }
   
   func setViewHierarchy() {
