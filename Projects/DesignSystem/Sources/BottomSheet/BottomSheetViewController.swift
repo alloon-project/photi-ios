@@ -41,7 +41,7 @@ open class BottomSheetViewController: UIViewController {
   /// 내부 Content가 들어있는 View입니다.
   open var contentView = UIView()
   
-  // MARK: - View Life Cycles
+  // MARK: - Life Cycles
   open override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
