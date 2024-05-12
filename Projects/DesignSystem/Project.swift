@@ -18,6 +18,7 @@ let project = Project.make(
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
 			dependencies: [
+				.Project.Core,
 				.SPM.RxCocoa,
 				.SPM.RxSwift,
 				.SPM.SnapKit
