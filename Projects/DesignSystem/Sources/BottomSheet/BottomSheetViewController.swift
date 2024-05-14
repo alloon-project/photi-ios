@@ -84,9 +84,9 @@ private extension BottomSheetViewController {
   func setConstraints() {
     dimmedView.snp.makeConstraints { $0.edges.equalToSuperview() }
     
-    mainContainerView.snp.makeConstraints { make in
-      make.top.greaterThanOrEqualToSuperview().offset(minTopSpacing)
-      make.leading.trailing.bottom.equalToSuperview()
+    mainContainerView.snp.makeConstraints {
+      $0.top.greaterThanOrEqualToSuperview().offset(minTopSpacing)
+      $0.leading.trailing.bottom.equalToSuperview()
     }
   }
 }
