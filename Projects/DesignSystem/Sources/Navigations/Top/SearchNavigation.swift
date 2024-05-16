@@ -7,15 +7,19 @@
 //
 
 import UIKit
+import RxCocoa
+import RxGesture
+import RxSwift
 import SnapKit
+import Core
 
 public class SearchNavigation: UIView {
-  public var leftBackButtonImage = {
+  fileprivate let leftBackButtonImage = {
     var imageView = UIImageView()
     imageView.image = UIImage(resource: .leftBackButtonDark).resize(CGSize(width: 24, height: 24))
     return imageView
   }()
-  public var searchBar: AlloonSearchBar
+  fileprivate let searchBar: AlloonSearchBar
   
   public init(placeholder: String = "",
               text: String = "") {
@@ -33,6 +37,7 @@ private extension SearchNavigation {
   // MARK: - Setup UI
   func setupUI() {
     self.addSubviews(leftBackButtonImage, searchBar)
+    
     leftBackButtonImage.snp.makeConstraints {
       $0.width.height.equalTo(32)
       $0.centerY.equalToSuperview()
@@ -46,5 +51,16 @@ private extension SearchNavigation {
       $0.top.equalToSuperview().offset(5)
       $0.bottom.equalToSuperview().offset(-5)
     }
+  }
+}
+
+public extension Reactive where Base: SearchNavigation {
+  var leftBackButtonDidTap: ControlEvent<Void> {
+    let source = base.leftBackButtonImage.rx.tapGesture().when(.recognized).map { _ in }
+    return .init(events: source)
+  }
+  
+  var searchButtonDidTap: ControlEvent<Void> {
+    return base.searchBar.rx.searchButtonClicked
   }
 }
