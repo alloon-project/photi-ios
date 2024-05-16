@@ -12,11 +12,13 @@ public extension String {
   func attributedString(
     font: UIFont,
     color: UIColor,
+    alignment: NSTextAlignment = .left,
     letterSpacing: CGFloat = -0.025,
     lineHeight: CGFloat? = nil
   ) -> NSAttributedString {
     let lineHeight = lineHeight ?? font.lineHeight
     let paragraphStyle = NSMutableParagraphStyle()
+    paragraphStyle.alignment = alignment
     paragraphStyle.maximumLineHeight = lineHeight
     paragraphStyle.minimumLineHeight = lineHeight
     
