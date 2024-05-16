@@ -13,6 +13,7 @@ import RxSwift
 import SnapKit
 import Core
 
+/// 앱 상단에 들어가는 검색가능한 NavigationView 입니다.
 public class SearchNavigation: UIView {
   fileprivate let leftBackButtonImage = {
     var imageView = UIImageView()
@@ -21,6 +22,7 @@ public class SearchNavigation: UIView {
   }()
   fileprivate let searchBar: AlloonSearchBar
   
+  // MARK: - Initializers
   public init(placeholder: String = "",
               text: String = "") {
     self.searchBar = AlloonSearchBar(placeholder: placeholder, text: text)
@@ -54,6 +56,7 @@ private extension SearchNavigation {
   }
 }
 
+// MARK: - Reactive Extension
 public extension Reactive where Base: SearchNavigation {
   var leftBackButtonDidTap: ControlEvent<Void> {
     let source = base.leftBackButtonImage.rx.tapGesture().when(.recognized).map { _ in }
