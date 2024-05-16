@@ -15,7 +15,7 @@ public final class FilledRoundButton: RoundButton {
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
-  public private(set) var mode: ButtonMode {
+  public var mode: ButtonMode {
     didSet {
       setupUI(type: type, mode: mode)
     }
