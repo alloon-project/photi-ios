@@ -41,4 +41,12 @@ public extension String {
     let index = self.index(self.startIndex, offsetBy: count)
     return String(self[..<index])
   }
+  
+  func toDate(_ dateFormat: String = "YYYY.MM.dd") -> Date? {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = dateFormat
+    dateFormatter.timeZone = TimeZone(identifier: "UTC")
+    
+    return dateFormatter.date(from: self)
+  }
 }
