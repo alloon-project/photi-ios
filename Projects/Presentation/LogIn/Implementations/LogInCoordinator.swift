@@ -21,15 +21,21 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   private let signUpContainable: SignUpContainable
   private var signUpCoordinator: Coordinating?
   
+  private let findIdContainable: FindIdContainable
+  private var findIdCoordinator: Coordinating?
+  
   private let findPasswordContainable: FindPasswordContainable
   private var findPasswordCoordinator: Coordinating?
   
   init(
     signUpContainable: SignUpContainable,
+    findIdContainable: FindIdContainable,
     findPasswordContainable: FindPasswordContainable
   ) {
     self.signUpContainable = signUpContainable
+    self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
+    
     self.viewController = LogInViewController()
     self.viewModel = LogInViewModel()
     super.init()
@@ -56,6 +62,24 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
     
     removeChild(coordinater)
     self.signUpCoordinator = nil
+  }
+  
+  // MARK: - FindId
+  func attachFindId() { 
+    guard findIdCoordinator == nil else { return }
+    
+    let coordinater = findIdContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.findIdCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachFindId() { 
+    guard let coordinater = findIdCoordinator else { return }
+    
+    removeChild(coordinater)
+    self.findIdCoordinator = nil
   }
   
   // MARK: - FindPassword
@@ -86,3 +110,6 @@ extension LogInCoordinator: FindPasswordListener {
     print("didFinish")
   }
 }
+
+// MARK: - FindIdListener
+extension LogInCoordinator: FindIdListener { }

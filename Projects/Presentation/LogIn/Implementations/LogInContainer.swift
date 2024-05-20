@@ -16,12 +16,15 @@ public protocol LogInDependency: Dependency {
 public final class LogInContainer:
   Container<LogInDependency>,
   LogInContainable,
+  FindIdDependency,
   FindPasswordDependency {
   public func coordinator(listener: LogInListener) -> Coordinating {
+    let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
     
     let coordinator = LogInCoordinator(
       signUpContainable: dependency.signUpContainable,
+      findIdContainable: findId,
       findPasswordContainable: findPassword
     )
     coordinator.listener = listener
