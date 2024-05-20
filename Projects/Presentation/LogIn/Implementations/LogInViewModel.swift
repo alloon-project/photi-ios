@@ -11,6 +11,8 @@ import RxSwift
 protocol LogInCoordinatable {
   func attachSignUp()
   func detachSignUp() 
+  func attachFindPassword()
+  func detachFindPassword()
 }
 
 // Input, Output ViewModel
