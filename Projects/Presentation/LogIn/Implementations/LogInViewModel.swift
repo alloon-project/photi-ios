@@ -8,7 +8,10 @@
 
 import RxSwift
 
-protocol LogInCoordinatable { }
+protocol LogInCoordinatable {
+  func attachSignUp()
+  func detachSignUp() 
+}
 
 // Input, Output ViewModel
 protocol LogInViewModelType: LogInViewModelable {

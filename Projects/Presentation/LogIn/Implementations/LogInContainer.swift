@@ -9,11 +9,13 @@
 import Core
 import LogIn
 
-public protocol LogInDependency: Dependency { }
+public protocol LogInDependency: Dependency { 
+  var signUpContainable: SignUpContainable { get }
+}
 
 public final class LogInContainer: Container<LogInDependency>, LogInContainable {
   public func coordinator(listener: LogInListener) -> Coordinating {
-    let coordinator = LogInCoordinator()
+    let coordinator = LogInCoordinator(signUpContainable: dependency.signUpContainable)
     coordinator.listener = listener
     return coordinator
   }

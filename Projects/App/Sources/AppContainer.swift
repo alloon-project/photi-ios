@@ -21,7 +21,8 @@ final class AppContainer:
   AppContainable,
   LoggedInDependency,
   LoggedOutDependency,
-  LogInDependency {
+  LogInDependency,
+  SignUpDependency {
   func coordinator() -> Coordinating {
     return AppCoordinator(
       loggedInContainer: LoggedInContainer(dependency: self),
@@ -31,5 +32,9 @@ final class AppContainer:
   
   lazy var logInContainable: LogInContainable = {
     return LogInContainer(dependency: self)
+  }()
+  
+  lazy var signUpContainable: SignUpContainable = {
+    return SignUpContainer(dependency: self)
   }()
 }
