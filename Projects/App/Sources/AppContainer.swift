@@ -7,6 +7,8 @@
 //
 
 import Core
+import LogIn
+import LogInImpl
 
 final class AppDependency: Dependency { }
 
@@ -18,11 +20,16 @@ final class AppContainer:
   Container<AppDependency>,
   AppContainable,
   LoggedInDependency,
-  LoggedOutDependency {
+  LoggedOutDependency,
+  LogInDependency {
   func coordinator() -> Coordinating {
     return AppCoordinator(
       loggedInContainer: LoggedInContainer(dependency: self),
       loggedOutContainer: LoggedOutContainer(dependency: self)
     )
   }
+  
+  lazy var logInContainable: LogInContainable = {
+    return LogInContainer(dependency: self)
+  }()
 }

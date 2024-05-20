@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import LogIn
 
 protocol LoggedOutListener: AnyObject {
   func didFinishLoggedOut()
@@ -18,7 +19,11 @@ final class LoggedOutCoordinator: Coordinator {
   
   private let viewController: LoggedOutViewController
   
-  override init() {
+  private let logInContainable: LogInContainable
+  private var logInCoordinater: Coordinating?
+  
+  init(logInContainable: LogInContainable) {
+    self.logInContainable = logInContainable
     self.viewController = LoggedOutViewController()
     super.init()
   }
@@ -26,11 +31,33 @@ final class LoggedOutCoordinator: Coordinator {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     
-    navigationController?.pushViewController(viewController, animated: true)
+    navigationController?.pushViewController(viewController, animated: false)
+    
+    attachLogIn()
   }
   
   override func stop() {
     super.stop()
     listener?.didFinishLoggedOut()
   }
+  
+  func attachLogIn() {
+    guard logInCoordinater == nil else { return }
+    
+    let coordinater = logInContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.logInCoordinater = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachLogIn() {
+    guard let coordinater = logInCoordinater else { return }
+    
+    removeChild(coordinater)
+    self.logInCoordinater = nil
+  }
 }
+
+// MARK: - LogInListener
+extension LoggedOutCoordinator: LogInListener { }
