@@ -15,6 +15,8 @@ open class BottomSheetViewController: UIViewController {
   /// 외부화면을 터치하거나,  swip down 제스쳐를 통해 종료한 경우 이벤트가 방출됩니다.
   public let didDismiss = PublishRelay<Void>()
   
+  var isKeyboardDisplay: Bool = false
+  
   // MARK: - Constants
   /// BottomSheet의 최대 height를 정의합니다.
   /// screen.height - minTopSpacing
@@ -28,6 +30,7 @@ open class BottomSheetViewController: UIViewController {
     view.backgroundColor = .white
     view.layer.cornerRadius = 20
     view.clipsToBounds = true
+    view.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMinYCorner]
     
     return view
   }()
@@ -102,8 +105,12 @@ private extension BottomSheetViewController {
   }
   
   @objc func didTapDimmedView() {
-    dismissBottomSheet()
-    didDismiss.accept(())
+    if isKeyboardDisplay {
+      view.endEditing(true)
+    } else {
+      dismissBottomSheet()
+      didDismiss.accept(())
+    }
   }
   
   @objc func didPanMainContainerView(_ gesture: UIPanGestureRecognizer) {
