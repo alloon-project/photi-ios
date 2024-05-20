@@ -8,17 +8,22 @@
 
 import RxSwift
 
-protocol FindIdCoordinatable { }
+protocol FindIdCoordinatable: AnyObject {
+  // viewModel에서 coordinator로 전달할 이벤트들을 정의합니다.
+}
 
-protocol FindIdViewModelType: FindIdViewModelable {
+protocol FindIdViewModelType: AnyObject, FindIdViewModelable {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
+  var coordinator: FindIdCoordinatable? { get set }
 }
 
 final class FindIdViewModel: FindIdViewModelType {
   let disposeBag = DisposeBag()
+  
+  weak var coordinator: FindIdCoordinatable?
   
   // MARK: - Input
   struct Input { }

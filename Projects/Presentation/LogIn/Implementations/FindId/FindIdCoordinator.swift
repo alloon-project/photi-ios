@@ -10,9 +10,13 @@ import UIKit
 import Core
 import LogIn
 
-protocol FindIdViewModelable { }
+protocol FindIdViewModelable {
+  // Coordinator에서 ViewModel로 전달할 이벤트입니다.
+}
 
-protocol FindIdListener: AnyObject { }
+protocol FindIdListener: AnyObject {
+  // 부모 Coordinator에게 알릴 이벤트를 정의합니다 ex) func didFinishFindId()
+}
 
 final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
   weak var listener: FindIdListener?
@@ -24,6 +28,7 @@ final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
     self.viewController = FindIdViewController()
     self.viewModel = FindIdViewModel()
     super.init()
+    viewModel.coordinator = self
   }
   
   override func start(at navigationController: UINavigationController?) {
