@@ -50,9 +50,9 @@ extension RoundButton {
   func font(for size: ButtonSize) -> UIFont {
     switch size {
       case .xLarge, .large, .medium:
-        return .body1
+        return .body1Bold
       case .small, .xSmall:
-        return .body2
+        return .body2Bold
     }
   }
   

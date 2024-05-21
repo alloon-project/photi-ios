@@ -132,6 +132,10 @@ extension AlloonTextField {
       color: .gray400
     )
   }
+  
+  func removeDefaultTarget() {
+    self.removeTarget(self, action: #selector(textDidChange), for: .editingChanged)
+  }
 }
 
 // MARK: - Private Extensions
