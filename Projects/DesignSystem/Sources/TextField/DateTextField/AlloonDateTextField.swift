@@ -19,8 +19,13 @@ final class AlloonDateTextField: AlloonTextField {
   override func closestPosition(to point: CGPoint) -> UITextPosition? {
     let beginning = self.beginningOfDocument
     let textcount = currentText.isEmpty ? 0 : currentText.count
-    let end = self.position(from: beginning, offset: textcount)
+
+    let position = self.position(from: beginning, offset: textcount)
     
-    return end
+    if let position = position {
+      self.selectedTextRange = textRange(from: position, to: position)
+    }
+    
+    return position
   }
 }
