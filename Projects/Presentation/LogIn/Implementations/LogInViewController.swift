@@ -15,6 +15,15 @@ import Core
 final class LogInViewController: UIViewController {
   private let disposeBag = DisposeBag()
   
+  private lazy var input = LogInViewModel.Input(
+    id: idTextField.rx.text,
+    password: passwordTextField.rx.text,
+    didTapLoginButton: loginButton.rx.tap,
+    didTapFindIdButton: findView.rx.didTapFindIdButton,
+    didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,
+    didTapSignUpButton: signUpButton.rx.tap
+  )
+  
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "로그인")
   private let idTextField = LineTextField(placeholder: "아이디를 입력해주세요.", type: .helper)
