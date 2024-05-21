@@ -19,10 +19,15 @@ let project = Project.make(
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
 			dependencies: [
+				.Project.Presentation.Home,
 				.Project.Presentation.HomeImpl,
+				.Project.Presentation.MyMission,
 				.Project.Presentation.MyMissionImpl,
+				.Project.Presentation.MyPage,
 				.Project.Presentation.MyPageImpl,
+				.Project.Presentation.OnBoarding,
 				.Project.Presentation.OnBoardingImpl,
+				.Project.Presentation.LogIn,
 				.Project.Presentation.LogInImpl,
 				.Project.Domain.UseCaseImpl,
 				.Project.Data.RepositoryImpl
@@ -45,10 +50,15 @@ let project = Project.make(
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
 			dependencies: [
+				.Project.Presentation.Home,
 				.Project.Presentation.HomeImpl,
+				.Project.Presentation.MyMission,
 				.Project.Presentation.MyMissionImpl,
+				.Project.Presentation.MyPage,
 				.Project.Presentation.MyPageImpl,
+				.Project.Presentation.OnBoarding,
 				.Project.Presentation.OnBoardingImpl,
+				.Project.Presentation.LogIn,
 				.Project.Presentation.LogInImpl,
 				.Project.Domain.UseCaseImpl,
 				.Project.Data.RepositoryImpl

@@ -7,8 +7,11 @@
 //
 
 import Core
+import LogIn
 
-protocol LoggedOutDependency: Dependency { }
+protocol LoggedOutDependency: Dependency { 
+  var logInContainable: LogInContainable { get }
+}
 
 protocol LoggedOutContainable: Containable {
   func coordinator(listener: LoggedOutListener) -> Coordinating
@@ -16,7 +19,10 @@ protocol LoggedOutContainable: Containable {
 
 final class LoggedOutContainer: Container<LoggedOutDependency>, LoggedOutContainable {
   func coordinator(listener: LoggedOutListener) -> Coordinating {
-    let coordinator = LoggedOutCoordinator()
+    let coordinator = LoggedOutCoordinator(
+      logInContainable: dependency.logInContainable
+    )
+    
     coordinator.listener = listener
     
     return coordinator
