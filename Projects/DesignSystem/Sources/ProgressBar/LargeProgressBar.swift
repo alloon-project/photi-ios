@@ -12,31 +12,24 @@ import SnapKit
 /// Large Size에 해당하는 Progress Bar입니다.
 ///
 /// ![LargeProgressBar](LargeProgressBar)
-public final class LargeProgressBar: UIView {
+public final class LargeProgressBar: UIProgressView {
   /// 현재 ProgressBar의 step 값입니다. 변경시 UI도 변경적용됩니다.
   public var step: AlloonProgressStep = .one {
     didSet {
       switch step {
       case .one:
-        progressView.setProgress(0.2, animated: false)
+        self.setProgress(0.2, animated: true)
       case .two:
-        progressView.setProgress(0.4, animated: false)
+        self.setProgress(0.4, animated: true)
       case .three:
-        progressView.setProgress(0.6, animated: false)
+        self.setProgress(0.6, animated: true)
       case .four:
-        progressView.setProgress(0.8, animated: false)
+        self.setProgress(0.8, animated: true)
       case .five:
-        progressView.setProgress(1.0, animated: false)
+        self.setProgress(1.0, animated: true)
       }
     }
   }
-  
-  private let progressView: UIProgressView = {
-    let progressView = UIProgressView()
-    progressView.trackTintColor = .gray200
-    progressView.progressTintColor = .green400
-    return progressView
-  }()
   
   // MARK: - Initializers
   public init() {
@@ -52,17 +45,7 @@ public final class LargeProgressBar: UIView {
 // MARK: - Private Methods
 private extension LargeProgressBar {
   func setupUI() {
-    setViewHierarchy()
-    setConstraints()
-  }
-  
-  func setViewHierarchy() {
-    self.addSubview(progressView)
-  }
-  
-  func setConstraints() {
-    progressView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
+    self.trackTintColor = .gray200
+    self.progressTintColor = .green400
   }
 }
