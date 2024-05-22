@@ -91,6 +91,7 @@ private extension PrimaryNavigationView {
     titleLabel.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-54)
     }
   }
   
