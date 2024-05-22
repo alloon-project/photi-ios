@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
 protocol LogInCoordinatable {
@@ -29,7 +30,14 @@ class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
   
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let id: ControlProperty<String>
+    let password: ControlProperty<String>
+    let didTapLoginButton: ControlEvent<Void>
+    let didTapFindIdButton: ControlEvent<Void>
+    let didTapFindPasswordButton: ControlEvent<Void>
+    let didTapSignUpButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }

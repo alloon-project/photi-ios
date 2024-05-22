@@ -7,29 +7,29 @@
 //
 
 import UIKit
-import Core
 import SnapKit
+import Core
 
 /// 앱 상단에 삽입되는 PrimaryNavigationView 입니다.
 ///
 /// default Color type은 dark 입니다.
 public final class PrimaryNavigationView: UIView {
+  public var title: String = "" {
+    didSet {
+      setTitleLabel(title)
+    }
+  }
+  
   /// text의 타입을 나타냅니다
   public let textType: PrimaryNavigationTextType
   /// icon의 타입을 나타냅니다.
   public let iconType: PrimaryNavigationIconType
   /// 컴포넌트의 컬러 타입을 나타냅니다. (default : dark)
   public let colorType: PrimaryNavigationColorType
-  public var leftImageView = UIImageView(image:
+  public let leftImageView = UIImageView(image:
                                           UIImage(resource: .leftBackButtonDark))
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
-  public var titleLabel = {
-    let label = UILabel()
-    label.textColor = .gray900
-    label.font = .body1Bold
-    label.textAlignment = .center
-    return label
-  }()
+  private let titleLabel = UILabel()
   public let rightImageView = UIImageView()
   
   // MARK: - Initalizers
@@ -42,9 +42,9 @@ public final class PrimaryNavigationView: UIView {
     self.textType = textType
     self.iconType = iconType
     self.colorType = colorType
-    self.titleLabel.text = titleText
     super.init(frame: .zero)
-    
+   
+    if let titleText = titleText { self.title = titleText }
     setupUI()
   }
   
@@ -60,6 +60,8 @@ private extension PrimaryNavigationView {
     makeTextType()
     makeIconType()
     makeColorType()
+    
+    if !title.isEmpty { setTitleLabel(title) }
   }
   
   // MARK: - Private Methods
@@ -79,7 +81,7 @@ private extension PrimaryNavigationView {
     self.addSubview(leftImageView)
     leftImageView.snp.makeConstraints {
       $0.width.height.equalTo(24)
-      $0.top.equalToSuperview().offset(12)
+      $0.centerX.equalToSuperview()
       $0.leading.equalToSuperview().offset(13)
     }
   }
@@ -87,26 +89,22 @@ private extension PrimaryNavigationView {
   func makeLeft() {
     self.addSubview(titleLabel)
     titleLabel.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview()
+      $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-56)
+      $0.trailing.equalToSuperview().offset(-54)
     }
-    titleLabel.textAlignment = .left
-    titleLabel.font = .heading1
   }
   
   func makeCenter() {
     self.addSubviews(leftImageView, titleLabel)
     leftImageView.snp.makeConstraints {
-      $0.width.height.equalTo(32)
+      $0.width.height.equalTo(24)
       $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(13)
     }
     
     titleLabel.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview()
-      $0.leading.equalTo(leftImageView.snp.trailing).offset(8)
-      $0.trailing.equalToSuperview().offset(-58)
+      $0.center.equalToSuperview()
     }
   }
   /// Icon Type 에 맞추어 우측 버튼의 유무를 결정합니다.
@@ -150,10 +148,33 @@ private extension PrimaryNavigationView {
     switch self.colorType {
     case .light:
       leftImageView.image = UIImage(resource: .leftBackButtonLight)
-      titleLabel.textColor = .white
     case .dark:
       leftImageView.image = UIImage(resource: .leftBackButtonDark)
-      titleLabel.textColor = .gray900
+    }
+  }
+  
+  func setTitleLabel(_ text: String) {
+    titleLabel.attributedText = text.attributedString(
+      font: font(for: textType),
+      color: textColor(for: colorType)
+    )
+  }
+  
+  func textColor(for type: PrimaryNavigationColorType) -> UIColor {
+    switch type {
+      case .dark:
+        return .gray900
+      case .light:
+        return .alloonWhite
+    }
+  }
+  
+  func font(for type: PrimaryNavigationTextType) -> UIFont {
+    switch type {
+      case .none, .left:
+        return .heading1
+      case .center:
+        return .body1Bold
     }
   }
 }

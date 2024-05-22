@@ -46,9 +46,9 @@ public final class TextButton: UIButton {
     }
   }
   
-  public override var intrinsicContentSize: CGSize {
-    cgSize(for: size)
-  }
+//  public override var intrinsicContentSize: CGSize {
+//    cgSize(for: size)
+//  }
   
   // MARK: - Initializers
   public init(
@@ -82,6 +82,10 @@ public final class TextButton: UIButton {
       case .gray:
         graySetupUI(isEnabledUnderLine)
     }
+    
+    var config = UIButton.Configuration.plain()
+    config.contentInsets = contentInset(for: size)
+    configuration = config
   }
 }
 
@@ -119,18 +123,14 @@ private extension TextButton {
     setAttributedTitle(textAttributes.setColor(.gray400), for: .disabled)
   }
   
-  func cgSize(for size: ButtonSize) -> CGSize {
+  func contentInset(for size: ButtonSize) -> NSDirectionalEdgeInsets {
     switch size {
-      case .xLarge:
-        return CGSize(width: 59, height: 38)
-      case .large:
-        return CGSize(width: 56, height: 37)
-      case .medium:
-        return CGSize(width: 48, height: 32)
-      case .small:
-        return CGSize(width: 45, height: 30)
+      case .xLarge, .large:
+        return NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+      case .medium, .small:
+        return NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
       case .xSmall:
-        return CGSize(width: 37, height: 25)
+        return NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
     }
   }
   

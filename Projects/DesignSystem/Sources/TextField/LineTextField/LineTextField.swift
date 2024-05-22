@@ -54,6 +54,12 @@ public class LineTextField: UIView {
       }
       
       commentViews.forEach { commentStackView.addArrangedSubview($0) }
+      
+      if commentViews.isEmpty {
+        removeCommentStackView()
+      } else {
+        setCommentStackView()
+      }
     }
   }
   
@@ -100,11 +106,7 @@ private extension LineTextField {
   func setViewHierarchy(for type: TextFieldType) {
     self.addSubview(textField)
     
-    switch type {
-      case .helper:
-        self.addSubview(commentStackView)
-        commentViews.forEach { commentStackView.addArrangedSubview($0) }
-        
+    switch type {        
       case .count:
         self.addSubview(countLabel)
         
@@ -114,15 +116,8 @@ private extension LineTextField {
   
   func setConstraints(for type: TextFieldType) {
     switch type {
-      case .default:
+      case .default, .helper:
         textField.snp.makeConstraints { $0.edges.equalToSuperview() }
-        
-      case .helper:
-        textField.snp.makeConstraints { $0.leading.trailing.top.equalToSuperview() }
-        commentStackView.snp.makeConstraints {
-          $0.top.equalTo(textField.snp.bottom).offset(10)
-          $0.bottom.leading.equalToSuperview()
-        }
         
       case .count:
         textField.snp.makeConstraints { $0.leading.trailing.top.equalToSuperview() }
@@ -181,6 +176,29 @@ private extension LineTextField {
         font: .caption1,
         color: .gray600
       )
+  }
+  
+  func setCommentStackView() {
+    guard !self.subviews.contains(commentStackView) else { return }
+    
+    self.addSubview(commentStackView)
+    textField.snp.remakeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+    }
+    
+    commentStackView.snp.makeConstraints {
+      $0.top.equalTo(textField.snp.bottom).offset(10)
+      $0.bottom.leading.equalToSuperview()
+    }
+  }
+  
+  func removeCommentStackView() {
+    guard self.subviews.contains(commentStackView) else { return }
+    commentStackView.snp.removeConstraints()
+    commentStackView.removeFromSuperview()
+    textField.snp.remakeConstraints {
+      $0.edges.equalToSuperview()
+    }
   }
 }
 
