@@ -54,8 +54,9 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   func detachVerifyEmail() {
     guard let coordinater = verifyEmailCoordinator else { return }
     
-    removeChild(coordinater)
     self.verifyEmailCoordinator = nil
+    navigationController?.popViewController(animated: true)
+    removeChild(coordinater)
   }
   
   func didTapBackButton() {
@@ -64,4 +65,8 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
 }
 
 // MARK: - VerifyEmailListener
-extension EnterEmailCoordinator: VerifyEmailListener { }
+extension EnterEmailCoordinator: VerifyEmailListener {
+  func verifyEmailDidTapBackButton() {
+    detachVerifyEmail()
+  }
+}

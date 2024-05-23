@@ -11,7 +11,9 @@ import Core
 
 protocol VerifyEmailViewModelable { }
 
-protocol VerifyEmailListener: AnyObject { }
+protocol VerifyEmailListener: AnyObject { 
+  func verifyEmailDidTapBackButton()
+}
 
 final class VerifyEmailCoordinator: Coordinator, VerifyEmailCoordinatable {
   weak var listener: VerifyEmailListener?
@@ -31,6 +33,10 @@ final class VerifyEmailCoordinator: Coordinator, VerifyEmailCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     viewController.setUserEmail(userEmail)
-    navigationController?.pushViewController(viewController, animated: false)
+    navigationController?.pushViewController(viewController, animated: true)
+  }
+  
+  func didTapBackButton() {
+    listener?.verifyEmailDidTapBackButton()
   }
 }

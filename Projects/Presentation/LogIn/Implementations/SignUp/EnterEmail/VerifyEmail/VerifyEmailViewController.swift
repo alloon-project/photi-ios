@@ -58,6 +58,13 @@ final class VerifyEmailViewController: UIViewController {
     super.viewDidLoad()
     
     setupUI()
+    bind()
+  }
+  
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesEnded(touches, with: event)
+    
+    view.endEditing(true)
   }
 }
 
@@ -117,6 +124,20 @@ private extension VerifyEmailViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+  }
+}
+
+// MARK: - Bind Methods
+private extension VerifyEmailViewController {
+  func bind() {
+    let input = VerifyEmailViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapResendButton: resendButton.rx.tap,
+      didTapNextButton: nextButton.rx.tap,
+      verifyCode: lineTextField.rx.text
+    )
+    
+    let _ = viewModel.transform(input: input)
   }
 }
 

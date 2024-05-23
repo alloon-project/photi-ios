@@ -6,9 +6,12 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
-protocol VerifyEmailCoordinatable: AnyObject { }
+protocol VerifyEmailCoordinatable: AnyObject { 
+  func didTapBackButton()
+}
 
 protocol VerifyEmailViewModelType: AnyObject, VerifyEmailViewModelable {
   associatedtype Input
@@ -24,7 +27,12 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
   weak var coordinator: VerifyEmailCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    var didTapBackButton: ControlEvent<Void>
+    var didTapResendButton: ControlEvent<Void>
+    var didTapNextButton: ControlEvent<Void>
+    var verifyCode: ControlProperty<String>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -33,6 +41,12 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }
