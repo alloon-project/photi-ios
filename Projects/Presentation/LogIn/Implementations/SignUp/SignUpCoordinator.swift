@@ -15,17 +15,43 @@ protocol SignUpViewModelable { }
 final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   weak var listener: SignUpListener?
   
-  private let viewController: SignUpViewController
-  private let viewModel: any SignUpViewModelType
+  private let viewModel: SignUpViewModel
   
-  override init() {
-    self.viewController = SignUpViewController()
-    self.viewModel = SignUpViewModel()
+  private let enterEmailContainable: EnterEmailContainable
+  private var enterEmailCoordinator: Coordinating?
+  
+  init(
+    viewModel: SignUpViewModel,
+    enterEmailContainable: EnterEmailContainable
+  ) {
+    self.enterEmailContainable = enterEmailContainable
+    self.viewModel = viewModel
     super.init()
   }
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
+    attachEnterEmail()
+  }
+  
+  // MARK: - EnterEmail
+  func attachEnterEmail() {
+    guard enterEmailCoordinator == nil else { return }
+
+    let coordinater = enterEmailContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.enterEmailCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachEnterEmail() {
+    guard let coordinater = enterEmailCoordinator else { return }
+    
+    removeChild(coordinater)
+    self.enterEmailCoordinator = nil
   }
 }
+
+// MARK: - EnterEmailListener
+extension SignUpCoordinator: EnterEmailListener { }
