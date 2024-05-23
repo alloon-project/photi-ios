@@ -36,13 +36,13 @@ final class EnterEmailViewController: UIViewController {
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   // TODO: - DS 적용 후 이미지 변경
   private let emailFormWarningView = CommentView(
-    .warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!
+    .warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
   )
   private let emailTextCountWarningView = CommentView(
-    .warning, text: "100자 이하의 이메일을 사용해주세요", icon: UIImage(systemName: "xmark")!
+    .warning, text: "100자 이하의 이메일을 사용해주세요", icon: UIImage(systemName: "xmark")!, isActivate: true
   )
   private let duplicateEmailWarningView = CommentView(
-    .warning, text: "이미 가입된 이메일이예요", icon: UIImage(systemName: "xmark")!
+    .warning, text: "이미 가입된 이메일이예요", icon: UIImage(systemName: "xmark")!, isActivate: true
   )
   
   // MARK: - Initialziers
@@ -118,11 +118,53 @@ private extension EnterEmailViewController {
 private extension EnterEmailViewController {
   func bind() {
     let input = EnterEmailViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton, 
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapNextButton: nextButton.rx.tap,
-      userEmail: lineTextField.rx.text
+      userEmail: lineTextField.rx.text,
+      endEditingUserEmail: lineTextField.textField.rx.controlEvent(.editingDidEnd),
+      editingUserEmail: lineTextField.textField.rx.controlEvent(.editingChanged)
     )
     
-    let _ = viewModel.transform(input: input)
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: EnterEmailViewModel.Output) {
+    output.isValidEmailForm
+      .emit(with: self) { owner, isValid in
+        if isValid {
+          owner.convertLineTextField(commentView: nil)
+        } else {
+          owner.convertLineTextField(commentView: owner.emailFormWarningView)
+        }
+      }
+      .disposed(by: disposeBag)
+    
+    output.isOverMaximumText
+      .emit(with: self) { owner, isOver in
+        if isOver {
+          owner.convertLineTextField(commentView: owner.emailTextCountWarningView)
+        } else {
+          owner.convertLineTextField(commentView: nil)
+        }
+      }
+      .disposed(by: disposeBag)
+    
+    output.isEnabledNextButton
+      .emit(to: nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - Private Methods
+private extension EnterEmailViewController {
+  func convertLineTextField(commentView: CommentView?) {
+    if let commentView = commentView {
+      lineTextField.commentViews = [commentView]
+      lineTextField.mode = .error
+    } else {
+      lineTextField.commentViews = []
+      lineTextField.mode = .success
+    }
   }
 }

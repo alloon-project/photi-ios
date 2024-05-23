@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 
@@ -33,10 +34,16 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     var didTapBackButton: ControlEvent<Void>
     var didTapNextButton: ControlEvent<Void>
     var userEmail: ControlProperty<String>
+    var endEditingUserEmail: ControlEvent<Void>
+    var editingUserEmail: ControlEvent<Void>
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    var isValidEmailForm: Signal<Bool>
+    var isOverMaximumText: Signal<Bool>
+    var isEnabledNextButton: Signal<Bool>
+  }
   
   // MARK: - Initializers
   init() { }
@@ -55,6 +62,32 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    let isValidEmailForm = input.endEditingUserEmail
+      .withLatestFrom(input.userEmail)
+      .withUnretained(self)
+      .filter { $0.1.count <= 100 && !$0.1.isEmpty }
+      .map { $0.0.isValidEmailForm($0.1) }
+      
+    let isOverMaximumText = input.editingUserEmail
+      .withLatestFrom(input.userEmail)
+      .map { $0.count > 100 }
+    
+    let isEnabledConfirm = input.userEmail
+      .withUnretained(self)
+      .map { $0.0.isValidEmailForm($0.1) && $0.1.count <= 100 }
+    
+    return Output(
+      isValidEmailForm: isValidEmailForm.asSignal(onErrorJustReturn: false),
+      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true), 
+      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false)
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension EnterEmailViewModel {
+  func isValidEmailForm(_ email: String) -> Bool {
+    let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}"
+    return  NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
   }
 }
