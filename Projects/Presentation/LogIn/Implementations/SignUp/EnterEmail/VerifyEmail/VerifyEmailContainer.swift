@@ -8,17 +8,17 @@
 
 import Core
 
-protocol VerifyEmailDependency: Dependency {
-  // 부모에게 요구하는 의존성들을 정의합니다. ex) FindIdUseCase
-}
+protocol VerifyEmailDependency: Dependency { }
 
 protocol VerifyEmailContainable: Containable {
-  func coordinator(listener: VerifyEmailListener) -> Coordinating
+  func coordinator(listener: VerifyEmailListener, userEmail: String) -> Coordinating
 }
 
 final class VerifyEmailContainer: Container<VerifyEmailDependency>, VerifyEmailContainable {
-  func coordinator(listener: VerifyEmailListener) -> Coordinating {
-    let coordinator = VerifyEmailCoordinator()
+  func coordinator(listener: VerifyEmailListener, userEmail: String) -> Coordinating {
+    let viewModel = VerifyEmailViewModel()
+    
+    let coordinator = VerifyEmailCoordinator(viewModel: viewModel, userEmail: userEmail)
     coordinator.listener = listener
     return coordinator
   }

@@ -7,5 +7,125 @@
 //
 
 import UIKit
+import SnapKit
+import Core
+import DesignSystem
 
-final class VerifyEmailViewController: UIViewController { }
+final class VerifyEmailViewController: UIViewController {
+  private let viewModel: VerifyEmailViewModel
+  
+  // MARK: - UI Components
+  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let progressBar = LargeProgressBar(step: .two)
+  private let titleLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = "이메일로 인증코드를 보내드렸습니다\n숫자 4자리를 입력해주세요".attributedString(
+      font: .heading4,
+      color: .gray900
+    )
+    label.numberOfLines = 2
+    
+    return label
+  }()
+  private let emailLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = "이메일:".attributedString(
+      font: .caption1,
+      color: .gray700
+    )
+    
+    return label
+  }()
+  private let userEmailLabel = UILabel()
+  private let resendButton = TextButton(text: "재전송", size: .xSmall, type: .primary)
+  
+  private let lineTextField = LineTextField(placeholder: "숫자 4자리", type: .helper)
+  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+
+  // MARK: - Initalizers
+  init(viewModel: VerifyEmailViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: - Life Cycles
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    setupUI()
+  }
+}
+
+// MARK: - UI Methods
+private extension VerifyEmailViewController {
+  func setupUI() {
+    self.view.backgroundColor = .white
+    resendButton.isEnabledUnderLine = true
+    setViewHierarchy()
+    setConstraints()
+  }
+  
+  func setViewHierarchy() { 
+    view.addSubviews(navigationBar, progressBar, titleLabel, emailLabel, userEmailLabel, resendButton)
+    view.addSubviews(lineTextField, nextButton)
+  }
+  
+  func setConstraints() { 
+    navigationBar.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(view.safeAreaLayoutGuide)
+      $0.height.equalTo(56)
+    }
+    
+    progressBar.snp.makeConstraints {
+      $0.top.equalTo(navigationBar.snp.bottom).offset(8)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    titleLabel.snp.makeConstraints {
+      $0.top.equalTo(progressBar.snp.bottom).offset(48)
+      $0.leading.equalToSuperview().offset(24)
+    }
+    
+    emailLabel.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(24)
+      $0.centerY.equalTo(resendButton)
+    }
+    
+    userEmailLabel.snp.makeConstraints {
+      $0.leading.equalTo(emailLabel.snp.trailing).offset(4)
+      $0.centerY.equalTo(resendButton)
+    }
+    
+    resendButton.snp.makeConstraints {
+      $0.leading.equalTo(userEmailLabel.snp.trailing).offset(8)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(8)
+    }
+    
+    lineTextField.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.top.equalTo(resendButton.snp.bottom).offset(16)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    nextButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-56)
+    }
+  }
+}
+
+// MARK: - Internal Methods
+extension VerifyEmailViewController {
+  func setUserEmail(_ email: String) {
+    userEmailLabel.attributedText = email.attributedString(
+      font: .caption1,
+      color: .gray700
+    )
+  }
+}

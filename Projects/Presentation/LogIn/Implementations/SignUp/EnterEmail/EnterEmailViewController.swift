@@ -118,9 +118,11 @@ private extension EnterEmailViewController {
 private extension EnterEmailViewController {
   func bind() {
     let input = EnterEmailViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton
+      didTapBackButton: navigationBar.rx.didTapLeftButton, 
+      didTapNextButton: nextButton.rx.tap,
+      userEmail: lineTextField.rx.text
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
 }

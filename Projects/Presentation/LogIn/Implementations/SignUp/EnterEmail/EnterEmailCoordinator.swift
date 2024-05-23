@@ -41,10 +41,10 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   }
   
   // MARK: - VerifyEmail
-  func attachVerifyEmail() {
+  func attachVerifyEmail(userEmail: String) {
     guard verifyEmailCoordinator == nil else { return }
     
-    let coordinater = verifyEmailContainable.coordinator(listener: self)
+    let coordinater = verifyEmailContainable.coordinator(listener: self, userEmail: userEmail)
     addChild(coordinater)
     
     self.verifyEmailCoordinator = coordinater

@@ -10,7 +10,7 @@ import RxCocoa
 import RxSwift
 
 protocol EnterEmailCoordinatable: AnyObject {
-  func attachVerifyEmail()
+  func attachVerifyEmail(userEmail: String)
   func detachVerifyEmail()
   func didTapBackButton()
 }
@@ -31,6 +31,8 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   // MARK: - Input
   struct Input {
     var didTapBackButton: ControlEvent<Void>
+    var didTapNextButton: ControlEvent<Void>
+    var userEmail: ControlProperty<String>
   }
   
   // MARK: - Output
@@ -43,6 +45,13 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     input.didTapBackButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapNextButton
+      .withLatestFrom(input.userEmail)
+      .bind(with: self) { owner, email in
+        owner.coordinator?.attachVerifyEmail(userEmail: email)
       }
       .disposed(by: disposeBag)
     
