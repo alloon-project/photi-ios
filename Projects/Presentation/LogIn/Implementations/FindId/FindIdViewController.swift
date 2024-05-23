@@ -22,10 +22,8 @@ final class FindIdViewController: UIViewController {
   private let announceLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 2
-    label.font = .heading4
-    label.textColor = .gray900
     label.textAlignment = .left
-    label.text = "가입 시 사용했던 \n이메일을 입력해주세요"
+    label.attributedText = "가입 시 사용했던 \n이메일을 입력해주세요".attributedString(font: .heading4, color: .gray900)
     return label
   }()
   

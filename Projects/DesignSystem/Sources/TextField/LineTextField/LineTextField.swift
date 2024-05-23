@@ -99,7 +99,7 @@ public class LineTextField: UIView {
     textField.setLineColor(lineColor(for: mode))
   }
   
-  public func setKeyboardType(_ type : UIKeyboardType) {
+  public func setKeyboardType(_ type: UIKeyboardType) {
     textField.keyboardType = type
   }
 }
