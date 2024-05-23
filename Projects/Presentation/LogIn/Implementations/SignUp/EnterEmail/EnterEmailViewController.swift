@@ -113,3 +113,14 @@ private extension EnterEmailViewController {
     }
   }
 }
+
+// MARK: - Bind Methods
+private extension EnterEmailViewController {
+  func bind() {
+    let input = EnterEmailViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton
+    )
+    
+    let output = viewModel.transform(input: input)
+  }
+}

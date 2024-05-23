@@ -30,4 +30,8 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
+  
+  func didTapBackButton() {
+    listener?.enterEmailDidTapBackButton()
+  }
 }
