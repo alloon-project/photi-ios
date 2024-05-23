@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
 protocol FindIdCoordinatable: AnyObject {
@@ -26,7 +27,10 @@ final class FindIdViewModel: FindIdViewModelType {
   weak var coordinator: FindIdCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    let email: ControlProperty<String>
+    let didTapNextButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
