@@ -7,12 +7,16 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class VerifyEmailViewController: UIViewController {
+  private let disposeBag = DisposeBag()
   private let viewModel: VerifyEmailViewModel
+  private let viewDidLoadRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
@@ -41,7 +45,12 @@ final class VerifyEmailViewController: UIViewController {
   
   private let lineTextField = LineTextField(placeholder: "숫자 4자리", type: .helper)
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
-
+  
+  // TODO: - DS 적용후 이미지 변경
+  private let veriftCodeErrorCommentView = CommentView(
+    .warning, text: "인증코드가 일치하지 않아요", icon: UIImage(systemName: "xmark")!
+  )
+  
   // MARK: - Initalizers
   init(viewModel: VerifyEmailViewModel) {
     self.viewModel = viewModel
@@ -56,9 +65,10 @@ final class VerifyEmailViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
+    
+    viewDidLoadRelay.accept(())
   }
   
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -131,13 +141,21 @@ private extension VerifyEmailViewController {
 private extension VerifyEmailViewController {
   func bind() {
     let input = VerifyEmailViewModel.Input(
+      viewDidLoad: viewDidLoadRelay,
       didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapResendButton: resendButton.rx.tap,
       didTapNextButton: nextButton.rx.tap,
       verifyCode: lineTextField.rx.text
     )
     
-    let _ = viewModel.transform(input: input)
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: VerifyEmailViewModel.Output) {
+    output.isEnabledNextButton
+      .emit(to: nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
   }
 }
 

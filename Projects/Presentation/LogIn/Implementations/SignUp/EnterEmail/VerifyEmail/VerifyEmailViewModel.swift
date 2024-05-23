@@ -23,11 +23,13 @@ protocol VerifyEmailViewModelType: AnyObject, VerifyEmailViewModelable {
 
 final class VerifyEmailViewModel: VerifyEmailViewModelType {
   let disposeBag = DisposeBag()
+  private var verifyCode: String = ""
   
   weak var coordinator: VerifyEmailCoordinatable?
   
   // MARK: - Input
   struct Input { 
+    var viewDidLoad: PublishRelay<Void>
     var didTapBackButton: ControlEvent<Void>
     var didTapResendButton: ControlEvent<Void>
     var didTapNextButton: ControlEvent<Void>
@@ -35,7 +37,9 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output { 
+    var isEnabledNextButton: Signal<Bool>
+  }
   
   // MARK: - Initializers
   init() { }
@@ -47,6 +51,27 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    input.viewDidLoad
+      .subscribe(with: self) { owner, _ in
+        owner.requestVerifyCode()
+      }
+      .disposed(by: disposeBag)
+    
+    let isEnabledNextButton = input.verifyCode
+      .map { $0.count == 4 }
+      .asSignal(onErrorJustReturn: false)
+    
+    return Output(
+      isEnabledNextButton: isEnabledNextButton
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension VerifyEmailViewModel {
+  func requestVerifyCode() {
+    self.verifyCode = ""
+    print(#function)
+    // 새로운 값으로 verifyCode 갱신
   }
 }
