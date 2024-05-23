@@ -11,7 +11,9 @@ import Core
 
 protocol EnterEmailViewModelable { }
 
-protocol EnterEmailListener: AnyObject { }
+protocol EnterEmailListener: AnyObject {
+  func enterEmailDidTapBackButton()
+}
 
 final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   weak var listener: EnterEmailListener?
@@ -19,7 +21,14 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   private let viewController: EnterEmailViewController
   private let viewModel: EnterEmailViewModel
   
-  init(viewModel: EnterEmailViewModel) {
+  private let verifyEmailContainable: VerifyEmailContainable
+  private var verifyEmailCoordinator: Coordinating?
+  
+  init(
+    viewModel: EnterEmailViewModel,
+    verifyEmailContainable: VerifyEmailContainable
+  ) {
+    self.verifyEmailContainable = verifyEmailContainable
     self.viewModel = EnterEmailViewModel()
     self.viewController = EnterEmailViewController(viewModel: viewModel)
     super.init()
@@ -31,7 +40,28 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - VerifyEmail
+  func attachVerifyEmail() {
+    guard verifyEmailCoordinator == nil else { return }
+    
+    let coordinater = verifyEmailContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.verifyEmailCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachVerifyEmail() {
+    guard let coordinater = verifyEmailCoordinator else { return }
+    
+    removeChild(coordinater)
+    self.verifyEmailCoordinator = nil
+  }
+  
   func didTapBackButton() {
     listener?.enterEmailDidTapBackButton()
   }
 }
+
+// MARK: - VerifyEmailListener
+extension EnterEmailCoordinator: VerifyEmailListener { }

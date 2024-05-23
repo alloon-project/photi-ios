@@ -54,4 +54,9 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
 }
 
 // MARK: - EnterEmailListener
-extension SignUpCoordinator: EnterEmailListener { }
+extension SignUpCoordinator: EnterEmailListener {
+  func enterEmailDidTapBackButton() {
+    navigationController?.popViewController(animated: true)
+    listener?.didFinishSignUp()
+  }
+}
