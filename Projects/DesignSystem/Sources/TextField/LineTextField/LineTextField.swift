@@ -93,11 +93,14 @@ public class LineTextField: UIView {
   func setupUI() {
     setViewHierarchy(for: type)
     setConstraints(for: type)
-    
     if case let .count(max) = type {
       setCountLabel(max: max)
     }
     textField.setLineColor(lineColor(for: mode))
+  }
+  
+  public func setKeyboardType(_ type: UIKeyboardType) {
+    textField.keyboardType = type
   }
 }
 
