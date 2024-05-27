@@ -22,7 +22,10 @@ public final class LogInContainer:
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
     
+    let viewModel = LogInViewModel()
+    
     let coordinator = LogInCoordinator(
+      viewModel: viewModel,
       signUpContainable: dependency.signUpContainable,
       findIdContainable: findId,
       findPasswordContainable: findPassword

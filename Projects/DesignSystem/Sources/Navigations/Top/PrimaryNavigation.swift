@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import RxCocoa
+import RxGesture
+import RxSwift
 import SnapKit
 import Core
 
@@ -37,13 +40,13 @@ public final class PrimaryNavigationView: UIView {
     textType: PrimaryNavigationTextType, 
     iconType: PrimaryNavigationIconType,
     colorType: PrimaryNavigationColorType = .dark,
-    titleText: String?
+    titleText: String? = nil
   ) {
     self.textType = textType
     self.iconType = iconType
     self.colorType = colorType
     super.init(frame: .zero)
-   
+    
     if let titleText = titleText { self.title = titleText }
     setupUI()
   }
@@ -81,7 +84,7 @@ private extension PrimaryNavigationView {
     self.addSubview(leftImageView)
     leftImageView.snp.makeConstraints {
       $0.width.height.equalTo(24)
-      $0.centerX.equalToSuperview()
+      $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(13)
     }
   }
@@ -176,5 +179,20 @@ private extension PrimaryNavigationView {
       case .center:
         return .body1Bold
     }
+  }
+}
+
+// MARK: - Reactive Extension
+public extension Reactive where Base: PrimaryNavigationView {
+  var didTapLeftButton: ControlEvent<Void> {
+    let source = base.leftImageView.rx.tapGesture().when(.recognized).map { _ in }
+    
+    return ControlEvent(events: source)
+  }
+  
+  var didTapRightButton: ControlEvent<Void> {
+    let source = base.rightImageView.rx.tapGesture().when(.recognized).map { _ in }
+    
+    return ControlEvent(events: source)
   }
 }

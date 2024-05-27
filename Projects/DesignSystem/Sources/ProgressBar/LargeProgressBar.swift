@@ -32,8 +32,10 @@ public final class LargeProgressBar: UIProgressView {
   }
   
   // MARK: - Initializers
-  public init() {
+  public init(step: AlloonProgressStep = .one) {
     super.init(frame: .zero)
+    defer { self.step = step }
+
     setupUI()
   }
   

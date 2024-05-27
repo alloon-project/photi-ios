@@ -9,7 +9,7 @@
 import RxCocoa
 import RxSwift
 
-protocol LogInCoordinatable {
+protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
   func detachSignUp() 
   func attachFindId()
@@ -18,16 +18,20 @@ protocol LogInCoordinatable {
   func detachFindPassword()
 }
 
-// Input, Output ViewModel
 protocol LogInViewModelType: LogInViewModelable {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
+  var coordinator: LogInCoordinatable? { get set }
+  
+  func transform(input: Input) -> Output
 }
 
 class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
+  weak var coordinator: LogInCoordinatable?
+  
   
   // MARK: - Input
   struct Input {
@@ -46,6 +50,12 @@ class LogInViewModel: LogInViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapSignUpButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.attachSignUp()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }
