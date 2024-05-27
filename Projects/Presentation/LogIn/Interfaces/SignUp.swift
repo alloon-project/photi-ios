@@ -12,4 +12,6 @@ public protocol SignUpContainable: Containable {
   func coordinator(listener: SignUpListener) -> Coordinating
 }
 
-public protocol SignUpListener: AnyObject { }
+public protocol SignUpListener: AnyObject {
+  func didFinishSignUp()
+}

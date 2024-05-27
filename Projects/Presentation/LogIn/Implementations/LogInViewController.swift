@@ -14,15 +14,7 @@ import Core
 
 final class LogInViewController: UIViewController {
   private let disposeBag = DisposeBag()
-  
-  private lazy var input = LogInViewModel.Input(
-    id: idTextField.rx.text,
-    password: passwordTextField.rx.text,
-    didTapLoginButton: loginButton.rx.tap,
-    didTapFindIdButton: findView.rx.didTapFindIdButton,
-    didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,
-    didTapSignUpButton: signUpButton.rx.tap
-  )
+  private let viewModel: LogInViewModel
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "로그인")
@@ -32,11 +24,24 @@ final class LogInViewController: UIViewController {
   private let findView = FindView()
   private let signUpButton = LineRoundButton(text: "회원가입", type: .primary, size: .xLarge)
   
+  // MARK: - Initiazliers
+  init(viewModel: LogInViewModel) {
+    self.viewModel = viewModel
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
   
   // MARK: - UIResponder
@@ -92,5 +97,21 @@ private extension LogInViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+  }
+}
+
+// MARK: - Bind Method
+private extension LogInViewController {
+  func bind() {
+    let input = LogInViewModel.Input(
+      id: idTextField.rx.text,
+      password: passwordTextField.rx.text,
+      didTapLoginButton: loginButton.rx.tap,
+      didTapFindIdButton: findView.rx.didTapFindIdButton,
+      didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,
+      didTapSignUpButton: signUpButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
   }
 }
