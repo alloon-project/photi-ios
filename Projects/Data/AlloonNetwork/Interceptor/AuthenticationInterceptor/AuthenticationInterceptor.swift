@@ -26,8 +26,6 @@ public struct AuthenticationInterceptor: RequestInterceptorType {
       let error = NetworkError.networkFailed(reason: .jsonDecodingFailed)
       return .doNotRetryWithError(error)
     }
-    print("\(data.code),  \(data.message)")
-    print("")
 
     switch response.statusCode {
       case 401 where data.code == "TOKEN_UNAUTHENTICATED":
