@@ -11,7 +11,7 @@ import Foundation
 /// Stub response에 사용합니다.
 public enum EndpointSampleResponse {
   /// status code와 data를 함께 리턴합니다.
-  case networkResponse(Int, Data)
+  case networkResponse(Int, Data, String, String)
   
   /// 실패하는 경우, `NSError`와 함께 리턴합니다.
   case networkError(NSError)
