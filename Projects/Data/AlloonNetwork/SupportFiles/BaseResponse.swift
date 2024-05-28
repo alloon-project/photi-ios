@@ -9,7 +9,9 @@
 import Foundation
 
 public struct BaseResponse<ResponseType: Decodable> {
-  public let data: ResponseType
+  public let code: String
+  public let message: String
+  public let data: ResponseType?
   public let statusCode: Int
   public let response: HTTPURLResponse?
   
@@ -20,14 +22,50 @@ public struct BaseResponse<ResponseType: Decodable> {
   }
   
   public init(
-    data: ResponseType,
+    dto: BaseResponseDTO<ResponseType>,
     statusCode: Int,
     response: HTTPURLResponse? = nil
   ) {
-    self.data = data
+    self.code = dto.code
+    self.message = dto.message
+    self.data = dto.data
+    self.statusCode = statusCode
+    self.response = response
+  }
+  
+  public init(
+    dto: VoidResponseDTO,
+    statusCode: Int,
+    response: HTTPURLResponse? = nil
+  ) {
+    self.data = nil
+    self.code = dto.code
+    self.message = dto.message
     self.statusCode = statusCode
     self.response = response
   }
 }
 
-public struct VoidResponse: Decodable { }
+/// 성공 시, ResponseType을 명시한 경우 BaseResponseDTO를 통해 디코딩 됩니다.
+public struct BaseResponseDTO<ResponseType: Decodable>: Decodable {
+  public let data: ResponseType
+  public let code: String
+  public let message: String
+  
+  public init(code: String, message: String, data: ResponseType) {
+    self.code = code
+    self.message = message
+    self.data = data
+  }
+}
+
+/// 실패 혹은, Response가 없는 경우 VoidResponseDTO로 디코딩됩니다.
+public struct VoidResponseDTO: Decodable {
+  public let code: String
+  public let message: String
+  
+  public init(code: String, message: String) {
+    self.code = code
+    self.message = message
+  }
+}
