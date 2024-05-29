@@ -27,6 +27,6 @@ public protocol TargetType {
 }
 
 public extension TargetType {
-  var sampleResponse: EndpointSampleResponse { .networkResponse(200, Data()) }
+  var sampleResponse: EndpointSampleResponse { .networkResponse(200, Data(), "", "") }
   var headers: HTTPHeaders { .init() }
 }

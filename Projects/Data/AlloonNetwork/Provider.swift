@@ -34,7 +34,7 @@ public struct Provider<Target: TargetType> {
   
   public func request<T: Decodable>(
     _ target: Target,
-    type: T.Type = VoidResponse.self
+    type: T.Type = VoidResponseDTO.self
   ) -> Single<BaseResponse<T>> {
     switch stubBehavior {
       case .never:
@@ -52,26 +52,15 @@ public struct Provider<Target: TargetType> {
 
 // MARK: - Private Extension
 private extension Provider {
-  func requestNormal<T: Decodable>(
-    _ endPoint: EndPoint,
-    type: T.Type
-  ) -> Single<BaseResponse<T>> {
+  func requestNormal<T: Decodable>(_ endPoint: EndPoint, type: T.Type) -> Single<BaseResponse<T>> {
     return Single.create { single in
-      do {
-        let urlRequest = try endPoint.urlRequest()
-        
-        Task {
-          let (data, httpResponse) = try await session.request(request: urlRequest)
-          let decodedData = try JSONDecoder().decode(T.self, from: data)
-          let response = BaseResponse(
-            data: decodedData,
-            statusCode: httpResponse.statusCode,
-            response: httpResponse
-          )
+      Task {
+        do {
+          let response = try await requestObject(endPoint, type: type)
           single(.success(response))
+        } catch {
+          single(.failure(error))
         }
-      } catch {
-        single(.failure(error))
       }
       return Disposables.create()
     }
@@ -85,9 +74,10 @@ private extension Provider {
     return Single.create { single in
       do {
         switch target.sampleResponse {
-          case let .networkResponse(statusCode, data):
+          case let .networkResponse(statusCode, data, code, message):
             let decodedData = try JSONDecoder().decode(T.self, from: data)
-            let response = BaseResponse(data: decodedData, statusCode: statusCode)
+            let dto = BaseResponseDTO(code: code, message: message, data: decodedData)
+            let response = BaseResponse(dto: dto, statusCode: statusCode)
             single(.success(response))
             
           case let .networkError(error):
@@ -102,11 +92,33 @@ private extension Provider {
   }
   
   func endPointMapping(for target: Target) -> EndPoint {
+    let url = target.path.isEmpty ? target.baseURL : target.baseURL.appendingPathComponent(target.path)
+    
     return .init(
-      url: target.baseURL.appendingPathComponent(target.path),
+      url: url,
       method: target.method,
       task: target.task,
       httpHeaderFields: target.headers
     )
+  }
+}
+
+// // MARK: - Async Await
+private extension Provider {
+  func requestObject<T: Decodable>(_ endPoint: EndPoint, type: T.Type) async throws -> BaseResponse<T> {
+    let urlRequest = try endPoint.urlRequest()
+  
+    let (data, httpResponse) = try await session.request(request: urlRequest)
+    
+    let decoder = JSONDecoder()
+  
+    // 성공 + data 있는 경우
+    if httpResponse.statusCode == 200 && T.self != VoidResponseDTO.self {
+      let decodedData = try decoder.decode(BaseResponseDTO<T>.self, from: data)
+      return BaseResponse(dto: decodedData, statusCode: httpResponse.statusCode, response: httpResponse)
+    } else {
+      let decodedData = try decoder.decode(VoidResponseDTO.self, from: data)
+      return BaseResponse<T>(dto: decodedData, statusCode: httpResponse.statusCode, response: httpResponse)
+    }
   }
 }
