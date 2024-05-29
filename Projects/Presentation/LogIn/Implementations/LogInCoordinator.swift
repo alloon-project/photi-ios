@@ -28,17 +28,19 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   private var findPasswordCoordinator: Coordinating?
   
   init(
+    viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,
     findPasswordContainable: FindPasswordContainable
   ) {
+    self.viewModel = viewModel
     self.signUpContainable = signUpContainable
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
-    
-    self.viewController = LogInViewController()
-    self.viewModel = LogInViewModel()
+  
+    self.viewController = LogInViewController(viewModel: viewModel)
     super.init()
+    viewModel.coordinator = self
   }
   
   override func start(at navigationController: UINavigationController?) {
@@ -102,12 +104,15 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
 }
 
 // MARK: - SignUpListener
-extension LogInCoordinator: SignUpListener { }
+extension LogInCoordinator: SignUpListener {
+  func didFinishSignUp() {
+    detachSignUp()
+  }
+}
 
 // MARK: - FindpasswordListener
 extension LogInCoordinator: FindPasswordListener {
   func findPasswordDidFinish() {
-    print("didFinish")
   }
 }
 

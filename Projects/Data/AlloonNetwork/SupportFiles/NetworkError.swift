@@ -26,6 +26,7 @@ public enum NetworkError: Error {
     case httpNoResponse
     case jsonDecodingFailed
     case encodableMapping
+    case interceptorMapping
     
     var localizedDescription: String {
       switch self {
@@ -37,6 +38,9 @@ public enum NetworkError: Error {
           
         case .encodableMapping:
           return "Failed to encode Encodable object into data."
+          
+        case .interceptorMapping:
+          return "Failed to mapping Interceptor into URLRequest"
       }
     }
   }
