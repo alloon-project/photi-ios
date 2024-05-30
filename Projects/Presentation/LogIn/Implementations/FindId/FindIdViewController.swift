@@ -12,10 +12,8 @@ import SnapKit
 import DesignSystem
 
 final class FindIdViewController: UIViewController {
-  private lazy var input = FindIdViewModel.Input(
-    email: emailTextField.rx.text,
-    didTapNextButton: nextButton.rx.tap
-  )
+  private let disposeBag = DisposeBag()
+  private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "아이디 찾기")
@@ -33,19 +31,32 @@ final class FindIdViewController: UIViewController {
     textField.setKeyboardType(.emailAddress)
     return textField
   }()
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
+  
+  // MARK: - Initiazliers
+  init(viewModel: FindIdViewModel) {
+    self.viewModel = viewModel
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
   
   // MARK: - View Life Cycle
   override func viewDidLoad() {
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
     
     view.endEditing(true)
+    checkEmail()
   }
 }
 
@@ -54,7 +65,7 @@ private extension FindIdViewController {
   func setupUI() {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
-    
+    self.nextButton.isEnabled = false
     setViewHierarchy()
     setConstraints()
   }
@@ -85,5 +96,36 @@ private extension FindIdViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+  }
+}
+
+// MARK: - Private Methods
+
+private extension FindIdViewController {
+  func checkEmail() {
+    if let email = self.emailTextField.text {
+      if !email.isValidateEmail() {
+        emailTextField.mode = .error
+        emailTextField.commentViews.forEach { $0.isActivate = true }
+        nextButton.isEnabled = false
+      } else {
+        emailTextField.mode = .default
+        emailTextField.commentViews.forEach { $0.isActivate = false }
+        nextButton.isEnabled = true
+      }
+    }
+  }
+}
+// MARK: - Bind Method
+private extension FindIdViewController {
+  func bind() {
+    let input = FindIdViewModel.Input(
+      viewController: self,
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      email: emailTextField.rx.text,
+      didTapNextButton: nextButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
   }
 }
