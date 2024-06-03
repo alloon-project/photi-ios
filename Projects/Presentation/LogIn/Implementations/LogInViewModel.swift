@@ -56,6 +56,17 @@ class LogInViewModel: LogInViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapFindIdButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.attachFindId()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapFindPasswordButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.attachFindPassword()
+      }
+      .disposed(by: disposeBag)
     return Output()
   }
 }

@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
 protocol FindPasswordCoordinatable { }
@@ -21,7 +22,11 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
   let disposeBag = DisposeBag()
   
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let userId: ControlProperty<String>
+    let email: ControlProperty<String>
+    let didTapNextButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
