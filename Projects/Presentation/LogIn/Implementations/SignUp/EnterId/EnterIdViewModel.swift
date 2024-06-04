@@ -6,10 +6,14 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 
-protocol EnterIdCoordinatable: AnyObject { }
+protocol EnterIdCoordinatable: AnyObject { 
+  func didTapBackButton()
+  func didTapNextButton()
+}
 
 protocol EnterIdViewModelType: AnyObject, EnterIdViewModelable {
   associatedtype Input
@@ -24,16 +28,71 @@ final class EnterIdViewModel: EnterIdViewModelType {
   
   weak var coordinator: EnterIdCoordinatable?
   
+  private let inValidIdFormRelay = PublishRelay<Void>()
+  private let duplicateIdRelay = PublishRelay<Void>()
+  private let validIdRelay = PublishRelay<Void>()
+  
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    var didTapBackButton: ControlEvent<Void>
+    var didTapNextButton: ControlEvent<Void>
+    var didTapVerifyIdButton: ControlEvent<Void>
+    var userId: ControlProperty<String>
+  }
   
   // MARK: - Output
-  struct Output { }
+  struct Output { 
+    var inValidIdForm: Signal<Void>
+    var duplicateId: Signal<Void>
+    var validId: Signal<Void>
+    var isDuplicateButtonEnabled: Signal<Bool>
+  }
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
-    return Output()
+    input.didTapBackButton
+      .subscribe(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapNextButton
+      .subscribe(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapVerifyIdButton
+      .withLatestFrom(input.userId)
+      .subscribe(with: self) { owner, userId in
+        owner.isDuplicated(userId)
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      inValidIdForm: inValidIdFormRelay.asSignal(),
+      duplicateId: duplicateIdRelay.asSignal(),
+      validId: validIdRelay.asSignal(),
+      isDuplicateButtonEnabled: input.userId.map { !$0.isEmpty }.asSignal(onErrorJustReturn: false)
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension EnterIdViewModel {
+  func isDuplicated(_ id: String) {
+    guard isValidIdForm(id) else {
+      inValidIdFormRelay.accept(())
+      return
+    }
+    
+    // TODO: - API 연결시 구현 예정
+  }
+  
+  func isValidIdForm(_ id: String) -> Bool {
+    let idRegex = "^[a-z0-9!_@$%^&+=]+$"
+    return  NSPredicate(format: "SELF MATCHES %@", idRegex).evaluate(with: id)
   }
 }

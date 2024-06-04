@@ -41,13 +41,23 @@ final class EnterIdViewController: UIViewController {
     return label
   }()
   
-  private let idTextField = ButtonTextField(buttonText: "중복검사", placeholder: "아이디", type: .default)
+  private let idTextField = ButtonTextField(buttonText: "중복검사", placeholder: "아이디", type: .helper)
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  // TODO: - DS 적용 후 이미지 변경
+  private let idFormWarningView = CommentView(
+    .warning, text: "알파벳 소문자, 숫자, 특수문자만 사용 가능해요", icon: UIImage(systemName: "xmark")!, isActivate: true
+  )
+  private let duplicateIdWardningView = CommentView(
+    .warning, text: "이미 사용중인 아이디예요", icon: UIImage(systemName: "exclamationmark")!, isActivate: true
+  )
+  private let validIdCommentView = CommentView(
+    .condition, text: "사용할 수 있는 아이디예요", icon: UIImage(systemName: "checkmark")!, isActivate: true
+  )
   
   // MARK: - Initializers
   init(viewModel: EnterIdViewModel) {
     self.viewModel = viewModel
-    
+
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -59,8 +69,15 @@ final class EnterIdViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
+    bind()
+  }
+  
+  // MARK: - UI Responder
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesEnded(touches, with: event)
+    
+    view.endEditing(true)
   }
 }
 
@@ -68,6 +85,9 @@ final class EnterIdViewController: UIViewController {
 private extension EnterIdViewController {
   func setupUI() {
     self.view.backgroundColor = .white
+    idTextField.textField.autocapitalizationType = .none
+    nextButton.isEnabled = false
+
     setViewHierarchy()
     setConstraints()
   }
@@ -107,5 +127,70 @@ private extension EnterIdViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+  }
+}
+
+// MARK: - Bind Methods
+private extension EnterIdViewController {
+  func bind() {
+    let input = EnterIdViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapNextButton: nextButton.rx.tap,
+      didTapVerifyIdButton: idTextField.rx.didTapButton,
+      userId: idTextField.rx.text
+    )
+    
+    let output = viewModel.transform(input: input)
+    
+    bind(for: output)
+    
+    let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingDidBegin)
+      .share()
+    
+    textFieldEditingBegin
+      .map { _ in false }
+      .bind(to: nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    textFieldEditingBegin
+      .bind(with: self) { owner, _ in
+        owner.idTextField.commentViews = []
+        owner.idTextField.mode = .default
+      }
+      .disposed(by: disposeBag)
+    
+    idTextField.rx.didTapButton
+      .bind(with: self) { owner, _ in
+        owner.view.endEditing(true)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: EnterIdViewModel.Output) {
+    output.isDuplicateButtonEnabled
+      .emit(to: idTextField.button.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    output.inValidIdForm
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = [owner.idFormWarningView]
+        owner.idTextField.mode = .error
+      }
+      .disposed(by: disposeBag)
+    
+    output.duplicateId
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = [owner.duplicateIdWardningView]
+        owner.idTextField.mode = .error
+      }
+      .disposed(by: disposeBag)
+    
+    output.validId
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = [owner.validIdCommentView]
+        owner.idTextField.mode = .success
+        owner.nextButton.isEnabled = true
+      }
+      .disposed(by: disposeBag)
   }
 }
