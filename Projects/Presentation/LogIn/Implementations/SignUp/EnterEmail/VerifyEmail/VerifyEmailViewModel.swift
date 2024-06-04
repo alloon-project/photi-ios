@@ -11,6 +11,7 @@ import RxSwift
 
 protocol VerifyEmailCoordinatable: AnyObject { 
   func didTapBackButton()
+  func didTapNextButton()
 }
 
 protocol VerifyEmailViewModelType: AnyObject, VerifyEmailViewModelable {
@@ -48,6 +49,12 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
     input.didTapBackButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapNextButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapNextButton()
       }
       .disposed(by: disposeBag)
     
