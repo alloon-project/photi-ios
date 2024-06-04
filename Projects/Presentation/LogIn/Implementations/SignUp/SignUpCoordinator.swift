@@ -71,6 +71,7 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   func detachEnterId() {
     guard let coordinater = enterIdCoordinator else { return }
     
+    navigationController?.popViewController(animated: true)
     removeChild(coordinater)
     self.enterIdCoordinator = nil
   }
@@ -79,7 +80,6 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
   func enterEmailDidTapBackButton() {
-    navigationController?.popViewController(animated: true)
     listener?.didFinishSignUp()
   }
   
@@ -89,4 +89,12 @@ extension SignUpCoordinator: EnterEmailListener {
 }
 
 // MARK: - EnterIdListener
-extension SignUpCoordinator: EnterIdListener { }
+extension SignUpCoordinator: EnterIdListener {
+  func didTapBackButtonAtEnterId() {
+    detachEnterId()
+  }
+  
+  func didFinishAtEnterId() {
+    print(#function)
+  }
+}

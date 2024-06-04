@@ -11,9 +11,20 @@ import Core
 
 protocol EnterIdViewModelable { }
 
-protocol EnterIdListener: AnyObject { }
+protocol EnterIdListener: AnyObject {
+  func didTapBackButtonAtEnterId()
+  func didFinishAtEnterId()
+}
 
 final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtEnterId()
+  }
+  
+  func didTapNextButton() {
+    listener?.didFinishAtEnterId()
+  }
+  
   weak var listener: EnterIdListener?
   
   private let viewController: EnterIdViewController
