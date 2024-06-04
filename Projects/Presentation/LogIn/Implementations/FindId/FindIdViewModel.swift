@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import RxCocoa
 import RxSwift
 import DesignSystem
@@ -32,47 +31,73 @@ final class FindIdViewModel: FindIdViewModelType {
   
   // MARK: - Input
   struct Input {
-    let viewController: UIViewController
     let didTapBackButton: ControlEvent<Void>
     let email: ControlProperty<String>
+    let endEditingUserEmail: ControlEvent<Void>
+    let editingUserEmail: ControlEvent<Void>
     let didTapNextButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
+    var isValidateEmail: Signal<Bool>
+    var isOverMaximumText: Signal<Bool>
+    var didSendInformation: Signal<Void>
   }
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
-    input.didTapNextButton
-      .withLatestFrom(input.email)
-      .bind(with: self) { [weak self] onwer, email in
-        self?.requestCheckEmail(email: email) {
-          let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
-          alertVC.present(to: input.viewController, animted: false) {
-            onwer.coordinator?.isRequestSucceed()
-          }
-        }
-      }.disposed(by: disposeBag)
-        
+    // 단순 동작 bind
     input.didTapBackButton
       .bind(with: self) { onwer, _ in
         onwer.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
-    return Output() // TODO: 서버 연결 후 수정
+    
+    let isValidateEmail = input.endEditingUserEmail
+      .withLatestFrom(input.email)
+      .withUnretained(self)
+      .filter { $0.1.count <= 100 && !$0.1.isEmpty }
+      .map { $0.1.isValidateEmail() }
+      .asSignal(onErrorJustReturn: false)
+      
+    let isOverMaximumText = input.editingUserEmail
+      .withLatestFrom(input.email)
+      .map { $0.count > 100 }
+    
+    let source = input.didTapNextButton
+      .withLatestFrom(input.email)
+      .withUnretained(self)
+      .map { $0.0.requestCheckEmail(email: $0.1) }
+      .asSignal(onErrorJustReturn: ())
+      
+    // Output 반환
+    return Output(isValidateEmail: isValidateEmail,
+                  isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
+                  didSendInformation: source) // TODO: 서버 연결 후 수정
   }
 }
 
 // MARK: - Private Methods
 private extension FindIdViewModel {
   // TODO: - 서버 연결 후 수정
-  func requestCheckEmail(email: String, completion: @escaping () -> Void) {
-    // 성공시
-    completion()
-    // 실패시
-    
+  func requestCheckEmail(email: String) {
+    // API 요청 응답 메시지 나타내줘야하면
+  }
+  
+  func checkEmail() {
+//    if let email = input.emailTextField.text {
+//      if !email.isValidateEmail() {
+//        emailTextField.mode = .error
+//        emailTextField.commentViews.forEach { $0.isActivate = true }
+//        nextButton.isEnabled = false
+//      } else {
+//        emailTextField.mode = .default
+//        emailTextField.commentViews.forEach { $0.isActivate = false }
+//        nextButton.isEnabled = true
+//      }
+//    }
   }
 }

@@ -120,12 +120,36 @@ private extension FindIdViewController {
 private extension FindIdViewController {
   func bind() {
     let input = FindIdViewModel.Input(
-      viewController: self,
       didTapBackButton: navigationBar.rx.didTapLeftButton,
       email: emailTextField.rx.text,
+      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
+      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged),
       didTapNextButton: nextButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
+    
+    output.isValidateEmail
+      .asObservable()
+      .bind(with: self) { onwer, isValidate in
+        if isValidate {
+          onwer.emailTextField.mode = .error
+          onwer.emailTextField.commentViews.forEach { $0.isActivate = true }
+          onwer.nextButton.isEnabled = false
+        } else {
+          onwer.emailTextField.mode = .default
+          onwer.emailTextField.commentViews.forEach { $0.isActivate = false }
+          onwer.nextButton.isEnabled = true
+        }
+      }.disposed(by: disposeBag)
+    
+    output.didSendInformation
+      .asObservable()
+      .bind(with: self) { onwer, _ in
+        let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
+        alertVC.present(to: self, animted: false) {
+          onwer.viewModel.coordinator?.isRequestSucceed()
+        }
+      }.disposed(by: disposeBag)
   }
 }

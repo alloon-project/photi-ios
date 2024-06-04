@@ -15,9 +15,9 @@ protocol FindIdViewModelable {
 }
 
 protocol FindIdListener: AnyObject {
-  // 부모 Coordinator에게 알릴 이벤트를 정의합니다 ex) func didFinishFindId()
-  func didTapBackButton()
-  func didFinishFindId()
+  // 부모 Coordinator에게 알릴 이벤트를 정의합니다 ex) func didFinishAtFindId()
+  func didTapBackButtonAtFindId()
+  func didFinishAtFindId()
 }
 
 final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
@@ -40,9 +40,9 @@ final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
   }
   
   func isRequestSucceed() {
-    listener?.didFinishFindId()
+    listener?.didFinishAtFindId()
   }
   func didTapBackButton() {
-    listener?.didTapBackButton()
+    listener?.didTapBackButtonAtFindId()
   }
 }

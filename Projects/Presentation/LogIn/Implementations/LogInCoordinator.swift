@@ -120,11 +120,11 @@ extension LogInCoordinator: FindPasswordListener {
 
 // MARK: - FindIdListener
 extension LogInCoordinator: FindIdListener {
-  func didTapBackButton() {
+  func didTapBackButtonAtFindId() {
     detachFindId()
   }
   
-  func didFinishFindId() {
+  func didFinishAtFindId() {
     detachFindId()
   }
 }
