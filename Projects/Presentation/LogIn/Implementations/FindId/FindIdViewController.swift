@@ -56,7 +56,6 @@ final class FindIdViewController: UIViewController {
     super.touchesEnded(touches, with: event)
     
     view.endEditing(true)
-    checkEmail()
   }
 }
 
@@ -99,23 +98,6 @@ private extension FindIdViewController {
   }
 }
 
-// MARK: - Private Methods
-
-private extension FindIdViewController {
-  func checkEmail() {
-    if let email = self.emailTextField.text {
-      if !email.isValidateEmail() {
-        emailTextField.mode = .error
-        emailTextField.commentViews.forEach { $0.isActivate = true }
-        nextButton.isEnabled = false
-      } else {
-        emailTextField.mode = .default
-        emailTextField.commentViews.forEach { $0.isActivate = false }
-        nextButton.isEnabled = true
-      }
-    }
-  }
-}
 // MARK: - Bind Method
 private extension FindIdViewController {
   func bind() {
@@ -132,7 +114,7 @@ private extension FindIdViewController {
     output.isValidateEmail
       .asObservable()
       .bind(with: self) { onwer, isValidate in
-        if isValidate {
+        if !isValidate {
           onwer.emailTextField.mode = .error
           onwer.emailTextField.commentViews.forEach { $0.isActivate = true }
           onwer.nextButton.isEnabled = false
