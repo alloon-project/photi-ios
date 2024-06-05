@@ -60,7 +60,7 @@ final class EnterIdViewModel: EnterIdViewModelType {
     
     input.didTapNextButton
       .subscribe(with: self) { owner, _ in
-        owner.coordinator?.didTapBackButton()
+        owner.coordinator?.didTapNextButton()
       }
       .disposed(by: disposeBag)
     
