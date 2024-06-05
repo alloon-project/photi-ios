@@ -15,7 +15,6 @@ protocol FindIdViewModelable {
 }
 
 protocol FindIdListener: AnyObject {
-  // 부모 Coordinator에게 알릴 이벤트를 정의합니다 ex) func didFinishAtFindId()
   func didTapBackButtonAtFindId()
   func didFinishAtFindId()
 }

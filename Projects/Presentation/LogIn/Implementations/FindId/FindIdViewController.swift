@@ -8,11 +8,13 @@
 
 import UIKit
 import RxSwift
+import RxRelay
 import SnapKit
 import DesignSystem
 
 final class FindIdViewController: UIViewController {
   private let disposeBag = DisposeBag()
+  private let alertRelay = PublishRelay<Void>()
   private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
@@ -106,7 +108,8 @@ private extension FindIdViewController {
       email: emailTextField.rx.text,
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
       editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged),
-      didTapNextButton: nextButton.rx.tap
+      didTapNextButton: nextButton.rx.tap,
+      didAppearAlert: alertRelay
     )
     
     let output = viewModel.transform(input: input)
@@ -129,8 +132,8 @@ private extension FindIdViewController {
       .asObservable()
       .bind(with: self) { onwer, _ in
         let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
-        alertVC.present(to: self, animted: false) {
-          onwer.viewModel.coordinator?.isRequestSucceed()
+        alertVC.present(to: onwer, animted: false) {
+          onwer.alertRelay.accept(())
         }
       }.disposed(by: disposeBag)
   }
