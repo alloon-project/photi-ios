@@ -144,7 +144,7 @@ private extension EnterIdViewController {
     
     bind(for: output)
     
-    let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingDidBegin)
+    let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingChanged)
       .share()
     
     textFieldEditingBegin
