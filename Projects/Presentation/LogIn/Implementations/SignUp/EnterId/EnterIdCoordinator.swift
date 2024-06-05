@@ -17,14 +17,6 @@ protocol EnterIdListener: AnyObject {
 }
 
 final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtEnterId()
-  }
-  
-  func didTapNextButton() {
-    listener?.didFinishAtEnterId()
-  }
-  
   weak var listener: EnterIdListener?
   
   private let viewController: EnterIdViewController
@@ -40,5 +32,13 @@ final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtEnterId()
+  }
+  
+  func didTapNextButton() {
+    listener?.didFinishAtEnterId()
   }
 }
