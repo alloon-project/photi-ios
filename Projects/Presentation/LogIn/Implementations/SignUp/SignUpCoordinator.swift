@@ -23,14 +23,19 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   private let enterIdContainable: EnterIdContainable
   private var enterIdCoordinator: Coordinating?
   
+  private let enterPasswordContainable: EnterPasswordContainable
+  private var enterPasswordCoordinator: Coordinating?
+  
   init(
     viewModel: SignUpViewModel,
     enterEmailContainable: EnterEmailContainable,
-    enterIdContainable: EnterIdContainable
+    enterIdContainable: EnterIdContainable,
+    enterPasswordContainable: EnterPasswordContainable
   ) {
+    self.viewModel = viewModel
     self.enterEmailContainable = enterEmailContainable
     self.enterIdContainable = enterIdContainable
-    self.viewModel = viewModel
+    self.enterPasswordContainable = enterPasswordContainable
     super.init()
   }
   
@@ -42,7 +47,7 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   // MARK: - EnterEmail
   func attachEnterEmail() {
     guard enterEmailCoordinator == nil else { return }
-
+    
     let coordinater = enterEmailContainable.coordinator(listener: self)
     addChild(coordinater)
     
@@ -60,7 +65,7 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   // MARK: - EnterId
   func attachEnterId() {
     guard enterIdCoordinator == nil else { return }
-
+    
     let coordinater = enterIdContainable.coordinator(listener: self)
     addChild(coordinater)
     
@@ -74,6 +79,25 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     navigationController?.popViewController(animated: true)
     removeChild(coordinater)
     self.enterIdCoordinator = nil
+  }
+  
+  // MARK: - EnterPassword
+  func attachEnterPassword() {
+    guard enterPasswordCoordinator == nil else { return }
+    
+    let coordinater = enterPasswordContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.enterPasswordCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachEnterPassword() {
+    guard let coordinater = enterPasswordCoordinator else { return }
+    
+    navigationController?.popViewController(animated: true)
+    removeChild(coordinater)
+    self.enterPasswordCoordinator = nil
   }
 }
 
@@ -95,6 +119,9 @@ extension SignUpCoordinator: EnterIdListener {
   }
   
   func didFinishAtEnterId() {
-    print(#function)
+    attachEnterPassword()
   }
 }
+
+// MARK: - EnterPasswordListner
+extension SignUpCoordinator: EnterPasswordListener { }
