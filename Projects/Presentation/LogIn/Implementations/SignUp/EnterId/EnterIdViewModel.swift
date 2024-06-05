@@ -83,16 +83,11 @@ final class EnterIdViewModel: EnterIdViewModelType {
 // MARK: - Private Methods
 private extension EnterIdViewModel {
   func isDuplicated(_ id: String) {
-    guard isValidIdForm(id) else {
+    guard id.isValidateId else {
       inValidIdFormRelay.accept(())
       return
     }
     
     // TODO: - API 연결시 구현 예정
-  }
-  
-  func isValidIdForm(_ id: String) -> Bool {
-    let idRegex = "^[a-z0-9!_@$%^&+=]+$"
-    return  NSPredicate(format: "SELF MATCHES %@", idRegex).evaluate(with: id)
   }
 }

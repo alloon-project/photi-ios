@@ -9,6 +9,10 @@
 import UIKit
 
 public extension String {
+  var isValidateId: Bool {
+    self.matchesPattern(with: "^[a-z0-9!_@$%^&+=]+$")
+  }
+  
   func attributedString(
     font: UIFont,
     color: UIColor,
@@ -48,5 +52,10 @@ public extension String {
     dateFormatter.timeZone = TimeZone(identifier: "UTC")
     
     return dateFormatter.date(from: self)
+  }
+  
+  /// 정규표현식을 통해 Pattern을 검사합니다.
+  func matchesPattern(with regix: String) -> Bool {
+    return NSPredicate(format: "SELF MATCHES %@", regix).evaluate(with: self)
   }
 }
