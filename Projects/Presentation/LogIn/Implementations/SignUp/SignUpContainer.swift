@@ -14,14 +14,17 @@ public protocol SignUpDependency: Dependency { }
 public final class SignUpContainer: 
   Container<LogInDependency>,
   SignUpContainable,
-  EnterEmailDependency {
+  EnterEmailDependency,
+  EnterIdDependency {
   public func coordinator(listener: SignUpListener) -> Coordinating {
     let viewModel = SignUpViewModel()
     let enterEmailContainable = EnterEmailContainer(dependency: self)
+    let enterIdContainable = EnterIdContainer(dependency: self)
     
     let coordinator = SignUpCoordinator(
       viewModel: viewModel,
-      enterEmailContainable: enterEmailContainable
+      enterEmailContainable: enterEmailContainable,
+      enterIdContainable: enterIdContainable
     )
     coordinator.listener = listener
     return coordinator

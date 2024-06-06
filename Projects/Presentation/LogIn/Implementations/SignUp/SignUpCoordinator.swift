@@ -20,11 +20,16 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   private let enterEmailContainable: EnterEmailContainable
   private var enterEmailCoordinator: Coordinating?
   
+  private let enterIdContainable: EnterIdContainable
+  private var enterIdCoordinator: Coordinating?
+  
   init(
     viewModel: SignUpViewModel,
-    enterEmailContainable: EnterEmailContainable
+    enterEmailContainable: EnterEmailContainable,
+    enterIdContainable: EnterIdContainable
   ) {
     self.enterEmailContainable = enterEmailContainable
+    self.enterIdContainable = enterIdContainable
     self.viewModel = viewModel
     super.init()
   }
@@ -51,12 +56,45 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     removeChild(coordinater)
     self.enterEmailCoordinator = nil
   }
+  
+  // MARK: - EnterId
+  func attachEnterId() {
+    guard enterIdCoordinator == nil else { return }
+
+    let coordinater = enterIdContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.enterIdCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachEnterId() {
+    guard let coordinater = enterIdCoordinator else { return }
+    
+    navigationController?.popViewController(animated: true)
+    removeChild(coordinater)
+    self.enterIdCoordinator = nil
+  }
 }
 
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
   func enterEmailDidTapBackButton() {
-    navigationController?.popViewController(animated: true)
     listener?.didFinishSignUp()
+  }
+  
+  func enterEmailDidFinish() {
+    attachEnterId()
+  }
+}
+
+// MARK: - EnterIdListener
+extension SignUpCoordinator: EnterIdListener {
+  func didTapBackButtonAtEnterId() {
+    detachEnterId()
+  }
+  
+  func didFinishAtEnterId() {
+    print(#function)
   }
 }
