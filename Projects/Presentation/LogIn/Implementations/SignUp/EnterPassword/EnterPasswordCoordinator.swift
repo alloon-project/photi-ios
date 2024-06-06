@@ -11,7 +11,10 @@ import Core
 
 protocol EnterPasswordViewModelable { }
 
-protocol EnterPasswordListener: AnyObject { }
+protocol EnterPasswordListener: AnyObject {
+  func didTapBackButtonAtEnterPassword()
+  func didFinishEnterPassword()
+}
 
 final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
   weak var listener: EnterPasswordListener?
@@ -29,5 +32,13 @@ final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtEnterPassword()
+  }
+  
+  func didTapContinueButton() {
+    listener?.didFinishEnterPassword()
   }
 }

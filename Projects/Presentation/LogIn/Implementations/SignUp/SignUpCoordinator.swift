@@ -124,4 +124,12 @@ extension SignUpCoordinator: EnterIdListener {
 }
 
 // MARK: - EnterPasswordListner
-extension SignUpCoordinator: EnterPasswordListener { }
+extension SignUpCoordinator: EnterPasswordListener {
+  func didTapBackButtonAtEnterPassword() {
+    detachEnterPassword()
+  }
+  
+  func didFinishEnterPassword() {
+    listener?.didFinishSignUp()
+  }
+}

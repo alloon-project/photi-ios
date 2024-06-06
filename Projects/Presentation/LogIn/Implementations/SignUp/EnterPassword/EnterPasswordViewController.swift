@@ -206,7 +206,10 @@ private extension EnterPasswordViewController {
     output.isValidPassword
       .filter { $0 == false }
       .map { _ in "" }
-      .drive(passwordCheckTextField.rx.text)
+      .drive(with: self) { owner, _ in
+        owner.passwordCheckTextField.text = ""
+        owner.correnspondPasswordCommentView.isActivate = false
+      }
       .disposed(by: disposeBag)
     
     output.correspondPassword
@@ -243,7 +246,8 @@ private extension EnterPasswordViewController {
 extension EnterPasswordViewController: ListBottomSheetDelegate {
   func didTapIcon(at index: Int) {  }
   
-  func didTapButton() {
+  func didTapButton(_ bottomSheet: ListBottomSheetViewController) {
+    bottomSheet.dismissBottomSheet()
     didTapContinueButton.accept(())
   }
 }

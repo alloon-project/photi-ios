@@ -9,7 +9,10 @@
 import RxCocoa
 import RxSwift
 
-protocol EnterPasswordCoordinatable: AnyObject { }
+protocol EnterPasswordCoordinatable: AnyObject { 
+  func didTapBackButton()
+  func didTapContinueButton()
+}
 
 protocol EnterPasswordViewModelType: AnyObject, EnterPasswordViewModelable {
   associatedtype Input
@@ -49,13 +52,13 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
   func transform(input: Input) -> Output {
     input.didTapBackButton
       .bind(with: self) { owner, _ in
-//        owner?.coordinator
+        owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
     input.didTapContinueButton
       .bind(with: self) { owner, _ in
-        print("continue")
+        owner.coordinator?.didTapContinueButton()
       }
       .disposed(by: disposeBag)
     
