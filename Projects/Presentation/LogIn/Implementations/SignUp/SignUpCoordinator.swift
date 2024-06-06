@@ -44,6 +44,13 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     attachEnterEmail()
   }
   
+  override func stop() {
+    super.stop()
+    detachEnterPassword(animated: false)
+    detachEnterId(animated: false)
+    detachEnterEmail(animated: true)
+  }
+  
   // MARK: - EnterEmail
   func attachEnterEmail() {
     guard enterEmailCoordinator == nil else { return }
@@ -55,11 +62,12 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     coordinater.start(at: self.navigationController)
   }
   
-  func detachEnterEmail() {
+  func detachEnterEmail(animated: Bool) {
     guard let coordinater = enterEmailCoordinator else { return }
     
     removeChild(coordinater)
     self.enterEmailCoordinator = nil
+    navigationController?.popViewController(animated: animated)
   }
   
   // MARK: - EnterId
@@ -73,12 +81,12 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     coordinater.start(at: self.navigationController)
   }
   
-  func detachEnterId() {
+  func detachEnterId(animated: Bool) {
     guard let coordinater = enterIdCoordinator else { return }
     
-    navigationController?.popViewController(animated: true)
     removeChild(coordinater)
     self.enterIdCoordinator = nil
+    navigationController?.popViewController(animated: animated)
   }
   
   // MARK: - EnterPassword
@@ -92,12 +100,12 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     coordinater.start(at: self.navigationController)
   }
   
-  func detachEnterPassword() {
+  func detachEnterPassword(animated: Bool) {
     guard let coordinater = enterPasswordCoordinator else { return }
     
-    navigationController?.popViewController(animated: true)
     removeChild(coordinater)
     self.enterPasswordCoordinator = nil
+    navigationController?.popViewController(animated: animated)
   }
 }
 
@@ -115,7 +123,7 @@ extension SignUpCoordinator: EnterEmailListener {
 // MARK: - EnterIdListener
 extension SignUpCoordinator: EnterIdListener {
   func didTapBackButtonAtEnterId() {
-    detachEnterId()
+    detachEnterId(animated: true)
   }
   
   func didFinishAtEnterId() {
@@ -126,7 +134,7 @@ extension SignUpCoordinator: EnterIdListener {
 // MARK: - EnterPasswordListner
 extension SignUpCoordinator: EnterPasswordListener {
   func didTapBackButtonAtEnterPassword() {
-    detachEnterPassword()
+    detachEnterPassword(animated: true)
   }
   
   func didFinishEnterPassword() {

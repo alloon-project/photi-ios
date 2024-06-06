@@ -41,6 +41,11 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  override func stop() {
+    super.stop()
+    detachVerifyEmail(animated: false)
+  }
+  
   // MARK: - VerifyEmail
   func attachVerifyEmail(userEmail: String) {
     guard verifyEmailCoordinator == nil else { return }
@@ -52,11 +57,11 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     coordinater.start(at: self.navigationController)
   }
   
-  func detachVerifyEmail() {
+  func detachVerifyEmail(animated: Bool) {
     guard let coordinater = verifyEmailCoordinator else { return }
     
     self.verifyEmailCoordinator = nil
-    navigationController?.popViewController(animated: true)
+    navigationController?.popViewController(animated: animated)
     removeChild(coordinater)
   }
   
@@ -68,7 +73,7 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
 // MARK: - VerifyEmailListener
 extension EnterEmailCoordinator: VerifyEmailListener {
   func verifyEmailDidTapBackButton() {
-    detachVerifyEmail()
+    detachVerifyEmail(animated: true)
   }
   
   func verifyEmailDidFinish() {
