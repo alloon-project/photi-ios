@@ -13,6 +13,7 @@ protocol VerifyEmailViewModelable { }
 
 protocol VerifyEmailListener: AnyObject { 
   func verifyEmailDidTapBackButton()
+  func verifyEmailDidFinish()
 }
 
 final class VerifyEmailCoordinator: Coordinator, VerifyEmailCoordinatable {
@@ -38,5 +39,9 @@ final class VerifyEmailCoordinator: Coordinator, VerifyEmailCoordinatable {
   
   func didTapBackButton() {
     listener?.verifyEmailDidTapBackButton()
+  }
+  
+  func didTapNextButton() {
+    listener?.verifyEmailDidFinish()
   }
 }
