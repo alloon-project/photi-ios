@@ -76,6 +76,7 @@ final class EnterEmailViewController: UIViewController {
 private extension EnterEmailViewController {
   func setupUI() {
     view.backgroundColor = .white
+    lineTextField.setKeyboardType(.emailAddress)
     setViewHierarchy()
     setConstraints()
   }
