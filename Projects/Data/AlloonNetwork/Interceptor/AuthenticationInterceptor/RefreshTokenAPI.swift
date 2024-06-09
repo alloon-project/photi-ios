@@ -14,12 +14,7 @@ enum RefreshTokenAPI {
 
 extension RefreshTokenAPI: TargetType {
   var baseURL: URL {
-    #if DEBUG
-    // TODO: - URL은 결정나면 변경
-    return URL(string: "")!
-    #else
-    return URL(string: "")!
-    #endif
+    return URL(string: URLString.base.url)!
   }
   
   var path: String {
