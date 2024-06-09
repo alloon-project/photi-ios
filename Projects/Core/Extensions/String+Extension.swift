@@ -60,7 +60,16 @@ public extension String {
     return  NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: self)
 
   /// 정규표현식을 통해 Pattern을 검사합니다.
-  func matchesPattern(with regix: String) -> Bool {
-    return NSPredicate(format: "SELF MATCHES %@", regix).evaluate(with: self)
+  func matchesPattern(with regex: String) -> Bool {
+    return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: self)
+  }
+  
+  func contain(_ regexString: String) -> Bool {
+    guard let regex = try? NSRegularExpression(pattern: regexString, options: []) else {
+      return false
+    }
+    
+    let range = NSRange(location: 0, length: self.count)
+    return regex.firstMatch(in: self, range: range) != nil
   }
 }

@@ -47,9 +47,9 @@ open class Coordinator: Coordinating {
     self.navigationController = navigationController
   }
   
-  /// deinit 직전에 원하는 동작이 있을 때, 해당 메서드에 구현하면 됩니다.
-  open func stop() { 
-    self.navigationController = nil
+  /// 부모에게 제거되었을 때 원하는 동작을 해당 메서드에 구현하면 됩니다.
+  open func stop() {
+    self.removeAllChild()
   }
   
   public final func addChild(_ coordinator: Coordinating) {
@@ -62,16 +62,11 @@ open class Coordinator: Coordinating {
     guard let index = children.firstIndex(where: { $0 === coordinator }) else { return }
     
     children.remove(at: index)
+    
+    coordinator.stop()
   }
   
   private func removeAllChild() {
     children.forEach { removeChild($0) }
-  }
- 
-  deinit {
-    self.stop()
-    if !children.isEmpty {
-      self.removeAllChild()
-    }
   }
 }
