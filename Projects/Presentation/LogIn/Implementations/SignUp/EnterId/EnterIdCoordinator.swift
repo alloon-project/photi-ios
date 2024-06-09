@@ -13,7 +13,7 @@ protocol EnterIdViewModelable { }
 
 protocol EnterIdListener: AnyObject {
   func didTapBackButtonAtEnterId()
-  func didFinishAtEnterId()
+  func didFinishEnterId()
 }
 
 final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
@@ -39,6 +39,6 @@ final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
   }
   
   func didTapNextButton() {
-    listener?.didFinishAtEnterId()
+    listener?.didFinishEnterId()
   }
 }
