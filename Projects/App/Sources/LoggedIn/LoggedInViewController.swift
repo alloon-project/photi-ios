@@ -9,8 +9,7 @@
 import UIKit
 import SnapKit
 
-final class LoggedInViewController: UITabBarController {
-  
+final class LoggedInViewController: UITabBarController {  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .blue

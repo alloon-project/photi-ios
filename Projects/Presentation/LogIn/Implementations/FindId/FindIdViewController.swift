@@ -8,14 +8,14 @@
 
 import UIKit
 import RxSwift
+import RxRelay
 import SnapKit
 import DesignSystem
 
 final class FindIdViewController: UIViewController {
-  private lazy var input = FindIdViewModel.Input(
-    email: emailTextField.rx.text,
-    didTapNextButton: nextButton.rx.tap
-  )
+  private let disposeBag = DisposeBag()
+  private let alertRelay = PublishRelay<Void>()
+  private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "아이디 찾기")
@@ -33,13 +33,25 @@ final class FindIdViewController: UIViewController {
     textField.setKeyboardType(.emailAddress)
     return textField
   }()
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
+  
+  // MARK: - Initiazliers
+  init(viewModel: FindIdViewModel) {
+    self.viewModel = viewModel
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
   
   // MARK: - View Life Cycle
   override func viewDidLoad() {
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -54,7 +66,7 @@ private extension FindIdViewController {
   func setupUI() {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
-    
+    self.nextButton.isEnabled = false
     setViewHierarchy()
     setConstraints()
   }
@@ -85,5 +97,44 @@ private extension FindIdViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+  }
+}
+
+// MARK: - Bind Method
+private extension FindIdViewController {
+  func bind() {
+    let input = FindIdViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      email: emailTextField.rx.text,
+      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
+      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged),
+      didTapNextButton: nextButton.rx.tap,
+      didAppearAlert: alertRelay
+    )
+    
+    let output = viewModel.transform(input: input)
+    
+    output.isValidateEmail
+      .asObservable()
+      .bind(with: self) { onwer, isValidate in
+        if !isValidate {
+          onwer.emailTextField.mode = .error
+          onwer.emailTextField.commentViews.forEach { $0.isActivate = true }
+          onwer.nextButton.isEnabled = false
+        } else {
+          onwer.emailTextField.mode = .default
+          onwer.emailTextField.commentViews.forEach { $0.isActivate = false }
+          onwer.nextButton.isEnabled = true
+        }
+      }.disposed(by: disposeBag)
+    
+    output.didSendInformation
+      .asObservable()
+      .bind(with: self) { onwer, _ in
+        let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
+        alertVC.present(to: onwer, animted: false) {
+          onwer.alertRelay.accept(())
+        }
+      }.disposed(by: disposeBag)
   }
 }

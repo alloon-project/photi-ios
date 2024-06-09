@@ -18,7 +18,8 @@ protocol FindIdContainable: Containable {
 
 final class FindIdContainer: Container<FindIdDependency>, FindIdContainable {
   func coordinator(listener: FindIdListener) -> Coordinating {
-    let coordinator = FindIdCoordinator()
+    let viewModel = FindIdViewModel()
+    let coordinator = FindIdCoordinator(viewModel: viewModel)
     coordinator.listener = listener
     return coordinator
   }
