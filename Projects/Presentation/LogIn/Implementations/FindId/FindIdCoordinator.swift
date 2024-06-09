@@ -15,7 +15,8 @@ protocol FindIdViewModelable {
 }
 
 protocol FindIdListener: AnyObject {
-  // 부모 Coordinator에게 알릴 이벤트를 정의합니다 ex) func didFinishFindId()
+  func didTapBackButtonAtFindId()
+  func didFinishAtFindId()
 }
 
 final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
@@ -24,9 +25,10 @@ final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
   private let viewController: FindIdViewController
   private let viewModel: any FindIdViewModelType
   
-  override init() {
-    self.viewController = FindIdViewController()
-    self.viewModel = FindIdViewModel()
+  init(viewModel: FindIdViewModel) {
+    self.viewModel = viewModel
+    self.viewController = FindIdViewController(viewModel: viewModel)
+    
     super.init()
     viewModel.coordinator = self
   }
@@ -34,5 +36,12 @@ final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: false)
+  }
+  
+  func isRequestSucceed() {
+    listener?.didFinishAtFindId()
+  }
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtFindId()
   }
 }

@@ -32,7 +32,6 @@ class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
   weak var coordinator: LogInCoordinatable?
   
-  
   // MARK: - Input
   struct Input {
     let id: ControlProperty<String>

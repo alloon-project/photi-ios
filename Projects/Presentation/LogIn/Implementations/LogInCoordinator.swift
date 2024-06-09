@@ -83,6 +83,7 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
     
     removeChild(coordinater)
     self.findIdCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
   // MARK: - FindPassword
@@ -101,6 +102,7 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
     
     removeChild(coordinater)
     self.findPasswordCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
 }
 
@@ -118,4 +120,12 @@ extension LogInCoordinator: FindPasswordListener {
 }
 
 // MARK: - FindIdListener
-extension LogInCoordinator: FindIdListener { }
+extension LogInCoordinator: FindIdListener {
+  func didTapBackButtonAtFindId() {
+    detachFindId()
+  }
+  
+  func didFinishAtFindId() {
+    detachFindId()
+  }
+}
