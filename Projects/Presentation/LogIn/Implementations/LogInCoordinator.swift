@@ -62,7 +62,6 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   func detachSignUp() {
     guard let coordinater = signUpCoordinator else { return }
     
-    navigationController?.popViewController(animated: true)
     removeChild(coordinater)
     self.signUpCoordinator = nil
   }

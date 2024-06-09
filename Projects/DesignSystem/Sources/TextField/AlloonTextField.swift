@@ -13,6 +13,12 @@ public class AlloonTextField: UITextField {
     return CGSize(width: 327, height: 46)
   }
   
+  public override var isSecureTextEntry: Bool {
+    didSet {
+      if isFirstResponder { becomeFirstResponder() }
+    }
+  }
+  
   public override var placeholder: String? {
     didSet {
       self.setPlaceholder(placeholder)
@@ -50,6 +56,19 @@ public class AlloonTextField: UITextField {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: - UIResponder
+  @discardableResult
+  public override func becomeFirstResponder() -> Bool {
+    let success = super.becomeFirstResponder()
+    
+    if isSecureTextEntry, let text = text {
+      self.text?.removeAll()
+      insertText(text)
+    }
+    
+    return success
   }
 }
 

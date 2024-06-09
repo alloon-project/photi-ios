@@ -15,16 +15,19 @@ public final class SignUpContainer:
   Container<LogInDependency>,
   SignUpContainable,
   EnterEmailDependency,
-  EnterIdDependency {
+  EnterIdDependency,
+  EnterPasswordDependency {
   public func coordinator(listener: SignUpListener) -> Coordinating {
     let viewModel = SignUpViewModel()
     let enterEmailContainable = EnterEmailContainer(dependency: self)
     let enterIdContainable = EnterIdContainer(dependency: self)
+    let enterPasswordContainable = EnterPasswordContainer(dependency: self)
     
     let coordinator = SignUpCoordinator(
       viewModel: viewModel,
       enterEmailContainable: enterEmailContainable,
-      enterIdContainable: enterIdContainable
+      enterIdContainable: enterIdContainable,
+      enterPasswordContainable: enterPasswordContainable
     )
     coordinator.listener = listener
     return coordinator

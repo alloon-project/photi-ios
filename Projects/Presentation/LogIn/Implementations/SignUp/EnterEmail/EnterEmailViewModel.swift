@@ -12,7 +12,6 @@ import RxSwift
 
 protocol EnterEmailCoordinatable: AnyObject {
   func attachVerifyEmail(userEmail: String)
-  func detachVerifyEmail()
   func didTapBackButton()
 }
 

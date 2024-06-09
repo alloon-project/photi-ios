@@ -8,10 +8,7 @@
 
 import RxSwift
 
-protocol SignUpCoordinatable { 
-  func attachEnterEmail()
-  func detachEnterEmail()
-}
+protocol SignUpCoordinatable { }
 
 protocol SignUpViewModelType: SignUpViewModelable {
   associatedtype Input

@@ -14,6 +14,7 @@ import Core
 
 public protocol ListBottomSheetDelegate: AnyObject {
   func didTapIcon(at index: Int)
+  func didTapButton(_ bottomSheet: ListBottomSheetViewController)
 }
 
 public final class ListBottomSheetViewController: BottomSheetViewController {
@@ -95,6 +96,7 @@ public final class ListBottomSheetViewController: BottomSheetViewController {
     tableView.dataSource = self
     
     setupUI()
+    bind()
   }
 }
 
@@ -137,6 +139,17 @@ private extension ListBottomSheetViewController {
       $0.bottom.equalToSuperview()
       $0.size.equalTo(buttonSize)
     }
+  }
+}
+
+// MARK: - Bind Methods
+private extension ListBottomSheetViewController {
+  func bind() {
+    button.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.delegate?.didTapButton(owner)
+      }
+      .disposed(by: disposeBag)
   }
 }
 
