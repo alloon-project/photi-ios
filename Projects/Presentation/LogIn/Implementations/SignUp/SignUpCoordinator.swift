@@ -111,11 +111,11 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
 
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
-  func enterEmailDidTapBackButton() {
+  func didTapBackButtonAtEnterEmail() {
     listener?.didFinishSignUp()
   }
   
-  func enterEmailDidFinish() {
+  func didFinishEnterEmail() {
     attachEnterId()
   }
 }
@@ -126,7 +126,7 @@ extension SignUpCoordinator: EnterIdListener {
     detachEnterId(animated: true)
   }
   
-  func didFinishAtEnterId() {
+  func didFinishEnterId() {
     attachEnterPassword()
   }
 }

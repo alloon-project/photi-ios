@@ -12,8 +12,8 @@ import Core
 protocol EnterEmailViewModelable { }
 
 protocol EnterEmailListener: AnyObject {
-  func enterEmailDidTapBackButton()
-  func enterEmailDidFinish()
+  func didTapBackButtonAtEnterEmail()
+  func didFinishEnterEmail()
 }
 
 final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
@@ -66,17 +66,17 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   }
   
   func didTapBackButton() {
-    listener?.enterEmailDidTapBackButton()
+    listener?.didTapBackButtonAtEnterEmail()
   }
 }
 
 // MARK: - VerifyEmailListener
 extension EnterEmailCoordinator: VerifyEmailListener {
-  func verifyEmailDidTapBackButton() {
+  func didTapBackButtonAtVerifyEmail() {
     detachVerifyEmail(animated: true)
   }
   
-  func verifyEmailDidFinish() {
-    listener?.enterEmailDidFinish()
+  func didFinishVerifyEmail() {
+    listener?.didFinishEnterEmail()
   }
 }

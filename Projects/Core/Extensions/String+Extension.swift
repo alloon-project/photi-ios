@@ -58,7 +58,7 @@ public extension String {
   func isValidateEmail() -> Bool {
     let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}"
     return  NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: self)
-
+  }
   /// 정규표현식을 통해 Pattern을 검사합니다.
   func matchesPattern(with regex: String) -> Bool {
     return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: self)
