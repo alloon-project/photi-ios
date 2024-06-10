@@ -83,6 +83,8 @@ private extension VerifyEmailViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     resendButton.isEnabledUnderLine = true
+    lineTextField.setKeyboardType(.numberPad)
+    
     setViewHierarchy()
     setConstraints()
   }
