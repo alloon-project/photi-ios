@@ -24,6 +24,17 @@ final class LogInViewController: UIViewController {
   private let findView = FindView()
   private let signUpButton = LineRoundButton(text: "회원가입", type: .primary, size: .xLarge)
   
+  // TODO: - DS 적용 후 수정
+  private let warningToastView = ToastView(
+    tipPosition: .none, text: "아이디와 비밀번호 모두 입력해주세요", icon: UIImage(systemName: "lightbulb.fill")!
+  )
+  private let invalidId = CommentView(
+    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+  )
+  private let invalidPassword = CommentView(
+    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+  )
+  
   // MARK: - Initiazliers
   init(viewModel: LogInViewModel) {
     self.viewModel = viewModel
@@ -97,6 +108,11 @@ private extension LogInViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+    
+    warningToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
   }
 }
 
@@ -112,6 +128,59 @@ private extension LogInViewController {
       didTapSignUpButton: signUpButton.rx.tap
     )
     
+    idTextField.rx.text
+      .distinctUntilChanged()
+      .bind(with: self) { owner, _ in
+        owner.idTextField.commentViews = []
+        owner.idTextField.mode = .default
+      }
+      .disposed(by: disposeBag)
+    
+    passwordTextField.rx.text
+      .distinctUntilChanged()
+      .bind(with: self) { owner, _ in
+        owner.passwordTextField.commentViews = []
+        owner.passwordTextField.mode = .default
+      }
+      .disposed(by: disposeBag)
+    
+    loginButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.view.endEditing(true)
+      }
+      .disposed(by: disposeBag)
+    
     let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: LogInViewModel.Output) {
+    output.emptyIdOrPassword
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = []
+        owner.passwordTextField.commentViews = []
+        
+        owner.idTextField.mode = .default
+        owner.passwordTextField.mode = .default
+        owner.displayToastView()
+      }
+      .disposed(by: disposeBag)
+   
+    output.isValidIdOrPassword
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = [owner.invalidId]
+        owner.passwordTextField.commentViews = [owner.invalidPassword]
+        
+        owner.idTextField.mode = .error
+        owner.passwordTextField.mode = .error
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - Private Methods
+private extension LogInViewController {
+  func displayToastView() {
+    warningToastView.present(to: self)
   }
 }
