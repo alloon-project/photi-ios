@@ -32,6 +32,8 @@ class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
   weak var coordinator: LogInCoordinatable?
   
+  private let isValidIdOrPasswordRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
     let id: ControlProperty<String>
@@ -43,7 +45,10 @@ class LogInViewModel: LogInViewModelType {
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    var emptyIdOrPassword: Signal<Void>
+    var isValidIdOrPassword: Signal<Void>
+  }
   
   // MARK: - Initializers
   init() { }
@@ -66,6 +71,32 @@ class LogInViewModel: LogInViewModelType {
         owner.coordinator?.attachFindPassword()
       }
       .disposed(by: disposeBag)
-    return Output()
+    
+    let didTapLoginButtonWithInfo = input.didTapLoginButton
+      .withLatestFrom(Observable.combineLatest(input.id, input.password))
+      .share()
+  
+    let emptyIdOrPassword = didTapLoginButtonWithInfo
+      .filter { $0.0.isEmpty || $0.1.isEmpty }
+      .map { _ in () }
+
+    didTapLoginButtonWithInfo
+      .filter { !$0.0.isEmpty && !$0.1.isEmpty }
+      .subscribe(with: self) { owner, _ in
+        owner.requestLogin()
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      emptyIdOrPassword: emptyIdOrPassword.asSignal(onErrorJustReturn: ()),
+      isValidIdOrPassword: isValidIdOrPasswordRelay.asSignal()
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension LogInViewModel {
+  func requestLogin() {
+    // TODO: API 연결 후 구현
   }
 }

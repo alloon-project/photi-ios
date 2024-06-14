@@ -24,12 +24,13 @@ public final class ToastView: UIView {
   private let tipPosition: TipPosition
   private let text: String
   private let icon: UIImage
+  private var isRemoved = false
+  private var workItem: DispatchWorkItem?
   
   // MARK: - UI Compnents
   private let label = UILabel()
   private let iconView = UIImageView()
   private lazy var tipView: TipView? = nil
-  private var isRemoved = false
   
   // MARK: - Initializers
   public init(
@@ -52,7 +53,7 @@ public final class ToastView: UIView {
   
   // MARK: - UIResponder Override
   public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
+    super.touchesEnded(touches, with: event)
     self.remove()
   }
 }
@@ -143,21 +144,22 @@ public extension ToastView {
   
   func present(
     to viewController: UIViewController,
-    animted: Bool,
     duration: CGFloat = 3.0,
     completion: (() -> Void)? = nil
   ) {
     guard let constraint = toastViewConstraints else { return }
     
+    workItem?.cancel()
     self.isRemoved = false
     viewController.view.addSubview(self)
     self.snp.makeConstraints(constraint)
     
-    DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-      guard let self else { return }
-    
-      self.remove(completion)
+    let workItem = DispatchWorkItem { [weak self] in
+      self?.remove(completion)
     }
+
+    self.workItem = workItem
+    DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
   }
 }
 
@@ -195,6 +197,7 @@ private extension ToastView {
     } completion: { _ in
       self.removeFromSuperview()
       completion?()
+      self.alpha = 1.0
     }
   }
 }

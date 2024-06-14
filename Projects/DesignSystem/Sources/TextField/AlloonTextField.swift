@@ -35,6 +35,7 @@ public class AlloonTextField: UITextField {
   public init() {
     super.init(frame: .zero)
     setupUI()
+    self.autocapitalizationType = .none
     
     self.addTarget(
       self,
