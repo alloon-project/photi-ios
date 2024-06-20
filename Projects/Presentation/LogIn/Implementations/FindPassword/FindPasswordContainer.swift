@@ -14,9 +14,18 @@ protocol FindPasswordContainable: Containable {
   func coordinator(listener: FindPasswordListener) -> Coordinating
 }
 
-final class FindPasswordContainer: Container<FindPasswordDependency>, FindPasswordContainable {
+final class FindPasswordContainer: 
+  Container<FindPasswordDependency>,
+  FindPasswordContainable,
+  TempPasswordDependency {
   func coordinator(listener: FindPasswordListener) -> Coordinating {
-    let coordinator = FindPasswordCoordinator()
+    let viewModel = FindPasswordViewModel()
+    let tempPasswordContainable = TempPasswordContainer(dependency: self)
+    
+    let coordinator = FindPasswordCoordinator(
+      viewModel: viewModel,
+      tempPasswordContainable: tempPasswordContainable
+    )
     coordinator.listener = listener
     return coordinator
   }
