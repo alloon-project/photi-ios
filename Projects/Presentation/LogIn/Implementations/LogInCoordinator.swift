@@ -103,6 +103,7 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
     self.findPasswordCoordinator = nil
     navigationController?.popViewController(animated: true)
   }
+  
 }
 
 // MARK: - SignUpListener
@@ -114,7 +115,8 @@ extension LogInCoordinator: SignUpListener {
 
 // MARK: - FindpasswordListener
 extension LogInCoordinator: FindPasswordListener {
-  func findPasswordDidFinish() {
+  func didTapBackButtonAtFindPassword() {
+    detachFindPassword()
   }
 }
 
