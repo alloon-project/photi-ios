@@ -1,23 +1,106 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:ios)
 
 platform :ios do
-  desc "Description of what the lane does"
-  lane :custom_lane do
-    # add actions here: https://docs.fastlane.tools/actions
+  # bundle exec fastlane ios prod new_version_number:버전정보 new_build_number:현재시간
+  desc "Push a new production build to TestFlight"
+  lane :prod do 
+    set_build_info()
+    
+    clear_derived_data
+ 
+    update_and_build_app("PROD")
+    
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+    download_dsyms(
+      app_identifier: "com.photi-prod",
+      output_directory: "./Projects/App/Outputs/Archives/PROD"
+    )
+  end
+
+  # bundle exec fastlane ios dev new_version_number:버전정보 new_build_number:현재시간
+  desc "Push a new dev build to TestFlight"
+  lane :dev do 
+    set_build_info()
+    
+    clear_derived_data
+
+    update_and_build_app("DEV")
+    
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+    download_dsyms(
+      app_identifier: "com.photi-dev",
+      output_directory: "./Projects/App/Outputs/Archives/DEV"
+    )
+  end
+
+  desc "Fetch profiles by using match"
+  lane :profiles do
+    match(
+      type: "appstore",
+      app_identifier:["com.photi-prod"],
+      readonly: true
+    )
+    match(
+      type: "appstore",
+      app_identifier:["com.photi-dev"],
+      readonly: true
+    )
+  end
+end
+
+def set_build_info()
+  build_number = Time.now.strftime("%Y%m%d%H%M")
+
+  increment_build_number(
+    xcodeproj: './Projects/App/Photi.xcodeproj',
+    build_number: build_number
+  )
+end
+
+def update_and_build_app(scheme = "")
+  case scheme
+  when "PROD"
+    update_app_identifier(
+      xcodeproj: "./Projects/App/Photi.xcodeproj",
+      plist_path: "Info.plist",
+      app_identifier: "com.photi-prod"
+    )
+
+    build_app(
+      workspace: "Photi.xcworkspace",
+      output_directory: "./Projects/App/Outputs/Archives/PROD",
+      scheme: "Photi-PROD",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        method: "app-store",
+        signingStyle: 'manual',
+        provisioningProfiles: {
+          "com.photi-prod": "match AppStore com.photi-prod",
+        }
+      } 
+    )
+
+  when "DEV"
+    update_app_identifier(
+      xcodeproj: "./Projects/App/Photi.xcodeproj",
+      plist_path: "Info.plist",
+      app_identifier: "com.photi-dev"
+    )
+
+    build_app(
+      workspace: "Photi.xcworkspace",
+      output_directory: "./Projects/App/Outputs/Archives/DEV",
+      scheme: "Photi-DEV",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        method: "app-store",
+        signingStyle: 'manual',
+        provisioningProfiles: {
+          "com.photi-dev": "match AppStore com.photi-dev",
+        }
+      } 
+    )
+  else
+    throw
   end
 end
