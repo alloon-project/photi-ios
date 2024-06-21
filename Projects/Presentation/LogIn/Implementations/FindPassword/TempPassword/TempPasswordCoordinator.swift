@@ -15,6 +15,7 @@ protocol TempPasswordViewModelable {
 
 protocol TempPasswordListener: AnyObject {
   func didTapBackButtonAtTempPassword()
+  func didFinishTempPassword()
 }
 
 final class TempPasswordCoordinator: Coordinator, TempPasswordCoordinatable {
@@ -36,5 +37,13 @@ final class TempPasswordCoordinator: Coordinator, TempPasswordCoordinatable {
     super.start(at: navigationController)
     viewController.setUserEmail(userEmail)
     navigationController?.pushViewController(viewController, animated: true)
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtTempPassword()
+  }
+  
+  func didTapContinueButton() {
+    listener?.didFinishTempPassword()
   }
 }
