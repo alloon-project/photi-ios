@@ -20,7 +20,7 @@ final class NewPasswordViewController: UIViewController {
   private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one, titleText: "비밀번호 재설정")
   
   private let passwordTitleLabel: UILabel = {
     let label = UILabel()
