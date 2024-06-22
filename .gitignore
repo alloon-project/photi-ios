@@ -142,3 +142,5 @@ node_modules
 
 # Fastlane.swift runner binary
 **/fastlane/FastlaneRunner
+
+**/fastlane/README.md
