@@ -12,7 +12,8 @@ import DesignSystem
 
 protocol TempPasswordCoordinatable: AnyObject {
   // viewModel에서 coordinator로 전달할 이벤트들을 정의합니다.
-
+  func didTapBackButton()
+  func didTapContinueButton()
 }
 
 protocol TempPasswordViewModelType: TempPasswordViewModelable {
@@ -32,21 +33,39 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   
   // MARK: - Input
   struct Input {
-
+    var password: ControlProperty<String>
+    var didTapBackButton: ControlEvent<Void>
+    var didTapResendButton: ControlEvent<Void>
+    var didTapContinueButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
-
+    var isEnabledNextButton: Driver<Bool>
   }
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
-    // 단순 동작 bind
-   
-    // Output 반환
-    return Output() // TODO: 서버 연결 후 수정
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }.disposed(by: disposeBag)
+    
+    // TODO: 재전송 API
+    
+    input.didTapContinueButton
+      .bind(with: self) { owner, _ in
+        // 임시 비밀번호 확인 API
+        owner.coordinator?.didTapContinueButton()
+      }.disposed(by: disposeBag)
+    
+    let isEnabledNextButton = input.password
+      .map { !$0.isEmpty }
+    
+    return Output(
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+    )
   }
 }

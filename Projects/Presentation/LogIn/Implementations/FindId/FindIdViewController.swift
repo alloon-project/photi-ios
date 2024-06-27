@@ -116,24 +116,24 @@ private extension FindIdViewController {
     
     output.isValidateEmail
       .asObservable()
-      .bind(with: self) { onwer, isValidate in
+      .bind(with: self) { owner, isValidate in
         if !isValidate {
-          onwer.emailTextField.mode = .error
-          onwer.emailTextField.commentViews.forEach { $0.isActivate = true }
-          onwer.nextButton.isEnabled = false
+          owner.emailTextField.mode = .error
+          owner.emailTextField.commentViews.forEach { $0.isActivate = true }
+          owner.nextButton.isEnabled = false
         } else {
-          onwer.emailTextField.mode = .default
-          onwer.emailTextField.commentViews.forEach { $0.isActivate = false }
-          onwer.nextButton.isEnabled = true
+          owner.emailTextField.mode = .default
+          owner.emailTextField.commentViews.forEach { $0.isActivate = false }
+          owner.nextButton.isEnabled = true
         }
       }.disposed(by: disposeBag)
     
     output.didSendInformation
       .asObservable()
-      .bind(with: self) { onwer, _ in
+      .bind(with: self) { owner, _ in
         let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
-        alertVC.present(to: onwer, animted: false) {
-          onwer.alertRelay.accept(())
+        alertVC.present(to: owner, animted: false) {
+          owner.alertRelay.accept(())
         }
       }.disposed(by: disposeBag)
   }

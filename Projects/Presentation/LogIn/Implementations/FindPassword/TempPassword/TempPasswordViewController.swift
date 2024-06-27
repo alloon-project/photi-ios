@@ -6,11 +6,14 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-
 import UIKit
+import RxSwift
+import RxCocoa
+import SnapKit
 import DesignSystem
 
 final class TempPasswordViewController: UIViewController {
+  private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "비밀번호 찾기")
@@ -22,7 +25,7 @@ final class TempPasswordViewController: UIViewController {
     return label
   }()
   private let tempPasswordWarningView = CommentView(
-    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: false
   )
   private let userEmailLabel: UILabel = {
     let label = UILabel()
@@ -54,6 +57,7 @@ final class TempPasswordViewController: UIViewController {
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
   
   // MARK: - UIResponder
@@ -70,6 +74,7 @@ private extension TempPasswordViewController {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
     
+    tempPasswordTextField.commentViews = [tempPasswordWarningView]
     setViewHierarchy()
     setConstraints()
   }
@@ -114,6 +119,26 @@ private extension TempPasswordViewController {
   }
 }
 
+// MARK: - Bind Methods
+extension TempPasswordViewController {
+  func bind() {
+    let input = TempPasswordViewModel.Input(
+      password: tempPasswordTextField.rx.text,
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapResendButton: resendButton.rx.tap,
+      didTapContinueButton: nextButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
+    bind(output: output)
+  }
+  
+  func bind(output: TempPasswordViewModel.Output) {
+    output.isEnabledNextButton
+      .drive(nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+  }
+}
 // MARK: - Internal Methods
 extension TempPasswordViewController {
   func setUserEmail(_ email: String) {
