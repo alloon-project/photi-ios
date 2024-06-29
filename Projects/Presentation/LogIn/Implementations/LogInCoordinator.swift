@@ -12,7 +12,7 @@ import LogIn
 
 protocol LogInViewModelable { }
 
-final class LogInCoordinator: Coordinator, LogInCoordinatable {
+final class LogInCoordinator: Coordinator {
   weak var listener: LogInListener?
   
   private let viewController: LogInViewController
@@ -105,9 +105,21 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   }
 }
 
+// MARK: - Coorinatable
+extension LogInCoordinator: LogInCoordinatable {
+  func didTapLoginButton() {
+    listener?.didFinishLogIn()
+  }
+}
+
 // MARK: - SignUpListener
 extension LogInCoordinator: SignUpListener {
   func didFinishSignUp() {
+    detachSignUp()
+    listener?.didFinishLogIn()
+  }
+  
+  func didTapBackButtonAtSignUp() {
     detachSignUp()
   }
 }
