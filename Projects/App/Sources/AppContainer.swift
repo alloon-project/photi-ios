@@ -19,20 +19,15 @@ protocol AppContainable: Containable {
 final class AppContainer:
   Container<AppDependency>,
   AppContainable,
-  LoggedInDependency,
-  LoggedOutDependency,
+  MainDependency,
   LogInDependency,
   SignUpDependency {
   func coordinator() -> Coordinating {
     return AppCoordinator(
-      loggedInContainer: LoggedInContainer(dependency: self),
-      loggedOutContainer: LoggedOutContainer(dependency: self)
+      mainContainer: MainContainer(dependency: self),
+      logInContainer: LogInContainer(dependency: self)
     )
   }
-  
-  lazy var logInContainable: LogInContainable = {
-    return LogInContainer(dependency: self)
-  }()
   
   lazy var signUpContainable: SignUpContainable = {
     return SignUpContainer(dependency: self)
