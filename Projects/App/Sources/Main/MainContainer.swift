@@ -7,6 +7,12 @@
 //
 
 import Core
+import Home
+import HomeImpl
+import MyMission
+import MyPageImpl
+import MyPage
+import MyMissionImpl
 
 protocol MainDependency: Dependency { }
 
@@ -14,9 +20,22 @@ protocol MainContainable: Containable {
   func coordinator(listener: MainListener) -> Coordinating
 }
 
-final class MainContainer: Container<MainDependency>, MainContainable {
+final class MainContainer:
+  Container<MainDependency>,
+  MainContainable,
+  HomeDependency,
+  MyMissionDependency,
+  MyPageDependency {
   func coordinator(listener: MainListener) -> Coordinating {
-    let coordinator = MainCoordinator()
+    let home = HomeContainer(dependency: self)
+    let myMission = MyMissionContainer(dependency: self)
+    let myPage = MyPageContainer(dependency: self)
+    
+    let coordinator = MainCoordinator(
+      homeContainable: home,
+      myMissionContainable: myMission,
+      myPageContainable: myPage
+    )
     coordinator.listener = listener
     return coordinator
   }

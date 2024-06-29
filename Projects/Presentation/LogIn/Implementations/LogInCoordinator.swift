@@ -44,8 +44,10 @@ final class LogInCoordinator: Coordinator {
   }
   
   override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
+    let navigation = UINavigationController(rootViewController: viewController)
+    self.navigationController = navigation
+    navigation.modalPresentationStyle = .fullScreen
+    navigationController?.present(navigation, animated: true)
   }
   
   // MARK: - SignUp
