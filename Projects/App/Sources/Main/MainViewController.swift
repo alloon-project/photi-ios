@@ -1,5 +1,5 @@
 //
-//  LoggedInViewController.swift
+//  MainViewController.swift
 //  Alloon-DEV
 //
 //  Created by jung on 4/15/24.
@@ -9,7 +9,7 @@
 import UIKit
 import SnapKit
 
-final class LoggedInViewController: UITabBarController {  
+final class MainViewController: UITabBarController {  
   override func viewDidLoad() {
     super.viewDidLoad()
     self.view.backgroundColor = .blue
