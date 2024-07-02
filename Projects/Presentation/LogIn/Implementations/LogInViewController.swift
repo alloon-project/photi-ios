@@ -51,6 +51,7 @@ final class LogInViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     setupUI()
     bind()
   }

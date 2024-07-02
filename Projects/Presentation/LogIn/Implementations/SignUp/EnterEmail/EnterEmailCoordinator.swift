@@ -42,7 +42,6 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   }
   
   override func stop() {
-    super.stop()
     detachVerifyEmail(animated: false)
   }
   
@@ -60,9 +59,9 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
   func detachVerifyEmail(animated: Bool) {
     guard let coordinater = verifyEmailCoordinator else { return }
     
+    removeChild(coordinater)
     self.verifyEmailCoordinator = nil
     navigationController?.popViewController(animated: animated)
-    removeChild(coordinater)
   }
   
   func didTapBackButton() {

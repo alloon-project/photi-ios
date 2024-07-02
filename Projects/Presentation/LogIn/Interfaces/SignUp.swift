@@ -14,4 +14,5 @@ public protocol SignUpContainable: Containable {
 
 public protocol SignUpListener: AnyObject {
   func didFinishSignUp()
+  func didTapBackButtonAtSignUp()
 }

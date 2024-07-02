@@ -9,6 +9,30 @@
 import UIKit
 
 public extension NSAttributedString {
+  static func attributes(
+    font: UIFont,
+    color: UIColor,
+    alignment: NSTextAlignment = .left,
+    letterSpacing: CGFloat = -0.025,
+    lineHeight: CGFloat? = nil
+  ) -> [NSAttributedString.Key: Any] {
+    let lineHeight = lineHeight ?? font.lineHeight
+    let paragraphStyle = NSMutableParagraphStyle()
+    paragraphStyle.alignment = alignment
+    paragraphStyle.maximumLineHeight = lineHeight
+    paragraphStyle.minimumLineHeight = lineHeight
+    
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: font,
+      .foregroundColor: color,
+      .kern: font.pointSize * letterSpacing,
+      .paragraphStyle: paragraphStyle,
+      .baselineOffset: (lineHeight - font.lineHeight) / 4
+    ]
+    
+    return attributes
+  }
+  
   func setValue(
     _ value: Any,
     for key: NSAttributedString.Key,
