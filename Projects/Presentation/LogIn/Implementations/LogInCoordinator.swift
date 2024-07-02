@@ -12,7 +12,7 @@ import LogIn
 
 protocol LogInViewModelable { }
 
-final class LogInCoordinator: Coordinator, LogInCoordinatable {
+final class LogInCoordinator: Coordinator {
   weak var listener: LogInListener?
   
   private let viewController: LogInViewController
@@ -44,8 +44,10 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   }
   
   override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
+    let navigation = UINavigationController(rootViewController: viewController)
+    self.navigationController = navigation
+    navigation.modalPresentationStyle = .fullScreen
+    navigationController?.present(navigation, animated: true)
   }
   
   // MARK: - SignUp
@@ -105,9 +107,21 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   }
 }
 
+// MARK: - Coorinatable
+extension LogInCoordinator: LogInCoordinatable {
+  func didTapLoginButton() {
+    listener?.didFinishLogIn()
+  }
+}
+
 // MARK: - SignUpListener
 extension LogInCoordinator: SignUpListener {
   func didFinishSignUp() {
+    detachSignUp()
+    listener?.didFinishLogIn()
+  }
+  
+  func didTapBackButtonAtSignUp() {
     detachSignUp()
   }
 }
