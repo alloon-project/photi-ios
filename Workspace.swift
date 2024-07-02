@@ -19,7 +19,7 @@ let workspace = Workspace(
 	],
 	schemes: [
 		Scheme(
-			name: "Alloon-DEV",
+			name: "Photi-DEV",
 			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Alloon-DEV")]),
 			runAction: .runAction(configuration: .debug),
 			archiveAction: .archiveAction(configuration: .debug),
