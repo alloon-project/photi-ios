@@ -17,18 +17,16 @@ public final class LogInContainer:
   Container<LogInDependency>,
   LogInContainable,
   FindIdDependency,
-  FindPasswordDependency, ReportDependency {
+  FindPasswordDependency {
   public func coordinator(listener: LogInListener) -> Coordinating {
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
-    let report = ReportContainer(dependency: self)
     let viewModel = LogInViewModel()
     
     let coordinator = LogInCoordinator(
       viewModel: viewModel,
       signUpContainable: dependency.signUpContainable,
       findIdContainable: findId,
-      reportContainable: report,
       findPasswordContainable: findPassword
     )
     coordinator.listener = listener
