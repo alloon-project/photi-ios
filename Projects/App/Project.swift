@@ -9,12 +9,12 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.make(
-	name: "Alloon",
+	name: "Photi",
 	targets: [
 		.make(
-			name: "Alloon-DEV",
+			name: "Photi-DEV",
 			product: .app,
-			bundleId: "com.alloon-dev",
+			bundleId: "com.photi-dev",
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
@@ -38,14 +38,14 @@ let project = Project.make(
 					"OTHER_LDFLAGS": "-ObjC"
 				],
 				configurations: [
-					.debug(name: .debug, xcconfig: "./xcconfigs/Alloon.debug.xcconfig")
+					.debug(name: .debug, xcconfig: "./xcconfigs/Photi.debug.xcconfig")
 				]
 			)
 		),
 		.make(
-			name: "Alloon-PROD",
+			name: "Photi-PROD",
 			product: .app,
-			bundleId: "com.alloon",
+			bundleId: "com.photi-prod",
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
@@ -69,12 +69,12 @@ let project = Project.make(
 					"OTHER_LDFLAGS": "-ObjC"
 				],
 				configurations: [
-					.debug(name: .debug, xcconfig: "./xcconfigs/Alloon.release.xcconfig")
+					.debug(name: .debug, xcconfig: "./xcconfigs/Photi.release.xcconfig")
 				]
 			)
 		)
 	],
 	additionalFiles: [
-		"./xcconfigs/Alloon.shared.xcconfig"
+		"./xcconfigs/Photi.shared.xcconfig"
 	]
 )

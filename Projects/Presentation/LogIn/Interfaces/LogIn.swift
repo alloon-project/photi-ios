@@ -12,4 +12,6 @@ public protocol LogInContainable: Containable {
   func coordinator(listener: LogInListener) -> Coordinating
 }
 
-public protocol LogInListener: AnyObject { }
+public protocol LogInListener: AnyObject {
+  func didFinishLogIn()
+}

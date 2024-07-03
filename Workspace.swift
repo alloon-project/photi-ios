@@ -8,7 +8,7 @@
 import ProjectDescription
 
 let workspace = Workspace(
-	name: "Alloon",
+	name: "Photi",
 	projects: [
 		"Projects/App",
 		"Projects/Core",
@@ -19,16 +19,17 @@ let workspace = Workspace(
 	],
 	schemes: [
 		Scheme(
-			name: "Aloon-DEV",
-			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Alloon-DEV")]),
+			name: "Photi-DEV",
+			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Photi-DEV")]),
+
 			runAction: .runAction(configuration: .debug),
 			archiveAction: .archiveAction(configuration: .debug),
 			profileAction: .profileAction(configuration: .debug),
 			analyzeAction: .analyzeAction(configuration: .debug)
 		),
 		Scheme(
-			name: "Alloon-PROD",
-			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Alloon-PROD")]),
+			name: "Photi-PROD",
+			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Photi-PROD")]),
 			runAction: .runAction(configuration: .release),
 			archiveAction: .archiveAction(configuration: .release),
 			profileAction: .profileAction(configuration: .release),

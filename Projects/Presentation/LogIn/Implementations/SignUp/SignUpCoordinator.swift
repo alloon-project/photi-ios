@@ -45,10 +45,9 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   }
   
   override func stop() {
-    super.stop()
     detachEnterPassword(animated: false)
     detachEnterId(animated: false)
-    detachEnterEmail(animated: true)
+    detachEnterEmail(animated: false)
   }
   
   // MARK: - EnterEmail
@@ -112,7 +111,8 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
   func didTapBackButtonAtEnterEmail() {
-    listener?.didFinishSignUp()
+    detachEnterEmail(animated: true)
+    listener?.didTapBackButtonAtSignUp()
   }
   
   func didFinishEnterEmail() {

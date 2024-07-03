@@ -20,19 +20,13 @@ public extension String {
     letterSpacing: CGFloat = -0.025,
     lineHeight: CGFloat? = nil
   ) -> NSAttributedString {
-    let lineHeight = lineHeight ?? font.lineHeight
-    let paragraphStyle = NSMutableParagraphStyle()
-    paragraphStyle.alignment = alignment
-    paragraphStyle.maximumLineHeight = lineHeight
-    paragraphStyle.minimumLineHeight = lineHeight
-    
-    let attributes: [NSAttributedString.Key: Any] = [
-      .font: font,
-      .foregroundColor: color,
-      .kern: font.pointSize * letterSpacing,
-      .paragraphStyle: paragraphStyle,
-      .baselineOffset: (lineHeight - font.lineHeight) / 4
-    ]
+    let attributes = NSAttributedString.attributes(
+      font: font,
+      color: color,
+      alignment: alignment,
+      letterSpacing: letterSpacing,
+      lineHeight: lineHeight
+    )
     
     return NSAttributedString(string: self, attributes: attributes)
   }

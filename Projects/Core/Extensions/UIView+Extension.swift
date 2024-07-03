@@ -14,6 +14,16 @@ public extension UIView {
     String(describing: self)
   }
   
+  /// view의 SafeArea를 리턴합니다.
+  static var safeAreaInset: UIEdgeInsets {
+    let keyWindow = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap { $0.windows }
+      .first { $0.isKeyWindow }
+    
+    return keyWindow?.safeAreaInsets ?? .zero
+  }
+  
   /// 여러개의 subview들을 view에 추가합니다.
   /// - Parameter views: 추가할 subViews (ex: `view.addSubviews(view1, view2, view3)`)
   func addSubviews(_ views: UIView...) {

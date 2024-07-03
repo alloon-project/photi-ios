@@ -8,65 +8,71 @@
 
 import UIKit
 import Core
+import LogIn
 
 final class AppCoordinator: Coordinator {
-  private let loggedInContainer: LoggedInContainable
-  private var loggedInCoordinator: Coordinating?
+  private let viewController: AppViewController
+
+  private let mainContainer: MainContainable
+  private var mainCoordinator: Coordinating?
   
-  private let loggedOutContainer: LoggedOutContainable
-  private var loggedOutCoordinator: Coordinating?
+  private let logInContainer: LogInContainable
+  private var logInCoordinater: Coordinating?
   
   init(
-    loggedInContainer: LoggedInContainable,
-    loggedOutContainer: LoggedOutContainable
+    mainContainer: MainContainable,
+    logInContainer: LogInContainable
   ) {
-    self.loggedInContainer = loggedInContainer
-    self.loggedOutContainer = loggedOutContainer
+    self.mainContainer = mainContainer
+    self.logInContainer = logInContainer
+    self.viewController = AppViewController()
     super.init()
   }
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    
-    navigationController?.pushViewController(AppViewController(), animated: true)
-    attachLoggedOut()
+    // TODO: 토큰 여부로 logIn, main결정하는 로직 추후 구현
+    attachLogIn()
   }
   
-  func attachLoggedIn() {
-    if loggedInCoordinator != nil { return }
+  // MARK: - Main
+  func attachMain() {
+    if mainCoordinator != nil { return }
     
-    let coordinator = loggedInContainer.coordinator(listener: self)
+    let coordinator = mainContainer.coordinator(listener: self)
     self.addChild(coordinator)
     coordinator.start(at: self.navigationController)
     
-    self.loggedInCoordinator = coordinator
+    self.mainCoordinator = coordinator
   }
   
-  func attachLoggedOut() { 
-    if loggedOutCoordinator != nil { return }
+  // MARK: - LogIn
+  func attachLogIn() {
+    guard logInCoordinater == nil else { return }
     
-    let coordinator = loggedOutContainer.coordinator(listener: self)
-    self.addChild(coordinator)
-    coordinator.start(at: self.navigationController)
+    let coordinater = logInContainer.coordinator(listener: self)
+    addChild(coordinater)
     
-    self.loggedOutCoordinator = coordinator
+    self.logInCoordinater = coordinater
+    coordinater.start(at: self.navigationController)
   }
   
-  func detachLoggedOut() { 
-    guard let coordinator = loggedOutCoordinator else { return }
+  func detachLogIn() {
+    guard let coordinater = logInCoordinater else { return }
     
-    removeChild(coordinator)
-    navigationController?.popViewController(animated: true)
+    navigationController?.dismiss(animated: true)
+    removeChild(coordinater)
+    self.logInCoordinater = nil
   }
 }
 
-// MARK: - LoggedInListener
-extension AppCoordinator: LoggedInListener { }
+// MARK: - MainListener
+extension AppCoordinator: MainListener { }
 
-// MARK: - LoggedOutListener
-extension AppCoordinator: LoggedOutListener {
-  func didFinishLoggedOut() {
-    detachLoggedOut()
-    attachLoggedIn()
+// MARK: - LogInListener
+extension AppCoordinator: LogInListener {
+  func didFinishLogIn() {
+    detachLogIn()
+    attachMain()
   }
 }
