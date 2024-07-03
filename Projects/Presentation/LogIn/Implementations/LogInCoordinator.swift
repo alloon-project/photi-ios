@@ -27,17 +27,20 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   private let findPasswordContainable: FindPasswordContainable
   private var findPasswordCoordinator: Coordinating?
   
+  private let reportContainable: ReportContainable
+  private var reportCoordinator: Coordinating?
   init(
     viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,
+    reportContainable: ReportContainable,
     findPasswordContainable: FindPasswordContainable
   ) {
     self.viewModel = viewModel
     self.signUpContainable = signUpContainable
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
-  
+    self.reportContainable = reportContainable
     self.viewController = LogInViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -87,13 +90,20 @@ final class LogInCoordinator: Coordinator, LogInCoordinatable {
   
   // MARK: - FindPassword
   func attachFindPassword() {
-    guard findPasswordCoordinator == nil else { return }
+//    guard findPasswordCoordinator == nil else { return }
+//    
+//    let coordinater = findPasswordContainable.coordinator(listener: self)
+//    addChild(coordinater)
+//    
+//    self.findPasswordCoordinator = coordinater
+//    coordinater.start(at: self.navigationController)
     
-    let coordinater = findPasswordContainable.coordinator(listener: self)
-    addChild(coordinater)
+    guard reportCoordinator == nil else { return }
     
-    self.findPasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    let coordinator = reportContainable.coordinator(listener: self)
+    addChild(coordinator)
+    self.reportCoordinator = coordinator
+    coordinator.start(at: self.navigationController)
   }
   
   func detachFindPassword() { 
@@ -132,4 +142,8 @@ extension LogInCoordinator: FindIdListener {
   func didFinishAtFindId() {
     detachFindId()
   }
+}
+
+extension LogInCoordinator: ReportListener {
+  
 }

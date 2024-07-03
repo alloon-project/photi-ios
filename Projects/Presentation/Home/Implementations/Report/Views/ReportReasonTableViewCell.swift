@@ -11,13 +11,10 @@ import SnapKit
 import Core
 
 class ReportReasonTableViewCell: UITableViewCell {
-  
   private var textColor: UIColor {
     isSelected ? .black : .gray600
   }
-  private var checkImage: UIImage? {
-    isSelected ? UIImage(systemName: "checkmark.circle")?.withTintColor(.gray300) : UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.green400)
-  }
+
   override var isSelected: Bool {
     didSet {
       setCheckImage(isSelected: isSelected)
@@ -80,7 +77,13 @@ private extension ReportReasonTableViewCell {
 // MARK: - Private methods
 private extension ReportReasonTableViewCell {
   func setCheckImage(isSelected: Bool) {
-    selectImageView.image = checkImage
+    if isSelected {
+      selectImageView.image = UIImage(systemName: "checkmark.circle.fill")?
+                              .withTintColor(.green400, renderingMode: .alwaysOriginal)
+    } else {
+      selectImageView.image = UIImage(systemName: "checkmark.circle")?
+                              .withTintColor(.gray300, renderingMode: .alwaysOriginal)
+    }
   }
   
   func setLabelTextColor(isSelected: Bool) {

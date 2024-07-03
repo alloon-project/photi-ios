@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-
 import UIKit
 import RxCocoa
 import RxSwift
@@ -17,7 +16,7 @@ import DesignSystem
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  private var reportType: ReportType = .Misson
+  private var reportType: ReportType = .misson
   private var selectedRow: Int?
   private let didTapContinueButton = PublishRelay<Void>()
   
@@ -30,7 +29,14 @@ final class ReportViewController: UIViewController {
     return label
   }()
   
-  private let reasonTableView = UITableView()
+  private let reasonTableView = {
+    let tableView = SelfSizingTableView(maxHeight: 284)
+    tableView.registerCell(ReportReasonTableViewCell.self)
+    tableView.separatorStyle = .none
+    tableView.estimatedRowHeight = 32
+    
+    return tableView
+  }()
   
   private let detailLabel: UILabel = {
     let label = UILabel()
@@ -42,7 +48,6 @@ final class ReportViewController: UIViewController {
   private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120), mode: .default)
   
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
-  
   
   // MARK: - Initializers
   init(viewModel: ReportViewModel) {
@@ -59,7 +64,8 @@ final class ReportViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    reasonTableView.delegate = self
+    reasonTableView.dataSource = self
     setupUI()
     bind()
   }
@@ -78,11 +84,11 @@ private extension ReportViewController {
     self.view.backgroundColor = .white
 
     switch reportType {
-    case .Misson:
+    case .misson:
       reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .Feed:
+    case .feed:
       reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .Member:
+    case .member:
       reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
     }
     
@@ -110,6 +116,7 @@ private extension ReportViewController {
     reasonTableView.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(20)
       $0.trailing.equalToSuperview().offset(-20)
+      $0.top.equalTo(reasonLabel.snp.bottom).offset(20)
     }
     
     detailLabel.snp.makeConstraints {
@@ -160,6 +167,9 @@ extension ReportViewController {
 
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
+  func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    32
+  }
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     reportType.contents.count
   }
@@ -188,5 +198,3 @@ private extension ReportViewController {
     self.reasonTableView.cellForRow(ReportReasonTableViewCell.self, at: indexPath).isSelected = true
   }
 }
-
-
