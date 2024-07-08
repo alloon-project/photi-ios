@@ -21,7 +21,6 @@ public final class LogInContainer:
   public func coordinator(listener: LogInListener) -> Coordinating {
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
-    
     let viewModel = LogInViewModel()
     
     let coordinator = LogInCoordinator(
