@@ -8,7 +8,6 @@
 
 import UIKit
 import Core
-import LogIn
 
 protocol ReportViewModelable {
   // Coordinator에서 ViewModel로 전달할 이벤트입니다.
