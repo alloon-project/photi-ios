@@ -13,13 +13,13 @@ protocol ReportDependency: Dependency {
 }
 
 protocol ReportContainable: Containable {
-  func coordinator(listener: ReportListener) -> Coordinating
+  func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating
 }
 
 final class ReportContainer: Container<ReportDependency>, ReportContainable {
-  func coordinator(listener: ReportListener) -> Coordinating {
+  func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating {
     let viewModel = ReportViewModel()
-    let coordinator = ReportCoordinator(viewModel: viewModel)
+    let coordinator = ReportCoordinator(viewModel: viewModel, reportType: reportType)
     coordinator.listener = listener
     return coordinator
   }
