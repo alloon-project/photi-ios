@@ -21,7 +21,6 @@ let workspace = Workspace(
 		Scheme(
 			name: "Photi-DEV",
 			buildAction: .buildAction(targets: [.project(path: "Projects/App", target: "Photi-DEV")]),
-
 			runAction: .runAction(configuration: .debug),
 			archiveAction: .archiveAction(configuration: .debug),
 			profileAction: .profileAction(configuration: .debug),
