@@ -14,7 +14,7 @@ import SnapKit
 /// ![MediumProgressBar](MediumProgressBar)
 public final class MediumProgressBar: UIProgressView {
   /// 현재 ProgressBar의 Percent값입니다. 변경시 UI도 변경적용됩니다.
-  public var percent: AlloonProgressPercent = .percent0 {
+  public var percent: PhotiProgressPercent = .percent0 {
     didSet {
       switch percent {
       case .percent20:

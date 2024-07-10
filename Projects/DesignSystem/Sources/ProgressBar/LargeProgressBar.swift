@@ -14,7 +14,7 @@ import SnapKit
 /// ![LargeProgressBar](LargeProgressBar)
 public final class LargeProgressBar: UIProgressView {
   /// 현재 ProgressBar의 step 값입니다. 변경시 UI도 변경적용됩니다.
-  public var step: AlloonProgressStep = .one {
+  public var step: PhotiProgressStep = .one {
     didSet {
       switch step {
       case .one:
@@ -32,7 +32,7 @@ public final class LargeProgressBar: UIProgressView {
   }
   
   // MARK: - Initializers
-  public init(step: AlloonProgressStep = .one) {
+  public init(step: PhotiProgressStep = .one) {
     super.init(frame: .zero)
     defer { self.step = step }
 
