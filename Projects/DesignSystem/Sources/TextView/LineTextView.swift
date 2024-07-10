@@ -35,7 +35,7 @@ public final class LineTextView: UIView {
   }
   
   // MARK: - UI Components
-  public let textView = AlloonTextView()
+  public let textView = PhotiTextView()
   private lazy var countLabel = UILabel()
   private lazy var commentStackView: UIStackView = {
     let stackView = UIStackView()
