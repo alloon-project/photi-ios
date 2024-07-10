@@ -8,7 +8,7 @@
 
 import UIKit
 
-final class AlloonDateTextField: AlloonTextField {
+final class PhotiDateTextField: PhotiTextField {
   var currentText = ""
 
   override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {

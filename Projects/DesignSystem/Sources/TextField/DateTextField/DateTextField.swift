@@ -65,8 +65,8 @@ public final class DateTextField: UIView {
   }
   
   // MARK: - UI Components
-  private let textField: AlloonDateTextField = {
-    let textField = AlloonDateTextField()
+  private let textField: PhotiDateTextField = {
+    let textField = PhotiDateTextField()
     textField.keyboardType = .numberPad
     textField.autocorrectionType = .no
     textField.spellCheckingType = .no
