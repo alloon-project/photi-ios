@@ -155,7 +155,7 @@ private extension DateTextField {
     }
   }
   
-  func setRightView(_ textField: AlloonTextField) {
+  func setRightView(_ textField: PhotiTextField) {
     textField.setRightView(
       button,
       size: button.intrinsicContentSize,
@@ -164,13 +164,13 @@ private extension DateTextField {
     )
   }
   
-  func setLeftView(_ textField: AlloonTextField, date: Date) {
+  func setLeftView(_ textField: PhotiTextField, date: Date) {
     let startDateLabel = UILabel()
     let text = date.toString()
     
     startDateLabel.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
     
     let label = UILabel()

@@ -35,7 +35,7 @@ public class LineTextField: UIView {
   }
   
   // MARK: - UI Components
-  public let textField = AlloonTextField()
+  public let textField = PhotiTextField()
   private lazy var countLabel = UILabel()
   private lazy var commentStackView: UIStackView = {
     let stackView = UIStackView()
