@@ -287,14 +287,14 @@ private extension DateTextField {
   func setAttributedText(_ text: String) {
     textField.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
   }
   
   func setAttributedText(_ text: String, placeholderIndex: String.Index) {
     textField.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
     .setColor(.gray400, for: String(placeholder[placeholderIndex...]))
   }
@@ -310,7 +310,7 @@ private extension DateTextField {
   func lineColor(for mode: TextFieldMode) -> UIColor {
     switch mode {
       case .default, .success:
-        return textField.isEditing ? .green400 : .gray200
+        return textField.isEditing ? .blue400 : .gray200
       case .error:
         return .red400
     }
