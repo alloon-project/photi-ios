@@ -50,11 +50,11 @@ private extension LineRoundButton {
   func lineColor(for type: RoundButtonType) -> UIColor {
     switch type {
       case .primary:
-        return .green400
+        return .blue400
       case .secondary:
-        return .pink200
+        return .green200
       case.tertiary:
-        return .blue200
+        return .orange200
       case .quaternary:
         return .gray200
     }
@@ -63,11 +63,11 @@ private extension LineRoundButton {
   func textColor(for type: RoundButtonType) -> UIColor {
     switch type {
       case .primary:
-        return .green500
-      case .secondary:
-        return .pink500
-      case .tertiary:
         return .blue500
+      case .secondary:
+        return .green500
+      case .tertiary:
+        return .orange500
       case .quaternary:
         return .gray600
     }
