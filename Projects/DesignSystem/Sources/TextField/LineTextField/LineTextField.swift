@@ -165,9 +165,9 @@ private extension LineTextField {
   func lineColor(for mode: TextFieldMode) -> UIColor {
     switch mode {
       case .default:
-        return textField.isEditing ? .green400 : .gray200
+        return textField.isEditing ? .blue400 : .gray200
       case .success:
-        return .green400
+        return .blue400
       case .error:
         return .red400
     }
