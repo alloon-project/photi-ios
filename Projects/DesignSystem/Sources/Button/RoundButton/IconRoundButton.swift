@@ -63,8 +63,10 @@ private extension IconRoundButton {
       textColor = .gray600
     }
     
-    // MARK: - UI Components
-    let resizeIcon = icon.resize(CGSize(width: height, height: height)).withTintColor(textColor)
+    // UI Components
+    let resizeIcon = icon
+      .resize(CGSize(width: height, height: height))
+      .withTintColor(textColor)
     let imageView = UIImageView(image: resizeIcon)
     let label = UILabel()
     
@@ -78,12 +80,8 @@ private extension IconRoundButton {
   
   func innerViewHeight(for size: ButtonSize) -> CGFloat {
     switch size {
-      case .xLarge:
-        return 24
-      case .large:
-        return 22
-      case .medium:
-        return 20
+      case .xLarge, .large, .medium:
+        return 18
       case .small, .xSmall:
         return 16
     }
