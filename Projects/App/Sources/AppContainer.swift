@@ -9,7 +9,8 @@
 import Core
 import LogIn
 import LogInImpl
-
+import MyPage
+import MyPageImpl
 final class AppDependency: Dependency { }
 
 protocol AppContainable: Containable {
@@ -21,7 +22,13 @@ final class AppContainer:
   AppContainable,
   MainDependency,
   LogInDependency,
-  SignUpDependency {
+  SignUpDependency,
+  MyPageDependency
+{
+  lazy var myPageContainable: MyPageContainable = {
+    return MyPageContainer(dependency: self)
+  }()
+  
   func coordinator() -> Coordinating {
     return AppCoordinator(
       mainContainer: MainContainer(dependency: self),
