@@ -14,8 +14,8 @@ public final class IconButton: UIButton {
   /// Icon Button의 size입니다.
   private let size: ButtonSize
   
-  public var selectedTintColor: UIColor = .alloonWhite
-  public var unSelectedTintColor: UIColor = .alloonWhite
+  public var selectedTintColor: UIColor = .photiWhite
+  public var unSelectedTintColor: UIColor = .photiWhite
   
   /// 선택되었을 때의 이미지입니다.
   public var selectedIcon: UIImage {
