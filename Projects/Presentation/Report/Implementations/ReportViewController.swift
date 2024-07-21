@@ -42,7 +42,7 @@ final class ReportViewController: UIViewController {
     return label
   }()
   
-  private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120), mode: .default)
+  private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120))
   
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
   
@@ -187,8 +187,10 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    guard selectedRow != indexPath.section else { return }
+    
     self.setupDetailContentUI()
-    selectedRow = indexPath.row
+    selectedRow = indexPath.section
     selectRow(at: indexPath)
   }
   
