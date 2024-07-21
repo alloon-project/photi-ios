@@ -18,7 +18,7 @@ final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Refactoring
-  private var reportType: ReportType = .challenge
+  private var reportType: ReportType
   private var selectedRow: Int?
   private var isDisplayDetailContent = false
   
@@ -47,8 +47,9 @@ final class ReportViewController: UIViewController {
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
   
   // MARK: - Initializers
-  init(viewModel: ReportViewModel) {
+  init(viewModel: ReportViewModel, reportType: ReportType) {
     self.viewModel = viewModel
+    self.reportType = reportType
     
     super.init(nibName: nil, bundle: nil)
   }
