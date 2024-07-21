@@ -17,19 +17,13 @@ import Report
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  private var reportType: ReportType = .misson
+  private var reportType: ReportType = .challenge
   private var selectedRow: Int?
-  private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
   
-  private let reasonLabel: UILabel = {
-    let label = UILabel()
-    label.textAlignment = .left
-    return label
-  }()
-  
+  private let reasonLabel = UILabel() 
   private let reasonTableView = {
     let tableView = SelfSizingTableView(maxHeight: 284)
     tableView.registerCell(ReportReasonTableViewCell.self)
@@ -42,13 +36,13 @@ final class ReportViewController: UIViewController {
   private let detailLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "자세한 내용을 적어주시면 신고에 도움이 돼요".attributedString(font: .heading4, color: .gray900)
-    label.textAlignment = .left
+
     return label
   }()
   
   private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120), mode: .default)
   
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
   
   // MARK: - Initializers
   init(viewModel: ReportViewModel) {
@@ -65,6 +59,7 @@ final class ReportViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
+    
     reasonTableView.delegate = self
     reasonTableView.dataSource = self
     setupUI()
@@ -85,7 +80,7 @@ private extension ReportViewController {
     self.view.backgroundColor = .white
 
     switch reportType {
-    case .misson:
+    case .challenge:
       reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
     case .feed:
       reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
@@ -98,7 +93,7 @@ private extension ReportViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, detailLabel, detailContentTextView, nextButton)
+    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, detailLabel, detailContentTextView, reportButton)
   }
   
   func setConstraints() {
@@ -130,7 +125,7 @@ private extension ReportViewController {
       $0.top.equalTo(detailLabel.snp.bottom).offset(24)
     }
     
-    nextButton.snp.makeConstraints {
+    reportButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
@@ -158,23 +153,44 @@ extension ReportViewController {
 
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
+  func numberOfSections(in tableView: UITableView) -> Int {
+    return reportType.contents.count
+  }
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return 1
+  }
+  
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     32
-  }
-  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    reportType.contents.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
+    
     let isSelected = indexPath.row == selectedRow
-    cell.configure(with: reportType.contents[indexPath.row], isSelected: isSelected)
+    cell.configure(with: reportType.contents[indexPath.section], isSelected: isSelected)
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     selectedRow = indexPath.row
     selectRow(at: indexPath)
+  }
+  
+  func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    if section == reportType.contents.count - 1 {
+      return 0
+    } else {
+      return 10
+    }
+  }
+  
+  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    let view = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
+    view.backgroundColor = .clear
+    
+    return view
   }
 }
 

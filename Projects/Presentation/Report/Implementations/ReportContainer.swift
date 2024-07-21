@@ -9,9 +9,7 @@
 import Core
 import Report
 
-public protocol ReportDependency: Dependency {
-  // 부모에게 요구하는 의존성들을 정의합니다. ex) ReportUseCase
-}
+public protocol ReportDependency: Dependency { }
 
 public final class ReportContainer: Container<ReportDependency>, ReportContainable {
   public func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating {
