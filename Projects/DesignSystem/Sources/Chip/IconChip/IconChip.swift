@@ -127,9 +127,6 @@ private extension IconChip {
       case .line:
         layer.borderWidth = 1
         layer.borderColor = UIColor.gray300.cgColor
-      case .pink:
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.pink300.cgColor
       default: break
     }
   }
@@ -142,7 +139,9 @@ private extension IconChip {
   }
   
   func setIconView(_ icon: UIImage) {
-    let resizeIcon = icon.resize(iconSize(for: size)).withTintColor(iconColor(for: type))
+    let resizeIcon = icon
+      .resize(iconSize(for: size))
+      .withTintColor(iconColor(for: type))
     
     iconView.image = resizeIcon
     iconView.contentMode = .center
@@ -154,13 +153,15 @@ private extension IconChip {
   func backgroundColor(for type: IconChipType) -> UIColor {
     switch type {
       case .line:
-        return .alloonWhite
+        return .photiWhite
       case .gray:
         return .gray0
       case .darkGray:
         return .gray200
-      case .pink:
-        return .pink0
+      case .blue:
+        return .blue100
+      case .green:
+        return .green0
     }
   }
   
@@ -170,8 +171,25 @@ private extension IconChip {
         return .gray800
       case .gray, .darkGray:
         return .gray600
-      case .pink:
-        return .pink400
+      case .blue:
+        return .blue500
+      case .green:
+        return .green600
+    }
+  }
+  
+  func iconColor(for type: IconChipType) -> UIColor {
+    switch type {
+      case .line:
+        return .gray600
+      case .gray:
+        return .gray400
+      case .darkGray:
+        return .gray500
+      case .blue:
+        return .blue400
+      case .green:
+        return .green500
     }
   }
   
@@ -197,6 +215,7 @@ private extension IconChip {
     }
   }
   
+  // TODO: - DS Image 적용 후 삭제 예정
   func iconSize(for size: ChipSize) -> CGSize {
     switch size {
       case .large:
@@ -205,19 +224,6 @@ private extension IconChip {
         return CGSize(width: 7.44, height: 7.44)
       case .small:
         return CGSize(width: 6.38, height: 6.38)
-    }
-  }
-  
-  func iconColor(for type: IconChipType) -> UIColor {
-    switch type {
-      case .line:
-        return .gray600
-      case .gray:
-        return .gray400
-      case .darkGray:
-        return .gray500
-      case .pink:
-        return .pink200
     }
   }
 }

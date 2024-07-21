@@ -1,5 +1,5 @@
 //
-//  AlloonTextView.swift
+//  PhotiTextView.swift
 //  DesignSystem
 //
 //  Created by jung on 5/9/24.
@@ -9,7 +9,7 @@
 import UIKit
 import Core
 
-public final class AlloonTextView: UITextView {
+public final class PhotiTextView: UITextView {
   /// 현재 TextView의 TextType을 나타냅니다.
   public enum TextType {
     case text
@@ -63,7 +63,7 @@ public final class AlloonTextView: UITextView {
 }
 
 // MARK: - Private Extensions
-private extension AlloonTextView {
+private extension PhotiTextView {
   func setupUI() {
     layer.cornerRadius = 14
     layer.borderWidth = 1
@@ -74,14 +74,14 @@ private extension AlloonTextView {
 }
 
 // MARK: Internal Methods
-extension AlloonTextView {
+extension PhotiTextView {
   func setLineColor(_ color: UIColor) {
     self.layer.borderColor = color.cgColor
   }
 }
 
 // MARK: - Private Extension
-private extension AlloonTextView {
+private extension PhotiTextView {
   func setText(for type: TextType) {
     switch type {
       case .text:
@@ -94,7 +94,7 @@ private extension AlloonTextView {
   func setNormalText(_ text: String?) {
     self.attributedNormalText = (text ?? "").attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
   }
   

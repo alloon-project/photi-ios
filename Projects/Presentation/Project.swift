@@ -14,7 +14,7 @@ let project = Project.make(
 		.make(
 			name: "LogInImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.logInImpl",
+			bundleId: "com.photi.logInImpl",
 			sources: ["LogIn/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.LogIn,
@@ -29,7 +29,7 @@ let project = Project.make(
 		.make(
 			name: "LogIn",
 			product: .staticLibrary,
-			bundleId: "com.alloon.logIn",
+			bundleId: "com.photi.logIn",
 			sources: ["LogIn/Interfaces/**"],
 			dependencies: [
 				.Project.Core
@@ -38,7 +38,7 @@ let project = Project.make(
 		.make(
 			name: "OnBoardingImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.onBoardingImpl",
+			bundleId: "com.photi.onBoardingImpl",
 			sources: ["OnBoarding/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.OnBoarding,
@@ -53,7 +53,7 @@ let project = Project.make(
 		.make(
 			name: "OnBoarding",
 			product: .staticLibrary,
-			bundleId: "com.alloon.onBoarding",
+			bundleId: "com.photi.onBoarding",
 			sources: ["OnBoarding/Interfaces/**"],
 			dependencies: [
 				.Project.Core
@@ -62,7 +62,7 @@ let project = Project.make(
 		.make(
 			name: "MyMissionImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.myMissionImpl",
+			bundleId: "com.photi.myMissionImpl",
 			sources: ["MyMission/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.MyMission,
@@ -77,7 +77,7 @@ let project = Project.make(
 		.make(
 			name: "MyMission",
 			product: .staticLibrary,
-			bundleId: "com.alloon.myMission",
+			bundleId: "com.photi.myMission",
 			sources: ["MyMission/Interfaces/**"],
 			dependencies: [
 				.Project.Core
@@ -86,7 +86,7 @@ let project = Project.make(
 		.make(
 			name: "MyPageImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.myPageImpl",
+			bundleId: "com.photi.myPageImpl",
 			sources: ["MyPage/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.MyPage,
@@ -101,7 +101,7 @@ let project = Project.make(
 		.make(
 			name: "MyPage",
 			product: .staticLibrary,
-			bundleId: "com.alloon.myPage",
+			bundleId: "com.photi.myPage",
 			sources: ["MyPage/Interfaces/**"],
 			dependencies: [
 				.Project.Core
@@ -110,7 +110,7 @@ let project = Project.make(
 		.make(
 			name: "HomeImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.homeImpl",
+			bundleId: "com.photi.homeImpl",
 			sources: ["Home/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.Home,
@@ -125,7 +125,7 @@ let project = Project.make(
 		.make(
 			name: "Home",
 			product: .staticLibrary,
-			bundleId: "com.alloon.home",
+			bundleId: "com.photi.home",
 			sources: ["Home/Interfaces/**"],
 			dependencies: [
 				.Project.Core

@@ -1,5 +1,5 @@
 //
-//  AlloonSearchBar.swift
+//  PhotiSearchBar.swift
 //  DesignSystem
 //
 //  Created by jung on 5/8/24.
@@ -10,8 +10,8 @@ import UIKit
 import SnapKit
 import Core
 
-/// Alloon의 searchBar입니다.
-public final class AlloonSearchBar: UISearchBar {
+/// Photi의 searchBar입니다.
+public final class PhotiSearchBar: UISearchBar {
   public override var intrinsicContentSize: CGSize {
     CGSize(width: 296, height: 44)
   }
@@ -74,7 +74,7 @@ public final class AlloonSearchBar: UISearchBar {
 }
 
 // MARK: - Private Methods
-private extension AlloonSearchBar {
+private extension PhotiSearchBar {
   func addLeftPadding() {
     setImage(nil, for: .search, state: .normal)
     let paddingView = UIView(
@@ -103,7 +103,7 @@ private extension AlloonSearchBar {
   func setText(_ text: String?) {
     searchTextField.attributedText = (text ?? "").attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
   }
   

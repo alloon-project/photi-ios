@@ -57,14 +57,16 @@ public final class IconRoundButton: RoundButton {
 private extension IconRoundButton {
   func setStackViewSubviews(_ text: String, _ icon: UIImage) {
     let height = innerViewHeight(for: size)
-    var textColor: UIColor = .alloonWhite
+    var textColor: UIColor = .photiWhite
     
     if case .quaternary = type {
       textColor = .gray600
     }
     
     // UI Components
-    let resizeIcon = icon.resize(CGSize(width: height, height: height)).withTintColor(textColor)
+    let resizeIcon = icon
+      .resize(CGSize(width: height, height: height))
+      .withTintColor(textColor)
     let imageView = UIImageView(image: resizeIcon)
     let label = UILabel()
     
@@ -78,12 +80,8 @@ private extension IconRoundButton {
   
   func innerViewHeight(for size: ButtonSize) -> CGFloat {
     switch size {
-      case .xLarge:
-        return 24
-      case .large:
-        return 22
-      case .medium:
-        return 20
+      case .xLarge, .large, .medium:
+        return 18
       case .small, .xSmall:
         return 16
     }
@@ -94,9 +92,9 @@ private extension IconRoundButton {
       case .primary:
         return .green400
       case .secondary:
-        return .pink400
+        return .green400
       case .tertiary:
-        return .blue400
+        return .orange400
       case .quaternary:
         return .gray100
     }

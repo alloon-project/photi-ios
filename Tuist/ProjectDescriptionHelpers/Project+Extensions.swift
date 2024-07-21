@@ -17,7 +17,7 @@ public extension Project {
 	) -> Project {
 		return Project(
 			name: name,
-			organizationName: "com.alloon",
+			organizationName: "com.photi",
 			options: .options(
 				automaticSchemesOptions: .disabled,
 				textSettings: .textSettings(usesTabs: false, indentWidth: 2, tabWidth: 2)

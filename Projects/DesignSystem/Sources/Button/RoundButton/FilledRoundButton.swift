@@ -105,33 +105,33 @@ private extension FilledRoundButton {
   func primaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
-        return .green400
+        return .blue400
       case .pressed:
-        return .green600
+        return .blue600
       case .disabled:
-        return .green200
+        return .blue200
     }
   }
   
   func secondaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
-        return .pink400
+        return .green400
       case .pressed:
-        return .pink600
+        return .green500
       case .disabled:
-        return .pink200
+        return .green200
     }
   }
   
   func teritiaryBackGroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
-        return .blue400
+        return .orange400
       case .pressed:
-        return .blue600
+        return .orange600
       case .disabled:
-        return .blue200
+        return .orange200
     }
   }
   

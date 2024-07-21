@@ -95,7 +95,7 @@ private extension FloatingButton {
   }
   
   func primarySetupUI(_ image: UIImage) {
-    let image = image.withTintColor(.alloonWhite)
+    let image = image.withTintColor(.photiWhite)
     setImage(image, for: .normal)
     setImage(image, for: .highlighted)
     setImage(image, for: .disabled)
@@ -125,11 +125,11 @@ private extension FloatingButton {
   func primaryBackgroundColor(for mode: ButtonMode) -> UIColor {
     switch mode {
       case .default:
-        return .green500
+        return .blue500
       case .pressed:
-        return .green600
+        return .blue600
       case.disabled:
-        return .green200
+        return .blue200
     }
   }
   

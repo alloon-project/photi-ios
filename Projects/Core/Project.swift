@@ -14,7 +14,7 @@ let project = Project.make(
 		.make(
 			name: "Core",
 			product: .framework,
-			bundleId: "com.alloon.core",
+			bundleId: "com.photi.core",
 			sources: [
 				"Extensions/**",
 				"Utils/**"

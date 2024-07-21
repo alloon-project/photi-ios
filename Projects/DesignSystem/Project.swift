@@ -14,7 +14,7 @@ let project = Project.make(
 		.make(
 			name: "DesignSystem",
 			product: .framework,
-			bundleId: "com.alloon.designSystem",
+			bundleId: "com.photi.designSystem",
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
 			dependencies: [

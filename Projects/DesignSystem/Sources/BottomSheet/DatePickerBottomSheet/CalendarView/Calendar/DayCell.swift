@@ -100,20 +100,20 @@ private extension DayCell {
   func textColor(for type: DateType, isSelected: Bool) -> UIColor {
     switch type {
       case .default:
-        return isSelected ? .alloonWhite : .alloonBlack
+        return isSelected ? .photiWhite : .photiBlack
       case .disabled:
         return .gray300
       case .startDate:
-        return .alloonWhite
+        return .gray500
     }
   }
   
   func backgroundColor(for type: DateType, isSelcted: Bool) -> UIColor {
     switch type {
       case .default:
-        return isSelcted ? .green500 : .alloonWhite
+        return isSelcted ? .blue500 : .photiWhite
       case .disabled:
-        return .alloonWhite
+        return .photiWhite
       case .startDate:
         return .gray500
     }

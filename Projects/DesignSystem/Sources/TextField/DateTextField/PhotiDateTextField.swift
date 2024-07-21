@@ -1,5 +1,5 @@
 //
-//  AlloonDateTextField.swift
+//  PhotiDateTextField.swift
 //  DesignSystem
 //
 //  Created by jung on 5/18/24.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-final class AlloonDateTextField: AlloonTextField {
+final class PhotiDateTextField: PhotiTextField {
   var currentText = ""
 
   override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {

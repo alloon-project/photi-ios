@@ -12,5 +12,6 @@ public enum TextChipType {
   case line
   case gray
   case darkGray
-  case pink
+  case blue
+  case green
 }

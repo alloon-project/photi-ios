@@ -237,7 +237,7 @@ private extension EnterPasswordViewController {
     }
     
     alert.didDismiss
-      .map { _ in AlloonProgressStep.four }
+      .map { _ in PhotiProgressStep.four }
       .bind(to: progressBar.rx.step)
       .disposed(by: disposeBag)
   }

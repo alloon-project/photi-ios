@@ -46,10 +46,6 @@ public final class TextButton: UIButton {
     }
   }
   
-//  public override var intrinsicContentSize: CGSize {
-//    cgSize(for: size)
-//  }
-  
   // MARK: - Initializers
   public init(
     text: String,
@@ -93,12 +89,12 @@ public final class TextButton: UIButton {
 private extension TextButton {
   func primarySetupUI(_ isEnabledUnderLine: Bool) {
     var textAttributes = text
-      .attributedString(font: font(for: size), color: .green400)
+      .attributedString(font: font(for: size), color: .blue400)
     
     textAttributes = isEnabledUnderLine ? textAttributes.setUnderLine() : textAttributes
     
     setAttributedTitle(textAttributes, for: .normal)
-    setAttributedTitle(textAttributes.setColor(.green500), for: .highlighted)
+    setAttributedTitle(textAttributes.setColor(.blue500), for: .highlighted)
     setAttributedTitle(textAttributes.setColor(.gray500), for: .disabled)
   }
   
@@ -109,7 +105,8 @@ private extension TextButton {
     textAttributes = isEnabledUnderLine ? textAttributes.setUnderLine() : textAttributes
     
     setAttributedTitle(textAttributes, for: .normal)
-    setAttributedTitle(textAttributes.setColor(.alloonWhite), for: .highlighted)
+    setAttributedTitle(textAttributes.setColor(.photiWhite), for: .highlighted)
+    setAttributedTitle(textAttributes.setColor(.gray300), for: .disabled)
   }
   
   func graySetupUI(_ isEnabledUnderLine: Bool) {
@@ -137,9 +134,9 @@ private extension TextButton {
   func font(for size: ButtonSize) -> UIFont {
     switch size {
       case .xLarge:
-        return .heading3
+        return .heading3Medium
       case .large:
-        return .heading4
+        return .heading4Medium
       case .medium:
         return .body1
       case .small:

@@ -7,7 +7,7 @@
 //
 
 /// Large Type의 진행상태 값 분류입니다. 나타냅니다. (ex. one, two, ..., five)
-public enum AlloonProgressStep {
+public enum PhotiProgressStep {
   case one
   case two
   case three
@@ -15,7 +15,7 @@ public enum AlloonProgressStep {
   case five
 }
 /// Medium Type의 진행상태 값 분류입니다. 나타냅니다. (ex. percent0, percent20, ..., percent100)
-public enum AlloonProgressPercent {
+public enum PhotiProgressPercent {
   case percent20
   case percent40
   case percent60

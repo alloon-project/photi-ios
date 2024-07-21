@@ -20,12 +20,12 @@ public class SearchNavigation: UIView {
     imageView.image = UIImage(resource: .leftBackButtonDark).resize(CGSize(width: 24, height: 24))
     return imageView
   }()
-  fileprivate let searchBar: AlloonSearchBar
+  fileprivate let searchBar: PhotiSearchBar
   
   // MARK: - Initializers
   public init(placeholder: String = "",
               text: String = "") {
-    self.searchBar = AlloonSearchBar(placeholder: placeholder, text: text)
+    self.searchBar = PhotiSearchBar(placeholder: placeholder, text: text)
     super.init(frame: .zero)
     setupUI()
   }

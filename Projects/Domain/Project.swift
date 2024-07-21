@@ -14,13 +14,13 @@ let project = Project.make(
 		.make(
 			name: "Entity",
 			product: .staticLibrary,
-			bundleId: "com.alloon.entity",
+			bundleId: "com.photi.entity",
 			sources: ["Entity/**"]
 		),
 		.make(
 			name: "UseCaseImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.useCaseImpl",
+			bundleId: "com.photi.useCaseImpl",
 			sources: ["UseCase/Implementations/**"],
 			dependencies: [
 				.Project.Domain.UseCase
@@ -29,7 +29,7 @@ let project = Project.make(
 		.make(
 			name: "UseCase",
 			product: .staticLibrary,
-			bundleId: "com.alloon.useCase",
+			bundleId: "com.photi.useCase",
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
 				.Project.Domain.Entity,
@@ -40,7 +40,7 @@ let project = Project.make(
 		.make(
 			name: "Repository",
 			product: .staticLibrary,
-			bundleId: "com.alloon.repository",
+			bundleId: "com.photi.repository",
 			sources: ["Repository/Interfaces/**"],
 			dependencies: [
 				.Project.Domain.Entity,

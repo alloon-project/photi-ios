@@ -117,9 +117,9 @@ private extension IconTextButton {
   func font(for size: ButtonSize) -> UIFont {
     switch size {
       case .xLarge:
-        return .heading3
+        return .heading3Medium
       case .large:
-        return .heading4
+        return .heading4Medium
       case .medium:
         return .body1
       case .small:

@@ -178,7 +178,7 @@ private extension ToastView {
   func setLabel(_ text: String) {
     label.attributedText = text.attributedString(
       font: .body2Bold,
-      color: .alloonWhite
+      color: .photiWhite
     )
   }
   
