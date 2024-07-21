@@ -58,7 +58,7 @@ public final class MediumProgressBar: UIProgressView {
 private extension MediumProgressBar {
   func setupUI() {
     self.backgroundColor = .gray200
-    self.progressTintColor = .blue300
+    self.progressTintColor = .green400
     self.layer.cornerRadius = self.frame.height / 2
     self.layer.masksToBounds = true
     self.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]

@@ -48,6 +48,6 @@ public final class LargeProgressBar: UIProgressView {
 private extension LargeProgressBar {
   func setupUI() {
     self.trackTintColor = .gray200
-    self.progressTintColor = .green400
+    self.progressTintColor = .blue400
   }
 }
