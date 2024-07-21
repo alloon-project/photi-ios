@@ -9,7 +9,7 @@
 import UIKit
 import Core
 import LogIn
-import MyPage
+
 protocol LogInViewModelable { }
 
 final class LogInCoordinator: Coordinator {
@@ -27,21 +27,16 @@ final class LogInCoordinator: Coordinator {
   private let findPasswordContainable: FindPasswordContainable
   private var findPasswordCoordinator: Coordinating?
   
-  private let mypageContainable: MyPageContainable
-  private var myPageCoordinator: Coordinating?
-  
   init(
     viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,
-    findPasswordContainable: FindPasswordContainable,
-    myPageContainable: MyPageContainable
+    findPasswordContainable: FindPasswordContainable
   ) {
     self.viewModel = viewModel
     self.signUpContainable = signUpContainable
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
-    self.mypageContainable = myPageContainable
     
     self.viewController = LogInViewController(viewModel: viewModel)
     super.init()
@@ -94,12 +89,12 @@ final class LogInCoordinator: Coordinator {
   
   // MARK: - FindPassword
   func attachFindPassword() {
-    guard myPageCoordinator == nil else { return }
+    guard findPasswordCoordinator == nil else { return }
     
-    let coordinater = mypageContainable.coordinator(listener: self)
+    let coordinater = findPasswordContainable.coordinator(listener: self)
     addChild(coordinater)
     
-    self.myPageCoordinator = coordinater
+    self.findPasswordCoordinator = coordinater
     coordinater.start(at: self.navigationController)
   }
   
@@ -151,8 +146,4 @@ extension LogInCoordinator: FindIdListener {
   func didFinishAtFindId() {
     detachFindId()
   }
-}
-
-extension LogInCoordinator: MyPageListener {
-  
 }

@@ -8,10 +8,9 @@
 
 import Core
 import LogIn
-import MyPage
+
 public protocol LogInDependency: Dependency {
   var signUpContainable: SignUpContainable { get }
-  var myPageContainable: MyPageContainable { get }
 }
 
 public final class LogInContainer:
@@ -28,8 +27,7 @@ public final class LogInContainer:
       viewModel: viewModel,
       signUpContainable: dependency.signUpContainable,
       findIdContainable: findId,
-      findPasswordContainable: findPassword,
-      myPageContainable: dependency.myPageContainable
+      findPasswordContainable: findPassword
     )
     coordinator.listener = listener
     return coordinator

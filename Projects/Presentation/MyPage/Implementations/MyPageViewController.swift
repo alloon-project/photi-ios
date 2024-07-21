@@ -13,6 +13,13 @@ import DesignSystem
 final class MyPageViewController: UIViewController {
   // MARK:- UIComponents
   
+//  private let scrollView = {
+//    let view = UIScrollView()
+//    view.showsVerticalScrollIndicator = false
+//    view.backgroundColor = .white
+//    view.translatesAutoresizingMaskIntoConstraints = false
+//    return view
+//  }()
   // 사용자 정보 part
   private let userInfoView = {
     let view = UIView()
@@ -35,7 +42,10 @@ final class MyPageViewController: UIViewController {
   }()
   private let settingButton = {
     let button = UIButton()
-    button.setImage(UIImage(systemName: "gearshape")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal) // TODO: - stencil 추가되면 setting으로 수정
+    button.setImage(UIImage(systemName: "gearshape")?
+      .withTintColor(.white, renderingMode: .alwaysOriginal)
+      .resize(CGSize(width: 24, height: 24)),
+                    for: .normal) // TODO: - stencil 추가되면 setting으로 수정
     return button
   }()
   private let userNameLabel = {
@@ -55,7 +65,7 @@ final class MyPageViewController: UIViewController {
   private let authCountLabel = {
     let label = UILabel()
     label.textAlignment = .center
-    label.attributedText = "인증 횟수".attributedString(font: .heading3, color: .white, alignment: .center)
+    label.attributedText = "인증 횟수".attributedString(font: .body2Bold, color: .white, alignment: .center)
     return label
   }()
   private let authCountValueLabel = {
@@ -74,7 +84,7 @@ final class MyPageViewController: UIViewController {
   }()
   private let finishedChallengeCountLabel = {
     let label = UILabel()
-    label.attributedText = "종료된 챌린지".attributedString(font: .heading3, color: .white, alignment: .center)
+    label.attributedText = "종료된 챌린지".attributedString(font: .body2Bold, color: .white, alignment: .center)
     return label
   }()
   private let finishedChallengeCountValueLabel = {
@@ -124,7 +134,7 @@ private extension MyPageViewController {
   func setConstraints() {
     userInfoView.snp.makeConstraints {
       $0.leading.top.trailing.equalToSuperview()
-      $0.height.equalTo(388)
+      $0.height.greaterThanOrEqualTo(388)
     }
     userInfoBottomImageView.snp.makeConstraints {
       $0.top.equalTo(userInfoView.snp.bottom)
@@ -134,7 +144,7 @@ private extension MyPageViewController {
     settingButton.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(12)
       $0.trailing.equalToSuperview().offset(-19)
-      $0.width.height.equalTo(24)
+      $0.width.height.equalTo(32)
     }
     userImageView.snp.makeConstraints {
       $0.top.equalTo(settingButton.snp.bottom).offset(16)
@@ -142,7 +152,7 @@ private extension MyPageViewController {
       $0.width.height.equalTo(96)
     }
     userNameLabel.snp.makeConstraints {
-      $0.top.equalTo(userImageView.snp.bottom).offset(16)
+      $0.top.equalTo(userImageView.snp.bottom).offset(8)
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
     }
@@ -153,14 +163,15 @@ private extension MyPageViewController {
       $0.bottom.equalToSuperview().offset(-31)
     }
     authCountLabel.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(22)
+      $0.top.equalToSuperview().offset(17)
       $0.leading.equalToSuperview().offset(16)
       $0.trailing.equalToSuperview().offset(-16)
     }
     authCountValueLabel.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(16)
       $0.trailing.equalToSuperview().offset(-16)
-      $0.bottom.equalToSuperview().offset(-23)
+      $0.top.equalTo(authCountLabel.snp.bottom).offset(11)
+      $0.bottom.equalToSuperview().offset(-17)
     }
     finishedChallengeCountBox.snp.makeConstraints {
       $0.trailing.equalToSuperview().offset(-24)
@@ -170,22 +181,22 @@ private extension MyPageViewController {
     }
     finishedChallengeCountLabel.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(16)
-      $0.top.equalToSuperview().offset(22)
+      $0.top.equalToSuperview().offset(17)
       $0.trailing.equalToSuperview().offset(-16)
     }
     finishedChallengeCountValueLabel.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(16)
       $0.trailing.equalToSuperview().offset(-16)
-      $0.bottom.equalToSuperview().offset(-23)
+      $0.top.equalTo(finishedChallengeCountLabel.snp.bottom).offset(11)
+      $0.bottom.equalToSuperview().offset(-17)
     }
     myFeedLabel.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
-      $0.top.equalTo(userInfoBottomImageView).offset(32)
+      $0.top.equalTo(userInfoBottomImageView).offset(24)
     }
-    
     calendarView.snp.makeConstraints {
-      $0.top.equalTo(myFeedLabel.snp.bottom).offset(12)
+      $0.top.equalTo(myFeedLabel.snp.bottom)
       $0.leading.trailing.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-40)
     }
