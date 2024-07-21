@@ -12,7 +12,7 @@ import Core
 
 final class SelectionListCell: UITableViewCell {
   private var textColor: UIColor {
-    isSelected ? .green500 : .gray900
+    isSelected ? .blue500 : .gray900
   }
   
   override var isSelected: Bool {

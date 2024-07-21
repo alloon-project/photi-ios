@@ -124,7 +124,7 @@ extension DropDownView: UITableViewDataSource {
     )
 
     strockView.layer.borderWidth = 1
-    strockView.layer.borderColor = UIColor.alloonWhite.cgColor
+    strockView.layer.borderColor = UIColor.photiWhite.cgColor
     
     view.addSubview(strockView)
     return view

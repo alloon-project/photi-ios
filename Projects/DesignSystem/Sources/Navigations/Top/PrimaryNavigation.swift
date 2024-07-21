@@ -168,7 +168,7 @@ private extension PrimaryNavigationView {
       case .dark:
         return .gray900
       case .light:
-        return .alloonWhite
+        return .photiWhite
     }
   }
   

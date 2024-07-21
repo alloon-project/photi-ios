@@ -187,6 +187,12 @@ import SwiftUI
 	static var heading4: UIFont {
 		{{param.name}}FontFamily.{{family.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}.semiBold._18
 	}
+	static var heading3Medium: UIFont {
+		{{param.name}}FontFamily.{{family.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}.medium._20
+	}
+	static var heading4Medium: UIFont {
+		{{param.name}}FontFamily.{{family.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}.medium._18
+	}
 	static var body1Bold: UIFont {
 		{{param.name}}FontFamily.{{family.name|swiftIdentifier:"pretty"|escapeReservedKeywords}}.bold._16
 	}

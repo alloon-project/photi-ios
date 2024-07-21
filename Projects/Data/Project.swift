@@ -14,13 +14,13 @@ let project = Project.make(
 		.make(
 			name: "DTO",
 			product: .staticLibrary,
-			bundleId: "com.alloon.dto",
+			bundleId: "com.photi.dto",
 			sources: ["DTO/**"]
 		),
 		.make(
 			name: "DataMapper",
 			product: .staticLibrary,
-			bundleId: "com.alloon.dataMapper",
+			bundleId: "com.photi.dataMapper",
 			sources: ["DataMapper/**"],
 			dependencies: [
 				.Project.Data.DTO,
@@ -30,20 +30,20 @@ let project = Project.make(
 		.make(
 			name: "RepositoryImpl",
 			product: .staticLibrary,
-			bundleId: "com.alloon.repositoryImpl",
+			bundleId: "com.photi.repositoryImpl",
 			sources: ["Repository/Implementations/**"],
 			dependencies: [
 				.Project.Data.DTO,
 				.Project.Data.DataMapper,
-				.Project.Data.AlloonNetwork,
+				.Project.Data.PhotiNetwork,
 				.Project.Domain.Repository
 			]
 		),
 		.make(
-			name: "AlloonNetwork",
+			name: "PhotiNetwork",
 			product: .staticLibrary,
-			bundleId: "com.alloon.alloonNetwork",
-			sources: ["AlloonNetwork/**"],
+			bundleId: "com.photi.photiNetwork",
+			sources: ["PhotiNetwork/**"],
 			dependencies: [
 				.SPM.RxSwift
 			]

@@ -65,8 +65,8 @@ public final class DateTextField: UIView {
   }
   
   // MARK: - UI Components
-  private let textField: AlloonDateTextField = {
-    let textField = AlloonDateTextField()
+  private let textField: PhotiDateTextField = {
+    let textField = PhotiDateTextField()
     textField.keyboardType = .numberPad
     textField.autocorrectionType = .no
     textField.spellCheckingType = .no
@@ -155,7 +155,7 @@ private extension DateTextField {
     }
   }
   
-  func setRightView(_ textField: AlloonTextField) {
+  func setRightView(_ textField: PhotiTextField) {
     textField.setRightView(
       button,
       size: button.intrinsicContentSize,
@@ -164,13 +164,13 @@ private extension DateTextField {
     )
   }
   
-  func setLeftView(_ textField: AlloonTextField, date: Date) {
+  func setLeftView(_ textField: PhotiTextField, date: Date) {
     let startDateLabel = UILabel()
     let text = date.toString()
     
     startDateLabel.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
     
     let label = UILabel()
@@ -287,14 +287,14 @@ private extension DateTextField {
   func setAttributedText(_ text: String) {
     textField.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
   }
   
   func setAttributedText(_ text: String, placeholderIndex: String.Index) {
     textField.attributedText = text.attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
     .setColor(.gray400, for: String(placeholder[placeholderIndex...]))
   }
@@ -310,7 +310,7 @@ private extension DateTextField {
   func lineColor(for mode: TextFieldMode) -> UIColor {
     switch mode {
       case .default, .success:
-        return textField.isEditing ? .green400 : .gray200
+        return textField.isEditing ? .blue400 : .gray200
       case .error:
         return .red400
     }

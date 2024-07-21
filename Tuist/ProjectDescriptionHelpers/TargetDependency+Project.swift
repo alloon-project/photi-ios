@@ -92,8 +92,8 @@ public extension TargetDependency.Project.Data {
 		path: .relativeToRoot("Projects/Data")
 	)
 	
-	static let AlloonNetwork = TargetDependency.project(
-		target: "AlloonNetwork",
+	static let PhotiNetwork = TargetDependency.project(
+		target: "PhotiNetwork",
 		path: .relativeToRoot("Projects/Data")
 	)
 }

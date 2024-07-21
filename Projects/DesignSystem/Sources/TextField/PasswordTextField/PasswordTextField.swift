@@ -28,7 +28,6 @@ public final class PasswordTextField: LineTextField {
       return textField.isSecureTextEntry
     }
     set {
-      print(newValue)
       textField.isSecureTextEntry = newValue
       secureButton.isSelected = !newValue
     }

@@ -35,7 +35,7 @@ public final class LineTextView: UIView {
   }
   
   // MARK: - UI Components
-  public let textView = AlloonTextView()
+  public let textView = PhotiTextView()
   private lazy var countLabel = UILabel()
   private lazy var commentStackView: UIStackView = {
     let stackView = UIStackView()
@@ -138,9 +138,9 @@ private extension LineTextView {
   func lineColor(for mode: TextViewMode) -> UIColor {
     switch mode {
       case .default:
-        return textView.isEditing ? .green400 : .gray200
+        return textView.isEditing ? .blue400 : .gray200
       case .success:
-        return .green400
+        return .blue400
       case .error:
         return .red400
     }

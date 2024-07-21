@@ -31,7 +31,7 @@ final public class CommentView: UIView {
   public var activateColor: UIColor {
     switch type {
       case .condition:
-        return .green400
+        return .blue400
       case .warning:
         return .red400
     }

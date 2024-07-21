@@ -29,7 +29,7 @@ final public class AlertViewController: UIViewController {
   // MARK: - UI Components
   private let dimmedView: UIView = {
     let view = UIView()
-    view.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.2)
+    view.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.4)
     view.layer.compositingFilter = "multiplyBlendMode"
     
     return view
@@ -37,7 +37,7 @@ final public class AlertViewController: UIViewController {
   
   private let mainContainerView: UIView = {
     let view = UIView()
-    view.backgroundColor = .alloonWhite
+    view.backgroundColor = .photiWhite
     view.layer.cornerRadius = 16
     view.clipsToBounds = true
     
@@ -69,6 +69,7 @@ final public class AlertViewController: UIViewController {
     }
     
     super.init(nibName: nil, bundle: nil)
+    
     setupUI()
     bind()
   }
@@ -100,9 +101,9 @@ private extension AlertViewController {
     }
     
     switch type {
-      case.confirm:
+      case .confirm:
         mainContainerView.addSubview(confirmButton)
-      case.canCancel:
+      case .canCancel:
         mainContainerView.addSubviews(confirmButton, cancelButton)
     }
   }

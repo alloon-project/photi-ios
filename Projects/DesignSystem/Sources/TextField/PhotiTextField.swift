@@ -1,5 +1,5 @@
 //
-//  AlloonTextField.swift
+//  PhotiTextField.swift
 //  DesignSystem
 //
 //  Created by jung on 5/6/24.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class AlloonTextField: UITextField {
+public class PhotiTextField: UITextField {
   public override var intrinsicContentSize: CGSize {
     return CGSize(width: 327, height: 46)
   }
@@ -74,7 +74,7 @@ public class AlloonTextField: UITextField {
 }
 
 // MARK: - UI Methods
-private extension AlloonTextField {
+private extension PhotiTextField {
   func setupUI() {
     layer.cornerRadius = 14
     layer.borderWidth = 1
@@ -92,7 +92,7 @@ private extension AlloonTextField {
 }
 
 // MARK: - Internel Extensions
-extension AlloonTextField {
+extension PhotiTextField {
   func setRightView(
     _ rightView: UIView,
     size: CGSize,
@@ -142,7 +142,7 @@ extension AlloonTextField {
   func setText(_ text: String?) {
     self.attributedText = (text ?? "").attributedString(
       font: .body2,
-      color: .alloonBlack
+      color: .photiBlack
     )
   }
   
@@ -159,7 +159,7 @@ extension AlloonTextField {
 }
 
 // MARK: - Private Extensions
-private extension AlloonTextField {
+private extension PhotiTextField {
   @objc func textDidChange() {
     self.setText(text)
   }
