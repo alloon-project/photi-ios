@@ -8,14 +8,9 @@
 
 import UIKit
 import Core
+import Report
 
-protocol ReportViewModelable {
-  // Coordinator에서 ViewModel로 전달할 이벤트입니다.
-}
-
-protocol ReportListener: AnyObject {
-
-}
+protocol ReportViewModelable { }
 
 final class ReportCoordinator: Coordinator, ReportCoordinatable {
   weak var listener: ReportListener?
@@ -38,5 +33,4 @@ final class ReportCoordinator: Coordinator, ReportCoordinatable {
     viewController.setReportType(type: reportType)
     navigationController?.pushViewController(viewController, animated: false)
   }
-  
 }

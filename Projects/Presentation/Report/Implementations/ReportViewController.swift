@@ -12,6 +12,7 @@ import RxSwift
 import SnapKit
 import Core
 import DesignSystem
+import Report
 
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
@@ -139,23 +140,13 @@ private extension ReportViewController {
 // MARK: - Bind Methods
 private extension ReportViewController {
   func bind() {
-    let input = ReportViewModel.Input(
-
-    )
-    
-    nextButton.rx.tap
-      .bind(with: self) { owner, _ in
-
-      }
-      .disposed(by: disposeBag)
+    let input = ReportViewModel.Input()
     
     let output = viewModel.transform(input: input)
     bind(output: output)
   }
   
-  func bind(output: ReportViewModel.Output) {
-    
-  }
+  func bind(output: ReportViewModel.Output) { }
 }
 
 // MARK: - Internal Methods

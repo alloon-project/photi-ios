@@ -8,12 +8,12 @@
 
 import Foundation
 
-enum ReportType {
+public enum ReportType {
   case misson
   case feed
   case member
   
-  var contents: [String] {
+  public var contents: [String] {
     switch self {
     case .misson:
       ["중복 / 도배성 미션",
