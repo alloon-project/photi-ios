@@ -11,13 +11,14 @@ import ProjectDescription
 let project = Project.make(
 	name:"Presentation",
 	targets: [
+		// MARK: - Main Coordinators
 		.make(
-			name: "LogInImpl",
+			name: "HomeImpl",
 			product: .staticLibrary,
-			bundleId: "com.photi.logInImpl",
-			sources: ["LogIn/Implementations/**"],
+			bundleId: "com.photi.homeImpl",
+			sources: ["Home/Implementations/**"],
 			dependencies: [
-				.Project.Presentation.LogIn,
+				.Project.Presentation.Home,
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
@@ -27,21 +28,21 @@ let project = Project.make(
 			]
 		),
 		.make(
-			name: "LogIn",
+			name: "Home",
 			product: .staticLibrary,
-			bundleId: "com.photi.logIn",
-			sources: ["LogIn/Interfaces/**"],
+			bundleId: "com.photi.home",
+			sources: ["Home/Interfaces/**"],
 			dependencies: [
 				.Project.Core
 			]
 		),
 		.make(
-			name: "OnBoardingImpl",
+			name: "SearchChallengeImpl",
 			product: .staticLibrary,
-			bundleId: "com.photi.onBoardingImpl",
-			sources: ["OnBoarding/Implementations/**"],
+			bundleId: "com.photi.searchChallengeImpl",
+			sources: ["SearchChallenge/Implementations/**"],
 			dependencies: [
-				.Project.Presentation.OnBoarding,
+				.Project.Presentation.SearchChallenge,
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
@@ -51,34 +52,10 @@ let project = Project.make(
 			]
 		),
 		.make(
-			name: "OnBoarding",
+			name: "SearchChallenge",
 			product: .staticLibrary,
-			bundleId: "com.photi.onBoarding",
-			sources: ["OnBoarding/Interfaces/**"],
-			dependencies: [
-				.Project.Core
-			]
-		),
-		.make(
-			name: "MyMissionImpl",
-			product: .staticLibrary,
-			bundleId: "com.photi.myMissionImpl",
-			sources: ["MyMission/Implementations/**"],
-			dependencies: [
-				.Project.Presentation.MyMission,
-				.Project.Domain.UseCase,
-				.Project.Domain.Entity,
-				.Project.DesignSystem,
-				.SPM.RxCocoa,
-				.SPM.RxGesture,
-				.SPM.SnapKit
-			]
-		),
-		.make(
-			name: "MyMission",
-			product: .staticLibrary,
-			bundleId: "com.photi.myMission",
-			sources: ["MyMission/Interfaces/**"],
+			bundleId: "com.photi.searchChallenge",
+			sources: ["SearchChallenge/Interfaces/**"],
 			dependencies: [
 				.Project.Core
 			]
@@ -107,13 +84,14 @@ let project = Project.make(
 				.Project.Core
 			]
 		),
+		// MARK: - Sub Coordinators
 		.make(
-			name: "HomeImpl",
+			name: "LogInImpl",
 			product: .staticLibrary,
-			bundleId: "com.photi.homeImpl",
-			sources: ["Home/Implementations/**"],
+			bundleId: "com.photi.logInImpl",
+			sources: ["LogIn/Implementations/**"],
 			dependencies: [
-				.Project.Presentation.Home,
+				.Project.Presentation.LogIn,
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
@@ -123,10 +101,58 @@ let project = Project.make(
 			]
 		),
 		.make(
-			name: "Home",
+			name: "LogIn",
 			product: .staticLibrary,
-			bundleId: "com.photi.home",
-			sources: ["Home/Interfaces/**"],
+			bundleId: "com.photi.logIn",
+			sources: ["LogIn/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
+		),
+		.make(
+			name: "ChallengeImpl",
+			product: .staticLibrary,
+			bundleId: "com.photi.challengeImpl",
+			sources: ["Challenge/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.Challenge,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
+		),
+		.make(
+			name: "Challenge",
+			product: .staticLibrary,
+			bundleId: "com.photi.challenge",
+			sources: ["Challenge/Interfaces/**"],
+			dependencies: [
+				.Project.Core
+			]
+		),
+		.make(
+			name: "ReportImpl",
+			product: .staticLibrary,
+			bundleId: "com.photi.reportImpl",
+			sources: ["Report/Implementations/**"],
+			dependencies: [
+				.Project.Presentation.Report,
+				.Project.Domain.UseCase,
+				.Project.Domain.Entity,
+				.Project.DesignSystem,
+				.SPM.RxCocoa,
+				.SPM.RxGesture,
+				.SPM.SnapKit
+			]
+		),
+		.make(
+			name: "Report",
+			product: .staticLibrary,
+			bundleId: "com.photi.report",
+			sources: ["Report/Interfaces/**"],
 			dependencies: [
 				.Project.Core
 			]
