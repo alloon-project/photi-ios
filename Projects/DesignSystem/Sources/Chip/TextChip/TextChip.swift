@@ -92,9 +92,6 @@ private extension TextChip {
       case .line:
         layer.borderWidth = 1
         layer.borderColor = UIColor.gray300.cgColor
-      case .pink:
-        layer.borderWidth = 1
-        layer.borderColor = UIColor.pink300.cgColor
       default: break
     }
   }
@@ -114,26 +111,30 @@ private extension TextChip {
       case .white:
         return UIColor(red: 1, green: 1, blue: 1, alpha: 0.4)
       case .line:
-        return .alloonWhite
+        return .photiWhite
       case .gray:
         return .gray0
       case .darkGray:
         return .gray200
-      case .pink:
-        return .pink0
+      case .blue:
+        return .blue100
+      case .green:
+        return .green0
     }
   }
   
   func textColor(for type: TextChipType) -> UIColor {
     switch type {
       case .white:
-        return .alloonWhite
+        return .photiWhite
       case .line:
         return .gray800
       case .gray, .darkGray:
         return .gray600
-      case .pink:
-        return .pink400
+      case .blue:
+        return .blue500
+      case .green:
+        return .green600
     }
   }
   
