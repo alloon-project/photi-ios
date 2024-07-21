@@ -17,8 +17,10 @@ import Report
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
+  // MARK: - Refactoring
   private var reportType: ReportType = .challenge
   private var selectedRow: Int?
+  private var isDisplayDetailContent = false
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
@@ -93,7 +95,7 @@ private extension ReportViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, detailLabel, detailContentTextView, reportButton)
+    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView ,reportButton)
   }
   
   func setConstraints() {
@@ -111,9 +113,21 @@ private extension ReportViewController {
     
     reasonTableView.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-20)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(reasonLabel.snp.bottom).offset(20)
     }
+    
+    reportButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-56)
+    }
+  }
+  
+  func setupDetailContentUI() {
+    guard !isDisplayDetailContent else { return }
+    isDisplayDetailContent = true
+    
+    self.view.addSubviews(detailLabel, detailContentTextView)
     
     detailLabel.snp.makeConstraints {
       $0.leading.trailing.equalTo(reasonTableView)
@@ -123,11 +137,6 @@ private extension ReportViewController {
     detailContentTextView.snp.makeConstraints {
       $0.leading.trailing.equalTo(detailLabel)
       $0.top.equalTo(detailLabel.snp.bottom).offset(24)
-    }
-    
-    reportButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-56)
     }
   }
 }
@@ -167,13 +176,12 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    
-    let isSelected = indexPath.row == selectedRow
-    cell.configure(with: reportType.contents[indexPath.section], isSelected: isSelected)
+    cell.configure(with: reportType.contents[indexPath.section])
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    self.setupDetailContentUI()
     selectedRow = indexPath.row
     selectRow(at: indexPath)
   }
