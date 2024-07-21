@@ -25,9 +25,9 @@ final class ReportViewController: UIViewController {
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
   
-  private let reasonLabel = UILabel() 
+  private let reasonLabel = UILabel()
   private let reasonTableView = {
-    let tableView = SelfSizingTableView(maxHeight: 284)
+    let tableView = SelfSizingTableView()
     tableView.registerCell(ReportReasonTableViewCell.self)
     tableView.separatorStyle = .none
     tableView.estimatedRowHeight = 32
@@ -38,7 +38,7 @@ final class ReportViewController: UIViewController {
   private let detailLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "자세한 내용을 적어주시면 신고에 도움이 돼요".attributedString(font: .heading4, color: .gray900)
-
+    
     return label
   }()
   
@@ -64,8 +64,14 @@ final class ReportViewController: UIViewController {
     
     reasonTableView.delegate = self
     reasonTableView.dataSource = self
+    addKeyboardObservers()
     setupUI()
     bind()
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(true)
+    removeKeyboardObservers()
   }
   
   // MARK: - UIResponder
@@ -80,14 +86,14 @@ final class ReportViewController: UIViewController {
 private extension ReportViewController {
   func setupUI() {
     self.view.backgroundColor = .white
-
+    
     switch reportType {
-    case .challenge:
-      reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .feed:
-      reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .member:
-      reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+      case .challenge:
+        reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+      case .feed:
+        reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+      case .member:
+        reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
     }
     
     setViewHierarchy()
@@ -95,13 +101,13 @@ private extension ReportViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView ,reportButton)
+    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, reportButton)
   }
   
   func setConstraints() {
     navigationBar.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
-      $0.top.equalTo(view.safeAreaLayoutGuide)
+      $0.top.equalToSuperview().offset(44)
       $0.height.equalTo(56)
     }
     
@@ -211,5 +217,62 @@ private extension ReportViewController {
   func selectRow(at indexPath: IndexPath) {
     deselectAllCell()
     self.reasonTableView.cellForRow(ReportReasonTableViewCell.self, at: indexPath).isSelected = true
+  }
+}
+
+// MARK: - Setup Keyboard Observer
+private extension ReportViewController {
+  func addKeyboardObservers() {
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(keyboardWillShow),
+      name: UIResponder.keyboardWillShowNotification,
+      object: nil
+    )
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(keyboardWillHide),
+      name: UIResponder.keyboardWillHideNotification,
+      object: nil
+    )
+  }
+  
+  func removeKeyboardObservers() {
+    NotificationCenter.default.removeObserver(
+      self,
+      name: UIResponder.keyboardWillShowNotification,
+      object: nil
+    )
+    NotificationCenter.default.removeObserver(
+      self,
+      name: UIResponder.keyboardWillHideNotification,
+      object: nil
+    )
+  }
+  
+  @objc func keyboardWillShow(_ notification: Notification) {
+    guard
+      let userInfo = notification.userInfo,
+      let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
+    else { return }
+    
+    let keyboardHeight = keyboardFrame.cgRectValue.height
+    let viewHeight = self.view.frame.height
+    
+    let insetFromKeyboardTop: CGFloat = 40
+    let textViewBottom = self.detailContentTextView.frame.maxY
+    
+    let bottomPadding = viewHeight - (textViewBottom + insetFromKeyboardTop)
+    let totalPadding = keyboardHeight - bottomPadding
+    
+    if view.frame.origin.y == 0 {
+      view.frame.origin.y -= totalPadding
+    }
+  }
+  
+  @objc func keyboardWillHide(_ sender: Notification) {
+    if view.frame.origin.y != 0 {
+      view.frame.origin.y = 0
+    }
   }
 }
