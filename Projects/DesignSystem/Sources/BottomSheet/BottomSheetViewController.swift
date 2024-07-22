@@ -60,6 +60,7 @@ open class BottomSheetViewController: UIViewController {
   }
   
   // MARK: - Present Method
+  /// `to`로 지정된 ViewController 위로 BottomSheet를 Display 합니다.
   open func present(
     to viewController: UIViewController,
     animated: Bool,

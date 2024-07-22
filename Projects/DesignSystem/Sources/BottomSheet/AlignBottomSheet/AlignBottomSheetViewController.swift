@@ -15,6 +15,12 @@ public protocol AlignBottomSheetDelegate: AnyObject {
 }
 
 public final class AlignBottomSheetViewController: BottomSheetViewController {
+  public enum AlignType {
+    case `default`
+    case button(text: String)
+  }
+  
+  private let type: AlignType
   public weak var delegate: AlignBottomSheetDelegate?
   
   public var dataSource: [String] {
@@ -40,8 +46,15 @@ public final class AlignBottomSheetViewController: BottomSheetViewController {
     return tableView
   }()
   
+  private lazy var button = FilledRoundButton(type: .quaternary, size: .xLarge)
+  
   // MARK: - Initializers
-  public init(selectedRow: Int, dataSource: [String] = []) {
+  public init(
+    type: AlignType,
+    selectedRow: Int,
+    dataSource: [String] = []
+  ) {
+    self.type = type
     self.dataSource = dataSource
     self.selectedRow = selectedRow
     super.init(nibName: nil, bundle: nil)
@@ -67,19 +80,41 @@ private extension AlignBottomSheetViewController {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
+    
+    if case let .button(title) = type {
+      button.setText(title, for: .normal)
+    }
   }
   
   func setViewHierarchy() {
     contentView.addSubview(tableView)
+    
+    if case .button = type {
+      contentView.addSubview(button)
+    }
   }
   
-  func setConstraints() { 
+  func setConstraints() {
     contentView.snp.makeConstraints {
-      $0.top.leading.trailing.equalToSuperview().inset(24)
-      $0.bottom.equalToSuperview().offset(-62)
+      $0.top.equalToSuperview().offset(16)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().offset(-56)
     }
     
-    tableView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    switch type {
+      case .default:
+        tableView.snp.makeConstraints { $0.edges.equalToSuperview() }
+      case .button:
+        tableView.snp.makeConstraints {
+          $0.leading.trailing.top.equalToSuperview()
+        }
+        let size = button.intrinsicContentSize
+        button.snp.makeConstraints {
+          $0.centerX.bottom.equalToSuperview()
+          $0.top.equalTo(tableView.snp.bottom)
+          $0.size.equalTo(size)
+        }
+    }
   }
 }
 
@@ -105,20 +140,24 @@ extension AlignBottomSheetViewController: UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 extension AlignBottomSheetViewController: UITableViewDelegate {
-  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    if section == dataSource.count - 1 {
-      return 0
-    } else {
-      return 16
-    }
+//  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+//    if section == dataSource.count - 1 {
+//      return 0
+//    } else {
+//      return 16
+//    }
+//  }
+  
+  public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    return 60
   }
   
-  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    let view = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
-    view.backgroundColor = .clear
-    
-    return view
-  }
+//  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+//    let view = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
+//    view.backgroundColor = .clear
+//    
+//    return view
+//  }
   
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard self.selectedRow != indexPath.section else { return }
