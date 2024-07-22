@@ -1,5 +1,5 @@
 //
-//  SelectionListCell.swift
+//  AlignCell.swift
 //  DesignSystem
 //
 //  Created by jung on 5/11/24.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Core
 
-final class SelectionListCell: UITableViewCell {
+final class AlignCell: UITableViewCell {
   private var textColor: UIColor {
     isSelected ? .blue500 : .gray900
   }
@@ -53,7 +53,7 @@ final class SelectionListCell: UITableViewCell {
 }
 
 // MARK: - UI Methods
-private extension SelectionListCell {
+private extension AlignCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
@@ -72,7 +72,7 @@ private extension SelectionListCell {
 }
 
 // MARK: - Private Methods
-private extension SelectionListCell {
+private extension AlignCell {
   func setLabelTextColor(isSelected: Bool) {
     label.attributedText = label.attributedText?.setColor(textColor)
   }

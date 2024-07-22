@@ -1,5 +1,5 @@
 //
-//  SelectionListBottomSheetViewController.swift
+//  AlignBottomSheetViewController.swift
 //  DesignSystem
 //
 //  Created by jung on 5/11/24.
@@ -10,12 +10,12 @@ import UIKit
 import SnapKit
 import Core
 
-public protocol SelectionListBottomSheetDelegate: AnyObject {
+public protocol AlignBottomSheetDelegate: AnyObject {
   func didSeleted(at index: Int)
 }
 
-public final class SelectionListBottomSheetViewController: BottomSheetViewController {
-  public weak var delegate: SelectionListBottomSheetDelegate?
+public final class AlignBottomSheetViewController: BottomSheetViewController {
+  public weak var delegate: AlignBottomSheetDelegate?
   
   public var dataSource: [String] {
     didSet {
@@ -33,7 +33,7 @@ public final class SelectionListBottomSheetViewController: BottomSheetViewContro
   // MARK: - UI Components
   private let tableView: SelfSizingTableView = {
     let tableView = SelfSizingTableView(maxHeight: 300)
-    tableView.registerCell(SelectionListCell.self)
+    tableView.registerCell(AlignCell.self)
     tableView.separatorStyle = .none
     tableView.estimatedRowHeight = 44
     
@@ -41,9 +41,9 @@ public final class SelectionListBottomSheetViewController: BottomSheetViewContro
   }()
   
   // MARK: - Initializers
-  public init(selectedRow: Int = 0, dataSource: [String] = []) {
-    self.selectedRow = selectedRow
+  public init(selectedRow: Int, dataSource: [String] = []) {
     self.dataSource = dataSource
+    self.selectedRow = selectedRow
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -63,7 +63,7 @@ public final class SelectionListBottomSheetViewController: BottomSheetViewContro
 }
 
 // MARK: - UI Methods
-private extension SelectionListBottomSheetViewController {
+private extension AlignBottomSheetViewController {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
@@ -84,7 +84,7 @@ private extension SelectionListBottomSheetViewController {
 }
 
 // MARK: - UITableViewDataSource
-extension SelectionListBottomSheetViewController: UITableViewDataSource {
+extension AlignBottomSheetViewController: UITableViewDataSource {
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return 1
   }
@@ -94,7 +94,7 @@ extension SelectionListBottomSheetViewController: UITableViewDataSource {
   }
   
   public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueCell(SelectionListCell.self, for: indexPath)
+    let cell = tableView.dequeueCell(AlignCell.self, for: indexPath)
     let isSelected = indexPath.section == selectedRow
 
     cell.configure(with: dataSource[indexPath.section], isSelected: isSelected)
@@ -104,7 +104,7 @@ extension SelectionListBottomSheetViewController: UITableViewDataSource {
 }
 
 // MARK: - UITableViewDelegate
-extension SelectionListBottomSheetViewController: UITableViewDelegate {
+extension AlignBottomSheetViewController: UITableViewDelegate {
   public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
     if section == dataSource.count - 1 {
       return 0
@@ -130,13 +130,13 @@ extension SelectionListBottomSheetViewController: UITableViewDelegate {
 }
 
 // MARK: - Private Methods
-private extension SelectionListBottomSheetViewController {
+private extension AlignBottomSheetViewController {
   func deselectAllCell() {
     self.tableView.visibleCells.forEach { $0.isSelected = false }
   }
   
   func selectRow(at indexPath: IndexPath) {
     deselectAllCell()
-    self.tableView.cellForRow(SelectionListCell.self, at: indexPath).isSelected = true
+    self.tableView.cellForRow(AlignCell.self, at: indexPath).isSelected = true
   }
 }
