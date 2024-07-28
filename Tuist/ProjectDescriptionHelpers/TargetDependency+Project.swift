@@ -29,30 +29,21 @@ public extension TargetDependency.Project {
 
 // MARK: - Presentation
 public extension TargetDependency.Project.Presentation {
-	static let LogIn = TargetDependency.project(
-		target: "LogIn",
+	static let Home = TargetDependency.project(
+		target: "Home",
 		path: .relativeToRoot("Projects/Presentation")
 	)
-	static let LogInImpl = TargetDependency.project(
-		target: "LogInImpl",
-		path: .relativeToRoot("Projects/Presentation")
-	)
-	
-	static let OnBoarding = TargetDependency.project(
-		target: "OnBoarding",
-		path: .relativeToRoot("Projects/Presentation")
-	)
-	static let OnBoardingImpl = TargetDependency.project(
-		target: "OnBoardingImpl",
+	static let HomeImpl = TargetDependency.project(
+		target: "HomeImpl",
 		path: .relativeToRoot("Projects/Presentation")
 	)
 	
-	static let MyMission = TargetDependency.project(
-		target: "MyMission",
+	static let SearchChallenge = TargetDependency.project(
+		target: "SearchChallenge",
 		path: .relativeToRoot("Projects/Presentation")
 	)
-	static let MyMissionImpl = TargetDependency.project(
-		target: "MyMissionImpl",
+	static let SearchChallengeImpl = TargetDependency.project(
+		target: "SearchChallengeImpl",
 		path: .relativeToRoot("Projects/Presentation")
 	)
 	
@@ -65,12 +56,30 @@ public extension TargetDependency.Project.Presentation {
 		path: .relativeToRoot("Projects/Presentation")
 	)
 	
-	static let Home = TargetDependency.project(
-		target: "Home",
+	static let LogIn = TargetDependency.project(
+		target: "LogIn",
 		path: .relativeToRoot("Projects/Presentation")
 	)
-	static let HomeImpl = TargetDependency.project(
-		target: "HomeImpl",
+	static let LogInImpl = TargetDependency.project(
+		target: "LogInImpl",
+		path: .relativeToRoot("Projects/Presentation")
+	)
+	
+	static let Challenge = TargetDependency.project(
+		target: "Challenge",
+		path: .relativeToRoot("Projects/Presentation")
+	)
+	static let ChallengeImpl = TargetDependency.project(
+		target: "ChallengeImpl",
+		path: .relativeToRoot("Projects/Presentation")
+	)
+	
+	static let Report = TargetDependency.project(
+		target: "Report",
+		path: .relativeToRoot("Projects/Presentation")
+	)
+	static let ReportImpl = TargetDependency.project(
+		target: "ReportImpl",
 		path: .relativeToRoot("Projects/Presentation")
 	)
 }

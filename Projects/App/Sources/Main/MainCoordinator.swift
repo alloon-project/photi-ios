@@ -9,7 +9,7 @@
 import UIKit
 import Core
 import Home
-import MyMission
+import SearchChallenge
 import MyPage
 
 protocol MainListener: AnyObject { }
@@ -20,20 +20,20 @@ final class MainCoordinator: Coordinator {
   private let viewController: MainViewController
   
   private let homeNavigationController = UINavigationController()
-  private let myMissionNavigationController = UINavigationController()
+  private let searchChallengeNavigationController = UINavigationController()
   private let myPageNavigationController = UINavigationController()
   
   private let homeContainable: HomeContainable
-  private let myMissionContainable: MyMissionContainable
+  private let searchChallengeContainable: SearchChallengeContainable
   private let myPageContainable: MyPageContainable
   
   init(
     homeContainable: HomeContainable,
-    myMissionContainable: MyMissionContainable,
+    searchChallengeContainable: SearchChallengeContainable,
     myPageContainable: MyPageContainable
   ) {
     self.homeContainable = homeContainable
-    self.myMissionContainable = myMissionContainable
+    self.searchChallengeContainable = searchChallengeContainable
     self.myPageContainable = myPageContainable
     self.viewController = MainViewController()
     super.init()
@@ -47,16 +47,16 @@ final class MainCoordinator: Coordinator {
   
   func attachCoordinators() {
     let homeCoordinator = homeContainable.coordinator(listener: self)
-    let myMissionCoordinator = myMissionContainable.coordinator(listener: self)
+    let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
     let myPageCoordinator = myPageContainable.coordinator(listener: self)
     
     homeCoordinator.start(at: homeNavigationController)
-    myMissionCoordinator.start(at: myMissionNavigationController)
+    searchChallengeCoordinator.start(at: searchChallengeNavigationController)
     myPageCoordinator.start(at: myPageNavigationController)
     
     viewController.attachNavigationControllers(
       homeNavigationController,
-      myMissionNavigationController,
+      searchChallengeNavigationController,
       myPageNavigationController
     )
   }
@@ -65,8 +65,8 @@ final class MainCoordinator: Coordinator {
 // MARK: - HomeListener
 extension MainCoordinator: HomeListener { }
 
-// MARK: - MyMissionListener
-extension MainCoordinator: MyMissionListener { }
+// MARK: - SearchChallengeListener
+extension MainCoordinator: SearchChallengeListener { }
 
 // MARK: - MyPageListener
 extension MainCoordinator: MyPageListener { }

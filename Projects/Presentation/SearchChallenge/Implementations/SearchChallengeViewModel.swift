@@ -1,6 +1,6 @@
 //
-//  MyMissionViewModel.swift
-//  MyMissionImpl
+//  SearchChallengeViewModel.swift
+//  SearchChallengeImpl
 //
 //  Created by jung on 6/29/24.
 //  Copyright © 2024 com.alloon. All rights reserved.
@@ -10,20 +10,20 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol MyMissionCoordinatable: AnyObject { }
+protocol SearchChallengeCoordinatable: AnyObject { }
 
-protocol MyMissionViewModelType: AnyObject, MyMissionViewModelable {
+protocol SearchChallengeViewModelType: AnyObject, SearchChallengeViewModelable {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
-  var coordinator: MyMissionCoordinatable? { get set }
+  var coordinator: SearchChallengeCoordinatable? { get set }
 }
 
-final class MyMissionViewModel: MyMissionViewModelType {
+final class SearchChallengeViewModel: SearchChallengeViewModelType {
   let disposeBag = DisposeBag()
   
-  weak var coordinator: MyMissionCoordinatable?
+  weak var coordinator: SearchChallengeCoordinatable?
   
   // MARK: - Input
   struct Input { }

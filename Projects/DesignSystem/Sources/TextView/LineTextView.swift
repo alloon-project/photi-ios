@@ -76,6 +76,8 @@ public final class LineTextView: UIView {
     self.init(type: type, mode: mode)
     self.text = text
     self.placeholder = placeholder
+        
+    textView.type = text.isEmpty ? .placeholder : .text
   }
   
   @available(*, unavailable)
@@ -160,9 +162,10 @@ extension LineTextView: UITextViewDelegate {
   public func textViewDidBeginEditing(_ textView: UITextView) {
     self.textView.setLineColor(lineColor(for: mode))
     
-    guard self.textView.type == .placeholder else { return }
-    self.textView.text = ""
-    self.textView.type = .text
+    if self.textView.type == .placeholder {
+      self.textView.text = ""
+      self.textView.type = .text
+    }
   }
   
   public func textViewDidEndEditing(_ textView: UITextView) {
