@@ -139,13 +139,10 @@ private extension ReportViewController {
 // MARK: - Bind Methods
 private extension ReportViewController {
   func bind() {
-    let input = ReportViewModel.Input(
-
-    )
+    let input = ReportViewModel.Input()
     
     nextButton.rx.tap
-      .bind(with: self) { owner, _ in
-
+      .bind(with: self) { _, _ in
       }
       .disposed(by: disposeBag)
     
@@ -153,9 +150,7 @@ private extension ReportViewController {
     bind(output: output)
   }
   
-  func bind(output: ReportViewModel.Output) {
-    
-  }
+  func bind(output: ReportViewModel.Output) { }
 }
 
 // MARK: - Internal Methods

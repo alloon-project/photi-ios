@@ -10,9 +10,7 @@ import RxCocoa
 import RxSwift
 import DesignSystem
 
-protocol ReportCoordinatable: AnyObject {
-  
-}
+protocol ReportCoordinatable: AnyObject { }
 
 protocol ReportViewModelType: ReportViewModelable {
   associatedtype Input
@@ -41,12 +39,7 @@ final class ReportViewModel: ReportViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
-   
-    
     // TODO: 비밀번호 재설정 요청 -> 성공시 팝업 팝업 끝나면 로그인으로 이동
-    
-    return Output(
-
-    )
+    return Output()
   }
 }

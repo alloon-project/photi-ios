@@ -9,6 +9,7 @@
 import UIKit
 import Core
 import LogIn
+import MyPage
 
 protocol LogInViewModelable { }
 

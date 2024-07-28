@@ -17,7 +17,7 @@ public final class LogInContainer:
   Container<LogInDependency>,
   LogInContainable,
   FindIdDependency,
-  FindPasswordDependency{
+  FindPasswordDependency {
   public func coordinator(listener: LogInListener) -> Coordinating {
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)

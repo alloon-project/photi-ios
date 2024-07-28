@@ -21,9 +21,7 @@ final class AppContainer:
   AppContainable,
   MainDependency,
   LogInDependency,
-  SignUpDependency
-{
-  
+  SignUpDependency {
   func coordinator() -> Coordinating {
     return AppCoordinator(
       mainContainer: MainContainer(dependency: self),
