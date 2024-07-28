@@ -9,10 +9,19 @@
 import UIKit
 import SnapKit
 import Core
+import DesignSystem
 
 class ReportReasonTableViewCell: UITableViewCell {
   private var textColor: UIColor {
-    isSelected ? .black : .gray600
+    isSelected ? .photiBlack : .gray600
+  }
+  
+  private var iconImage: UIImage? {
+    isSelected ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "checkmark.circle")
+  }
+  
+  private var imageTintColor: UIColor {
+    isSelected ? .blue400 : .gray300
   }
 
   override var isSelected: Bool {
@@ -22,12 +31,8 @@ class ReportReasonTableViewCell: UITableViewCell {
     }
   }
   // MARK: - UI Components
-  private let selectImageView = UIImageView(image: UIImage(systemName: "checkmark.circle")?.withTintColor(.gray300))
-  private let reportContentLabel: UILabel = {
-    let label = UILabel()
-    label.textAlignment = .left
-    return label
-  }()
+  private let iconImageView = UIImageView()
+  private let reportContentLabel = UILabel()
   
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -42,7 +47,7 @@ class ReportReasonTableViewCell: UITableViewCell {
   }
   
   // MARK: - Configure
-  func configure(with text: String, isSelected: Bool) {
+  func configure(with text: String, isSelected: Bool = false) {
     self.isSelected = isSelected
     reportContentLabel.attributedText = text.attributedString(
       font: .body2,
@@ -51,23 +56,25 @@ class ReportReasonTableViewCell: UITableViewCell {
   }
 }
 
+// MARK: UI Methods
 private extension ReportReasonTableViewCell {
   func setupUI() {
     self.backgroundColor = .clear
     setViewHierarchy()
     setConstraints()
   }
+  
   func setViewHierarchy() {
-    contentView.addSubviews(selectImageView, reportContentLabel)
+    contentView.addSubviews(iconImageView, reportContentLabel)
   }
+  
   func setConstraints() {
-    selectImageView.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(4)
-      $0.centerY.equalToSuperview()
+    iconImageView.snp.makeConstraints {
+      $0.leading.top.bottom.equalToSuperview().inset(4)
       $0.width.height.equalTo(24)
     }
     reportContentLabel.snp.makeConstraints {
-      $0.leading.equalTo(selectImageView.snp.trailing).offset(6)
+      $0.leading.equalTo(iconImageView.snp.trailing).offset(10)
       $0.trailing.equalToSuperview().offset(-12)
       $0.centerY.equalToSuperview()
     }
@@ -77,13 +84,8 @@ private extension ReportReasonTableViewCell {
 // MARK: - Private methods
 private extension ReportReasonTableViewCell {
   func setCheckImage(isSelected: Bool) {
-    if isSelected {
-      selectImageView.image = UIImage(systemName: "checkmark.circle.fill")?
-                              .withTintColor(.green400, renderingMode: .alwaysOriginal)
-    } else {
-      selectImageView.image = UIImage(systemName: "checkmark.circle")?
-                              .withTintColor(.gray300, renderingMode: .alwaysOriginal)
-    }
+    iconImageView.image = iconImage?
+      .withTintColor(imageTintColor, renderingMode: .alwaysOriginal)
   }
   
   func setLabelTextColor(isSelected: Bool) {

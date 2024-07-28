@@ -11,8 +11,8 @@ import Home
 import HomeImpl
 import MyMission
 import MyPageImpl
-import MyPage
-import MyMissionImpl
+import SearchChallenge
+import SearchChallengeImpl
 
 protocol MainDependency: Dependency { }
 
@@ -24,16 +24,16 @@ final class MainContainer:
   Container<MainDependency>,
   MainContainable,
   HomeDependency,
-  MyMissionDependency,
+  SearchChallengeDependency,
   MyPageDependency {
   func coordinator(listener: MainListener) -> Coordinating {
     let home = HomeContainer(dependency: self)
-    let myMission = MyMissionContainer(dependency: self)
+    let searchChallenge = SearchChallengeContainer(dependency: self)
     let myPage = MyPageContainer(dependency: self)
     
     let coordinator = MainCoordinator(
       homeContainable: home,
-      myMissionContainable: myMission,
+      searchChallengeContainable: searchChallenge,
       myPageContainable: myPage
     )
     coordinator.listener = listener
