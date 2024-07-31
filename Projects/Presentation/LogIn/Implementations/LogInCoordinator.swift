@@ -37,7 +37,7 @@ final class LogInCoordinator: Coordinator {
     self.signUpContainable = signUpContainable
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
-  
+    
     self.viewController = LogInViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
