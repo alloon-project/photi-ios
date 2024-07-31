@@ -20,6 +20,13 @@ public protocol CalendarViewDelegate: AnyObject {
 public final class CalendarView: UIView {
   private let disposeBag = DisposeBag()
   
+  /// Close 버튼 설정
+  public var isCloseButtonHidden: Bool = false {
+    didSet {
+      headerView.closeButton.isHidden = isCloseButtonHidden
+    }
+  }
+  
   /// Day Item의 높이를 정의합니다.
   public var itemHeight: CGFloat = 40 {
     didSet {
