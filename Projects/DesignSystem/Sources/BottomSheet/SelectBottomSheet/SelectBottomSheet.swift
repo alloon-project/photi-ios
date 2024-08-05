@@ -137,7 +137,6 @@ private extension SelectBottomSheetViewController {
 extension SelectBottomSheetViewController: UICollectionViewDelegate { 
   public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     delegate?.didSelect(at: indexPath.row)
-    // animate를 줄까?
     dismissBottomSheet()
   }
 }
