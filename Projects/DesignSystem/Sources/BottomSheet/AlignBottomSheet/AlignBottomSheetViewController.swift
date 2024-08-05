@@ -8,6 +8,8 @@
 
 import UIKit
 import SnapKit
+import RxCocoa
+import RxSwift
 import Core
 
 public protocol AlignBottomSheetDelegate: AnyObject {
@@ -19,6 +21,8 @@ public final class AlignBottomSheetViewController: BottomSheetViewController {
     case `default`
     case button(text: String)
   }
+  
+  private lazy var disposeBag = DisposeBag()
   
   private let type: AlignType
   public weak var delegate: AlignBottomSheetDelegate?
@@ -72,6 +76,10 @@ public final class AlignBottomSheetViewController: BottomSheetViewController {
     tableView.delegate = self
     
     setupUI()
+    
+    if case .button = type {
+      bind()
+    }
   }
 }
 
@@ -118,6 +126,18 @@ private extension AlignBottomSheetViewController {
   }
 }
 
+// MARK: - Bind
+private extension AlignBottomSheetViewController {
+  func bind() {
+    button.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.delegate?.didSeleted(at: owner.selectedRow)
+        owner.dismissBottomSheet()
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
 // MARK: - UITableViewDataSource
 extension AlignBottomSheetViewController: UITableViewDataSource {
   public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -140,31 +160,21 @@ extension AlignBottomSheetViewController: UITableViewDataSource {
 
 // MARK: - UITableViewDelegate
 extension AlignBottomSheetViewController: UITableViewDelegate {
-//  public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-//    if section == dataSource.count - 1 {
-//      return 0
-//    } else {
-//      return 16
-//    }
-//  }
-  
   public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     return 60
   }
-  
-//  public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-//    let view = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
-//    view.backgroundColor = .clear
-//    
-//    return view
-//  }
   
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard self.selectedRow != indexPath.section else { return }
     
     selectedRow = indexPath.section
-    delegate?.didSeleted(at: selectedRow)
-    dismissBottomSheet()
+    
+    switch type {
+      case .default:
+        delegate?.didSeleted(at: selectedRow)
+        dismissBottomSheet()
+      default: break
+    }
   }
 }
 

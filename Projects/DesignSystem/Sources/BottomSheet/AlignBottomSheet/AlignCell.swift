@@ -64,10 +64,7 @@ private extension AlignCell {
   }
   
   func setConstraints() {
-    label.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.top.bottom.equalToSuperview().inset(10)
-    }
+    label.snp.makeConstraints { $0.center.equalToSuperview() }
   }
 }
 
