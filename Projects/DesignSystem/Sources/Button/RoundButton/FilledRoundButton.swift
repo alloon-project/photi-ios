@@ -44,8 +44,8 @@ public final class FilledRoundButton: RoundButton {
     self.mode = mode
     super.init(size: size)
     
-    self.setText(text, for: .normal)
     setupUI()
+    self.setText(text, for: .normal)
   }
   
   @available(*, unavailable)
@@ -69,9 +69,13 @@ public final class FilledRoundButton: RoundButton {
 public extension FilledRoundButton {
   func setText(_ text: String, for state: UIControl.State) {
     self.setAttributedTitle(
-      text.attributedString(font: font(for: size), color: .white),
+      text.attributedString(font: font(for: size), color: .photiWhite),
       for: state
     )
+    
+    if case .quaternary = type {
+      quaternarySetupUI()
+    }
   }
 }
 
