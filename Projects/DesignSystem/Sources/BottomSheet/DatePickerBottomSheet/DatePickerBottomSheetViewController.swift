@@ -44,7 +44,7 @@ public final class DatePickerBottomSheetViewController: BottomSheetViewControlle
   private weak var delegate: DatePickerBottomSheetDelegate?
   
   // MARK: - UI Components
-  private let calendarView = CalendarView(startDate: .now)
+  private let calendarView = CalendarView(selectionMode: .single, startDate: .now)
   
   private let button = FilledRoundButton(type: .primary, size: .xLarge)
   

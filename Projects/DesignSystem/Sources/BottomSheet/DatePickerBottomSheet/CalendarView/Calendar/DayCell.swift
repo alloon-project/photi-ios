@@ -13,13 +13,16 @@ import Core
 final class DayCell: UICollectionViewCell {
   override var isSelected: Bool {
     didSet {
-      setCircleView(color: backgroundColor(for: type, isSelcted: isSelected))
-      setLabel("\(day)", color: textColor(for: type, isSelected: isSelected))
+      guard allowedSelection else { return }
+      
+      setCircleView(color: backgroundColor(for: dateType, isSelcted: isSelected))
+      setLabel("\(day)", color: textColor(for: dateType, isSelected: isSelected))
     }
   }
   
+  private(set) var allowedSelection: Bool = true
   private(set) var day: Int = 0
-  private(set) var type: DateType = .default
+  private(set) var dateType: DateType = .default
   
   // MARK: - UI Components
   private let circleView = UIView()
@@ -36,31 +39,27 @@ final class DayCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
   
-  // MARK: - layoutSubviews
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    circleView.layer.cornerRadius = self.frame.height / 2
-  }
-  
   // MARK: - Configure Method
   func configure(
-    type: DateType,
+    dateType: DateType,
     day: Int,
+    allowedSelection: Bool,
     isSelected: Bool = false
   ) {
-    self.type = type
+    self.allowedSelection = allowedSelection
+    self.dateType = dateType
     self.day = day
     
-    switch type {
+    switch dateType {
       case .default:
         self.isUserInteractionEnabled = true
       case .disabled, .startDate:
         self.isUserInteractionEnabled = false
     }
     
-    setLabel("\(day)", color: textColor(for: type, isSelected: isSelected))
-    setCircleView(color: backgroundColor(for: type, isSelcted: isSelected))
-
+    setLabel("\(day)", color: textColor(for: dateType, isSelected: isSelected))
+    setCircleView(color: backgroundColor(for: dateType, isSelcted: isSelected))
+    
     self.isSelected = isSelected
   }
 }
@@ -68,6 +67,8 @@ final class DayCell: UICollectionViewCell {
 // MARK: - UI Methos
 private extension DayCell {
   func setupUI() {
+    self.circleView.layer.cornerRadius = 8
+
     setViewHierarchy()
     setConstraints()
   }
@@ -98,6 +99,9 @@ private extension DayCell {
   }
   
   func textColor(for type: DateType, isSelected: Bool) -> UIColor {
+    if case .startDate = type {
+      print(day)
+    }
     switch type {
       case .default:
         return isSelected ? .photiWhite : .photiBlack
@@ -115,7 +119,7 @@ private extension DayCell {
       case .disabled:
         return .photiWhite
       case .startDate:
-        return .gray500
+        return .gray100
     }
   }
 }
