@@ -67,7 +67,7 @@ final class MyPageViewController: UIViewController {
   }()
   
   private let calendarView = {
-    let calendarView = CalendarView(startDate: Date())
+    let calendarView = CalendarView(selectionMode: .multiple, startDate: Date())
     calendarView.isCloseButtonHidden = true
     return calendarView
   }()

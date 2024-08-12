@@ -13,6 +13,7 @@ import Core
 
 /// 특정한 달의 달력을 표시하는 Cell입니다.
 final class CalendarCell: UICollectionViewCell {
+  private var selectionMode: CalendarView.SelectionMode = .single
   private var itemHeight: CGFloat = 0
   private var itemSpacing: CGFloat = 0
   private var lineSpacing: CGFloat = 0
@@ -23,7 +24,7 @@ final class CalendarCell: UICollectionViewCell {
     }
   }
   
-  var selectedDate: CalendarDate?
+  var selectedDates: [CalendarDate]?
   var selectedDateRelay = PublishRelay<CalendarDate>()
   
   // MARK: - UI Components
@@ -52,10 +53,12 @@ final class CalendarCell: UICollectionViewCell {
   // MARK: - Configure Method
   func configure(
     _ dataSource: [CalendarDate],
+    selectionMode: CalendarView.SelectionMode,
     itemHeight: CGFloat,
     itemSpacing: CGFloat,
     lineSpacing: CGFloat
   ) {
+    self.selectionMode = selectionMode
     self.itemHeight = itemHeight
     self.itemSpacing = itemSpacing
     self.lineSpacing = lineSpacing
@@ -91,13 +94,15 @@ extension CalendarCell: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(DayCell.self, for: indexPath)
     let date = dataSource[indexPath.row]
-    cell.configure(type: date.type, day: date.day)
+    let isSelected = (selectedDates ?? []).contains(date)
     
-    if date == selectedDate {
-      collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .init())
-      cell.isSelected = true
-    }
-    
+    cell.configure(
+      dateType: date.type,
+      day: date.day,
+      allowedSelection: selectionMode == .single,
+      isSelected: isSelected
+    )
+
     return cell
   }
 }

@@ -18,7 +18,14 @@ public protocol CalendarViewDelegate: AnyObject {
 }
 
 public final class CalendarView: UIView {
+  public enum SelectionMode {
+    case single
+    case multiple
+  }
+  
   private let disposeBag = DisposeBag()
+  
+  public let seletectionMode: SelectionMode
   
   /// Close 버튼 설정
   public var isCloseButtonHidden: Bool = false {
@@ -65,7 +72,10 @@ public final class CalendarView: UIView {
     }
   }
   
-  /// 선택된 Date입니다.
+  /// `default`로 선택된 Date입니다.
+  public let defaultSelectedDates: [Date]?
+  
+  /// 유저가 선택한 날짜입니다.
   public var selectedDate: Date?
   
   private var calendarSize: CGSize {
@@ -109,9 +119,18 @@ public final class CalendarView: UIView {
   }()
   
   // MARK: - Initalizers
-  public init(startDate: Date, endDate: Date? = nil) {
+  public init(
+    selectionMode: SelectionMode,
+    defaultSelectedDates: [Date],
+    startDate: Date,
+    endDate: Date? = nil
+  ) {
+    self.seletectionMode = selectionMode
     self.startDate = startDate
     self.endDate = endDate ?? (Calendar.current.date(byAdding: .year, value: 5, to: startDate) ?? startDate)
+    
+    self.defaultSelectedDates = defaultSelectedDates
+
     super.init(frame: .zero)
     
     setupUI()
@@ -122,12 +141,15 @@ public final class CalendarView: UIView {
   }
   
   public convenience init(
-    selectedDate: Date,
+    selectionMode: SelectionMode,
     startDate: Date,
     endDate: Date? = nil
   ) {
-    self.init(startDate: startDate, endDate: endDate)
-    self.selectedDate = selectedDate
+    self.init(
+      selectionMode: selectionMode,
+      defaultSelectedDates: [],
+      startDate: startDate,
+      endDate: endDate)
   }
   
   @available(*, unavailable)
@@ -189,15 +211,15 @@ extension CalendarView: UICollectionViewDataSource {
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(CalendarCell.self, for: indexPath)
     cell.configure(
-      dataSource[indexPath.row],
+      dataSource[indexPath.row], 
+      selectionMode: seletectionMode,
       itemHeight: itemHeight,
       itemSpacing: itemSpacing,
       lineSpacing: lineSpacing
     )
     
-    if let selectedDate = selectedDate {
-      let calendarDate = CalendarDate(date: selectedDate)
-      cell.selectedDate = calendarDate
+    if let calendarDates = defaultSelectedDates?.map({ CalendarDate(date: $0) }) {
+      cell.selectedDates = calendarDates
     }
     
     cell.selectedDateRelay
