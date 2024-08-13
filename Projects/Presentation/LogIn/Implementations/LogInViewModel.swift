@@ -8,14 +8,17 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
-  func detachSignUp() 
+  func detachSignUp()
   func attachFindId()
   func detachFindId()
   func attachFindPassword()
   func detachFindPassword()
+  func didFinishLogIn()
 }
 
 protocol LogInViewModelType: LogInViewModelable {
@@ -25,14 +28,18 @@ protocol LogInViewModelType: LogInViewModelable {
   var disposeBag: DisposeBag { get }
   var coordinator: LogInCoordinatable? { get set }
   
+  init(useCase: LogInUseCase)
+  
   func transform(input: Input) -> Output
 }
 
-class LogInViewModel: LogInViewModelType {
+final class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
   weak var coordinator: LogInCoordinatable?
   
-  private let isValidIdOrPasswordRelay = PublishRelay<Void>()
+  private let useCase: LogInUseCase
+  private let invalidIdOrPasswordRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
