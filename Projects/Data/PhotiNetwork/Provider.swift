@@ -56,7 +56,15 @@ private extension Provider {
     return Single.create { single in
       Task {
         do {
-          let response = try await requestObject(endPoint, type: type)
+          let urlRequest = try endPoint.urlRequest()
+          let (data, httpResponse) = try await session.request(request: urlRequest)
+
+          let response = try resultMapping(
+            data: data,
+            statusCode: httpResponse.statusCode,
+            httpResponse: httpResponse,
+            type: T.self
+          )
           single(.success(response))
         } catch {
           single(.failure(error))
@@ -75,9 +83,7 @@ private extension Provider {
       do {
         switch target.sampleResponse {
           case let .networkResponse(statusCode, data, code, message):
-            let decodedData = try JSONDecoder().decode(T.self, from: data)
-            let dto = BaseResponseDTO(code: code, message: message, data: decodedData)
-            let response = BaseResponse(dto: dto, statusCode: statusCode)
+            let response = try resultMapping(data: data, statusCode: statusCode, type: T.self)
             single(.success(response))
             
           case let .networkError(error):
@@ -101,24 +107,22 @@ private extension Provider {
       httpHeaderFields: target.headers
     )
   }
-}
-
-// // MARK: - Async Await
-private extension Provider {
-  func requestObject<T: Decodable>(_ endPoint: EndPoint, type: T.Type) async throws -> BaseResponse<T> {
-    let urlRequest = try endPoint.urlRequest()
   
-    let (data, httpResponse) = try await session.request(request: urlRequest)
-    
+  func resultMapping<T: Decodable>(
+    data: Data,
+    statusCode: Int,
+    httpResponse: HTTPURLResponse? = nil,
+    type: T.Type
+  ) throws -> BaseResponse<T> {
     let decoder = JSONDecoder()
-  
+    
     // 성공 + data 있는 경우
-    if httpResponse.statusCode == 200 && T.self != VoidResponseDTO.self {
+    if statusCode == 200 && T.self != VoidResponseDTO.self {
       let decodedData = try decoder.decode(BaseResponseDTO<T>.self, from: data)
-      return BaseResponse(dto: decodedData, statusCode: httpResponse.statusCode, response: httpResponse)
+      return BaseResponse(dto: decodedData, statusCode: statusCode, response: httpResponse)
     } else {
       let decodedData = try decoder.decode(VoidResponseDTO.self, from: data)
-      return BaseResponse<T>(dto: decodedData, statusCode: httpResponse.statusCode, response: httpResponse)
+      return BaseResponse<T>(dto: decodedData, statusCode: statusCode, response: httpResponse)
     }
   }
 }

@@ -8,9 +8,11 @@
 
 import Core
 import LogIn
+import UseCase
 
 public protocol LogInDependency: Dependency {
   var signUpContainable: SignUpContainable { get }
+  var logInUseCase: LogInUseCase { get }
 }
 
 public final class LogInContainer:
@@ -21,7 +23,7 @@ public final class LogInContainer:
   public func coordinator(listener: LogInListener) -> Coordinating {
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
-    let viewModel = LogInViewModel()
+    let viewModel = LogInViewModel(useCase: dependency.logInUseCase)
     
     let coordinator = LogInCoordinator(
       viewModel: viewModel,

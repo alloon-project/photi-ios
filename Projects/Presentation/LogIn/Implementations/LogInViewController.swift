@@ -167,7 +167,7 @@ private extension LogInViewController {
       }
       .disposed(by: disposeBag)
    
-    output.isValidIdOrPassword
+    output.invalidIdOrPassword
       .emit(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.invalidId]
         owner.passwordTextField.commentViews = [owner.invalidPassword]
@@ -176,12 +176,23 @@ private extension LogInViewController {
         owner.passwordTextField.mode = .error
       }
       .disposed(by: disposeBag)
-  }
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayAlertPopUp()
+      }
+      .disposed(by: disposeBag)
+    }
 }
 
 // MARK: - Private Methods
 private extension LogInViewController {
   func displayToastView() {
     warningToastView.present(to: self)
+  }
+  
+  func displayAlertPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
   }
 }

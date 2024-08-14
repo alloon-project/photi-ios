@@ -17,8 +17,8 @@ final class AppCoordinator: Coordinator {
   private var mainCoordinator: Coordinating?
   
   private let logInContainer: LogInContainable
-  private var logInCoordinater: Coordinating?
-  
+  private var logInCoordinator: Coordinating?
+    
   init(
     mainContainer: MainContainable,
     logInContainer: LogInContainable
@@ -48,21 +48,21 @@ final class AppCoordinator: Coordinator {
   
   // MARK: - LogIn
   func attachLogIn() {
-    guard logInCoordinater == nil else { return }
+    guard logInCoordinator == nil else { return }
     
-    let coordinater = logInContainer.coordinator(listener: self)
-    addChild(coordinater)
+    let coordinator = logInContainer.coordinator(listener: self)
+    addChild(coordinator)
     
-    self.logInCoordinater = coordinater
-    coordinater.start(at: self.navigationController)
+    self.logInCoordinator = coordinator
+    coordinator.start(at: self.navigationController)
   }
   
   func detachLogIn() {
-    guard let coordinater = logInCoordinater else { return }
+    guard let coordinator = logInCoordinator else { return }
     
     navigationController?.dismiss(animated: true)
-    removeChild(coordinater)
-    self.logInCoordinater = nil
+    removeChild(coordinator)
+    self.logInCoordinator = nil
   }
 }
 
