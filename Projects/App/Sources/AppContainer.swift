@@ -7,8 +7,13 @@
 //
 
 import Core
+import DataMapper
 import LogIn
 import LogInImpl
+import Repository
+import RepositoryImpl
+import UseCase
+import UseCaseImpl
 
 final class AppDependency: Dependency { }
 
@@ -29,7 +34,18 @@ final class AppContainer:
     )
   }
   
+  // MARK: - Containable
   lazy var signUpContainable: SignUpContainable = {
     return SignUpContainer(dependency: self)
+  }()
+  
+  // MARK: - UseCase
+  lazy var logInUseCase: LogInUseCase = {
+    return LogInUseCaseImpl(repository: logInRepository)
+  }()
+  
+  // MARK: - Repository
+  lazy var logInRepository: LogInRepository = {
+    return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
   }()
 }

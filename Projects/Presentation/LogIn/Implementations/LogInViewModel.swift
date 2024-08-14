@@ -8,14 +8,17 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
-  func detachSignUp() 
+  func detachSignUp()
   func attachFindId()
   func detachFindId()
   func attachFindPassword()
   func detachFindPassword()
+  func didFinishLogIn()
 }
 
 protocol LogInViewModelType: LogInViewModelable {
@@ -25,14 +28,18 @@ protocol LogInViewModelType: LogInViewModelable {
   var disposeBag: DisposeBag { get }
   var coordinator: LogInCoordinatable? { get set }
   
+  init(useCase: LogInUseCase)
+  
   func transform(input: Input) -> Output
 }
 
-class LogInViewModel: LogInViewModelType {
+final class LogInViewModel: LogInViewModelType {
   let disposeBag = DisposeBag()
   weak var coordinator: LogInCoordinatable?
   
-  private let isValidIdOrPasswordRelay = PublishRelay<Void>()
+  private let useCase: LogInUseCase
+  private let invalidIdOrPasswordRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -47,11 +54,14 @@ class LogInViewModel: LogInViewModelType {
   // MARK: - Output
   struct Output {
     var emptyIdOrPassword: Signal<Void>
-    var isValidIdOrPassword: Signal<Void>
+    var invalidIdOrPassword: Signal<Void>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: LogInUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapSignUpButton
@@ -75,28 +85,48 @@ class LogInViewModel: LogInViewModelType {
     let didTapLoginButtonWithInfo = input.didTapLoginButton
       .withLatestFrom(Observable.combineLatest(input.id, input.password))
       .share()
-  
+    
     let emptyIdOrPassword = didTapLoginButtonWithInfo
       .filter { $0.0.isEmpty || $0.1.isEmpty }
       .map { _ in () }
-
+    
     didTapLoginButtonWithInfo
       .filter { !$0.0.isEmpty && !$0.1.isEmpty }
-      .subscribe(with: self) { owner, _ in
-        owner.requestLogin()
+      .subscribe(with: self) { owner, info in
+        owner.requestLogin(userName: info.0, password: info.1)
       }
       .disposed(by: disposeBag)
     
     return Output(
       emptyIdOrPassword: emptyIdOrPassword.asSignal(onErrorJustReturn: ()),
-      isValidIdOrPassword: isValidIdOrPasswordRelay.asSignal()
+      invalidIdOrPassword: invalidIdOrPasswordRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension LogInViewModel {
-  func requestLogin() {
-    // TODO: API 연결 후 구현
+  func requestLogin(userName: String, password: String) {
+    useCase.login(username: userName, password: password)
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, _ in
+          owner.coordinator?.didFinishLogIn()
+        },
+        onFailure: { owner, error in
+          owner.requestFailed(with: error)
+        }
+      )
+      .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError, case .loginFailed = error {
+      invalidIdOrPasswordRelay.accept(())
+    } else {
+      requestFailedRelay.accept(())
+    }
   }
 }

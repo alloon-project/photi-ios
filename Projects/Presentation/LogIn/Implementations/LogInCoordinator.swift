@@ -109,7 +109,7 @@ final class LogInCoordinator: Coordinator {
 
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
-  func didTapLoginButton() {
+  func didFinishLogIn() {
     listener?.didFinishLogIn()
   }
 }

@@ -10,4 +10,5 @@ public enum APIError: Error {
   case authenticationFailed
   case clientError(code: String, message: String)
   case serverError
+  case loginFailed
 }
