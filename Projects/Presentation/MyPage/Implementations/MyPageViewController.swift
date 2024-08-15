@@ -11,6 +11,7 @@ import SnapKit
 import DesignSystem
 
 final class MyPageViewController: UIViewController {
+  private let viewModel: MyPageViewModel
   // MARK: - UIComponents
   // 사용자 정보 part
   private let userInfoView = {
@@ -72,6 +73,18 @@ final class MyPageViewController: UIViewController {
     return calendarView
   }()
   
+  // MARK: - Initializers
+  init(viewModel: MyPageViewModel) {
+    self.viewModel = viewModel
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, deprecated)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   // MARK: - View LifeCycle
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -87,8 +100,7 @@ private extension MyPageViewController {
     setViewHierarchy()
     setConstraints()
   }
-  func bind() {
-  }
+
   func setViewHierarchy() {
     self.view.addSubviews(userInfoView, 
                           userInfoBottomImageView,
@@ -159,6 +171,16 @@ private extension MyPageViewController {
   }
 }
 
+// MARK: - Bind Methods
+private extension MyPageViewController {
+  func bind() {
+    let input = MyPageViewModel.Input(
+      didTapSettingButton: settingButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
+  }
+}
 // MARK: - CalendarView Delegate
 extension MyPageViewController: CalendarViewDelegate {
   func didSelect(_ date: Date) { }

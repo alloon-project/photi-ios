@@ -9,12 +9,11 @@
 import UIKit
 
 final class SettingNaviagationTableViewCell: UITableViewCell {
-  
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let arrowImageView = {
     let imageView = UIImageView()
-    imageView.image = UIImage(systemName: "chevron.right")?.resize(CGSize(width: 13, height: 13))
+    imageView.image = UIImage(systemName: "chevron.right")
     return imageView
   }()
   // MARK: - Initializers
@@ -52,11 +51,13 @@ private extension SettingNaviagationTableViewCell {
   
   func setConstraints() {
     titleLabel.snp.makeConstraints {
-      $0.centerY.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.centerY.equalToSuperview()
     }
     arrowImageView.snp.makeConstraints {
-      $0.trailing.centerY.equalToSuperview()
-      $0.width.height.equalTo(32)
+      $0.trailing.equalToSuperview().offset(-24)
+      $0.centerY.equalToSuperview()
+      $0.width.height.equalTo(13)
     }
   }
 }

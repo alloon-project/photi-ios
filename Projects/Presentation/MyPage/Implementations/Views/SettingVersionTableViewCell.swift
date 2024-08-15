@@ -9,7 +9,6 @@
 import UIKit
 
 final class SettingVersionTableViewCell: UITableViewCell {
-
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let versionLabel = UILabel()
@@ -27,14 +26,17 @@ final class SettingVersionTableViewCell: UITableViewCell {
   }
   
   // MARK: - Configure
-  func configure(with text: String, version: String) {
-    titleLabel.attributedText = text.attributedString(
+  func configure(leftText: String,
+                 leftTextColor: UIColor = .gray900,
+                 rightText: String,
+                 rightTextColor: UIColor = .gray500) {
+    titleLabel.attributedText = leftText.attributedString(
       font: .body1,
-      color: .gray900
+      color: leftTextColor
     )
-    versionLabel.attributedText = version.attributedString(
+    versionLabel.attributedText = rightText.attributedString(
       font: .body1,
-      color: .blue500
+      color: rightTextColor
     )
   }
 }
@@ -53,10 +55,12 @@ private extension SettingVersionTableViewCell {
   
   func setConstraints() {
     titleLabel.snp.makeConstraints {
-      $0.centerY.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.centerY.equalToSuperview()
     }
     versionLabel.snp.makeConstraints {
-      $0.trailing.centerY.equalToSuperview()
+      $0.trailing.equalToSuperview().offset(-24)
+      $0.centerY.equalToSuperview()
     }
   }
 }

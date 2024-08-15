@@ -20,9 +20,17 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   private let viewController: SettingViewController
   private let viewModel: SettingViewModel
   
-  init(viewModel: SettingViewModel) {
+  private let profileEditContainable: ProfileEditContainable
+  private var profileEditCoordinator: Coordinating?
+  
+  init(
+    viewModel: SettingViewModel,
+    profileEditContainable: ProfileEditContainable
+  ) {
     self.viewModel = viewModel
-    self.viewController = SettingViewController()
+    
+    self.profileEditContainable = profileEditContainable
+    self.viewController = SettingViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
   }
@@ -31,4 +39,36 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
+  
+  func attachProfileEdit() {
+    guard profileEditCoordinator == nil else { return }
+    
+    let coordinater = profileEditContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.profileEditCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachProfileEdit() {
+    guard let coordinator = profileEditCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.profileEditCoordinator = nil
+  }
+  
+  func attachInquiry() {}
+  
+  func detachInquiry() {}
+  
+  func attachServiceTerms() {}
+  
+  func detachServiceTerms() {}
+  
+  func attachPrivacy() {}
+  
+  func detachPrivacy() {}
 }
+
+// MARK: - ProfileEditListener
+extension SettingCoordinator: ProfileEditListener {}

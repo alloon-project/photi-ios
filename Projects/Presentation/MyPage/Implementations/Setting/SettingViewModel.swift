@@ -9,8 +9,18 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import MyPage
 
-protocol SettingCoordinatable: AnyObject { }
+protocol SettingCoordinatable: AnyObject { 
+  func attachProfileEdit()
+  func detachProfileEdit()
+  func attachInquiry()
+  func detachInquiry()
+  func attachServiceTerms()
+  func detachServiceTerms()
+  func attachPrivacy()
+  func detachPrivacy()
+}
 
 protocol SettingViewModelType: AnyObject, SettingViewModelable {
   associatedtype Input
@@ -26,15 +36,32 @@ final class SettingViewModel: SettingViewModelType {
   weak var coordinator: SettingCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    let didTapCell: ControlEvent<IndexPath>
+  }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {}
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapCell
+      .bind(with: self) { onwer, index in
+        switch index.row {
+        case 0:
+          onwer.coordinator?.attachProfileEdit()
+        case 1:
+          onwer.coordinator?.attachInquiry()
+        case 2:
+          onwer.coordinator?.attachServiceTerms()
+        case 3:
+          onwer.coordinator?.attachPrivacy()
+        default:
+          break
+        }
+      }.disposed(by: disposeBag)
     return Output()
   }
 }

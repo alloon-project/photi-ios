@@ -7,35 +7,52 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
+import MyPage
 
 final class SettingViewController: UIViewController {
+  private let viewModel: SettingViewModel
   // MARK: - Variables
-  private let menuDatasource = [("프로필 수정", 0),
-                                ("문의하기", 0),
-                                ("서비스 이용약관", 0),
-                                ("개인정보 처리방침", 0),
-                                ("버전정보", 1),
-                                ("로그아웃", 0)]
+  private var disposeBag = DisposeBag()
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, colorType: .dark, titleText: "설정")
+  private let navigationBar = PrimaryNavigationView(
+    textType: .center,
+    iconType: .one,
+    colorType: .dark,
+    titleText: "설정"
+  )
+  
   private let menuTableView = {
     let tableView = SelfSizingTableView()
     tableView.registerCell(SettingNaviagationTableViewCell.self)
     tableView.registerCell(SettingVersionTableViewCell.self)
     tableView.estimatedRowHeight = 32
-    
+    tableView.isScrollEnabled = false
+
     return tableView
   }()
+  
+  // MARK: - Initializers
+  init(viewModel: SettingViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, deprecated)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
   
   // MARK: - View LifeCycle
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    menuTableView.delegate = self
-    menuTableView.dataSource = self
+    menuTableView.rx.setDataSource(self).disposed(by: disposeBag)
+    menuTableView.rx.setDelegate(self).disposed(by: disposeBag)
     setupUI()
     bind()
   }
@@ -48,8 +65,15 @@ private extension SettingViewController {
     setViewHierarchy()
     setConstraints()
   }
+  
   func bind() {
+    let input = SettingViewModel.Input(
+      didTapCell: menuTableView.rx.itemSelected
+    )
+    
+    let output = viewModel.transform(input: input)
   }
+  
   func setViewHierarchy() {
     self.view.addSubviews(navigationBar, menuTableView)
   }
@@ -61,9 +85,10 @@ private extension SettingViewController {
       $0.height.equalTo(56)
     }
     menuTableView.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-24)
+      $0.leading.equalToSuperview()
+      $0.trailing.equalToSuperview()
       $0.top.equalTo(navigationBar.snp.bottom).offset(20)
+      $0.bottom.equalToSuperview().offset(-20)
     }
   }
 }
@@ -73,21 +98,26 @@ extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
     56
   }
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    menuDatasource.count
+    settingMenuDatasource.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    if menuDatasource[indexPath.row].1 == 0 {
+    if settingMenuDatasource[indexPath.row].1 == 0 {
       let cell = tableView.dequeueCell(SettingNaviagationTableViewCell.self, for: indexPath)
-      cell.configure(with: menuDatasource[indexPath.row].0)
+      cell.configure(with: settingMenuDatasource[indexPath.row].0)
+      
       return cell
     } else {
       let cell = tableView.dequeueCell(SettingVersionTableViewCell.self, for: indexPath)
       if let currentVerison = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-        cell.configure(with: menuDatasource[indexPath.row].0, version: currentVerison)
+        cell.configure(leftText: settingMenuDatasource[indexPath.row].0, 
+                       rightText: currentVerison)
       } else {
-        cell.configure(with: menuDatasource[indexPath.row].0, version: "버전 확인 불가")
+        cell.configure(leftText: settingMenuDatasource[indexPath.row].0, 
+                       rightText: "버전 확인 불가",
+                       rightTextColor: .blue500)
       }
+      
       return cell
     }
   }
