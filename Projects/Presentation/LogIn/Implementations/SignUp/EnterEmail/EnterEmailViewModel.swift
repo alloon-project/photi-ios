@@ -30,6 +30,9 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   
   weak var coordinator: EnterEmailCoordinatable?
   
+  private let duplicateEmailRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
     var didTapBackButton: ControlEvent<Void>
@@ -44,6 +47,8 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     var isValidEmailForm: Signal<Bool>
     var isOverMaximumText: Signal<Bool>
     var isEnabledNextButton: Signal<Bool>
+    var duplicateEmail: Signal<Void>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -61,36 +66,57 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     input.didTapNextButton
       .withLatestFrom(input.userEmail)
       .bind(with: self) { owner, email in
-        owner.coordinator?.attachVerifyEmail(userEmail: email)
+        owner.requestVerificationCode(email: email)
       }
       .disposed(by: disposeBag)
     
     let isValidEmailForm = input.endEditingUserEmail
       .withLatestFrom(input.userEmail)
-      .withUnretained(self)
-      .filter { $0.1.count <= 100 && !$0.1.isEmpty }
-      .map { $0.0.isValidEmailForm($0.1) }
-      
+      .filter { $0.count <= 100 && !$0.isEmpty }
+      .map { $0.isValidateEmail() }
+    
     let isOverMaximumText = input.editingUserEmail
       .withLatestFrom(input.userEmail)
       .map { $0.count > 100 }
     
     let isEnabledConfirm = input.userEmail
-      .withUnretained(self)
-      .map { $0.0.isValidEmailForm($0.1) && $0.1.count <= 100 }
+      .map { $0.isValidateEmail() && $0.count <= 100 }
     
     return Output(
       isValidEmailForm: isValidEmailForm.asSignal(onErrorJustReturn: false),
-      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true), 
-      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false)
+      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
+      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
+      duplicateEmail: duplicateEmailRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension EnterEmailViewModel {
-  func isValidEmailForm(_ email: String) -> Bool {
-    let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}"
-    return  NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+  func requestVerificationCode(email: String) {
+    useCase.requestVerificationCode(email: email)
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, _ in
+          owner.coordinator?.attachVerifyEmail(userEmail: email)
+        },
+        onFailure: { owner, error in
+          owner.requestFailed(error: error)
+        }
+      )
+      .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(error: Error) {
+    if
+      let error = error as? APIError,
+      case .signUpFailed(let reason) = error,
+      case .emailAlreadyExists = reason {
+      duplicateEmailRelay.accept(())
+    } else {
+      requestFailedRelay.accept(())
+    }
   }
 }
