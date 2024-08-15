@@ -6,9 +6,10 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol EnterEmailCoordinatable: AnyObject {
   func attachVerifyEmail(userEmail: String)
@@ -25,6 +26,7 @@ protocol EnterEmailViewModelType: AnyObject, EnterEmailViewModelable {
 
 final class EnterEmailViewModel: EnterEmailViewModelType {
   let disposeBag = DisposeBag()
+  private let useCase: SignUpUseCase
   
   weak var coordinator: EnterEmailCoordinatable?
   
@@ -45,7 +47,9 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SignUpUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton

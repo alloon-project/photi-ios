@@ -30,7 +30,7 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     verifyEmailContainable: VerifyEmailContainable
   ) {
     self.verifyEmailContainable = verifyEmailContainable
-    self.viewModel = EnterEmailViewModel()
+    self.viewModel = viewModel
     self.viewController = EnterEmailViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self

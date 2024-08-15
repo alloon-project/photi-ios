@@ -44,8 +44,16 @@ final class AppContainer:
     return LogInUseCaseImpl(repository: logInRepository)
   }()
   
+  lazy var signUpUseCase: SignUpUseCase = {
+    return SignUpUseCaseImpl(repository: signUpRepository)
+  }()
+  
   // MARK: - Repository
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
+  }()
+  
+  lazy var signUpRepository: SignUpRepository = {
+    return SignUpRepositoryImpl(dataMapper: SignUpDataMapperImpl())
   }()
 }
