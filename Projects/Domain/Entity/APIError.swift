@@ -7,8 +7,13 @@
 //
 
 public enum APIError: Error {
+  public enum SignUpFailedReason {
+    case emailAlreadyExists
+  }
+  
   case authenticationFailed
   case clientError(code: String, message: String)
   case serverError
   case loginFailed
+  case signUpFailed(reason: SignUpFailedReason)
 }
