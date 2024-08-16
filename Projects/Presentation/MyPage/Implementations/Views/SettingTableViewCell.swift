@@ -85,6 +85,6 @@ private extension SettingTableViewCell {
 }
 
 enum SettingTableViewCellType {
-  case image(image:  UIImage)
+  case image(image: UIImage)
   case label(text: String)
 }
