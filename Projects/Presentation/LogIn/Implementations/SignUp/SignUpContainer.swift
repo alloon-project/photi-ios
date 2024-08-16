@@ -8,15 +8,20 @@
 
 import Core
 import LogIn
+import UseCase
 
-public protocol SignUpDependency: Dependency { }
+public protocol SignUpDependency: Dependency {
+  var signUpUseCase: SignUpUseCase { get }
+}
 
 public final class SignUpContainer: 
-  Container<LogInDependency>,
+  Container<SignUpDependency>,
   SignUpContainable,
   EnterEmailDependency,
   EnterIdDependency,
   EnterPasswordDependency {
+  var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
+  
   public func coordinator(listener: SignUpListener) -> Coordinating {
     let viewModel = SignUpViewModel()
     let enterEmailContainable = EnterEmailContainer(dependency: self)

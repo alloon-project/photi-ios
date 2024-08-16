@@ -6,14 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxSwift
 import DataMapper
 import Entity
 import Repository
 import PhotiNetwork
-
-import DTO
 
 public struct LogInRepositoryImpl: LogInRepository {
   private let dataMapper: LogInDataMapper

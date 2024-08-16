@@ -154,6 +154,18 @@ private extension EnterEmailViewController {
     output.isEnabledNextButton
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayAlertPopUp()
+      }
+      .disposed(by: disposeBag)
+    
+    output.duplicateEmail
+      .emit(with: self) { owner, _ in
+        owner.convertLineTextField(commentView: owner.duplicateEmailWarningView)
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -167,5 +179,10 @@ private extension EnterEmailViewController {
       lineTextField.commentViews = []
       lineTextField.mode = .success
     }
+  }
+  
+  func displayAlertPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
   }
 }
