@@ -12,6 +12,7 @@ import DesignSystem
 
 final class MyPageViewController: UIViewController {
   private let viewModel: MyPageViewModel
+  
   // MARK: - UIComponents
   // 사용자 정보 part
   private let userInfoView = {

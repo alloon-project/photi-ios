@@ -8,7 +8,6 @@
 
 import UIKit
 import Core
-import MyPage
 
 protocol SettingViewModelable { }
 

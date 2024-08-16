@@ -9,7 +9,6 @@
 import Foundation
 import RxCocoa
 import RxSwift
-import MyPage
 
 protocol SettingCoordinatable: AnyObject { 
   func attachProfileEdit()

@@ -7,7 +7,6 @@
 //
 
 import Core
-import MyPage
 
 public protocol SettingDependency: Dependency { }
 
@@ -15,19 +14,20 @@ public protocol SettingContainable: Containable {
   func coordinator(listener: SettingListener) -> Coordinating
 }
 
-public final class SettingContainer: 
+public final class SettingContainer:
   Container<SettingDependency>,
-    SettingContainable,
-    ProfileEditDependency {
+  SettingContainable,
+  ProfileEditDependency {
   public func coordinator(listener: SettingListener) -> Coordinating {
     let profileEdit = ProfileEditContainer(dependency: self)
     let viewModel = SettingViewModel()
     
     let coordinator = SettingCoordinator(
-      viewModel: viewModel, 
+      viewModel: viewModel,
       profileEditContainable: profileEdit
     )
     coordinator.listener = listener
+    
     return coordinator
   }
 }

@@ -7,7 +7,6 @@
 //
 
 import Core
-import MyPage
 
 public protocol ProfileEditDependency: Dependency { }
 
@@ -15,9 +14,9 @@ public protocol ProfileEditContainable: Containable {
   func coordinator(listener: ProfileEditListener) -> Coordinating
 }
 
-public final class ProfileEditContainer: 
+public final class ProfileEditContainer:
   Container<ProfileEditDependency>,
-    ProfileEditContainable {
+  ProfileEditContainable {
   public func coordinator(listener: ProfileEditListener) -> Coordinating {
     let viewModel = ProfileEditViewModel()
     

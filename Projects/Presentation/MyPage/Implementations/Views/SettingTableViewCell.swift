@@ -8,7 +8,7 @@
 
 import UIKit
 
-final class SettingNaviagationTableViewCell: UITableViewCell {
+final class SettingTableViewCell: UITableViewCell {
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let arrowImageView = {
@@ -16,6 +16,8 @@ final class SettingNaviagationTableViewCell: UITableViewCell {
     imageView.image = UIImage(systemName: "chevron.right")
     return imageView
   }()
+  private let rightLabel = UILabel()
+
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -29,16 +31,30 @@ final class SettingNaviagationTableViewCell: UITableViewCell {
   }
   
   // MARK: - Configure
-  func configure(with text: String) {
+  func configure(with text: String, 
+                 type: SettingTableViewCellType = .image(image: UIImage(systemName: "chevron.right")!),
+                 font: UIFont = .body2,
+                 rightTextColor: UIColor = .gray900) {
     titleLabel.attributedText = text.attributedString(
       font: .body1,
       color: .gray900
     )
+    
+    switch type {
+    case .image(let image):
+      arrowImageView.image = image
+      arrowImageView.isHidden = false
+      rightLabel.isHidden = true
+    case .label(let text):
+      rightLabel.attributedText = text.attributedString(font: font, color: rightTextColor)
+      arrowImageView.isHidden = true
+      rightLabel.isHidden = false
+    }
   }
 }
 
 // MARK: UI Methods
-private extension SettingNaviagationTableViewCell {
+private extension SettingTableViewCell {
   func setupUI() {
     self.backgroundColor = .clear
     setViewHierarchy()
@@ -46,7 +62,7 @@ private extension SettingNaviagationTableViewCell {
   }
   
   func setViewHierarchy() {
-    contentView.addSubviews(titleLabel, arrowImageView)
+    contentView.addSubviews(titleLabel, arrowImageView, rightLabel)
   }
   
   func setConstraints() {
@@ -54,10 +70,21 @@ private extension SettingNaviagationTableViewCell {
       $0.leading.equalToSuperview().offset(24)
       $0.centerY.equalToSuperview()
     }
+    
     arrowImageView.snp.makeConstraints {
       $0.trailing.equalToSuperview().offset(-24)
       $0.centerY.equalToSuperview()
       $0.width.height.equalTo(13)
     }
+    
+    rightLabel.snp.makeConstraints {
+      $0.centerY.equalToSuperview()
+      $0.trailing.equalToSuperview().offset(-24)
+    }
   }
+}
+
+enum SettingTableViewCellType {
+  case image(image:  UIImage)
+  case label(text: String)
 }

@@ -8,7 +8,6 @@
 
 import UIKit
 import Core
-import MyPage
 
 protocol ProfileEditViewModelable { }
 
@@ -19,7 +18,7 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
   
   private let viewController: ProfileEditViewController
   private let viewModel: ProfileEditViewModel
-
+  
   init(viewModel: ProfileEditViewModel) {
     self.viewModel = viewModel
     self.viewController = ProfileEditViewController()

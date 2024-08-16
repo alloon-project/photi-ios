@@ -8,7 +8,6 @@
 
 import RxCocoa
 import RxSwift
-import MyPage
 
 protocol ProfileEditCoordinatable: AnyObject { }
 
