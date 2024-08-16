@@ -6,11 +6,13 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
 
-protocol MyPageCoordinatable: AnyObject { }
+protocol MyPageCoordinatable: AnyObject { 
+  func attachSetting()
+  func detachSetting()
+}
 
 protocol MyPageViewModelType: AnyObject, MyPageViewModelable {
   associatedtype Input
@@ -26,7 +28,9 @@ final class MyPageViewModel: MyPageViewModelType {
   weak var coordinator: MyPageCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let didTapSettingButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -35,6 +39,11 @@ final class MyPageViewModel: MyPageViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapSettingButton
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.attachSetting()
+      }.disposed(by: disposeBag)
+    
     return Output()
   }
 }

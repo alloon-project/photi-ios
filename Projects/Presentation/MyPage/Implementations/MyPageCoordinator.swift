@@ -18,9 +18,17 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
   private let viewController: MyPageViewController
   private let viewModel: MyPageViewModel
   
-  init(viewModel: MyPageViewModel) {
+  private let settingContainable: SettingContainable
+  private var settingCoordinator: Coordinating?
+  
+  init(
+    viewModel: MyPageViewModel,
+    settingContainable: SettingContainable
+  ) {
     self.viewModel = viewModel
-    self.viewController = MyPageViewController()
+    
+    self.settingContainable = settingContainable
+    self.viewController = MyPageViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
   }
@@ -29,4 +37,24 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
+  
+  func attachSetting() {
+    guard settingCoordinator == nil else { return }
+
+    let coordinater = settingContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.settingCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachSetting() {
+    guard let coordinator = settingCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.settingCoordinator = nil
+  }
 }
+
+// MARK: - SettingListener
+extension MyPageCoordinator: SettingListener {}
