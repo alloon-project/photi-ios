@@ -14,6 +14,14 @@ protocol PasswordChangeViewModelable { }
 public protocol PasswordChangeListener: AnyObject { }
 
 final class PasswordChangeCoordinator: Coordinator, PasswordChangeCoordinatable {
+  func didTapBackButton() {
+    
+  }
+  
+  func didTapResetPasswordAlert() {
+    
+  }
+  
   weak var listener: PasswordChangeListener?
   
   private let viewController: PasswordChangeViewController
@@ -21,7 +29,7 @@ final class PasswordChangeCoordinator: Coordinator, PasswordChangeCoordinatable 
   
   init(viewModel: PasswordChangeViewModel) {
     self.viewModel = viewModel
-    self.viewController = PasswordChangeViewController()
+    self.viewController = PasswordChangeViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
   }

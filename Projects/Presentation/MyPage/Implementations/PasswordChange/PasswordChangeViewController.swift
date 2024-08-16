@@ -18,7 +18,8 @@ final class PasswordChangeViewController: UIViewController {
   private let viewModel: PasswordChangeViewModel
   private let alertRelay = PublishRelay<Void>()
   private let didTapContinueButton = PublishRelay<Void>()
-  
+  private var isKeyboardDisplay: Bool = false
+
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
   
@@ -58,7 +59,7 @@ final class PasswordChangeViewController: UIViewController {
   private let forgotPasswordButton = TextButton(text: "비밀번호가 기억나지 않아요",
                                                 size: .xSmall,
                                                 type: .primary,
-                                                mode: .disabled,
+                                                mode: .default,
                                                 isEnabledUnderLine: true)
   
   private let changePasswordButton = FilledRoundButton(type: .primary, size: .xLarge, text: "변경하기")
@@ -140,6 +141,7 @@ private extension PasswordChangeViewController {
                           newPasswordTextField,
                           newPasswordCheckTitleLabel,
                           newPasswordCheckTextField,
+                          forgotPasswordButton,
                           changePasswordButton)
   }
   
@@ -183,6 +185,11 @@ private extension PasswordChangeViewController {
     changePasswordButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
+    }
+    
+    forgotPasswordButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalTo(changePasswordButton.snp.top).offset(-14)
     }
   }
 }
@@ -246,5 +253,15 @@ private extension PasswordChangeViewController {
     output.isEnabledNextButton
       .drive(changePasswordButton.rx.isEnabled)
       .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - TextField Delegate
+extension PasswordChangeViewController: UITextFieldDelegate {
+  func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+    if textField == newPasswordCheckTextField {
+      
+    }
+    return true
   }
 }
