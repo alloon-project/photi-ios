@@ -12,7 +12,6 @@ import RxCocoa
 import SnapKit
 import Core
 import DesignSystem
-import MyPage
 
 final class ProfileEditViewController: UIViewController {
   private let disposeBag = DisposeBag()
