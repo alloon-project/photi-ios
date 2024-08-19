@@ -12,7 +12,7 @@ import DesignSystem
 
 protocol PasswordChangeCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapResetPasswordAlert()
+  func didTapChangePasswordAlert()
 }
 
 protocol PasswordChangeViewModelType: PasswordChangeViewModelable {
@@ -64,7 +64,7 @@ final class PasswordChangeViewModel: PasswordChangeViewModelType {
     input.didTapContinueButton
       .bind(with: self) { owner, _ in
         // TODO: 비밀번호 재설정 API
-        owner.coordinator?.didTapResetPasswordAlert()
+        owner.coordinator?.didTapChangePasswordAlert()
       }
       .disposed(by: disposeBag)
     

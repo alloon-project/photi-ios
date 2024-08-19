@@ -14,13 +14,9 @@ protocol PasswordChangeViewModelable { }
 public protocol PasswordChangeListener: AnyObject { }
 
 final class PasswordChangeCoordinator: Coordinator, PasswordChangeCoordinatable {
-  func didTapBackButton() {
-    
-  }
+  func didTapBackButton() {}
   
-  func didTapResetPasswordAlert() {
-    
-  }
+  func didTapChangePasswordAlert() {}
   
   weak var listener: PasswordChangeListener?
   

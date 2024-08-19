@@ -105,6 +105,7 @@ final class PasswordChangeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    newPasswordCheckTextField.textField.delegate = self
     setupUI()
     bind()
   }
@@ -256,12 +257,16 @@ private extension PasswordChangeViewController {
   }
 }
 
-// MARK: - TextField Delegate
+// MARK: - UITextFieldDelegate
 extension PasswordChangeViewController: UITextFieldDelegate {
-  func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-    if textField == newPasswordCheckTextField {
-      
+  func textFieldDidBeginEditing(_ textField: UITextField) {
+    UIView.animate(withDuration: 0.2) {
+      self.view.frame.origin.y -= 150
     }
-    return true
+  }
+  func textFieldDidEndEditing(_ textField: UITextField) {
+    UIView.animate(withDuration: 0.2) {
+      self.view.frame.origin.y += 150
+    }
   }
 }
