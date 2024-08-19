@@ -13,4 +13,5 @@ public protocol SignUpUseCase {
   init(repository: SignUpRepository)
   
   func requestVerificationCode(email: String) -> Single<Void>
+  func verifyCode(email: String, code: String) -> Single<Void>
 }

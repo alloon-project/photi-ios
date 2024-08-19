@@ -20,4 +20,11 @@ public struct SignUpUseCaseImpl: SignUpUseCase {
   public func requestVerificationCode(email: String) -> Single<Void> {
     return repository.requestVerificationCode(email: email)
   }
+  
+  public func verifyCode(email: String, code: String) -> Single<Void> {
+    return repository.verifyCode(
+      email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+      code: code.trimmingCharacters(in: .whitespacesAndNewlines)
+    )
+  }
 }
