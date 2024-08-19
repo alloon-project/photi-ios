@@ -51,6 +51,4 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
 }
 
 // MARK: - PasswordChangeLister
-extension ProfileEditCoordinator: PasswordChangeListener {
-  
-}
+extension ProfileEditCoordinator: PasswordChangeListener {}

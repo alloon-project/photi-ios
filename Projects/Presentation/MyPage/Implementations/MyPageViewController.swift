@@ -51,10 +51,10 @@ final class MyPageViewController: UIViewController {
     label.textColor = .white
     label.textAlignment = .center
     label.attributedText = "유저 아이디".attributedString(font: .heading1,
-                                                     color: .white,
-                                                     alignment: .center)
-    return label
-  }()
+                                                       color: .white,
+                                                       alignment: .center)
+      return label
+    }()
   
   private let authCountBox = ChallengeCountBox(title: "인증 횟수", count: 0)
   
