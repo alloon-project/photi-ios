@@ -11,10 +11,10 @@ import MyPage
 
 public protocol MyPageDependency: Dependency { }
 
-public final class MyPageContainer: 
+public final class MyPageContainer:
   Container<MyPageDependency>,
-    MyPageContainable,
-    SettingDependency {
+  MyPageContainable,
+  SettingDependency {
   public func coordinator(listener: MyPageListener) -> Coordinating {
     let setting = SettingContainer(dependency: self)
     let viewModel = MyPageViewModel()

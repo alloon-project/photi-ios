@@ -41,6 +41,7 @@ final class MainCoordinator: Coordinator {
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
+    navigationController?.setNavigationBarHidden(true, animated: false)
     navigationController?.pushViewController(viewController, animated: false)
     attachCoordinators()
   }
