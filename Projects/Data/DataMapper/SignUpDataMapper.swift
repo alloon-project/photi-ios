@@ -10,6 +10,8 @@ import DTO
 
 public protocol SignUpDataMapper {
   func mapToRequestVerificationRequestDTO(email: String) -> RequestVerificationCodeReqeustDTO
+  
+  func mapToVerifyCodeRequestDTO(email: String, code: String) -> VerifyCodeRequestDTO
 }
 
 public struct SignUpDataMapperImpl: SignUpDataMapper {
@@ -17,5 +19,9 @@ public struct SignUpDataMapperImpl: SignUpDataMapper {
   
   public func mapToRequestVerificationRequestDTO(email: String) -> RequestVerificationCodeReqeustDTO {
     return .init(email: email)
+  }
+  
+  public func mapToVerifyCodeRequestDTO(email: String, code: String) -> VerifyCodeRequestDTO {
+    return .init(email: email, code: code)
   }
 }
