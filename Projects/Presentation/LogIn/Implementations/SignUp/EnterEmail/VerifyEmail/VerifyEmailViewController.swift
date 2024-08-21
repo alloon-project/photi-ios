@@ -172,6 +172,7 @@ private extension VerifyEmailViewController {
     output.invalidVerificationCode
       .emit(with: self) { owner, _ in
         owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
+        owner.veriftCodeErrorCommentView.isActivate = true
       }
       .disposed(by: disposeBag)
   }
