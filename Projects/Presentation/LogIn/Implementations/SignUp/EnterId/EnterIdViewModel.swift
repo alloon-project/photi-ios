@@ -8,6 +8,8 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol EnterIdCoordinatable: AnyObject { 
   func didTapBackButton()
@@ -24,6 +26,7 @@ protocol EnterIdViewModelType: AnyObject, EnterIdViewModelable {
 
 final class EnterIdViewModel: EnterIdViewModelType {
   let disposeBag = DisposeBag()
+  private let useCase: SignUpUseCase
   
   weak var coordinator: EnterIdCoordinatable?
   
@@ -48,7 +51,9 @@ final class EnterIdViewModel: EnterIdViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SignUpUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
