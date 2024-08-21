@@ -70,4 +70,26 @@ private let dataMapper: SignUpDataMapper
       return Disposables.create()
     }
   }
+  
+  public func verifyUseName(_ userName: String) -> Single<Void> {
+    return Single.create { single in
+      Task {
+        do {
+          let result = try await Provider(stubBehavior: .never)
+            .request(SignUpAPI.verifyUserName(userName)).value
+          print(result.statusCode)
+          if result.statusCode == 200 {
+            single(.success(()))
+          } else if result.statusCode == 409 {
+            single(.failure(APIError.signUpFailed(reason: .useNameAlreadyExists)))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          single(.failure(APIError.serverError))
+        }
+      }
+      return Disposables.create()
+    }
+  }
 }
