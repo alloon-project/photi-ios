@@ -33,6 +33,7 @@ final class EnterIdViewModel: EnterIdViewModelType {
   private let inValidIdFormRelay = PublishRelay<Void>()
   private let duplicateIdRelay = PublishRelay<Void>()
   private let validIdRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input { 
@@ -48,6 +49,7 @@ final class EnterIdViewModel: EnterIdViewModelType {
     var duplicateId: Signal<Void>
     var validId: Signal<Void>
     var isDuplicateButtonEnabled: Signal<Bool>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -71,7 +73,7 @@ final class EnterIdViewModel: EnterIdViewModelType {
     input.didTapVerifyIdButton
       .withLatestFrom(input.userId)
       .subscribe(with: self) { owner, userId in
-        owner.isDuplicated(userId)
+        owner.verifyUseName(userId)
       }
       .disposed(by: disposeBag)
     
@@ -79,19 +81,45 @@ final class EnterIdViewModel: EnterIdViewModelType {
       inValidIdForm: inValidIdFormRelay.asSignal(),
       duplicateId: duplicateIdRelay.asSignal(),
       validId: validIdRelay.asSignal(),
-      isDuplicateButtonEnabled: input.userId.map { !$0.isEmpty }.asSignal(onErrorJustReturn: false)
+      isDuplicateButtonEnabled: input.userId.map { !$0.isEmpty }.asSignal(onErrorJustReturn: false),
+      requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension EnterIdViewModel {
-  func isDuplicated(_ id: String) {
-    guard id.isValidateId else {
+  func verifyUseName(_ useName: String) {
+    guard useName.isValidateId else {
       inValidIdFormRelay.accept(())
       return
     }
     
-    // TODO: - API 연결시 구현 예정
+    useCase.verifyUseName(useName)
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, _ in
+          owner.validIdRelay.accept(())
+        },
+        onFailure: { owner, error in
+          owner.requestFailed(error: error)
+        }
+      )
+      .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(error: Error) {
+    if
+      let error = error as? APIError,
+      case .signUpFailed(let reason) = error {
+      if case .useNameAlreadyExists = reason {
+        duplicateIdRelay.accept(())
+      } else {
+        requestFailedRelay.accept(())
+      }
+    } else {
+      requestFailedRelay.accept(())
+    }
   }
 }
