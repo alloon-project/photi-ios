@@ -14,6 +14,7 @@ import PhotiNetwork
 public enum SignUpAPI {
   case requestVerificationCode(dto: RequestVerificationCodeReqeustDTO)
   case verifyCode(dto: VerifyCodeRequestDTO)
+  case verifyUserName(String)
 }
 
 extension SignUpAPI: TargetType {
@@ -28,6 +29,8 @@ extension SignUpAPI: TargetType {
         return "api/contacts"
       case .verifyCode:
         return "api/contacts/verify"
+      case .verifyUserName:
+        return "api/users/username"
     }
   }
   
@@ -37,6 +40,8 @@ extension SignUpAPI: TargetType {
         return .post
       case .verifyCode:
         return .patch
+      case .verifyUserName:
+        return .get
     }
   }
   
@@ -46,6 +51,12 @@ extension SignUpAPI: TargetType {
         return .requestJSONEncodable(dto)
       case let .verifyCode(dto):
         return .requestJSONEncodable(dto)
+      case let .verifyUserName(userName):
+        let parameters = ["username": userName]
+        return .requestParameters(
+          parameters: parameters,
+          encoding: URLEncoding.init(destination: .queryString)
+        )
     }
   }
   
