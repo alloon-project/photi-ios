@@ -27,4 +27,8 @@ public struct SignUpUseCaseImpl: SignUpUseCase {
       code: code.trimmingCharacters(in: .whitespacesAndNewlines)
     )
   }
+  
+  public func verifyUseName(_ useName: String) -> Single<Void> {
+    return repository.verifyUseName(useName)
+  }
 }
