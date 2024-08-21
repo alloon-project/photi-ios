@@ -121,7 +121,6 @@ private extension VerifyEmailViewModel {
   }
   
   func requestFailed(error: Error) {
-    print(error)
     if
       let error = error as? APIError,
       case .signUpFailed(let reason) = error {
