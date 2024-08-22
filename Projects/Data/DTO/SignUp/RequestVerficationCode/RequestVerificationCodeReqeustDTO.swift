@@ -13,3 +13,15 @@ public struct RequestVerificationCodeReqeustDTO: Encodable {
     self.email = email
   }
 }
+
+#if DEBUG
+extension RequestVerificationCodeReqeustDTO {
+  public static let stubData =
+ """
+ {
+ "code": "FAIL",
+ "message": "FAIL",
+ }
+ """
+}
+#endif

@@ -13,4 +13,8 @@ public protocol SignUpRepository {
   init(dataMapper: SignUpDataMapper)
   
   func requestVerificationCode(email: String) -> Single<Void>
+  
+  func verifyCode(email: String, code: String) -> Single<Void> 
+  
+  func verifyUseName(_ userName: String) -> Single<Void> 
 }

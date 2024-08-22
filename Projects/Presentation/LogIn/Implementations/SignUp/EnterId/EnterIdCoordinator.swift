@@ -23,7 +23,7 @@ final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
   private let viewModel: EnterIdViewModel
   
   init(viewModel: EnterIdViewModel) {
-    self.viewModel = EnterIdViewModel()
+    self.viewModel = viewModel
     self.viewController = EnterIdViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
