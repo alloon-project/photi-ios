@@ -43,4 +43,53 @@ private let dataMapper: SignUpDataMapper
       return Disposables.create()
     }
   }
+  
+  public func verifyCode(email: String, code: String) -> Single<Void> {
+    let requestDTO = dataMapper.mapToVerifyCodeRequestDTO(email: email, code: code)
+    
+    return Single.create { single in
+      Task {
+        do {
+          let result = try await Provider(stubBehavior: .immediate)
+            .request(SignUpAPI.verifyCode(dto: requestDTO)).value
+
+          if result.statusCode == 200 {
+            single(.success(()))
+          } else if result.statusCode == 400 {
+            single(.failure(APIError.signUpFailed(reason: .invalidVerificationCode)))
+          } else if result.statusCode == 404 {
+            single(.failure(APIError.signUpFailed(reason: .emailNotFound)))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          single(.failure(APIError.serverError))
+        }
+      }
+      
+      return Disposables.create()
+    }
+  }
+  
+  public func verifyUseName(_ userName: String) -> Single<Void> {
+    return Single.create { single in
+      Task {
+        do {
+          let result = try await Provider(stubBehavior: .never)
+            .request(SignUpAPI.verifyUserName(userName)).value
+          print(result.statusCode)
+          if result.statusCode == 200 {
+            single(.success(()))
+          } else if result.statusCode == 409 {
+            single(.failure(APIError.signUpFailed(reason: .useNameAlreadyExists)))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          single(.failure(APIError.serverError))
+        }
+      }
+      return Disposables.create()
+    }
+  }
 }

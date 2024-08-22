@@ -21,8 +21,10 @@ final class EnterEmailContainer:
   Container<EnterEmailDependency>,
   EnterEmailContainable,
   VerifyEmailDependency {
+  var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
+  
   func coordinator(listener: EnterEmailListener) -> Coordinating {
-    let viewModel = EnterEmailViewModel(useCase: dependency.signUpUseCase)
+    let viewModel = EnterEmailViewModel(useCase: signUpUseCase)
     let verifyEmailContainable = VerifyEmailContainer(dependency: self)
     
     let coordinator = EnterEmailCoordinator(

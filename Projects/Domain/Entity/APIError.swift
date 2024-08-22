@@ -9,6 +9,9 @@
 public enum APIError: Error {
   public enum SignUpFailedReason {
     case emailAlreadyExists
+    case invalidVerificationCode
+    case emailNotFound
+    case useNameAlreadyExists
   }
   
   case authenticationFailed

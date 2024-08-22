@@ -16,7 +16,8 @@ import DesignSystem
 final class VerifyEmailViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: VerifyEmailViewModel
-  private let viewDidLoadRelay = PublishRelay<Void>()
+  
+  private let didTapEmailNotFoundConfirmButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
@@ -67,8 +68,6 @@ final class VerifyEmailViewController: UIViewController {
     super.viewDidLoad()
     setupUI()
     bind()
-    
-    viewDidLoadRelay.accept(())
   }
   
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -89,12 +88,12 @@ private extension VerifyEmailViewController {
     setConstraints()
   }
   
-  func setViewHierarchy() { 
+  func setViewHierarchy() {
     view.addSubviews(navigationBar, progressBar, titleLabel, emailLabel, userEmailLabel, resendButton)
     view.addSubviews(lineTextField, nextButton)
   }
   
-  func setConstraints() { 
+  func setConstraints() {
     navigationBar.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(view.safeAreaLayoutGuide)
@@ -143,11 +142,10 @@ private extension VerifyEmailViewController {
 private extension VerifyEmailViewController {
   func bind() {
     let input = VerifyEmailViewModel.Input(
-      viewDidLoad: viewDidLoadRelay,
       didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapResendButton: resendButton.rx.tap,
       didTapNextButton: nextButton.rx.tap,
-      verifyCode: lineTextField.rx.text
+      verificationCode: lineTextField.rx.text
     )
     
     let output = viewModel.transform(input: input)
@@ -157,6 +155,25 @@ private extension VerifyEmailViewController {
   func bind(for output: VerifyEmailViewModel.Output) {
     output.isEnabledNextButton
       .emit(to: nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayRequestFailedPopUp()
+      }
+      .disposed(by: disposeBag)
+    
+    output.emailNotFound
+      .emit(with: self) { owner, _ in
+        owner.displayEmailNotFoundPopUp()
+      }
+      .disposed(by: disposeBag)
+    
+    output.invalidVerificationCode
+      .emit(with: self) { owner, _ in
+        owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
+        owner.veriftCodeErrorCommentView.isActivate = true
+      }
       .disposed(by: disposeBag)
   }
 }
@@ -168,5 +185,18 @@ extension VerifyEmailViewController {
       font: .caption1,
       color: .gray700
     )
+  }
+}
+
+// MARK: - Private Methods
+private extension VerifyEmailViewController {
+  func displayRequestFailedPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
+  }
+  
+  func displayEmailNotFoundPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "해당 이메일이 존재하지 않습니다.")
+    alertVC.present(to: self, animted: false)
   }
 }

@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol EnterIdDependency: Dependency { }
+protocol EnterIdDependency: Dependency {
+  var signUpUseCase: SignUpUseCase { get }
+}
 
 protocol EnterIdContainable: Containable {
   func coordinator(listener: EnterIdListener) -> Coordinating
@@ -16,7 +19,7 @@ protocol EnterIdContainable: Containable {
 
 final class EnterIdContainer: Container<EnterIdDependency>, EnterIdContainable {
   func coordinator(listener: EnterIdListener) -> Coordinating {
-    let viewModel = EnterIdViewModel()
+    let viewModel = EnterIdViewModel(useCase: dependency.signUpUseCase)
     
     let coordinator = EnterIdCoordinator(viewModel: viewModel)
     coordinator.listener = listener

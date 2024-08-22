@@ -57,7 +57,7 @@ final class EnterIdViewController: UIViewController {
   // MARK: - Initializers
   init(viewModel: EnterIdViewModel) {
     self.viewModel = viewModel
-
+    
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -87,7 +87,7 @@ private extension EnterIdViewController {
     self.view.backgroundColor = .white
     idTextField.textField.autocapitalizationType = .none
     nextButton.isEnabled = false
-
+    
     setViewHierarchy()
     setConstraints()
   }
@@ -140,10 +140,6 @@ private extension EnterIdViewController {
       userId: idTextField.rx.text
     )
     
-    let output = viewModel.transform(input: input)
-    
-    bind(for: output)
-    
     let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingChanged)
       .share()
     
@@ -164,6 +160,10 @@ private extension EnterIdViewController {
         owner.view.endEditing(true)
       }
       .disposed(by: disposeBag)
+    
+    let output = viewModel.transform(input: input)
+    
+    bind(for: output)
   }
   
   func bind(for output: EnterIdViewModel.Output) {
@@ -192,5 +192,18 @@ private extension EnterIdViewController {
         owner.nextButton.isEnabled = true
       }
       .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayRequestFailedPopUp()
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
+private extension EnterIdViewController {
+  func displayRequestFailedPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
   }
 }
