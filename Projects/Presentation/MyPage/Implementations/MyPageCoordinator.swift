@@ -35,12 +35,13 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
+    navigationController?.setNavigationBarHidden(true, animated: false)
     navigationController?.pushViewController(viewController, animated: true)
   }
   
   func attachSetting() {
     guard settingCoordinator == nil else { return }
-
+    
     let coordinater = settingContainable.coordinator(listener: self)
     addChild(coordinater)
     
