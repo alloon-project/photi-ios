@@ -19,7 +19,7 @@ final class PasswordChangeViewController: UIViewController {
   private let alertRelay = PublishRelay<Void>()
   private let didTapContinueButton = PublishRelay<Void>()
   private var isKeyboardDisplay: Bool = false
-
+  private var keyboardOffSet: CGFloat?
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
   
@@ -106,10 +106,20 @@ final class PasswordChangeViewController: UIViewController {
     super.viewDidLoad()
     
     newPasswordCheckTextField.textField.delegate = self
+    NotificationCenter.default.addObserver(self, 
+                                           selector: #selector(keyboardAppear),
+                                           name: UIResponder.keyboardDidShowNotification,
+                                           object: nil)
     setupUI()
     bind()
   }
   
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    NotificationCenter.default.removeObserver(self, 
+                                              name: UIResponder.keyboardDidShowNotification,
+                                              object: nil)
+  }
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
@@ -160,6 +170,7 @@ private extension PasswordChangeViewController {
     
     currentPasswordTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(currentPasswordTitleLabel.snp.bottom).offset(24)
     }
     
@@ -170,6 +181,7 @@ private extension PasswordChangeViewController {
     
     newPasswordTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(newPasswordTitleLabel.snp.bottom).offset(24)
     }
     
@@ -180,6 +192,7 @@ private extension PasswordChangeViewController {
     
     newPasswordCheckTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(newPasswordCheckTitleLabel.snp.bottom).offset(24)
     }
     
@@ -232,7 +245,7 @@ private extension PasswordChangeViewController {
       .map { !$0 }
       .drive(newPasswordCheckTextField.rx.isHidden)
       .disposed(by: disposeBag)
-
+    
     output.isValidPassword
       .map { !$0 }
       .drive(newPasswordCheckTitleLabel.rx.isHidden)
@@ -257,16 +270,32 @@ private extension PasswordChangeViewController {
   }
 }
 
+// MARK: - Private Methods
+private extension PasswordChangeViewController {
+  @objc func keyboardAppear(notification: Notification) {
+    guard let userInfo = notification.userInfo,
+          let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+      return
+    }
+    let textFieldBottom =  newPasswordCheckTextField.frame.maxY
+    keyboardOffSet = textFieldBottom - keyboardFrame.minY
+  }
+}
+
 // MARK: - UITextFieldDelegate
 extension PasswordChangeViewController: UITextFieldDelegate {
   func textFieldDidBeginEditing(_ textField: UITextField) {
-    UIView.animate(withDuration: 0.2) {
-      self.view.frame.origin.y -= 150
+    if let keyboardOffSet, keyboardOffSet > 0 {
+      UIView.animate(withDuration: 0.2) {
+        self.view.frame.origin.y -= keyboardOffSet
+      }
     }
   }
   func textFieldDidEndEditing(_ textField: UITextField) {
-    UIView.animate(withDuration: 0.2) {
-      self.view.frame.origin.y += 150
+    if let keyboardOffSet, keyboardOffSet > 0 {
+      UIView.animate(withDuration: 0.2) {
+        self.view.frame.origin.y += keyboardOffSet
+      }
     }
   }
 }

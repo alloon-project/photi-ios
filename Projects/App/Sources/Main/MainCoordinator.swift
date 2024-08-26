@@ -24,9 +24,14 @@ final class MainCoordinator: Coordinator {
   private let myPageNavigationController = UINavigationController()
   
   private let homeContainable: HomeContainable
+  private var homeCoordinator: Coordinating?
+
   private let searchChallengeContainable: SearchChallengeContainable
+  private var searchChallengeCoordinator: Coordinating?
+
   private let myPageContainable: MyPageContainable
-  
+  private var myPageCoordinator: Coordinating?
+
   init(
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
@@ -47,13 +52,13 @@ final class MainCoordinator: Coordinator {
   }
   
   func attachCoordinators() {
-    let homeCoordinator = homeContainable.coordinator(listener: self)
-    let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
-    let myPageCoordinator = myPageContainable.coordinator(listener: self)
+    self.homeCoordinator = homeContainable.coordinator(listener: self)
+    self.searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
+    self.myPageCoordinator = myPageContainable.coordinator(listener: self)
     
-    homeCoordinator.start(at: homeNavigationController)
-    searchChallengeCoordinator.start(at: searchChallengeNavigationController)
-    myPageCoordinator.start(at: myPageNavigationController)
+    homeCoordinator?.start(at: homeNavigationController)
+    searchChallengeCoordinator?.start(at: searchChallengeNavigationController)
+    myPageCoordinator?.start(at: myPageNavigationController)
     
     viewController.attachNavigationControllers(
       homeNavigationController,

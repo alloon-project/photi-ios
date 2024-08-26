@@ -40,6 +40,7 @@ final class MyPageViewController: UIViewController {
     let pinkingView = UIImageView()
     //    pinkingView.image = UIImage(resource: .pinking) TODO: - stencil 추가되면 수정
     pinkingView.backgroundColor = .red // 이미지 영역 표시용 입니다. 추후 삭제 예정.
+    pinkingView.clipsToBounds = true
     return pinkingView
   }()
   
@@ -111,8 +112,11 @@ final class MyPageViewController: UIViewController {
   // MARK: - View LifeCycle
   override func viewDidLoad() {
     super.viewDidLoad()
+    calendarView.delegate = self
+    
     setupUI()
-    bind()
+    bind(
+    )
   }
 }
 
@@ -166,9 +170,8 @@ private extension MyPageViewController {
   
   func setConstraintsOfUserInfoView() {
     userInfoBottomImageView.snp.makeConstraints {
-      $0.top.leading.equalToSuperview()
-      $0.height.equalTo(11)
-      $0.width.equalTo(375)
+      $0.top.leading.trailing.equalToSuperview()
+      $0.height.equalTo(12)
     }
     
     settingButton.snp.makeConstraints {
