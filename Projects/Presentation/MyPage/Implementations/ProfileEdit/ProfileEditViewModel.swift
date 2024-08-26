@@ -6,10 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 
-protocol ProfileEditCoordinatable: AnyObject { }
+protocol ProfileEditCoordinatable: AnyObject {
+  func attachChangePassword()
+}
 
 protocol ProfileEditViewModelType: AnyObject, ProfileEditViewModelable {
   associatedtype Input
@@ -25,7 +28,9 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   weak var coordinator: ProfileEditCoordinatable?
   
   // MARK: - Input
-  struct Input {}
+  struct Input {
+    let didTapCell: ControlEvent<IndexPath>
+  }
   
   // MARK: - Output
   struct Output {}
@@ -34,6 +39,17 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapCell
+      .bind(with: self) { onwer, index in
+        switch index.row {
+        case 0, 1:
+          break
+        case 2:
+          onwer.coordinator?.attachChangePassword()
+        default:
+          break
+        }
+      }.disposed(by: disposeBag)
     return Output()
   }
 }

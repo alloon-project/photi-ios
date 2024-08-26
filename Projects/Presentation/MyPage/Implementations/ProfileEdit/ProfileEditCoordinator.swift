@@ -19,9 +19,17 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
   private let viewController: ProfileEditViewController
   private let viewModel: ProfileEditViewModel
   
-  init(viewModel: ProfileEditViewModel) {
+  private let passwordChangeContainable: PasswordChangeContainable
+  private var passwordCoordinator: Coordinating?
+  
+  init(
+    viewModel: ProfileEditViewModel,
+    passwordChangeContainable: PasswordChangeContainable
+  ) {
     self.viewModel = viewModel
-    self.viewController = ProfileEditViewController()
+    
+    self.passwordChangeContainable = passwordChangeContainable
+    self.viewController = ProfileEditViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
   }
@@ -30,4 +38,17 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
+  
+  func attachChangePassword() {
+    guard passwordCoordinator == nil else { return }
+    
+    let coordinater = passwordChangeContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.passwordCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
 }
+
+// MARK: - PasswordChangeLister
+extension ProfileEditCoordinator: PasswordChangeListener {}
