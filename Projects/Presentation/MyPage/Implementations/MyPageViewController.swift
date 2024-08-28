@@ -228,7 +228,8 @@ private extension MyPageViewController {
 private extension MyPageViewController {
   func bind() {
     let input = MyPageViewModel.Input(
-      didTapSettingButton: settingButton.rx.tap
+      didTapSettingButton: settingButton.rx.tap,
+      didTapAuthCountBox: authCountBox.rx.didTapBox
     )
     
     let output = viewModel.transform(input: input)

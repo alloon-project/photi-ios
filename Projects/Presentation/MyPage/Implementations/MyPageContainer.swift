@@ -14,14 +14,17 @@ public protocol MyPageDependency: Dependency { }
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
-  SettingDependency {
+  SettingDependency,
+  AuthCountDetailDependency {
   public func coordinator(listener: MyPageListener) -> Coordinating {
     let setting = SettingContainer(dependency: self)
+    let authCountDetail = AuthCountDetailContainer(dependency: self)
     let viewModel = MyPageViewModel()
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: setting
+      settingContainable: setting,
+      authCountDetailContainable: authCountDetail
     )
     coordinator.listener = listener
     return coordinator

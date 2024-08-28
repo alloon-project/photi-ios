@@ -66,4 +66,39 @@ public extension String {
     let range = NSRange(location: 0, length: self.count)
     return regex.firstMatch(in: self, range: range) != nil
   }
+  
+  /// 문자열에서 특정 부분만 색상을 입힐 수 있습니다.
+  func htmlEscaped(font: UIFont, textColor: UIColor, highlightTextColor: UIColor, lineHeight: CGFloat = 1.0) -> NSAttributedString {
+     let textColorHex = textColor.hexString
+     let highlightTextColorHex = highlightTextColor.hexString
+     let style = """
+                   <style>
+                   p {
+                     line-height: \(lineHeight);
+                     font-size: \(font.pointSize)px;
+                     font-family: \(font.familyName);
+                     color: \(textColorHex);
+                   }
+                   highlight {
+                       line-height: \(lineHeight);
+                       font-size: \(font.pointSize)px;
+                       font-family: \(font.familyName);
+                       color: \(highlightTextColorHex);
+                   }
+                   </style>
+         """
+     let modified = String(format: "\(style)<p>%@</p>", self)
+     do {
+       guard let data = modified.data(using: .unicode) else {
+         return NSAttributedString(string: self)
+       }
+       let attributed = try NSAttributedString(data: data,
+                                               options: [.documentType: NSAttributedString.DocumentType.html],
+                                               documentAttributes: nil)
+       return attributed
+     } catch {
+       print(error)
+       return NSAttributedString(string: self)
+     }
+   }
 }

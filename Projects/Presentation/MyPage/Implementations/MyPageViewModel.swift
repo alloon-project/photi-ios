@@ -12,6 +12,8 @@ import RxSwift
 protocol MyPageCoordinatable: AnyObject { 
   func attachSetting()
   func detachSetting()
+  func attachAuthCountDetail()
+  func detachAuthCountDetail()
 }
 
 protocol MyPageViewModelType: AnyObject, MyPageViewModelable {
@@ -30,6 +32,7 @@ final class MyPageViewModel: MyPageViewModelType {
   // MARK: - Input
   struct Input {
     let didTapSettingButton: ControlEvent<Void>
+    let didTapAuthCountBox: ControlEvent<Void>
   }
   
   // MARK: - Output
@@ -44,6 +47,10 @@ final class MyPageViewModel: MyPageViewModelType {
         onwer.coordinator?.attachSetting()
       }.disposed(by: disposeBag)
     
+    input.didTapAuthCountBox
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.attachAuthCountDetail()
+      }.disposed(by: disposeBag)
     return Output()
   }
 }

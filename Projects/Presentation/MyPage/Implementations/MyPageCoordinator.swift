@@ -21,13 +21,18 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
   private let settingContainable: SettingContainable
   private var settingCoordinator: Coordinating?
   
+  private let authCountDetailContainable: AuthCountDetailContainable
+  private var authCountDetailCoordinator: Coordinating?
+  
   init(
     viewModel: MyPageViewModel,
-    settingContainable: SettingContainable
+    settingContainable: SettingContainable,
+    authCountDetailContainable: AuthCountDetailContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
+    self.authCountDetailContainable = authCountDetailContainable
     self.viewController = MyPageViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -55,7 +60,27 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     removeChild(coordinator)
     self.settingCoordinator = nil
   }
+  
+  func attachAuthCountDetail() {
+    guard authCountDetailCoordinator == nil else { return }
+    
+    let coordinater = authCountDetailContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.authCountDetailCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachAuthCountDetail() {
+    guard let coordinator = authCountDetailCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.authCountDetailCoordinator = nil
+  }
 }
 
 // MARK: - SettingListener
 extension MyPageCoordinator: SettingListener {}
+
+// MARK: - AuthCountDetailListener
+extension MyPageCoordinator: AuthCountDetailListener {}
