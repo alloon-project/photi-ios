@@ -130,7 +130,7 @@ extension AuthCountDetailViewController: UICollectionViewDataSource {
 private extension AuthCountDetailViewController {
   func collectionViewLayout() -> UICollectionViewCompositionalLayout {
     let itemFractionalWidthFraction = 1.0 / 2.0 // horizontal 2개의 셀
-    let groupFractionalHeightFraction = 1.0 / 3.0 // vertical 3개의 셀
+    let groupFractionalHeightFraction = 1.0 / 2.9 // vertical 3개의 셀
     
     let itemSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(itemFractionalWidthFraction),
@@ -141,10 +141,9 @@ private extension AuthCountDetailViewController {
 
     let groupSize = NSCollectionLayoutSize(
       widthDimension: .fractionalWidth(1),
-      heightDimension: .estimated(189)
+      heightDimension: .fractionalHeight(groupFractionalHeightFraction)
     )
     let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-    group.contentInsets = .init(top: 0, leading: 0, bottom: 16, trailing: 0)
     
     let section = NSCollectionLayoutSection(group: group)
     section.contentInsets = .init(top: 19, leading: 19, bottom: 0, trailing: 19)
