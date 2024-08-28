@@ -1,5 +1,5 @@
 //
-//  ReportReasonTableViewCell.swift
+//  SelectionWithTextTableViewCell.swift
 //  HomeImpl
 //
 //  Created by wooseob on 6/28/24.
@@ -9,9 +9,8 @@
 import UIKit
 import SnapKit
 import Core
-import DesignSystem
 
-class ReportReasonTableViewCell: UITableViewCell {
+public class SelectionWithTextTableViewCell: UITableViewCell {
   private var textColor: UIColor {
     isSelected ? .photiBlack : .gray600
   }
@@ -24,7 +23,7 @@ class ReportReasonTableViewCell: UITableViewCell {
     isSelected ? .blue400 : .gray300
   }
 
-  override var isSelected: Bool {
+  public override var isSelected: Bool {
     didSet {
       setCheckImage(isSelected: isSelected)
       setLabelTextColor(isSelected: isSelected)
@@ -47,7 +46,7 @@ class ReportReasonTableViewCell: UITableViewCell {
   }
   
   // MARK: - Configure
-  func configure(with text: String, isSelected: Bool = false) {
+  public func configure(with text: String, isSelected: Bool = false) {
     self.isSelected = isSelected
     reportContentLabel.attributedText = text.attributedString(
       font: .body2,
@@ -57,7 +56,7 @@ class ReportReasonTableViewCell: UITableViewCell {
 }
 
 // MARK: UI Methods
-private extension ReportReasonTableViewCell {
+private extension SelectionWithTextTableViewCell {
   func setupUI() {
     self.backgroundColor = .clear
     setViewHierarchy()
@@ -82,7 +81,7 @@ private extension ReportReasonTableViewCell {
 }
 
 // MARK: - Private methods
-private extension ReportReasonTableViewCell {
+private extension SelectionWithTextTableViewCell {
   func setCheckImage(isSelected: Bool) {
     iconImageView.image = iconImage?
       .withTintColor(imageTintColor, renderingMode: .alwaysOriginal)

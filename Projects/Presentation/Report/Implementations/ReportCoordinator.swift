@@ -27,6 +27,6 @@ final class ReportCoordinator: Coordinator, ReportCoordinatable {
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
+    navigationController?.pushViewController(viewController, animated: true)
   }
 }

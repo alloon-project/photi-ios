@@ -1,9 +1,9 @@
 //
-//  ReportViewController.swift
+//  InquiryViewController.swift
 //  HomeImpl
 //
-//  Created by wooseob on 6/27/24.
-//  Copyright © 2024 com.alloon. All rights reserved.
+//  Created by 임우섭 on 8/28/24.
+//  Copyright © 2024 com.photi. All rights reserved.
 //
 
 import UIKit
@@ -12,20 +12,23 @@ import RxSwift
 import SnapKit
 import Core
 import DesignSystem
-import Report
 
-final class ReportViewController: UIViewController {
+final class InquiryViewController: UIViewController {
   private let disposeBag = DisposeBag()
-  private let viewModel: ReportViewModel
+  private let viewModel: InquiryViewModel
   // MARK: - Refactoring
-  private var reportType: ReportType
   private var selectedRow: Int?
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
   
-  private let reasonLabel = UILabel()
+  private let reasonLabel = {
+    let label = UILabel()
+    label.attributedText = "문의 내용이 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+    
+    return label
+  }()
   private let reasonTableView = {
     let tableView = SelfSizingTableView()
     tableView.registerCell(SelectionWithTextTableViewCell.self)
@@ -37,19 +40,18 @@ final class ReportViewController: UIViewController {
   
   private let detailLabel: UILabel = {
     let label = UILabel()
-    label.attributedText = "자세한 내용을 적어주시면 신고에 도움이 돼요".attributedString(font: .heading4, color: .gray900)
+    label.attributedText = "자세한 내용을 알려주세요".attributedString(font: .heading4, color: .gray900)
     
     return label
   }()
   
-  private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120))
+  private let detailContentTextView = LineTextView(placeholder: "문의 내용을 상세히 알려주세요", type: .count(120))
   
-  private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
+  private let inquiryButton = FilledRoundButton(type: .primary, size: .xLarge, text: "제출하기")
   
   // MARK: - Initializers
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(viewModel: InquiryViewModel) {
     self.viewModel = viewModel
-    self.reportType = reportType
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -84,25 +86,16 @@ final class ReportViewController: UIViewController {
 }
 
 // MARK: - UI Methods
-private extension ReportViewController {
+private extension InquiryViewController {
   func setupUI() {
     self.view.backgroundColor = .white
-    
-    switch reportType {
-      case .challenge:
-        reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-      case .feed:
-        reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-      case .member:
-        reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    }
     
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, reportButton)
+    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, inquiryButton)
   }
   
   func setConstraints() {
@@ -124,7 +117,7 @@ private extension ReportViewController {
       $0.top.equalTo(reasonLabel.snp.bottom).offset(20)
     }
     
-    reportButton.snp.makeConstraints {
+    inquiryButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
@@ -149,28 +142,21 @@ private extension ReportViewController {
 }
 
 // MARK: - Bind Methods
-private extension ReportViewController {
+private extension InquiryViewController {
   func bind() {
-    let input = ReportViewModel.Input()
+    let input = InquiryViewModel.Input()
     
     let output = viewModel.transform(input: input)
     bind(output: output)
   }
   
-  func bind(output: ReportViewModel.Output) { }
-}
-
-// MARK: - Internal Methods
-extension ReportViewController {
-  func setReportType(type: ReportType) {
-    self.reportType = type
-  }
+  func bind(output: InquiryViewModel.Output) { }
 }
 
 // MARK: - UITableView DataSource, Delegate
-extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
+extension InquiryViewController: UITableViewDataSource, UITableViewDelegate {
   func numberOfSections(in tableView: UITableView) -> Int {
-    return reportType.contents.count
+    return inquiryMenuDatasource.count
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -183,7 +169,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(SelectionWithTextTableViewCell.self, for: indexPath)
-    cell.configure(with: reportType.contents[indexPath.section])
+    cell.configure(with: inquiryMenuDatasource[indexPath.section])
     return cell
   }
   
@@ -194,25 +180,10 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
     selectedRow = indexPath.section
     selectRow(at: indexPath)
   }
-  
-  func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    if section == reportType.contents.count - 1 {
-      return 0
-    } else {
-      return 10
-    }
-  }
-  
-  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-    let view = UIView.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0))
-    view.backgroundColor = .clear
-    
-    return view
-  }
 }
 
 // MARK: - Private Methods
-private extension ReportViewController {
+private extension InquiryViewController {
   func deselectAllCell() {
     self.reasonTableView.visibleCells.forEach { $0.isSelected = false }
   }
@@ -224,7 +195,7 @@ private extension ReportViewController {
 }
 
 // MARK: - Setup Keyboard Observer
-private extension ReportViewController {
+private extension InquiryViewController {
   func addKeyboardObservers() {
     NotificationCenter.default.addObserver(
       self,

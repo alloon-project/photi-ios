@@ -17,14 +17,17 @@ public protocol SettingContainable: Containable {
 public final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
-  ProfileEditDependency {
+  ProfileEditDependency,
+  InquiryDependency {
   public func coordinator(listener: SettingListener) -> Coordinating {
     let profileEdit = ProfileEditContainer(dependency: self)
+    let inquiry = InquiryContainer(dependency: self)
     let viewModel = SettingViewModel()
     
     let coordinator = SettingCoordinator(
       viewModel: viewModel,
-      profileEditContainable: profileEdit
+      profileEditContainable: profileEdit,
+      inquiryContainable: inquiry
     )
     coordinator.listener = listener
     

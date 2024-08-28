@@ -22,13 +22,18 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   private let profileEditContainable: ProfileEditContainable
   private var profileEditCoordinator: Coordinating?
   
+  private let inquiryContainable: InquiryContainable
+  private var inquiryCoordinator: Coordinating?
+  
   init(
     viewModel: SettingViewModel,
-    profileEditContainable: ProfileEditContainable
+    profileEditContainable: ProfileEditContainable,
+    inquiryContainable: InquiryContainable
   ) {
     self.viewModel = viewModel
     
     self.profileEditContainable = profileEditContainable
+    self.inquiryContainable = inquiryContainable
     self.viewController = SettingViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -56,9 +61,22 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     self.profileEditCoordinator = nil
   }
   
-  func attachInquiry() {}
+  func attachInquiry() {
+    guard inquiryCoordinator == nil else { return }
+    
+    let coordinater = inquiryContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.inquiryCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
   
-  func detachInquiry() {}
+  func detachInquiry() {
+    guard let coordinator = inquiryCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.inquiryCoordinator = nil
+  }
   
   func attachServiceTerms() {}
   
@@ -71,3 +89,6 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
 
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {}
+
+// MARK: - InquiryListener
+extension SettingCoordinator: InquiryListener {}
