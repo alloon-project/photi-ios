@@ -107,7 +107,7 @@ final class LogInCoordinator: Coordinator {
   }
 }
 
-// MARK: - Coorinatable
+// MARK: - Coordinatable
 extension LogInCoordinator: LogInCoordinatable {
   func didFinishLogIn() {
     listener?.didFinishLogIn()

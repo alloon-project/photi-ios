@@ -11,6 +11,7 @@ import RxCocoa
 import RxSwift
 
 protocol ProfileEditCoordinatable: AnyObject {
+  func didTapBackButton()
   func attachChangePassword()
 }
 
@@ -29,6 +30,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   // MARK: - Input
   struct Input {
+    let didTapBackButton: ControlEvent<Void>
     let didTapCell: ControlEvent<IndexPath>
   }
   
@@ -39,6 +41,11 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.didTapBackButton()
+      }.disposed(by: disposeBag)
+    
     input.didTapCell
       .bind(with: self) { onwer, index in
         switch index.row {
@@ -50,6 +57,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
           break
         }
       }.disposed(by: disposeBag)
+    
     return Output()
   }
 }

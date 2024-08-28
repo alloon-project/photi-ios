@@ -39,6 +39,7 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - Setting
   func attachSetting() {
     guard settingCoordinator == nil else { return }
     
@@ -54,8 +55,13 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     
     removeChild(coordinator)
     self.settingCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
 }
 
 // MARK: - SettingListener
-extension MyPageCoordinator: SettingListener {}
+extension MyPageCoordinator: SettingListener {
+  func didTapBackButtonAtSetting() {
+    detachSetting()
+  }
+}

@@ -13,11 +13,7 @@ protocol PasswordChangeViewModelable { }
 
 public protocol PasswordChangeListener: AnyObject { }
 
-final class PasswordChangeCoordinator: Coordinator, PasswordChangeCoordinatable {
-  func didTapBackButton() {}
-  
-  func didTapChangePasswordAlert() {}
-  
+final class PasswordChangeCoordinator: Coordinator {
   weak var listener: PasswordChangeListener?
   
   private let viewController: PasswordChangeViewController
@@ -34,4 +30,11 @@ final class PasswordChangeCoordinator: Coordinator, PasswordChangeCoordinatable 
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
+}
+
+// MARK: - Coordinatable
+extension PasswordChangeCoordinator: PasswordChangeCoordinatable {
+  func didTapBackButton() {}
+  
+  func didTapChangePasswordAlert() {}
 }

@@ -11,9 +11,11 @@ import Core
 
 protocol SettingViewModelable { }
 
-public protocol SettingListener: AnyObject { }
+public protocol SettingListener: AnyObject { 
+  func didTapBackButtonAtSetting()
+}
 
-final class SettingCoordinator: Coordinator, SettingCoordinatable {
+final class SettingCoordinator: Coordinator {
   weak var listener: SettingListener?
   
   private let viewController: SettingViewController
@@ -44,6 +46,7 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - ProfileEdit
   func attachProfileEdit() {
     guard profileEditCoordinator == nil else { return }
     
@@ -59,8 +62,10 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     
     removeChild(coordinator)
     self.profileEditCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - Inquiry
   func attachInquiry() {
     guard inquiryCoordinator == nil else { return }
     
@@ -76,19 +81,37 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     
     removeChild(coordinator)
     self.inquiryCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - ServiceTerms
   func attachServiceTerms() {}
   
   func detachServiceTerms() {}
   
+  // MARK: - Privacy
   func attachPrivacy() {}
   
   func detachPrivacy() {}
 }
 
+// MARK: - Coordinatable
+extension SettingCoordinator: SettingCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtSetting()
+  }
+}
+
 // MARK: - ProfileEditListener
-extension SettingCoordinator: ProfileEditListener {}
+extension SettingCoordinator: ProfileEditListener {
+  func didTapBackButtonAtProfileEdit() {
+    detachProfileEdit()
+  }
+}
 
 // MARK: - InquiryListener
-extension SettingCoordinator: InquiryListener {}
+extension SettingCoordinator: InquiryListener {
+  func didTapBackButtonAtInquiry() {
+    detachInquiry()
+  }
+}

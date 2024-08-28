@@ -11,9 +11,11 @@ import Core
 
 protocol ProfileEditViewModelable { }
 
-public protocol ProfileEditListener: AnyObject { }
+public protocol ProfileEditListener: AnyObject { 
+  func didTapBackButtonAtProfileEdit()
+}
 
-final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
+final class ProfileEditCoordinator: Coordinator {
   weak var listener: ProfileEditListener?
   
   private let viewController: ProfileEditViewController
@@ -39,6 +41,7 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - ChangePassword
   func attachChangePassword() {
     guard passwordCoordinator == nil else { return }
     
@@ -47,6 +50,13 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
     
     self.passwordCoordinator = coordinater
     coordinater.start(at: self.navigationController)
+  }
+}
+
+// MARK: - Coordinatable
+extension ProfileEditCoordinator: ProfileEditCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtProfileEdit()
   }
 }
 

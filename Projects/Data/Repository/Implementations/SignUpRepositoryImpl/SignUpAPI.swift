@@ -73,6 +73,8 @@ extension SignUpAPI: TargetType {
         let jsonData = responseData.data(using: .utf8)
         
         return .networkResponse(400, jsonData ?? Data(), "", "")
+    case .verifyUserName:
+      return .networkError(NSError())
     }
   }
 }

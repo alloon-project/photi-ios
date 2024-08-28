@@ -6,15 +6,16 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-
 import UIKit
 import Core
 
 protocol InquiryViewModelable { }
 
-public protocol InquiryListener: AnyObject { }
+public protocol InquiryListener: AnyObject {
+  func didTapBackButtonAtInquiry()
+}
 
-final class InquiryCoordinator: Coordinator, InquiryCoordinatable {
+final class InquiryCoordinator: Coordinator {
   weak var listener: InquiryListener?
   private let viewController: InquiryViewController
   private let viewModel: any InquiryViewModelType
@@ -31,5 +32,12 @@ final class InquiryCoordinator: Coordinator, InquiryCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
+  }
+}
+
+// MARK: - Coordinatable
+extension InquiryCoordinator: InquiryCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtInquiry()
   }
 }

@@ -10,7 +10,9 @@ import RxCocoa
 import RxSwift
 import DesignSystem
 
-protocol InquiryCoordinatable: AnyObject { }
+protocol InquiryCoordinatable: AnyObject {
+  func didTapBackButton()
+}
 
 protocol InquiryViewModelType: InquiryViewModelable {
   associatedtype Input
@@ -28,7 +30,9 @@ final class InquiryViewModel: InquiryViewModelType {
   weak var coordinator: InquiryCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    let didTapBackButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -37,6 +41,11 @@ final class InquiryViewModel: InquiryViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.didTapBackButton()
+      }.disposed(by: disposeBag)
+    
     return Output()
   }
 }

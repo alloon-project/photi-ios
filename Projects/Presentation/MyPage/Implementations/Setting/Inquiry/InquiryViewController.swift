@@ -144,7 +144,9 @@ private extension InquiryViewController {
 // MARK: - Bind Methods
 private extension InquiryViewController {
   func bind() {
-    let input = InquiryViewModel.Input()
+    let input = InquiryViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton
+    )
     
     let output = viewModel.transform(input: input)
     bind(output: output)

@@ -81,6 +81,7 @@ private extension ProfileEditViewController {
   
   func bind() {
     let input = ProfileEditViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapCell: menuTableView.rx.itemSelected
     )
     
