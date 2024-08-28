@@ -64,6 +64,7 @@ public final class HistoryCardCell: UICollectionViewCell {
   
   private let shareButton = {
     let button = UIButton()
+    
     button.setImage(UIImage(systemName: "arrowshape.turn.up.right.fill"), for: .normal)
     return button
   }()

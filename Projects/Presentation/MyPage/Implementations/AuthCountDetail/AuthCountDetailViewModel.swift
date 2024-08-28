@@ -37,4 +37,3 @@ final class AuthCountDetailViewModel: AuthCountDetailViewModelType {
     return Output()
   }
 }
-

@@ -68,7 +68,10 @@ public extension String {
   }
   
   /// 문자열에서 특정 부분만 색상을 입힐 수 있습니다.
-  func htmlEscaped(font: UIFont, textColor: UIColor, highlightTextColor: UIColor, lineHeight: CGFloat = 1.0) -> NSAttributedString {
+  func htmlEscaped(font: UIFont, 
+                   textColor: UIColor,
+                   highlightTextColor: UIColor,
+                   lineHeight: CGFloat = 1.0) -> NSAttributedString {
      let textColorHex = textColor.hexString
      let highlightTextColorHex = highlightTextColor.hexString
      let style = """
