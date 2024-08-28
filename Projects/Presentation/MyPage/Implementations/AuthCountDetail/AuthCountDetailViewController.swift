@@ -49,7 +49,7 @@ final class AuthCountDetailViewController: UIViewController {
     collectionView.showsVerticalScrollIndicator = true
     collectionView.contentInset = .zero
     collectionView.translatesAutoresizingMaskIntoConstraints = false
-    collectionView.backgroundColor = .blue
+    collectionView.backgroundColor = .white
     
     return collectionView
   }()
@@ -121,6 +121,7 @@ extension AuthCountDetailViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(HistoryCardCell.self, for: indexPath)
     
+    // 샘플이미지 적용
     cell.configure(challangeThumbnail: UIImage(systemName: "rectangle")!, authDate: Date(), challangeName: "챌린쥐")
     return cell
   }
