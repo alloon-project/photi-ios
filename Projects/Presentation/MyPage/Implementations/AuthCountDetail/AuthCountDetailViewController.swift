@@ -111,9 +111,6 @@ private extension AuthCountDetailViewController {
 
 // MARK: - UICollectionViewDataSource
 extension AuthCountDetailViewController: UICollectionViewDataSource {
-  func numberOfSections(in collectionView: UICollectionView) -> Int {
-    1
-  }
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return 4
   }
@@ -122,7 +119,7 @@ extension AuthCountDetailViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(HistoryCardCell.self, for: indexPath)
     
     // 샘플이미지 적용
-    cell.configure(challangeThumbnail: UIImage(systemName: "rectangle")!, authDate: Date(), challangeName: "챌린쥐")
+    cell.configure(challangeThumbnail: UIImage(), authDate: Date(), challangeName: "챌린쥐")
     return cell
   }
 }

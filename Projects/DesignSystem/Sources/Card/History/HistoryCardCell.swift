@@ -37,12 +37,13 @@ public final class HistoryCardCell: UICollectionViewCell {
   
   private let thumbnailImageView = {
     let imageView = UIImageView()
-
+    imageView.backgroundColor = .orange
     imageView.clipsToBounds = true
     imageView.layer.masksToBounds = true
     imageView.layer.maskedCorners = [.layerMinXMinYCorner,
                                      .layerMaxXMinYCorner,
                                      .layerMinXMaxYCorner]
+    imageView.layer.cornerRadius = 8.21
     return imageView
   }()
   
