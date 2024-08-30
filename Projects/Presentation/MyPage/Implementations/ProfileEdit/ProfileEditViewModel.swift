@@ -12,6 +12,7 @@ import RxSwift
 
 protocol ProfileEditCoordinatable: AnyObject {
   func attachChangePassword()
+  func attachResign()
 }
 
 protocol ProfileEditViewModelType: AnyObject, ProfileEditViewModelable {
@@ -30,6 +31,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   // MARK: - Input
   struct Input {
     let didTapCell: ControlEvent<IndexPath>
+    let didTapResignButton: ControlEvent<Void>
   }
   
   // MARK: - Output
@@ -50,6 +52,12 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
           break
         }
       }.disposed(by: disposeBag)
+    
+    input.didTapResignButton
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.attachResign()
+      }.disposed(by: disposeBag)
+    
     return Output()
   }
 }
