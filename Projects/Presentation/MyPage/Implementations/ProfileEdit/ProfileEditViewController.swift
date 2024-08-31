@@ -41,8 +41,8 @@ final class ProfileEditViewController: UIViewController {
     return tableView
   }()
   
-  private let withdrawButton = {
-    let button = TextButton(text: "회원탈퇴", 
+  private let resignButton = {
+    let button = TextButton(text: "회원탈퇴",
                             size: .small,
                             type: .gray)
     
@@ -71,7 +71,7 @@ final class ProfileEditViewController: UIViewController {
   }
 }
 
-// MARK: - Private methods
+// MARK: - UI Methods
 private extension ProfileEditViewController {
   func setupUI() {
     self.view.backgroundColor = .white
@@ -79,19 +79,11 @@ private extension ProfileEditViewController {
     setConstraints()
   }
   
-  func bind() {
-    let input = ProfileEditViewModel.Input(
-      didTapCell: menuTableView.rx.itemSelected
-    )
-    
-    let output = viewModel.transform(input: input)
-  }
-  
   func setViewHierarchy() {
     self.view.addSubviews(navigationBar,
                           profileImageView,
                           menuTableView,
-                          withdrawButton)
+                          resignButton)
   }
   
   func setConstraints() {
@@ -113,13 +105,26 @@ private extension ProfileEditViewController {
       $0.height.equalTo(184)
     }
     
-    withdrawButton.snp.makeConstraints {
+    resignButton.snp.makeConstraints {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
       $0.trailing.equalToSuperview().offset(-14)
     }
   }
 }
 
+// MARK: - Bind
+private extension ProfileEditViewController {
+  func bind() {
+    let input = ProfileEditViewModel.Input(
+      didTapCell: menuTableView.rx.itemSelected,
+      didTapResignButton: resignButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
+  }
+}
+
+// MARK: - UITableView Delegate, DataSource
 extension ProfileEditViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     56

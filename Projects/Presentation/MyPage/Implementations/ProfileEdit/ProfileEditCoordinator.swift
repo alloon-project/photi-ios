@@ -13,7 +13,7 @@ protocol ProfileEditViewModelable { }
 
 public protocol ProfileEditListener: AnyObject { }
 
-final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
+final class ProfileEditCoordinator: Coordinator {
   weak var listener: ProfileEditListener?
   
   private let viewController: ProfileEditViewController
@@ -21,14 +21,20 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
   
   private let passwordChangeContainable: PasswordChangeContainable
   private var passwordCoordinator: Coordinating?
+
+  private let resignContainable: ResignContainable
+  private var resignCoordinator: Coordinating?
   
   init(
     viewModel: ProfileEditViewModel,
-    passwordChangeContainable: PasswordChangeContainable
+    passwordChangeContainable: PasswordChangeContainable,
+    resignContainable: ResignContainable
   ) {
     self.viewModel = viewModel
     
     self.passwordChangeContainable = passwordChangeContainable
+    self.resignContainable = resignContainable
+    
     self.viewController = ProfileEditViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -38,7 +44,10 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: true)
   }
-  
+}
+
+// MARK: - Coordinatable
+extension ProfileEditCoordinator: ProfileEditCoordinatable {
   func attachChangePassword() {
     guard passwordCoordinator == nil else { return }
     
@@ -48,7 +57,36 @@ final class ProfileEditCoordinator: Coordinator, ProfileEditCoordinatable {
     self.passwordCoordinator = coordinater
     coordinater.start(at: self.navigationController)
   }
+  
+  func attachResign() {
+    guard resignCoordinator == nil else { return }
+    
+    let coordinater = resignContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.resignCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachResign() {
+    guard let coordinater = resignCoordinator else { return }
+    
+    removeChild(coordinater)
+    self.resignCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
 }
 
 // MARK: - PasswordChangeLister
 extension ProfileEditCoordinator: PasswordChangeListener {}
+
+// MARK: - ResignLisenter
+extension ProfileEditCoordinator: ResignListener {
+  func didTapBackButtonAtResign() {
+    detachResign()
+  }
+  
+  func didTapCancelButtonAtResign() {
+    detachResign()
+  }
+}

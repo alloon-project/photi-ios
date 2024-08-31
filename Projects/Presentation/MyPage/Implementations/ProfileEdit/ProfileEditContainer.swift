@@ -17,14 +17,17 @@ public protocol ProfileEditContainable: Containable {
 public final class ProfileEditContainer:
   Container<ProfileEditDependency>,
   ProfileEditContainable,
-  PasswordChangeDependency {
+  PasswordChangeDependency,
+  ResignDependency {
   public func coordinator(listener: ProfileEditListener) -> Coordinating {
     let passwordChange = PasswordChangeContainer(dependency: self)
+    let resign = ResignContainer(dependency: self)
     let viewModel = ProfileEditViewModel()
     
     let coordinator = ProfileEditCoordinator(
       viewModel: viewModel,
-      passwordChangeContainable: passwordChange
+      passwordChangeContainable: passwordChange, 
+      resignContainable: resign
     )
     coordinator.listener = listener
     
