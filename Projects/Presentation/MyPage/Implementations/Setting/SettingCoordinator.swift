@@ -8,6 +8,7 @@
 
 import UIKit
 import Core
+import Report
 
 protocol SettingViewModelable { }
 
@@ -22,13 +23,19 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   private let profileEditContainable: ProfileEditContainable
   private var profileEditCoordinator: Coordinating?
   
+  private let reportContainable: ReportContainable
+  private var reportCoordinator: Coordinating?
+  
   init(
     viewModel: SettingViewModel,
-    profileEditContainable: ProfileEditContainable
+    profileEditContainable: ProfileEditContainable,
+    reportContainable: ReportContainable
   ) {
     self.viewModel = viewModel
     
     self.profileEditContainable = profileEditContainable
+    self.reportContainable = reportContainable
+    
     self.viewController = SettingViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -54,11 +61,26 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     
     removeChild(coordinator)
     self.profileEditCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
-  func attachInquiry() {}
+  func attachInquiry() {
+    guard reportCoordinator == nil else { return }
+    
+    let coordinater = reportContainable.coordinator(listener: self, reportType: .inquiry)
+    addChild(coordinater)
+    
+    self.reportCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
   
-  func detachInquiry() {}
+  func detachInquiry() {
+    guard let coordinator = reportCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.reportCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
   
   func attachServiceTerms() {}
   
@@ -71,3 +93,6 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
 
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {}
+
+// MARK: - Report
+extension SettingCoordinator: ReportListener {}

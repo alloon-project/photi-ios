@@ -14,7 +14,8 @@ protocol ReportViewModelable { }
 
 final class ReportCoordinator: Coordinator, ReportCoordinatable {
   weak var listener: ReportListener?
-    private let viewController: ReportViewController
+  
+  private let viewController: ReportViewController
   private let viewModel: any ReportViewModelType
   
   init(viewModel: ReportViewModel, reportType: ReportType) {

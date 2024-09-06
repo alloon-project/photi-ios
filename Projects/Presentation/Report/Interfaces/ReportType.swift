@@ -12,6 +12,7 @@ public enum ReportType {
   case challenge
   case feed
   case member
+  case inquiry
   
   public var contents: [String] {
     switch self {
@@ -45,6 +46,13 @@ public enum ReportType {
           "타인을 비방해요",
           "직접 작성"
         ]
+    case .inquiry:
+      [
+        "서비스 이용 문의",
+        "개선 / 제안 요청",
+        "오류 문의",
+        "기타 문의"
+      ]
     }
   }
 }

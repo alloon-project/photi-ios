@@ -42,7 +42,7 @@ final class ReportViewController: UIViewController {
     return label
   }()
   
-  private let detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120))
+  private lazy var detailContentTextView = LineTextView(type: .count(120))
   
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
   
@@ -89,12 +89,17 @@ private extension ReportViewController {
     self.view.backgroundColor = .white
     
     switch reportType {
-      case .challenge:
-        reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-      case .feed:
-        reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-      case .member:
-        reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+    case .challenge:
+      reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+    case .feed:
+      reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+    case .member:
+      reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+    case .inquiry:
+      reasonLabel.attributedText = "문의 내용이 무엇인가요?".attributedString(font: .heading4, color: .gray900)
+      detailLabel.attributedText = "자세한 내용을 적어주세요".attributedString(font: .heading4, color: .gray900)
+      detailContentTextView =  LineTextView(placeholder: "문의 내용을 상세히 알려주세요", type: .count(120))
+      reportButton.setText("제출하기", for: .normal)
     }
     
     setViewHierarchy()
