@@ -152,7 +152,7 @@ extension SignUpCoordinator: EnterPasswordListener {
     detachEnterPassword(animated: true)
   }
   
-  func didFinishEnterPassword(userId: String) {
-    listener?.didFinishSignUp(userId: userId)
+  func didFinishEnterPassword(userName: String) {
+    listener?.didFinishSignUp(userName: userName)
   }
 }

@@ -13,7 +13,7 @@ import UseCase
 
 protocol EnterPasswordCoordinatable: AnyObject { 
   func didTapBackButton()
-  func didTapContinueButton(userId: String)
+  func didTapContinueButton(userName: String)
 }
 
 protocol EnterPasswordViewModelType: AnyObject, EnterPasswordViewModelable {
@@ -135,8 +135,8 @@ private extension EnterPasswordViewModel {
     .observe(on: MainScheduler.instance)
     .subscribe(
       with: self,
-      onSuccess: { owner, userId in
-        owner.coordinator?.didTapContinueButton(userId: userId)
+      onSuccess: { owner, userName in
+        owner.coordinator?.didTapContinueButton(userName: userName)
       },
       onFailure: { owner, _ in
         owner.requestFailedRelay.accept(())
