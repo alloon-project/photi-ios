@@ -26,7 +26,7 @@ public struct BaseResponse<ResponseType: Decodable> {
     statusCode: Int,
     response: HTTPURLResponse? = nil
   ) {
-    self.code = dto.code
+    self.code = "\(dto.code)"/*dto.code*/
     self.message = dto.message
     self.data = dto.data
     self.statusCode = statusCode
@@ -48,9 +48,9 @@ public struct BaseResponse<ResponseType: Decodable> {
 
 /// 성공 시, ResponseType을 명시한 경우 BaseResponseDTO를 통해 디코딩 됩니다.
 public struct BaseResponseDTO<ResponseType: Decodable>: Decodable {
-  public let data: ResponseType
   public let code: String
   public let message: String
+  public let data: ResponseType
   
   public init(code: String, message: String, data: ResponseType) {
     self.code = code
@@ -59,7 +59,7 @@ public struct BaseResponseDTO<ResponseType: Decodable>: Decodable {
   }
 }
 
-/// 실패 혹은, Response가 없는 경우 VoidResponseDTO로 디코딩됩니다.
+/// 실패시 VoidResponseDTO로 디코딩됩니다.
 public struct VoidResponseDTO: Decodable {
   public let code: String
   public let message: String
@@ -67,5 +67,14 @@ public struct VoidResponseDTO: Decodable {
   public init(code: String, message: String) {
     self.code = code
     self.message = message
+  }
+}
+
+/// 성공시, ResponseType이 없는 경우 `data`필드에 해당 데이터가 들어갑니다.
+public struct SuccessResponseDTO: Decodable {
+  public let successMessage: String
+  
+  public init(successMessage: String) {
+    self.successMessage = successMessage
   }
 }
