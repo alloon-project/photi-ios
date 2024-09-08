@@ -13,7 +13,7 @@ import UseCase
 
 protocol VerifyEmailCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapNextButton()
+  func didTapNextButton(verificationCode: String)
 }
 
 protocol VerifyEmailViewModelType: AnyObject, VerifyEmailViewModelable {
@@ -111,7 +111,7 @@ private extension VerifyEmailViewModel {
       .subscribe(
         with: self,
         onSuccess: { owner, _ in
-          owner.coordinator?.didTapNextButton()
+          owner.coordinator?.didTapNextButton(verificationCode: code)
         },
         onFailure: { owner, error in
           owner.requestFailed(error: error)
