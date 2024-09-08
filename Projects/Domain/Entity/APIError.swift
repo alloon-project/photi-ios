@@ -12,6 +12,9 @@ public enum APIError: Error {
     case invalidVerificationCode
     case emailNotFound
     case useNameAlreadyExists
+    case invalidUseName
+    case didNotVerifyEmail
+    case passwordNotEqual
   }
   
   case authenticationFailed
