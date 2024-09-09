@@ -13,6 +13,10 @@ import LogIn
 protocol SignUpViewModelable { }
 
 final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
+  private var email: String?
+  private var verificationCode: String?
+  private var userName: String?
+  
   weak var listener: SignUpListener?
   
   private let viewModel: SignUpViewModel
@@ -90,9 +94,17 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   
   // MARK: - EnterPassword
   func attachEnterPassword() {
-    guard enterPasswordCoordinator == nil else { return }
+    guard 
+      enterPasswordCoordinator == nil,
+      let email, let verificationCode, let userName
+    else { return }
     
-    let coordinater = enterPasswordContainable.coordinator(listener: self)
+    let coordinater = enterPasswordContainable.coordinator(
+      email: email,
+      verificationCode: verificationCode,
+      userName: userName,
+      listener: self
+    )
     addChild(coordinater)
     
     self.enterPasswordCoordinator = coordinater
@@ -115,7 +127,9 @@ extension SignUpCoordinator: EnterEmailListener {
     listener?.didTapBackButtonAtSignUp()
   }
   
-  func didFinishEnterEmail() {
+  func didFinishEnterEmail(email: String, verificationCode: String) {
+    self.email = email
+    self.verificationCode = verificationCode
     attachEnterId()
   }
 }
@@ -126,7 +140,8 @@ extension SignUpCoordinator: EnterIdListener {
     detachEnterId(animated: true)
   }
   
-  func didFinishEnterId() {
+  func didFinishEnterId(userName: String) {
+    self.userName = userName
     attachEnterPassword()
   }
 }
@@ -137,7 +152,7 @@ extension SignUpCoordinator: EnterPasswordListener {
     detachEnterPassword(animated: true)
   }
   
-  func didFinishEnterPassword() {
-    listener?.didFinishSignUp()
+  func didFinishEnterPassword(userName: String) {
+    listener?.didFinishSignUp(userName: userName)
   }
 }

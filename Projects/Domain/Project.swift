@@ -44,6 +44,7 @@ let project = Project.make(
 			sources: ["Repository/Interfaces/**"],
 			dependencies: [
 				.Project.Domain.Entity,
+				.Project.Data.DataMapper,
 				.SPM.RxSwift
 			]
 		)

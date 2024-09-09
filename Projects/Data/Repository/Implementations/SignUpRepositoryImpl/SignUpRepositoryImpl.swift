@@ -8,12 +8,13 @@
 
 import RxSwift
 import DataMapper
+import DTO
 import Entity
 import Repository
 import PhotiNetwork
 
 public struct SignUpRepositoryImpl: SignUpRepository {
-private let dataMapper: SignUpDataMapper
+  private let dataMapper: SignUpDataMapper
   
   public init(dataMapper: SignUpDataMapper) {
     self.dataMapper = dataMapper
@@ -27,7 +28,7 @@ private let dataMapper: SignUpDataMapper
         do {
           let result = try await Provider(stubBehavior: .never)
             .request(SignUpAPI.requestVerificationCode(dto: requestDTO)).value
-
+          
           if result.statusCode == 201 {
             single(.success(()))
           } else if result.statusCode == 409 {
@@ -50,9 +51,9 @@ private let dataMapper: SignUpDataMapper
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .immediate)
+          let result = try await Provider(stubBehavior: .never)
             .request(SignUpAPI.verifyCode(dto: requestDTO)).value
-
+          
           if result.statusCode == 200 {
             single(.success(()))
           } else if result.statusCode == 400 {
@@ -77,7 +78,7 @@ private let dataMapper: SignUpDataMapper
         do {
           let result = try await Provider(stubBehavior: .never)
             .request(SignUpAPI.verifyUserName(userName)).value
-          print(result.statusCode)
+          
           if result.statusCode == 200 {
             single(.success(()))
           } else if result.statusCode == 409 {
@@ -90,6 +91,72 @@ private let dataMapper: SignUpDataMapper
         }
       }
       return Disposables.create()
+    }
+  }
+  
+  public func register(
+    email: String,
+    verificaionCode: String,
+    username: String,
+    password: String,
+    passwordReEnter: String
+  ) -> Single<String> {
+    let requestDTO = dataMapper.mapToRegisterRequestDTO(
+      email: email,
+      verificationCode: verificaionCode,
+      username: username,
+      password: password,
+      passwordReEnter: passwordReEnter
+    )
+    
+    return Single.create { single in
+      Task {
+        do {
+          let result = try await Provider(stubBehavior: .never)
+            .request(
+              SignUpAPI.register(dto: requestDTO),
+              type: RegisterResponseDTO.self
+            ).value
+       
+          if result.statusCode == 400 {
+            single(.failure(register400Error(result.code)))
+          } else if result.statusCode == 409 {
+            single(.failure(register409Error(result.code)))
+          } else if result.statusCode == 201, let userName = result.data?.username {
+            single(.success(userName))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          single(.failure(APIError.serverError))
+        }
+      }
+      return Disposables.create()
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension SignUpRepositoryImpl {
+  func register400Error(_ code: String) -> APIError {
+    if code == "EMAIL_VALIDATION_INVALID" {
+      return .signUpFailed(reason: .didNotVerifyEmail)
+    } else if code == "PASSWORD_MATCH_INVALID" {
+      return .signUpFailed(reason: .passwordNotEqual)
+    } else {
+      return .serverError
+    }
+  }
+  
+  func register409Error(_ code: String) -> APIError {
+    if code == "EXISTING_USER" {
+      return .signUpFailed(reason: .emailAlreadyExists)
+    } else if code == "UNAVAILABLE_USERNAME" {
+      return .signUpFailed(reason: .invalidUseName)
+    } else if code == "EXISTING_USERNAME" {
+      return .signUpFailed(reason: .useNameAlreadyExists)
+    } else {
+      return .serverError
     }
   }
 }

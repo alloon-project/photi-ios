@@ -34,7 +34,7 @@ public struct Provider<Target: TargetType> {
   
   public func request<T: Decodable>(
     _ target: Target,
-    type: T.Type = VoidResponseDTO.self
+    type: T.Type = SuccessResponseDTO.self
   ) -> Single<BaseResponse<T>> {
     switch stubBehavior {
       case .never:
@@ -116,8 +116,8 @@ private extension Provider {
   ) throws -> BaseResponse<T> {
     let decoder = JSONDecoder()
     
-    // 성공 + data 있는 경우
-    if statusCode == 200 && T.self != VoidResponseDTO.self {
+    // 성공의 경우
+    if (200..<300).contains(statusCode) {
       let decodedData = try decoder.decode(BaseResponseDTO<T>.self, from: data)
       return BaseResponse(dto: decodedData, statusCode: statusCode, response: httpResponse)
     } else {

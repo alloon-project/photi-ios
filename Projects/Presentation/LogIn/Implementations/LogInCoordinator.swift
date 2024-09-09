@@ -109,16 +109,16 @@ final class LogInCoordinator: Coordinator {
 
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
-  func didFinishLogIn() {
-    listener?.didFinishLogIn()
+  func didFinishLogIn(userName: String) {
+    listener?.didFinishLogIn(userName: userName)
   }
 }
 
 // MARK: - SignUpListener
 extension LogInCoordinator: SignUpListener {
-  func didFinishSignUp() {
+  func didFinishSignUp(userName: String) {
     detachSignUp()
-    listener?.didFinishLogIn()
+    listener?.didFinishLogIn(userName: userName)
   }
   
   func didTapBackButtonAtSignUp() {

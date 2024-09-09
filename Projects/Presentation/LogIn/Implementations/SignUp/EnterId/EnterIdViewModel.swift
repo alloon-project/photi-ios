@@ -13,7 +13,7 @@ import UseCase
 
 protocol EnterIdCoordinatable: AnyObject { 
   func didTapBackButton()
-  func didTapNextButton()
+  func didTapNextButton(userName: String)
 }
 
 protocol EnterIdViewModelType: AnyObject, EnterIdViewModelable {
@@ -65,8 +65,9 @@ final class EnterIdViewModel: EnterIdViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapNextButton
-      .subscribe(with: self) { owner, _ in
-        owner.coordinator?.didTapNextButton()
+      .withLatestFrom(input.userId)
+      .subscribe(with: self) { owner, userName in
+        owner.coordinator?.didTapNextButton(userName: userName)
       }
       .disposed(by: disposeBag)
     

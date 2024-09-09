@@ -197,7 +197,7 @@ private extension EnterPasswordViewController {
       .map { !$0 }
       .drive(passwordCheckTextField.rx.isHidden)
       .disposed(by: disposeBag)
-
+    
     output.isValidPassword
       .map { !$0 }
       .drive(passwordCheckTitleLabel.rx.isHidden)
@@ -218,6 +218,12 @@ private extension EnterPasswordViewController {
     
     output.isEnabledNextButton
       .drive(nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayRequestFailedPopUp()
+      }
       .disposed(by: disposeBag)
   }
 }
@@ -240,6 +246,11 @@ private extension EnterPasswordViewController {
       .map { _ in PhotiProgressStep.four }
       .bind(to: progressBar.rx.step)
       .disposed(by: disposeBag)
+  }
+  
+  func displayRequestFailedPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
   }
 }
 

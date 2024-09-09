@@ -71,7 +71,7 @@ extension AppCoordinator: MainListener { }
 
 // MARK: - LogInListener
 extension AppCoordinator: LogInListener {
-  func didFinishLogIn() {
+  func didFinishLogIn(userName: String) {
     detachLogIn()
     attachMain()
   }

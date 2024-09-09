@@ -18,7 +18,7 @@ protocol LogInCoordinatable: AnyObject {
   func detachFindId()
   func attachFindPassword()
   func detachFindPassword()
-  func didFinishLogIn()
+  func didFinishLogIn(userName: String)
 }
 
 protocol LogInViewModelType: LogInViewModelable {
@@ -113,7 +113,7 @@ private extension LogInViewModel {
       .subscribe(
         with: self,
         onSuccess: { owner, _ in
-          owner.coordinator?.didFinishLogIn()
+          owner.coordinator?.didFinishLogIn(userName: userName)
         },
         onFailure: { owner, error in
           owner.requestFailed(with: error)

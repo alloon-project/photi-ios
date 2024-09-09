@@ -31,8 +31,8 @@ final class MainCoordinator: Coordinator {
 
   private let myPageContainable: MyPageContainable
   private var myPageCoordinator: Coordinating?
-
-  init(
+  
+ init(
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
     myPageContainable: MyPageContainable
