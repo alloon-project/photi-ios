@@ -8,10 +8,12 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol EnterPasswordCoordinatable: AnyObject { 
   func didTapBackButton()
-  func didTapContinueButton()
+  func didTapContinueButton(userName: String)
 }
 
 protocol EnterPasswordViewModelType: AnyObject, EnterPasswordViewModelable {
@@ -23,9 +25,16 @@ protocol EnterPasswordViewModelType: AnyObject, EnterPasswordViewModelable {
 }
 
 final class EnterPasswordViewModel: EnterPasswordViewModelType {
+  private let email: String
+  private let verificationCode: String
+  private let userName: String
+  private let useCase: SignUpUseCase
+  
   let disposeBag = DisposeBag()
   
   weak var coordinator: EnterPasswordCoordinatable?
+
+  private var requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -44,10 +53,21 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
     var isValidPassword: Driver<Bool>
     var correspondPassword: Driver<Bool>
     var isEnabledNextButton: Driver<Bool>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(
+    useCase: SignUpUseCase,
+    email: String,
+    verificationCode: String,
+    userName: String
+  ) {
+    self.useCase = useCase
+    self.email = email
+    self.verificationCode = verificationCode
+    self.userName = userName
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -57,8 +77,11 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapContinueButton
-      .bind(with: self) { owner, _ in
-        owner.coordinator?.didTapContinueButton()
+      .withLatestFrom(
+        Observable.zip(input.password, input.reEnteredPassword)
+      )
+      .bind(with: self) { owner, passwords in
+        owner.register(password: passwords.0, reEnteredPassword: passwords.1)
       }
       .disposed(by: disposeBag)
     
@@ -93,7 +116,32 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
       isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
       isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false), 
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
+      requestFailed: requestFailedRelay.asSignal()
     )
+  }
+}
+
+// MARK: - Private Methods
+private extension EnterPasswordViewModel {
+  func register(password: String, reEnteredPassword: String) {
+    useCase.register(
+      email: email,
+      verificationCode: verificationCode,
+      usernmae: userName,
+      password: password,
+      passwordReEnter: reEnteredPassword
+    )
+    .observe(on: MainScheduler.instance)
+    .subscribe(
+      with: self,
+      onSuccess: { owner, userName in
+        owner.coordinator?.didTapContinueButton(userName: userName)
+      },
+      onFailure: { owner, _ in
+        owner.requestFailedRelay.accept(())
+      }
+    )
+    .disposed(by: disposeBag)
   }
 }

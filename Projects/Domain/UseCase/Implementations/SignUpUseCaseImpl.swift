@@ -31,4 +31,20 @@ public struct SignUpUseCaseImpl: SignUpUseCase {
   public func verifyUseName(_ useName: String) -> Single<Void> {
     return repository.verifyUseName(useName)
   }
+  
+  public func register(
+    email: String,
+    verificationCode: String,
+    usernmae: String,
+    password: String,
+    passwordReEnter: String
+  ) -> Single<String> {
+    return repository.register(
+      email: email,
+      verificaionCode: verificationCode,
+      username: usernmae,
+      password: password.trimmingCharacters(in: .whitespacesAndNewlines),
+      passwordReEnter: passwordReEnter.trimmingCharacters(in: .whitespacesAndNewlines)
+    )
+  }
 }

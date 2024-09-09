@@ -47,7 +47,8 @@ extension LogInAPI: TargetType {
         let responseData = LogInRequestDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
-        return .networkResponse(200, jsonData ?? Data(), "", "")
+//        return .networkError(NSError())
+        return .networkResponse(500, jsonData ?? Data(), "", "")
     }
   }
 }

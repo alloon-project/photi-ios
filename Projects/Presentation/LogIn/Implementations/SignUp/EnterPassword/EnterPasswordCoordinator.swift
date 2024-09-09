@@ -13,7 +13,7 @@ protocol EnterPasswordViewModelable { }
 
 protocol EnterPasswordListener: AnyObject {
   func didTapBackButtonAtEnterPassword()
-  func didFinishEnterPassword()
+  func didFinishEnterPassword(userName: String)
 }
 
 final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
@@ -23,7 +23,7 @@ final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
   private let viewModel: EnterPasswordViewModel
   
   init(viewModel: EnterPasswordViewModel) {
-    self.viewModel = EnterPasswordViewModel()
+    self.viewModel = viewModel
     self.viewController = EnterPasswordViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -38,7 +38,7 @@ final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
     listener?.didTapBackButtonAtEnterPassword()
   }
   
-  func didTapContinueButton() {
-    listener?.didFinishEnterPassword()
+  func didTapContinueButton(userName: String) {
+    listener?.didFinishEnterPassword(userName: userName)
   }
 }

@@ -15,6 +15,7 @@ public enum SignUpAPI {
   case requestVerificationCode(dto: RequestVerificationCodeReqeustDTO)
   case verifyCode(dto: VerifyCodeRequestDTO)
   case verifyUserName(String)
+  case register(dto: RegisterRequestDTO)
 }
 
 extension SignUpAPI: TargetType {
@@ -31,6 +32,8 @@ extension SignUpAPI: TargetType {
         return "api/contacts/verify"
       case .verifyUserName:
         return "api/users/username"
+      case .register:
+        return "api/users/register"
     }
   }
   
@@ -42,6 +45,8 @@ extension SignUpAPI: TargetType {
         return .patch
       case .verifyUserName:
         return .get
+      case .register:
+        return .post
     }
   }
   
@@ -55,7 +60,12 @@ extension SignUpAPI: TargetType {
         let parameters = ["username": userName]
         return .requestParameters(
           parameters: parameters,
-          encoding: URLEncoding.init(destination: .queryString)
+          encoding: URLEncoding(destination: .queryString)
+        )
+      case let .register(dto):
+        return .requestParameters(
+          parameters: dto.toDictionary,
+          encoding: JSONEncoding.default
         )
     }
   }
@@ -66,13 +76,25 @@ extension SignUpAPI: TargetType {
         let responseData = RequestVerificationCodeReqeustDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
-        return .networkResponse(409, jsonData ?? Data(), "", "")
+        return .networkResponse(201, jsonData ?? Data(), "", "")
         
       case .verifyCode:
         let responseData = VerifyCodeRequestDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
-        return .networkResponse(400, jsonData ?? Data(), "", "")
+        return .networkResponse(200, jsonData ?? Data(), "", "")
+        
+      case .verifyUserName:
+        let responseData = VerifyCodeRequestDTO.stubData
+        let jsonData = responseData.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "", "")
+        
+      case .register:
+        let responseData = RegisterRequestDTO.stubData
+        let jsonData = responseData.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "", "")
     }
   }
 }

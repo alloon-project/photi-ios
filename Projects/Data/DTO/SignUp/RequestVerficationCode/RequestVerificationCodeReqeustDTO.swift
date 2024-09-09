@@ -19,8 +19,11 @@ extension RequestVerificationCodeReqeustDTO {
   public static let stubData =
  """
  {
- "code": "FAIL",
- "message": "FAIL",
+   "code": "FAIL",
+   "message": "FAIL",
+   "data": {
+      "successMessage": "성공"
+   },
  }
  """
 }

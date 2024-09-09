@@ -13,6 +13,6 @@ public protocol SignUpContainable: Containable {
 }
 
 public protocol SignUpListener: AnyObject {
-  func didFinishSignUp()
+  func didFinishSignUp(userName: String)
   func didTapBackButtonAtSignUp()
 }

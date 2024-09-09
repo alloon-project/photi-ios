@@ -13,5 +13,5 @@ public protocol LogInContainable: Containable {
 }
 
 public protocol LogInListener: AnyObject {
-  func didFinishLogIn()
+  func didFinishLogIn(userName: String)
 }
