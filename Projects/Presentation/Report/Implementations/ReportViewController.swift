@@ -35,16 +35,11 @@ final class ReportViewController: UIViewController {
     return tableView
   }()
   
-  private let detailLabel: UILabel = {
-    let label = UILabel()
-    label.attributedText = "자세한 내용을 적어주시면 신고에 도움이 돼요".attributedString(font: .heading4, color: .gray900)
-    
-    return label
-  }()
+  private let detailLabel = UILabel()
   
   private let detailContentTextView: LineTextView
   
-  private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
+  private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers
   init(viewModel: ReportViewModel, reportData: ReportDataSource) {
