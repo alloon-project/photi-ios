@@ -12,9 +12,11 @@ import Report
 
 protocol SettingViewModelable { }
 
-public protocol SettingListener: AnyObject { }
+public protocol SettingListener: AnyObject {
+  func didTapBackButtonAtSetting()
+}
 
-final class SettingCoordinator: Coordinator, SettingCoordinatable {
+final class SettingCoordinator: Coordinator {
   weak var listener: SettingListener?
   
   private let viewController: SettingViewController
@@ -67,7 +69,18 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
-    let coordinater = reportContainable.coordinator(listener: self, reportType: .inquiry)
+    let reportData = ReportDataSource(
+      title: "문의 내용이 무엇인가요?",
+      contents: ["서비스 이용 문의",
+                 "개선 / 제안 요청",
+                 "오류 문의",
+                 "기타 문의"],
+      textViewTitle: "자세한 내용을 적어주세요",
+      textViewPlaceholder: "문의 내용을 상세히 알려주세요",
+      buttonTitle: "제출하기"
+    )
+    
+    let coordinater = reportContainable.coordinator(listener: self, reportData: reportData)
     addChild(coordinater)
     
     self.reportCoordinator = coordinater
@@ -91,8 +104,18 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   func detachPrivacy() {}
 }
 
+// MARK: - Coordinatable
+extension SettingCoordinator: SettingCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtSetting()
+  }
+}
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {}
 
 // MARK: - Report
-extension SettingCoordinator: ReportListener {}
+extension SettingCoordinator: ReportListener {
+  func detachReport() {
+    self.detachInquiry()
+  }
+}

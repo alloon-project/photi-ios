@@ -18,7 +18,7 @@ final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Refactoring
-  private var reportType: ReportType
+  private var reportData: ReportDataSource
   private var selectedRow: Int?
   private var isDisplayDetailContent = false
   
@@ -42,14 +42,19 @@ final class ReportViewController: UIViewController {
     return label
   }()
   
-  private lazy var detailContentTextView = LineTextView(placeholder: "신고 내용을 상세히 알려주세요", type: .count(120))
+  private let detailContentTextView: LineTextView
   
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge, text: "신고하기")
   
   // MARK: - Initializers
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(viewModel: ReportViewModel, reportData: ReportDataSource) {
     self.viewModel = viewModel
-    self.reportType = reportType
+    self.reportData = reportData
+    
+    reasonLabel.attributedText = reportData.title.attributedString(font: .heading4, color: .gray900)
+    detailLabel.attributedText = reportData.textViewTitle.attributedString(font: .heading4, color: .gray900)
+    detailContentTextView = LineTextView(placeholder: reportData.textViewPlaceholder, type: .count(120))
+    reportButton.setText(reportData.buttonTitle, for: .normal)
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -87,20 +92,6 @@ final class ReportViewController: UIViewController {
 private extension ReportViewController {
   func setupUI() {
     self.view.backgroundColor = .white
-    
-    switch reportType {
-    case .challenge:
-      reasonLabel.attributedText = "미션을 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .feed:
-      reasonLabel.attributedText = "피드를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .member:
-      reasonLabel.attributedText = "멤버를 신고하는 이유가 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-    case .inquiry:
-      reasonLabel.attributedText = "문의 내용이 무엇인가요?".attributedString(font: .heading4, color: .gray900)
-      detailLabel.attributedText = "자세한 내용을 적어주세요".attributedString(font: .heading4, color: .gray900)
-      detailContentTextView.placeholder = "문의 내용을 상세히 알려주세요"
-      reportButton.setText("제출하기", for: .normal)
-    }
     
     setViewHierarchy()
     setConstraints()
@@ -156,7 +147,9 @@ private extension ReportViewController {
 // MARK: - Bind Methods
 private extension ReportViewController {
   func bind() {
-    let input = ReportViewModel.Input()
+    let input = ReportViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton
+    )
     
     let output = viewModel.transform(input: input)
     bind(output: output)
@@ -165,17 +158,10 @@ private extension ReportViewController {
   func bind(output: ReportViewModel.Output) { }
 }
 
-// MARK: - Internal Methods
-extension ReportViewController {
-  func setReportType(type: ReportType) {
-    self.reportType = type
-  }
-}
-
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   func numberOfSections(in tableView: UITableView) -> Int {
-    return reportType.contents.count
+    return reportData.contents.count
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -188,7 +174,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: reportType.contents[indexPath.section])
+    cell.configure(with: reportData.contents[indexPath.section])
     return cell
   }
   
@@ -201,7 +187,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    if section == reportType.contents.count - 1 {
+    if section == reportData.contents.count - 1 {
       return 0
     } else {
       return 10

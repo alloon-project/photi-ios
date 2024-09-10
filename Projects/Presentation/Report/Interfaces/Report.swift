@@ -9,7 +9,9 @@
 import Core
 
 public protocol ReportContainable: Containable {
-  func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating
+  func coordinator(listener: ReportListener, reportData: ReportDataSource) -> Coordinating
 }
 
-public protocol ReportListener: AnyObject { }
+public protocol ReportListener: AnyObject { 
+  func detachReport()
+}
