@@ -8,12 +8,15 @@
 
 import UIKit
 import Core
+import Report
 
 protocol SettingViewModelable { }
 
-public protocol SettingListener: AnyObject { }
+public protocol SettingListener: AnyObject {
+  func didTapBackButtonAtSetting()
+}
 
-final class SettingCoordinator: Coordinator, SettingCoordinatable {
+final class SettingCoordinator: Coordinator {
   weak var listener: SettingListener?
   
   private let viewController: SettingViewController
@@ -22,13 +25,19 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   private let profileEditContainable: ProfileEditContainable
   private var profileEditCoordinator: Coordinating?
   
+  private let reportContainable: ReportContainable
+  private var reportCoordinator: Coordinating?
+  
   init(
     viewModel: SettingViewModel,
-    profileEditContainable: ProfileEditContainable
+    profileEditContainable: ProfileEditContainable,
+    reportContainable: ReportContainable
   ) {
     self.viewModel = viewModel
     
     self.profileEditContainable = profileEditContainable
+    self.reportContainable = reportContainable
+    
     self.viewController = SettingViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -54,11 +63,37 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
     
     removeChild(coordinator)
     self.profileEditCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
-  func attachInquiry() {}
+  func attachInquiry() {
+    guard reportCoordinator == nil else { return }
+    
+    let reportData = ReportDataSource(
+      title: "문의 내용이 무엇인가요?",
+      contents: ["서비스 이용 문의",
+                 "개선 / 제안 요청",
+                 "오류 문의",
+                 "기타 문의"],
+      textViewTitle: "자세한 내용을 적어주세요",
+      textViewPlaceholder: "문의 내용을 상세히 알려주세요",
+      buttonTitle: "제출하기"
+    )
+    
+    let coordinater = reportContainable.coordinator(listener: self, reportData: reportData)
+    addChild(coordinater)
+    
+    self.reportCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
   
-  func detachInquiry() {}
+  func detachInquiry() {
+    guard let coordinator = reportCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.reportCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
   
   func attachServiceTerms() {}
   
@@ -69,5 +104,18 @@ final class SettingCoordinator: Coordinator, SettingCoordinatable {
   func detachPrivacy() {}
 }
 
+// MARK: - Coordinatable
+extension SettingCoordinator: SettingCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtSetting()
+  }
+}
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {}
+
+// MARK: - Report
+extension SettingCoordinator: ReportListener {
+  func detachReport() {
+    self.detachInquiry()
+  }
+}
