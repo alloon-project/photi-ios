@@ -68,6 +68,7 @@ private extension SettingViewController {
   
   func bind() {
     let input = SettingViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapCell: menuTableView.rx.itemSelected
     )
     

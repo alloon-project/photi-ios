@@ -10,7 +10,8 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol SettingCoordinatable: AnyObject { 
+protocol SettingCoordinatable: AnyObject {
+  func didTapBackButton()
   func attachProfileEdit()
   func detachProfileEdit()
   func attachInquiry()
@@ -36,6 +37,7 @@ final class SettingViewModel: SettingViewModelType {
   
   // MARK: - Input
   struct Input { 
+    let didTapBackButton: ControlEvent<Void>
     let didTapCell: ControlEvent<IndexPath>
   }
   
@@ -46,6 +48,12 @@ final class SettingViewModel: SettingViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapCell
       .bind(with: self) { onwer, index in
         switch index.row {

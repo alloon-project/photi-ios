@@ -12,14 +12,15 @@ import Report
 
 protocol ReportViewModelable { }
 
-final class ReportCoordinator: Coordinator, ReportCoordinatable {
+final class ReportCoordinator: Coordinator {
   weak var listener: ReportListener?
-    private let viewController: ReportViewController
+  
+  private let viewController: ReportViewController
   private let viewModel: any ReportViewModelType
   
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(viewModel: ReportViewModel, reportData: ReportDataSource) {
     self.viewModel = viewModel
-    self.viewController = ReportViewController(viewModel: viewModel, reportType: reportType)
+    self.viewController = ReportViewController(viewModel: viewModel, reportData: reportData)
     
     super.init()
     viewModel.coordinator = self
@@ -28,5 +29,11 @@ final class ReportCoordinator: Coordinator, ReportCoordinatable {
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: false)
+  }
+}
+
+extension ReportCoordinator: ReportCoordinatable {
+  func didTapBackButtonAtReport() {
+    listener?.detachReport()
   }
 }

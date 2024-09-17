@@ -54,8 +54,13 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     
     removeChild(coordinator)
     self.settingCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
 }
 
 // MARK: - SettingListener
-extension MyPageCoordinator: SettingListener {}
+extension MyPageCoordinator: SettingListener {
+  func didTapBackButtonAtSetting() {
+    detachSetting()
+  }
+}

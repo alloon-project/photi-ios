@@ -10,7 +10,9 @@ import RxCocoa
 import RxSwift
 import DesignSystem
 
-protocol ReportCoordinatable: AnyObject { }
+protocol ReportCoordinatable: AnyObject {
+  func didTapBackButtonAtReport()
+}
 
 protocol ReportViewModelType: ReportViewModelable {
   associatedtype Input
@@ -28,7 +30,9 @@ final class ReportViewModel: ReportViewModelType {
   weak var coordinator: ReportCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input { 
+    let didTapBackButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -37,6 +41,12 @@ final class ReportViewModel: ReportViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButtonAtReport()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }
