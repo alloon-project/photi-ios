@@ -8,8 +8,11 @@
 
 import Core
 import Home
+import LogIn
 
-public protocol HomeDependency: Dependency { }
+public protocol HomeDependency: Dependency {
+  var loginContainable: LogInContainable { get }
+}
 
 public final class HomeContainer:
   Container<HomeDependency>,
@@ -22,6 +25,7 @@ public final class HomeContainer:
     
     let coordinator = HomeCoordinator(
       viewModel: viewModel,
+      loginContainer: dependency.loginContainable,
       noneMemberHomeContainer: noneMemberHome
     )
     coordinator.listener = listener

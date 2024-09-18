@@ -11,9 +11,11 @@ import Core
 
 protocol NoneMemberHomeViewModelable: AnyObject { }
 
-protocol NoneMemberHomeListener: AnyObject { }
+protocol NoneMemberHomeListener: AnyObject {
+  func didTapLogInButtonAtNoneMemberHome()
+}
 
-final class NoneMemberHomeCoordinator: Coordinator, NoneMemberHomeCoordinatable {
+final class NoneMemberHomeCoordinator: Coordinator {
   weak var listener: NoneMemberHomeListener?
   
   private let viewController: NoneMemberHomeViewController
@@ -29,5 +31,12 @@ final class NoneMemberHomeCoordinator: Coordinator, NoneMemberHomeCoordinatable 
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
     navigationController?.pushViewController(viewController, animated: false)
+  }
+}
+
+// MARK: - NoneMemberHomeCoordinatable
+extension NoneMemberHomeCoordinator: NoneMemberHomeCoordinatable {
+  func didTapLogInButton() {
+    listener?.didTapLogInButtonAtNoneMemberHome()
   }
 }
