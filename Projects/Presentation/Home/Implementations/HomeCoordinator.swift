@@ -18,8 +18,15 @@ final class HomeCoordinator: Coordinator, HomeCoordinatable {
   private let viewController: HomeViewController
   private let viewModel: HomeViewModel
   
-  init(viewModel: HomeViewModel) {
+  private let noneMemberHomeContainer: NoneMemberHomeContainable
+  private var noneMemberHomeCoordinator: Coordinating?
+  
+  init(
+    viewModel: HomeViewModel,
+    noneMemberHomeContainer: NoneMemberHomeContainable
+  ) {
     self.viewModel = viewModel
+    self.noneMemberHomeContainer = noneMemberHomeContainer
     self.viewController = HomeViewController()
     super.init()
     viewModel.coordinator = self
@@ -27,6 +34,31 @@ final class HomeCoordinator: Coordinator, HomeCoordinatable {
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
+    navigationController?.pushViewController(viewController, animated: false)
+    attachNoneMemberHome()
   }
 }
+
+// MARK: - NoneMemberHome
+private extension HomeCoordinator {
+  func attachNoneMemberHome() {
+    guard noneMemberHomeCoordinator == nil else { return }
+    
+    let coordinator = noneMemberHomeContainer.coordinator(listener: self)
+    addChild(coordinator)
+    
+    self.noneMemberHomeCoordinator = coordinator
+    coordinator.start(at: self.navigationController)
+  }
+  
+  func detachNoneMemberHome() {
+    guard let coordinator = noneMemberHomeCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.noneMemberHomeCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
+}
+
+// MARK: - NoneMemberHomeListener
+extension HomeCoordinator: NoneMemberHomeListener { }

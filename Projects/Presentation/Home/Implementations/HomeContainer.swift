@@ -11,11 +11,19 @@ import Home
 
 public protocol HomeDependency: Dependency { }
 
-public final class HomeContainer: Container<HomeDependency>, HomeContainable {
+public final class HomeContainer:
+  Container<HomeDependency>,
+  HomeContainable,
+  NoneMemberHomeDependency {
   public func coordinator(listener: HomeListener) -> Coordinating {
     let viewModel = HomeViewModel()
     
-    let coordinator = HomeCoordinator(viewModel: viewModel)
+    let noneMemberHome = NoneMemberHomeContainer(dependency: self)
+    
+    let coordinator = HomeCoordinator(
+      viewModel: viewModel,
+      noneMemberHomeContainer: noneMemberHome
+    )
     coordinator.listener = listener
     return coordinator
   }

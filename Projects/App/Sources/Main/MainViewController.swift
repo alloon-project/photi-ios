@@ -30,6 +30,7 @@ final class MainViewController: UITabBarController {
   
   // MARK: - attachNavigationControllers
   func attachNavigationControllers(_ navigationControllers: UINavigationController ...) {
+    navigationControllers.forEach { $0.isNavigationBarHidden = true }
     setViewControllers(navigationControllers, animated: false)
     setTapBarItems()
   }
