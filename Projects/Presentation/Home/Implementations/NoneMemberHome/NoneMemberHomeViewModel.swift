@@ -10,7 +10,9 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol NoneMemberHomeCoordinatable: AnyObject { }
+protocol NoneMemberHomeCoordinatable: AnyObject {
+  func didTapLogInButton()
+}
 
 protocol NoneMemberHomeViewModelType: AnyObject {
   associatedtype Input
@@ -26,7 +28,9 @@ final class NoneMemberHomeViewModel: NoneMemberHomeViewModelType, NoneMemberHome
   weak var coordinator: NoneMemberHomeCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let didTapLogInButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -34,7 +38,14 @@ final class NoneMemberHomeViewModel: NoneMemberHomeViewModelType, NoneMemberHome
   // MARK: - Initializers
   init() { }
   
+  @discardableResult
   func transform(input: Input) -> Output {
+    input.didTapLogInButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapLogInButton()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }

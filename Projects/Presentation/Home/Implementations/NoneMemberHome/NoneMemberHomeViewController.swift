@@ -96,4 +96,12 @@ private extension NoneMemberHomeViewController {
     }
   }
 }
+
+// MARK: - Bind Methods
+private extension NoneMemberHomeViewController {
+  func bind() {
+    let input = NoneMemberHomeViewModel.Input(didTapLogInButton: loginButton.rx.tap)
+    
+    viewModel.transform(input: input)
+  }
 }
