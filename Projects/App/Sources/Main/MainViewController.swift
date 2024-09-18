@@ -11,7 +11,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class MainViewController: UITabBarController {  
+final class MainViewController: UITabBarController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -40,7 +40,7 @@ private extension MainViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     tabBar.backgroundColor = .white
-    tabBar.tintColor = .green500
+    tabBar.tintColor = .blue400
     tabBar.unselectedItemTintColor = .gray400
     
     // tabBar Border Setting
@@ -51,7 +51,7 @@ private extension MainViewController {
     // tabBar AttributedText Setting
     let appearance = UITabBarItem.appearance()
     let normalAttributes = NSAttributedString.attributes(font: .caption1Bold, color: .gray400)
-    let selectedAttributes = NSAttributedString.attributes(font: .caption1Bold, color: .green500)
+    let selectedAttributes = NSAttributedString.attributes(font: .caption1Bold, color: .blue500)
     
     appearance.setTitleTextAttributes(normalAttributes, for: .normal)
     appearance.setTitleTextAttributes(selectedAttributes, for: .selected)
@@ -64,7 +64,7 @@ private extension MainViewController {
     items[0].title = "홈"
     
     items[1].image = UIImage(systemName: "globe.asia.australia.fill")!
-    items[1].title = "미션"
+    items[1].title = "챌린지"
     
     items[2].image = UIImage(systemName: "person.crop.circle.fill")!
     items[2].title = "프로필"
