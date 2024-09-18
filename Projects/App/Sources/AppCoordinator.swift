@@ -15,24 +15,16 @@ final class AppCoordinator: Coordinator {
 
   private let mainContainer: MainContainable
   private var mainCoordinator: Coordinating?
-  
-  private let logInContainer: LogInContainable
-  private var logInCoordinator: Coordinating?
-    
-  init(
-    mainContainer: MainContainable,
-    logInContainer: LogInContainable
-  ) {
+
+  init(mainContainer: MainContainable) {
     self.mainContainer = mainContainer
-    self.logInContainer = logInContainer
     self.viewController = AppViewController()
     super.init()
   }
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    // TODO: 토큰 여부로 logIn, main결정하는 로직 추후 구현
-    attachLogIn()
+    attachMain()
   }
   
   // MARK: - Main
@@ -45,34 +37,7 @@ final class AppCoordinator: Coordinator {
     
     self.mainCoordinator = coordinator
   }
-  
-  // MARK: - LogIn
-  func attachLogIn() {
-    guard logInCoordinator == nil else { return }
-    
-    let coordinator = logInContainer.coordinator(listener: self)
-    addChild(coordinator)
-    
-    self.logInCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
-  }
-  
-  func detachLogIn() {
-    guard let coordinator = logInCoordinator else { return }
-    
-    navigationController?.dismiss(animated: true)
-    removeChild(coordinator)
-    self.logInCoordinator = nil
-  }
 }
 
 // MARK: - MainListener
 extension AppCoordinator: MainListener { }
-
-// MARK: - LogInListener
-extension AppCoordinator: LogInListener {
-  func didFinishLogIn(userName: String) {
-    detachLogIn()
-    attachMain()
-  }
-}
