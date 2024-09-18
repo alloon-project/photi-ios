@@ -8,10 +8,16 @@
 
 import Core
 import DataMapper
+import Home
+import HomeImpl
 import LogIn
 import LogInImpl
+import MyPage
+import MyPageImpl
 import Repository
 import RepositoryImpl
+import SearchChallenge
+import SearchChallengeImpl
 import UseCase
 import UseCaseImpl
 
@@ -24,14 +30,28 @@ protocol AppContainable: Containable {
 final class AppContainer:
   Container<AppDependency>,
   AppContainable,
-  MainDependency,
   LogInDependency,
-  SignUpDependency {
+  SignUpDependency,
+  HomeDependency,
+  SearchChallengeDependency,
+  MyPageDependency {
   func coordinator() -> Coordinating {
-    return AppCoordinator(mainContainer: MainContainer(dependency: self))
+    let home = HomeContainer(dependency: self)
+    let searchChallenge = SearchChallengeContainer(dependency: self)
+    let myPage = MyPageContainer(dependency: self)
+    
+    return AppCoordinator(
+      homeContainable: home,
+      searchChallengeContainable: searchChallenge,
+      myPageContainable: myPage
+    )
   }
   
   // MARK: - Containable
+  lazy var loginContainable: LogInContainable = {
+    return LogInContainer(dependency: self)
+  }()
+  
   lazy var signUpContainable: SignUpContainable = {
     return SignUpContainer(dependency: self)
   }()

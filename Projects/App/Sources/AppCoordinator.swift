@@ -8,36 +8,67 @@
 
 import UIKit
 import Core
-import LogIn
+import Home
+import SearchChallenge
+import MyPage
 
 final class AppCoordinator: Coordinator {
   private let viewController: AppViewController
+  
+  private let homeNavigationController = UINavigationController()
+  private let searchChallengeNavigationController = UINavigationController()
+  private let myPageNavigationController = UINavigationController()
+  
+  private let homeContainable: HomeContainable
+  private var homeCoordinator: Coordinating?
 
-  private let mainContainer: MainContainable
-  private var mainCoordinator: Coordinating?
+  private let searchChallengeContainable: SearchChallengeContainable
+  private var searchChallengeCoordinator: Coordinating?
 
-  init(mainContainer: MainContainable) {
-    self.mainContainer = mainContainer
+  private let myPageContainable: MyPageContainable
+  private var myPageCoordinator: Coordinating?
+  
+ init(
+    homeContainable: HomeContainable,
+    searchChallengeContainable: SearchChallengeContainable,
+    myPageContainable: MyPageContainable
+  ) {
+    self.homeContainable = homeContainable
+    self.searchChallengeContainable = searchChallengeContainable
+    self.myPageContainable = myPageContainable
     self.viewController = AppViewController()
     super.init()
   }
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    attachMain()
+    navigationController?.setNavigationBarHidden(true, animated: false)
+    navigationController?.pushViewController(viewController, animated: false)
+    attachCoordinators()
   }
   
-  // MARK: - Main
-  func attachMain() {
-    if mainCoordinator != nil { return }
+  func attachCoordinators() {
+    self.homeCoordinator = homeContainable.coordinator(listener: self)
+    self.searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
+    self.myPageCoordinator = myPageContainable.coordinator(listener: self)
     
-    let coordinator = mainContainer.coordinator(listener: self)
-    self.addChild(coordinator)
-    coordinator.start(at: self.navigationController)
+    homeCoordinator?.start(at: homeNavigationController)
+    searchChallengeCoordinator?.start(at: searchChallengeNavigationController)
+    myPageCoordinator?.start(at: myPageNavigationController)
     
-    self.mainCoordinator = coordinator
+    viewController.attachNavigationControllers(
+      homeNavigationController,
+      searchChallengeNavigationController,
+      myPageNavigationController
+    )
   }
 }
 
-// MARK: - MainListener
-extension AppCoordinator: MainListener { }
+// MARK: - HomeListener
+extension AppCoordinator: HomeListener { }
+
+// MARK: - SearchChallengeListener
+extension AppCoordinator: SearchChallengeListener { }
+
+// MARK: - MyPageListener
+extension AppCoordinator: MyPageListener { }
