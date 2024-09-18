@@ -1,0 +1,69 @@
+// swiftlint:disable all
+// swift-format-ignore-file
+// swiftformat:disable all
+// Generated using tuist — https://github.com/tuist/tuist
+
+{% if catalogs %}
+{% set enumName %}{{param.name}}{% endset %}
+{% set arResourceGroupType %}{{param.name}}ARResourceGroup{% endset %}
+{% set imageType %}{{param.name}}Images{% endset %}
+{% set forceNamespaces %}{{param.forceProvidesNamespaces|default:"false"}}{% endset %}
+{% set bundleToken %}{{param.name}}Resources{% endset %}
+{% set accessModifier %}{% if param.publicAccess %}public{% else %}internal{% endif %}{% endset %}
+{% if resourceCount.arresourcegroup > 0 %}
+  import ARKit
+{% endif %}
+import UIKit
+
+// swiftlint:disable superfluous_disable_command file_length implicit_return
+
+// MARK: - Implementation Details
+{% if resourceCount.image > 0 %}
+{{accessModifier}} struct {{imageType}} {
+	{{accessModifier}} fileprivate(set) var name: String
+	{{accessModifier}} typealias Image = UIImage
+	
+	{{accessModifier}} var image: Image {
+		let bundle = {{bundleToken}}.bundle
+		let image = Image(named: name, in: bundle, compatibleWith: nil)
+		guard let result = image else {
+			fatalError("Unable to load image asset named \\(name).")
+		}
+		return result
+	}
+}
+
+{{accessModifier}} extension {{imageType}}.Image {
+	@available(macOS, deprecated,
+						 message: "This initializer is unsafe on macOS, please use the {{imageType}}.image property")
+	convenience init?(asset: {{imageType}}) {
+		let bundle = {{bundleToken}}.bundle
+		self.init(named: asset.name, in: bundle, compatibleWith: nil)
+	}
+}
+{% endif %}
+
+// MARK: - Image Catalogs
+{{accessModifier}} extension UIImage {
+	{% for category in catalogs where category.name == "Images" %}
+	{% for asset in category.assets %}
+	static let {{asset.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = {{imageType}}(name: "{{asset.value}}").image
+	{% endfor %}
+	{% endfor %}
+}
+{% if not param.bundle and not param.lookupFunction %}
+// swiftlint:disable convenience_type
+
+private final class BundleToken {
+	static let bundle: Bundle = {
+		Bundle(for: BundleToken.self)
+	}()
+}
+
+// swiftlint:enable convenience_type
+{% endif %}
+{% else %}
+// No assets found
+{% endif %}
+// swiftlint:enable all
+// swiftformat:enable all
