@@ -9,38 +9,24 @@
 import UIKit
 
 public extension UIViewController {
-  func hideTabBar() {
-    guard self.tabBarController?.tabBar.isHidden == false else { return }
+  func hideTabBar(animated: Bool) {
+    guard
+      self.tabBarController?.tabBar.isHidden == false,
+      let tabBarHideY = self.tabBarHideY
+    else { return }
     
-    UIView.animate(
-      withDuration: 0.3,
-      delay: 0,
-      options: .curveLinear
-    ) {
-      guard let tabBarHideY = self.tabBarHideY else { return }
-      self.tabBarController?.tabBar.frame.origin.y = tabBarHideY
-      self.view.layoutIfNeeded()
-    } completion: { _ in
-      self.tabBarController?.tabBar.isHidden = true
-    }
+    animated ? hideTabBarWithAnimation(tabBarY: tabBarHideY) : hideTabBar(tabBarY: tabBarHideY)
   }
   
-  func showTabBar() {
-    guard self.tabBarController?.tabBar.isHidden == true else { return }
+  func showTabBar(animted: Bool) {
+    guard
+      self.tabBarController?.tabBar.isHidden == true,
+      let tabBarPresentY = self.tabBarPresentY
+    else { return }
     
     self.tabBarController?.tabBar.isHidden = false
-    self.tabBarController?.tabBar.frame.origin.y = tabBarHideY ?? 0
     
-    UIView.animate(
-      withDuration: 0.3,
-      delay: 0,
-      options: .curveLinear
-    ) {
-      guard let tabBarPresentY = self.tabBarPresentY else { return }
-      
-      self.tabBarController?.tabBar.frame.origin.y = tabBarPresentY
-      self.view.layoutIfNeeded()
-    }
+    animted ? showTabBarWithAnimation(tabBarY: tabBarPresentY) : showTabBar(tabBarY: tabBarPresentY)
   }
 }
 
@@ -55,5 +41,43 @@ private extension UIViewController {
     guard let tabBarFrame = self.tabBarController?.tabBar.frame else { return nil }
     
     return view.frame.maxY - tabBarFrame.height
+  }
+  
+  func hideTabBar(tabBarY: CGFloat) {
+    self.tabBarController?.tabBar.frame.origin.y = tabBarY
+    self.tabBarController?.tabBar.isHidden = true
+  }
+  
+  func hideTabBarWithAnimation(tabBarY: CGFloat) {
+    UIView.animate(
+      withDuration: 0.3,
+      delay: 0,
+      options: .curveLinear
+    ) {
+      self.tabBarController?.tabBar.frame.origin.y = tabBarY
+      self.view.layoutIfNeeded()
+    } completion: { _ in
+      self.tabBarController?.tabBar.isHidden = true
+    }
+  }
+  
+  func showTabBar(tabBarY: CGFloat) {
+    self.tabBarController?.tabBar.frame.origin.y = tabBarY
+    self.view.layoutIfNeeded()
+  }
+  
+  func showTabBarWithAnimation(tabBarY: CGFloat) {
+    self.tabBarController?.tabBar.frame.origin.y = tabBarHideY ?? 0
+    
+    UIView.animate(
+      withDuration: 0.3,
+      delay: 0,
+      options: .curveLinear
+    ) {
+      guard let tabBarPresentY = self.tabBarPresentY else { return }
+      
+      self.tabBarController?.tabBar.frame.origin.y = tabBarPresentY
+      self.view.layoutIfNeeded()
+    }
   }
 }
