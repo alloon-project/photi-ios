@@ -44,10 +44,9 @@ final class LogInCoordinator: Coordinator {
   }
   
   override func start(at navigationController: UINavigationController?) {
-    let navigation = UINavigationController(rootViewController: viewController)
-    self.navigationController = navigation
-    navigation.modalPresentationStyle = .fullScreen
-    navigationController?.present(navigation, animated: true)
+    super.start(at: navigationController)
+    
+    navigationController?.pushViewController(viewController, animated: true)
   }
   
   // MARK: - SignUp
@@ -111,6 +110,10 @@ final class LogInCoordinator: Coordinator {
 extension LogInCoordinator: LogInCoordinatable {
   func didFinishLogIn(userName: String) {
     listener?.didFinishLogIn(userName: userName)
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtLogIn()
   }
 }
 

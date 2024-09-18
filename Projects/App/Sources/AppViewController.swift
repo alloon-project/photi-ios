@@ -30,6 +30,10 @@ final class AppViewController: UITabBarController {
   
   // MARK: - attachNavigationControllers
   func attachNavigationControllers(_ navigationControllers: UINavigationController ...) {
+    navigationControllers.forEach {
+      $0.interactivePopGestureRecognizer?.isEnabled = false
+    }
+
     navigationControllers.forEach { $0.isNavigationBarHidden = true }
     setViewControllers(navigationControllers, animated: false)
     setTapBarItems()

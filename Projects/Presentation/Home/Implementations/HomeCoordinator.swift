@@ -84,6 +84,8 @@ private extension HomeCoordinator {
     
     removeChild(coordinator)
     self.loginCoordinator = nil
+    
+    viewController.showTabBar(animted: false)
     navigationController?.popViewController(animated: true)
   }
 }
@@ -97,8 +99,11 @@ extension HomeCoordinator: NoneMemberHomeListener {
 
 // MARK: - LogInListener
 extension HomeCoordinator: LogInListener {
+  func didTapBackButtonAtLogIn() {
+    detachLogIn()
+  }
+  
   public func didFinishLogIn(userName: String) {
     detachLogIn()
-    // attach 다른거
   }
 }
