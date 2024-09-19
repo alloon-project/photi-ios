@@ -29,8 +29,7 @@ public final class PrimaryNavigationView: UIView {
   public let iconType: PrimaryNavigationIconType
   /// 컴포넌트의 컬러 타입을 나타냅니다. (default : dark)
   public let colorType: PrimaryNavigationColorType
-  public let leftImageView = UIImageView(image:
-                                          UIImage(resource: .leftBackButtonDark))
+  public let leftImageView = UIImageView(image: .leftBackButtonDark)
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   private let titleLabel = UILabel()
   public let rightImageView = UIImageView()
@@ -125,16 +124,16 @@ private extension PrimaryNavigationView {
     case .none, .center:
       switch colorType {
       case .light:
-        rightImageView.image = UIImage(resource: .ellipsisVerticalLight)
+        rightImageView.image = .ellipsisVerticalLight
       case .dark:
-        rightImageView.image = UIImage(resource: .ellipsisVerticalDark)
+        rightImageView.image = .ellipsisVerticalDark
       }
     case .left:
       switch colorType {
       case .light:
-        rightImageView.image = UIImage(resource: .iconSearchLight)
+        rightImageView.image = .iconSearchLight
       case .dark:
-        rightImageView.image = UIImage(resource: .iconSearchDark)
+        rightImageView.image = .iconSearchDark
       }
     }
     
@@ -150,9 +149,9 @@ private extension PrimaryNavigationView {
   func makeColorType() {
     switch self.colorType {
     case .light:
-      leftImageView.image = UIImage(resource: .leftBackButtonLight)
+      leftImageView.image = .leftBackButtonLight
     case .dark:
-      leftImageView.image = UIImage(resource: .leftBackButtonDark)
+      leftImageView.image = .leftBackButtonDark
     }
   }
   
