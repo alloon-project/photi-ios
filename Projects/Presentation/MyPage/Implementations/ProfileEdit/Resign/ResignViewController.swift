@@ -18,9 +18,11 @@ final class ResignViewController: UIViewController {
   
   private let disposeBag = DisposeBag()
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(textType: .none,
-                                                    iconType: .one,
-                                                    colorType: .dark)
+  private let navigationBar = PrimaryNavigationView(
+    textType: .none,
+    iconType: .one,
+    colorType: .dark
+  )
   
   private let titleLabel = {
     let label = UILabel()
@@ -30,9 +32,17 @@ final class ResignViewController: UIViewController {
     
     return label
   }()
-  private let resignButton = LineRoundButton(text: "탈퇴하기", type: .primary, size: .xLarge)
+  private let resignButton = LineRoundButton(
+    text: "탈퇴하기",
+    type: .primary,
+    size: .xLarge
+  )
   
-  private let cancelButton = LineRoundButton(text: "취소하기", type: .quaternary, size: .xLarge)
+  private let cancelButton = LineRoundButton(
+    text: "취소하기",
+    type: .quaternary,
+    size: .xLarge
+  )
   
   // MARK: - Initializers
   init(viewModel: ResignViewModel) {

@@ -28,6 +28,7 @@ final class ProfileEditViewController: UIViewController {
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
+    imageView.image = .person
     
     return imageView
   }()
