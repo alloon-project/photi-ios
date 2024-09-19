@@ -53,6 +53,7 @@ final class MyPageViewController: UIViewController {
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
     imageView.image = .person
+    imageView.contentMode = .scaleAspectFill
     
     return imageView
   }()
