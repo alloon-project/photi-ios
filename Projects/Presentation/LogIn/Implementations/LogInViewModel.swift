@@ -19,6 +19,7 @@ protocol LogInCoordinatable: AnyObject {
   func attachFindPassword()
   func detachFindPassword()
   func didFinishLogIn(userName: String)
+  func didTapBackButton()
 }
 
 protocol LogInViewModelType: LogInViewModelable {
@@ -45,6 +46,7 @@ final class LogInViewModel: LogInViewModelType {
   struct Input {
     let id: ControlProperty<String>
     let password: ControlProperty<String>
+    let didTapBackButton: ControlEvent<Void>
     let didTapLoginButton: ControlEvent<Void>
     let didTapFindIdButton: ControlEvent<Void>
     let didTapFindPasswordButton: ControlEvent<Void>
@@ -79,6 +81,12 @@ final class LogInViewModel: LogInViewModelType {
     input.didTapFindPasswordButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.attachFindPassword()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     

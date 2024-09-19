@@ -50,10 +50,15 @@ final class LogInViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
-    self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
+
     setupUI()
     bind()
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    
+    hideTabBar(animated: false)
   }
   
   // MARK: - UIResponder
@@ -123,6 +128,7 @@ private extension LogInViewController {
     let input = LogInViewModel.Input(
       id: idTextField.rx.text,
       password: passwordTextField.rx.text,
+      didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapLoginButton: loginButton.rx.tap,
       didTapFindIdButton: findView.rx.didTapFindIdButton,
       didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,

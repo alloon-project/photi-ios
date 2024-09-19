@@ -8,71 +8,67 @@
 
 import UIKit
 import Core
-import LogIn
+import Home
+import SearchChallenge
+import MyPage
 
 final class AppCoordinator: Coordinator {
   private let viewController: AppViewController
-
-  private let mainContainer: MainContainable
-  private var mainCoordinator: Coordinating?
   
-  private let logInContainer: LogInContainable
-  private var logInCoordinator: Coordinating?
-    
-  init(
-    mainContainer: MainContainable,
-    logInContainer: LogInContainable
+  private let homeNavigationController = UINavigationController()
+  private let searchChallengeNavigationController = UINavigationController()
+  private let myPageNavigationController = UINavigationController()
+  
+  private let homeContainable: HomeContainable
+  private var homeCoordinator: Coordinating?
+
+  private let searchChallengeContainable: SearchChallengeContainable
+  private var searchChallengeCoordinator: Coordinating?
+
+  private let myPageContainable: MyPageContainable
+  private var myPageCoordinator: Coordinating?
+  
+ init(
+    homeContainable: HomeContainable,
+    searchChallengeContainable: SearchChallengeContainable,
+    myPageContainable: MyPageContainable
   ) {
-    self.mainContainer = mainContainer
-    self.logInContainer = logInContainer
+    self.homeContainable = homeContainable
+    self.searchChallengeContainable = searchChallengeContainable
+    self.myPageContainable = myPageContainable
     self.viewController = AppViewController()
     super.init()
   }
   
   override func start(at navigationController: UINavigationController?) {
     super.start(at: navigationController)
-    // TODO: 토큰 여부로 logIn, main결정하는 로직 추후 구현
-    attachLogIn()
+    navigationController?.setNavigationBarHidden(true, animated: false)
+    navigationController?.pushViewController(viewController, animated: false)
+    attachCoordinators()
   }
   
-  // MARK: - Main
-  func attachMain() {
-    if mainCoordinator != nil { return }
+  func attachCoordinators() {
+    self.homeCoordinator = homeContainable.coordinator(listener: self)
+    self.searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
+    self.myPageCoordinator = myPageContainable.coordinator(listener: self)
     
-    let coordinator = mainContainer.coordinator(listener: self)
-    self.addChild(coordinator)
-    coordinator.start(at: self.navigationController)
+    homeCoordinator?.start(at: homeNavigationController)
+    searchChallengeCoordinator?.start(at: searchChallengeNavigationController)
+    myPageCoordinator?.start(at: myPageNavigationController)
     
-    self.mainCoordinator = coordinator
-  }
-  
-  // MARK: - LogIn
-  func attachLogIn() {
-    guard logInCoordinator == nil else { return }
-    
-    let coordinator = logInContainer.coordinator(listener: self)
-    addChild(coordinator)
-    
-    self.logInCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
-  }
-  
-  func detachLogIn() {
-    guard let coordinator = logInCoordinator else { return }
-    
-    navigationController?.dismiss(animated: true)
-    removeChild(coordinator)
-    self.logInCoordinator = nil
+    viewController.attachNavigationControllers(
+      homeNavigationController,
+      searchChallengeNavigationController,
+      myPageNavigationController
+    )
   }
 }
 
-// MARK: - MainListener
-extension AppCoordinator: MainListener { }
+// MARK: - HomeListener
+extension AppCoordinator: HomeListener { }
 
-// MARK: - LogInListener
-extension AppCoordinator: LogInListener {
-  func didFinishLogIn(userName: String) {
-    detachLogIn()
-    attachMain()
-  }
-}
+// MARK: - SearchChallengeListener
+extension AppCoordinator: SearchChallengeListener { }
+
+// MARK: - MyPageListener
+extension AppCoordinator: MyPageListener { }
