@@ -19,6 +19,7 @@ let project = Project.make(
 			sources: ["Home/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.Home,
+				.Project.Presentation.LogIn,
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
