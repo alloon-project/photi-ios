@@ -40,6 +40,7 @@ final class PasswordChangeViewController: UIViewController {
       font: .heading4,
       color: .gray900
     )
+    
     return label
   }()
   
@@ -51,42 +52,61 @@ final class PasswordChangeViewController: UIViewController {
       font: .heading4,
       color: .gray900
     )
+    
     return label
   }()
   
   private let newPasswordCheckTextField = PasswordTextField(placeholder: "새 비밀번호 재입력", type: .helper)
   
-  private let forgotPasswordButton = TextButton(text: "비밀번호가 기억나지 않아요",
-                                                size: .xSmall,
-                                                type: .primary,
-                                                mode: .default,
-                                                isEnabledUnderLine: true)
+  private let forgotPasswordButton = TextButton(
+    text: "비밀번호가 기억나지 않아요",
+    size: .xSmall,
+    type: .primary,
+    mode: .default,
+    isEnabledUnderLine: true
+  )
   
-  private let changePasswordButton = FilledRoundButton(type: .primary, size: .xLarge, text: "변경하기")
+  private let changePasswordButton = FilledRoundButton(
+    type: .primary,
+    size: .xLarge,
+    text: "변경하기"
+  )
   
   // TODO: - DS 적용후 이미지 수정
   private let currentPasswordCommentView = CommentView(
-    .condition, text: "비밀번호 일치", icon: UIImage(systemName: "checkmark")!
+    .condition, 
+    text: "비밀번호 일치",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   private let containAlphabetCommentView = CommentView(
-    .condition, text: "영문 포함", icon: UIImage(systemName: "checkmark")!
+    .condition, 
+    text: "영문 포함",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   private let containNumberCommentView = CommentView(
-    .condition, text: "숫자 포함", icon: UIImage(systemName: "checkmark")!
+    .condition,
+    text: "숫자 포함",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   private let containSpecialCommentView = CommentView(
-    .condition, text: "특수문자 포함", icon: UIImage(systemName: "checkmark")!
+    .condition, 
+    text: "특수문자 포함",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   private let validRangeCommentView = CommentView(
-    .condition, text: "8~30자", icon: UIImage(systemName: "checkmark")!
+    .condition, 
+    text: "8~30자",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   private let correnspondPasswordCommentView = CommentView(
-    .condition, text: "새 비밀번호 일치", icon: UIImage(systemName: "checkmark")!
+    .condition, 
+    text: "새 비밀번호 일치",
+    icon: UIImage(systemName: "checkmark")!
   )
   
   // MARK: - Initializers
@@ -106,19 +126,23 @@ final class PasswordChangeViewController: UIViewController {
     super.viewDidLoad()
     
     newPasswordCheckTextField.textField.delegate = self
-    NotificationCenter.default.addObserver(self, 
-                                           selector: #selector(keyboardAppear),
-                                           name: UIResponder.keyboardDidShowNotification,
-                                           object: nil)
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(keyboardAppear),
+      name: UIResponder.keyboardDidShowNotification,
+      object: nil
+    )
     setupUI()
     bind()
   }
   
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    NotificationCenter.default.removeObserver(self, 
-                                              name: UIResponder.keyboardDidShowNotification,
-                                              object: nil)
+    NotificationCenter.default.removeObserver(
+      self,
+      name: UIResponder.keyboardDidShowNotification,
+      object: nil
+    )
   }
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -134,10 +158,12 @@ private extension PasswordChangeViewController {
     self.view.backgroundColor = .white
     
     currentPasswordTextField.commentViews = [currentPasswordCommentView]
-    newPasswordTextField.commentViews = [containAlphabetCommentView,
-                                         containNumberCommentView,
-                                         containSpecialCommentView,
-                                         validRangeCommentView]
+    newPasswordTextField.commentViews = [
+      containAlphabetCommentView,
+      containNumberCommentView,
+      containSpecialCommentView,
+      validRangeCommentView
+    ]
     newPasswordCheckTextField.commentViews = [correnspondPasswordCommentView]
     
     setViewHierarchy()
@@ -145,15 +171,17 @@ private extension PasswordChangeViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar,
-                          currentPasswordTitleLabel,
-                          currentPasswordTextField,
-                          newPasswordTitleLabel,
-                          newPasswordTextField,
-                          newPasswordCheckTitleLabel,
-                          newPasswordCheckTextField,
-                          forgotPasswordButton,
-                          changePasswordButton)
+    self.view.addSubviews(
+      navigationBar,
+      currentPasswordTitleLabel,
+      currentPasswordTextField,
+      newPasswordTitleLabel,
+      newPasswordTextField,
+      newPasswordCheckTitleLabel,
+      newPasswordCheckTextField,
+      forgotPasswordButton,
+      changePasswordButton
+    )
   }
   
   func setConstraints() {

@@ -17,14 +17,18 @@ import Core
 public class SearchNavigation: UIView {
   fileprivate let leftBackButtonImage = {
     var imageView = UIImageView()
-    imageView.image = UIImage(resource: .leftBackButtonDark).resize(CGSize(width: 24, height: 24))
+    imageView.image = .leftBackButtonDark.resize(CGSize(width: 24, height: 24))
+    
     return imageView
   }()
+  
   fileprivate let searchBar: PhotiSearchBar
   
   // MARK: - Initializers
-  public init(placeholder: String = "",
-              text: String = "") {
+  public init(
+    placeholder: String = "",
+    text: String = ""
+  ) {
     self.searchBar = PhotiSearchBar(placeholder: placeholder, text: text)
     super.init(frame: .zero)
     setupUI()

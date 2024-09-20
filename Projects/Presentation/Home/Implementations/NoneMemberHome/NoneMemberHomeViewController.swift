@@ -20,7 +20,7 @@ final class NoneMemberHomeViewController: UIViewController {
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
     let imageView = UIImageView()
-    imageView.image = .logoLetters
+    imageView.image = .logoLettersBlue
     imageView.contentMode = .left
     
     return imageView

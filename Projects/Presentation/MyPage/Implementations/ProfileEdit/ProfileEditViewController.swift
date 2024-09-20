@@ -18,16 +18,20 @@ final class ProfileEditViewController: UIViewController {
   
   private let disposeBag = DisposeBag()
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(textType: .center,
-                                                    iconType: .one,
-                                                    colorType: .dark,
-                                                    titleText: "프로필 수정")
+  private let navigationBar = PrimaryNavigationView(
+    textType: .center,
+    iconType: .one,
+    colorType: .dark,
+    titleText: "프로필 수정"
+  )
   
   private let profileImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
+    imageView.image = .person
+    imageView.contentMode = .scaleAspectFill
     
     return imageView
   }()
@@ -80,10 +84,12 @@ private extension ProfileEditViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar,
-                          profileImageView,
-                          menuTableView,
-                          resignButton)
+    self.view.addSubviews(
+      navigationBar,
+      profileImageView,
+      menuTableView,
+      resignButton
+    )
   }
   
   func setConstraints() {
