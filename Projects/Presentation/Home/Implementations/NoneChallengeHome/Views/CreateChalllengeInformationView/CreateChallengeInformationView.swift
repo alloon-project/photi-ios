@@ -19,6 +19,7 @@ final class CreateChallengeInformationView: UIView {
       font: .body1Bold,
       color: .gray900
     )
+    label.textAlignment = .center
     label.numberOfLines = 0
     
     return label

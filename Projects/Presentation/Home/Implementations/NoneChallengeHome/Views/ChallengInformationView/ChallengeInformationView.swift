@@ -101,7 +101,6 @@ private extension ChallengeInformationView {
       challengeTimeContentView,
       participateCountView,
       participateButton
-      //      hashTagScrollView
     )
     
     participateCountView.addSubviews(participateImageView, participateCountLabel)
