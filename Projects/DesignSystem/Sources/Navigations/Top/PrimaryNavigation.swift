@@ -29,15 +29,14 @@ public final class PrimaryNavigationView: UIView {
   public let iconType: PrimaryNavigationIconType
   /// 컴포넌트의 컬러 타입을 나타냅니다. (default : dark)
   public let colorType: PrimaryNavigationColorType
-  public let leftImageView = UIImageView(image:
-                                          UIImage(resource: .leftBackButtonDark))
+  public let leftImageView = UIImageView(image: .leftBackButtonDark)
   /// 타이틀 Label입니다. textType에 따라 유/무, 위치가 변경됩니다.
   private let titleLabel = UILabel()
   public let rightImageView = UIImageView()
   
   // MARK: - Initalizers
   public init(
-    textType: PrimaryNavigationTextType, 
+    textType: PrimaryNavigationTextType,
     iconType: PrimaryNavigationIconType,
     colorType: PrimaryNavigationColorType = .dark,
     titleText: String? = nil
@@ -77,6 +76,8 @@ private extension PrimaryNavigationView {
       makeLeft()
     case .center:
       makeCenter()
+    case .logo:
+      makeLogo()
     }
   }
   
@@ -110,6 +111,16 @@ private extension PrimaryNavigationView {
       $0.center.equalToSuperview()
     }
   }
+  
+  func makeLogo() {
+    self.addSubview(leftImageView)
+    leftImageView.snp.makeConstraints {
+      $0.height.equalTo(18)
+      $0.width.equalTo(90)
+      $0.leading.equalToSuperview().offset(24)
+      $0.centerY.equalToSuperview()
+    }
+  }
   /// Icon Type 에 맞추어 우측 버튼의 유무를 결정합니다.
   func makeIconType() {
     switch self.iconType {
@@ -117,6 +128,8 @@ private extension PrimaryNavigationView {
       break
     case .two:
       makeTwo()
+    case .three:
+      makeThree()
     }
   }
   
@@ -124,18 +137,24 @@ private extension PrimaryNavigationView {
     switch self.textType {
     case .none, .center:
       switch colorType {
-      case .light:
-        rightImageView.image = UIImage(resource: .ellipsisVerticalLight)
+      case .white:
+        rightImageView.image = .ellipsisVerticalLight
       case .dark:
-        rightImageView.image = UIImage(resource: .ellipsisVerticalDark)
+        rightImageView.image = .ellipsisVerticalDark
+      case .blue:
+        break
       }
     case .left:
       switch colorType {
-      case .light:
-        rightImageView.image = UIImage(resource: .iconSearchLight)
+      case .white:
+        rightImageView.image = .iconSearchLight
       case .dark:
-        rightImageView.image = UIImage(resource: .iconSearchDark)
+        rightImageView.image = .iconSearchDark
+      case .blue:
+        break
       }
+    case .logo:
+      return
     }
     
     self.addSubview(rightImageView)
@@ -146,13 +165,29 @@ private extension PrimaryNavigationView {
     }
   }
   
+  func makeThree() {}
+  
   /// Color Type 에 맞추어 색상을 결정합니다.
   func makeColorType() {
-    switch self.colorType {
-    case .light:
-      leftImageView.image = UIImage(resource: .leftBackButtonLight)
-    case .dark:
-      leftImageView.image = UIImage(resource: .leftBackButtonDark)
+    switch self.textType {
+    case .logo:
+      switch self.colorType {
+      case .white:
+        leftImageView.image = .logoLettersWhite
+      case .dark:
+        break
+      case .blue:
+        leftImageView.image = .logoLettersBlue
+      }
+    default:
+      switch self.colorType {
+      case .blue:
+        break
+      case .white:
+        leftImageView.image = .leftBackButtonLight
+      case .dark:
+        leftImageView.image = .leftBackButtonDark
+      }
     }
   }
   
@@ -165,19 +200,21 @@ private extension PrimaryNavigationView {
   
   func textColor(for type: PrimaryNavigationColorType) -> UIColor {
     switch type {
-      case .dark:
-        return .gray900
-      case .light:
-        return .photiWhite
+    case .dark:
+      return .gray900
+    case .white:
+      return .photiWhite
+    case .blue:
+      return .clear
     }
   }
   
   func font(for type: PrimaryNavigationTextType) -> UIFont {
     switch type {
-      case .none, .left:
-        return .heading1
-      case .center:
-        return .body1Bold
+    case .none, .left, .logo:
+      return .heading1
+    case .center:
+      return .body1Bold
     }
   }
 }

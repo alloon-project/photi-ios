@@ -110,15 +110,19 @@ extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
       cell.configure(with: settingMenuDatasource[indexPath.row].0)
     } else {
       if let currentVerison = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-        cell.configure(with: settingMenuDatasource[indexPath.row].0,
-                       type: .label(text: currentVerison),
-                       font: .caption1,
-                       rightTextColor: .blue500)
+        cell.configure(
+          with: settingMenuDatasource[indexPath.row].0,
+          type: .label(text: currentVerison),
+          font: .caption1,
+          rightTextColor: .blue500
+        )
       } else {
-        cell.configure(with: settingMenuDatasource[indexPath.row].0,
-                       type: .label(text: "버전 확인 불가"),
-                       font: .caption1,
-                       rightTextColor: .blue500)
+        cell.configure(
+          with: settingMenuDatasource[indexPath.row].0,
+          type: .label(text: "버전 확인 불가"),
+          font: .caption1,
+          rightTextColor: .blue500
+        )
       }
     }
     return cell

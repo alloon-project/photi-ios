@@ -11,15 +11,18 @@ public enum PrimaryNavigationTextType {
   case none
   case left
   case center
+  case logo
 }
 /// PrimaryNavigation의 Text Type을 나타냅니다. (ex. one..)
 public enum PrimaryNavigationIconType {
   case one
   case two
+  case three
 }
 
 /// PrimaryNavigation의 Color Type을 나타냅니다 (ex. Light, Dark)
 public enum PrimaryNavigationColorType {
-  case light
+  case white
   case dark
+  case blue
 }

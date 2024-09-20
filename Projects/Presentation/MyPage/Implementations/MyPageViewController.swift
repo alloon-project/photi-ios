@@ -19,6 +19,7 @@ final class MyPageViewController: UIViewController {
     scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.showsVerticalScrollIndicator = false
     scrollView.bounces = false
+    
     return scrollView
   }()
   
@@ -26,21 +27,23 @@ final class MyPageViewController: UIViewController {
     let view = UIView()
     view.backgroundColor = .clear
     view.translatesAutoresizingMaskIntoConstraints = false
+    
     return view
   }()
   // 사용자 정보 part
   private let userInfoView = {
     let view = UIView()
     view.backgroundColor = .clear
+    
     return view
   }()
   
   /// 하단 톱니모양뷰
   private let userInfoBottomImageView = {
     let pinkingView = UIImageView()
-    //    pinkingView.image = UIImage(resource: .pinking) TODO: - stencil 추가되면 수정
-    pinkingView.backgroundColor = .red // 이미지 영역 표시용 입니다. 추후 삭제 예정.
+    pinkingView.image = .pinking
     pinkingView.clipsToBounds = true
+    
     return pinkingView
   }()
   
@@ -49,16 +52,16 @@ final class MyPageViewController: UIViewController {
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
-    imageView.image = UIImage(systemName: "person.fill")?.resize(CGSize(width: 20, height: 20))
+    imageView.image = .person
+    imageView.contentMode = .scaleAspectFill
+    
     return imageView
   }()
   
   private let settingButton = {
     let button = UIButton()
-    button.setImage(UIImage(systemName: "gearshape")?
-      .withTintColor(.white, renderingMode: .alwaysOriginal)
-      .resize(CGSize(width: 24, height: 24)),
-                    for: .normal) // TODO: - stencil 추가되면 setting으로 수정
+    button.setImage(.setting.resize(CGSize(width: 24, height: 24)),
+                    for: .normal)
     return button
   }()
   
@@ -73,9 +76,12 @@ final class MyPageViewController: UIViewController {
     let label = UILabel()
     label.textColor = .white
     label.textAlignment = .center
-    label.attributedText = "유저 아이디".attributedString(font: .heading1,
-                                                     color: .white,
-                                                     alignment: .center)
+    label.attributedText = "유저 아이디".attributedString(
+      font: .heading1,
+      color: .white,
+      alignment: .center
+    )
+    
     return label
   }()
   
@@ -88,12 +94,14 @@ final class MyPageViewController: UIViewController {
     let label = UILabel()
     label.textColor = .white
     label.attributedText = "내 피드".attributedString(font: .heading3, color: .gray900)
+    
     return label
   }()
   
   private let calendarView = {
     let calendarView = CalendarView(selectionMode: .multiple, startDate: Date())
     calendarView.isCloseButtonHidden = true
+    
     return calendarView
   }()
   
@@ -133,14 +141,18 @@ private extension MyPageViewController {
     scrollView.addSubview(containerView)
     containerView.addSubviews(userInfoView,
                               feedInfoView)
-    userInfoView.addSubviews(userImageView,
-                             settingButton,
-                             userNameLabel,
-                             authCountBox,
-                             finishedChallengeCountBox)
-    feedInfoView.addSubviews(userInfoBottomImageView,
-                             myFeedLabel,
-                             calendarView)
+    userInfoView.addSubviews(
+      userImageView,
+      settingButton,
+      userNameLabel,
+      authCountBox,
+      finishedChallengeCountBox
+    )
+    feedInfoView.addSubviews(
+      userInfoBottomImageView,
+      myFeedLabel,
+      calendarView
+    )
   }
   
   func setConstraints() {

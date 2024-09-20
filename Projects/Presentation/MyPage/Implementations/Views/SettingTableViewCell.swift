@@ -7,17 +7,18 @@
 //
 
 import UIKit
+import DesignSystem
 
 final class SettingTableViewCell: UITableViewCell {
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let arrowImageView = {
     let imageView = UIImageView()
-    imageView.image = UIImage(systemName: "chevron.right")
+    imageView.image = .iconArrowRight
     return imageView
   }()
   private let rightLabel = UILabel()
-
+  
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -31,10 +32,12 @@ final class SettingTableViewCell: UITableViewCell {
   }
   
   // MARK: - Configure
-  func configure(with text: String, 
-                 type: SettingTableViewCellType = .image(image: UIImage(systemName: "chevron.right")!),
-                 font: UIFont = .body2,
-                 rightTextColor: UIColor = .gray900) {
+  func configure(
+    with text: String,
+    type: SettingTableViewCellType = .image(image: .iconArrowRight),
+    font: UIFont = .body2,
+    rightTextColor: UIColor = .gray900
+  ) {
     titleLabel.attributedText = text.attributedString(
       font: .body1,
       color: .gray900
@@ -62,7 +65,11 @@ private extension SettingTableViewCell {
   }
   
   func setViewHierarchy() {
-    contentView.addSubviews(titleLabel, arrowImageView, rightLabel)
+    contentView.addSubviews(
+      titleLabel,
+      arrowImageView,
+      rightLabel
+    )
   }
   
   func setConstraints() {
