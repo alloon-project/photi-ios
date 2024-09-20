@@ -12,13 +12,32 @@ import Core
 import DesignSystem
 
 final class ChallengeInformationView: UIView {
+  private var hashTags = [String]() {
+    didSet {
+      hashTagCollectionView.reloadData()
+      centerContentHorizontalyByInsetIfNeeded()
+    }
+  }
+  
   // MARK: - UI Components
   private let challengeNameLabel = UILabel()
   private let goalContentView = ChallengeContentView(contentCount: .one(title: "목표"))
   private let challengeTimeContentView = ChallengeContentView(
     contentCount: .two(firstTitle: "인증 시간", secondTitle: "챌린지 종료")
   )
-  private let hashTagCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+  
+  private let hashTagCollectionView: UICollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    layout.scrollDirection = .horizontal
+    layout.minimumLineSpacing = 8
+    collectionView.registerCell(HashTagCell.self)
+    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+    collectionView.showsVerticalScrollIndicator = false
+    
+    return collectionView
+  }()
+  
   private let participateCountView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
@@ -41,6 +60,8 @@ final class ChallengeInformationView: UIView {
   init() {
     super.init(frame: .zero)
     setupUI()
+    
+    hashTagCollectionView.dataSource = self
   }
   
   @available(*, unavailable)
@@ -60,6 +81,8 @@ final class ChallengeInformationView: UIView {
       font: .caption1,
       color: .gray700
     )
+    
+    self.hashTags = ["해시태그 1", "해시태그 2", "해시태그 3"]
   }
 }
 
@@ -78,6 +101,7 @@ private extension ChallengeInformationView {
       challengeTimeContentView,
       participateCountView,
       participateButton
+      //      hashTagScrollView
     )
     
     participateCountView.addSubviews(participateImageView, participateCountLabel)
@@ -89,9 +113,9 @@ private extension ChallengeInformationView {
     }
     
     hashTagCollectionView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(challengeNameLabel.snp.bottom).offset(12)
-      $0.height.equalTo(25)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(29)
     }
     
     goalContentView.snp.makeConstraints {
@@ -128,6 +152,35 @@ private extension ChallengeInformationView {
     participateButton.snp.makeConstraints {
       $0.top.equalTo(challengeTimeContentView.snp.bottom).offset(10)
       $0.leading.equalTo(challengeTimeContentView)
+    }
+  }
+}
+
+// MARK: -
+extension ChallengeInformationView: UICollectionViewDataSource {
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return hashTags.count
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
+    cell.configure(text: hashTags[indexPath.row])
+    return cell
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeInformationView {
+  func centerContentHorizontalyByInsetIfNeeded() {
+    if hashTagCollectionView.contentSize.width > hashTagCollectionView.frame.size.width {
+      hashTagCollectionView.contentInset = .zero
+    } else {
+      hashTagCollectionView.contentInset = UIEdgeInsets(
+        top: 0,
+        left: (hashTagCollectionView.frame.size.width) / 2 - (hashTagCollectionView.contentSize.width) / 2,
+        bottom: 0,
+        right: 0
+      )
     }
   }
 }
