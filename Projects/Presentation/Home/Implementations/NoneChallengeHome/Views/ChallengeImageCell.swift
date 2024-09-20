@@ -26,7 +26,7 @@ final class ChallengeImageCell: UICollectionViewCell {
   // MARK: - Initializers
   override init(frame: CGRect) {
     super.init(frame: .zero)
-
+    
     setupUI()
   }
   
@@ -37,7 +37,13 @@ final class ChallengeImageCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with viewModel: ChallengeViewModel) {
-    let image: UIImage = (viewModel.image == nil) ? .defaultChallengeImage : viewModel.image!
+    var defaultImage = UIImage.defaultChallengeImage
+    
+    if case .create = viewModel.mode {
+      defaultImage = .createChallenge
+    }
+    
+    let image: UIImage = (viewModel.image == nil) ? defaultImage : viewModel.image!
     imageView.image = image
   }
 }
