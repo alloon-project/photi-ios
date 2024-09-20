@@ -22,17 +22,22 @@ final class HomeCoordinator: Coordinator, HomeCoordinatable {
   private let noneMemberHomeContainer: NoneMemberHomeContainable
   private var noneMemberHomeCoordinator: Coordinating?
   
+  private let noneChallengeHomeContainer: NoneChallengeHomeContainable
+  private var noneChallengeHomeCoordinator: Coordinating?
+  
   private let loginContainer: LogInContainable
   private var loginCoordinator: Coordinating?
   
   init(
     viewModel: HomeViewModel,
     loginContainer: LogInContainable,
-    noneMemberHomeContainer: NoneMemberHomeContainable
+    noneMemberHomeContainer: NoneMemberHomeContainable,
+    noneChallengeHomeContainer: NoneChallengeHomeContainable
   ) {
     self.viewModel = viewModel
     self.loginContainer = loginContainer
     self.noneMemberHomeContainer = noneMemberHomeContainer
+    self.noneChallengeHomeContainer = noneChallengeHomeContainer
     self.viewController = HomeViewController()
     super.init()
     viewModel.coordinator = self
@@ -67,6 +72,27 @@ private extension HomeCoordinator {
   }
 }
 
+// MARK: - NoneChallengeHome
+private extension HomeCoordinator {
+  func attachNoneChallengeHome() {
+    guard noneChallengeHomeCoordinator == nil else { return }
+    
+    let coordinator = noneChallengeHomeContainer.coordinator(listener: self)
+    addChild(coordinator)
+    
+    self.noneChallengeHomeCoordinator = coordinator
+    coordinator.start(at: self.navigationController)
+  }
+  
+  func detachNoneChallengeHome() {
+    guard let coordinator = noneChallengeHomeCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.noneChallengeHomeCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
+}
+
 // MARK: - LogIn
 private extension HomeCoordinator {
   func attachLogIn() {
@@ -96,6 +122,9 @@ extension HomeCoordinator: NoneMemberHomeListener {
     attachLogIn()
   }
 }
+
+// MARK: - NoneChallengeHomeListener
+extension HomeCoordinator: NoneChallengeHomeListener { }
 
 // MARK: - LogInListener
 extension HomeCoordinator: LogInListener {
