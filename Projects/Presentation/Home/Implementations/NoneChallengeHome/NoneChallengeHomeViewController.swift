@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import RxCocoa
 import RxSwift
 import SnapKit
 import DesignSystem
@@ -70,6 +71,7 @@ final class NoneChallengeHomeViewController: UIViewController {
   }()
   
   private let challengeInformationView = ChallengeInformationView()
+  private let createChallengeInformationView = CreateChallengeInformationView()
   
   // MARK: - Initalizers
   init(viewModel: NoneChallengeHomeViewModel) {
@@ -105,10 +107,13 @@ private extension NoneChallengeHomeViewController {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
+    
+    createChallengeInformationView.isHidden = true
   }
   
   func setViewHierarchy() {
     view.addSubviews(logoImageView, titleLabel, subTitleLabel, challengeImageCollectionView)
+    view.addSubviews(challengeInformationView, createChallengeInformationView)
   }
   
   func setConstraints() {
@@ -134,6 +139,17 @@ private extension NoneChallengeHomeViewController {
       $0.leading.trailing.equalToSuperview()
       $0.height.equalTo(172)
     }
+
+    challengeInformationView.snp.makeConstraints {
+      $0.top.equalTo(challengeImageCollectionView.snp.bottom).offset(24)
+      $0.centerX.equalToSuperview()
+      $0.height.equalTo(244)
+      $0.width.equalTo(327)
+    }
+    
+    createChallengeInformationView.snp.makeConstraints {
+      $0.edges.equalTo(challengeInformationView)
+    }
   }
 }
 
@@ -153,6 +169,7 @@ extension NoneChallengeHomeViewController: UICollectionViewDataSource {
     
     cell.configure(with: items[indexPath.row])
     cell.isCurrentPage = indexPath.row == currentPage
+    print(indexPath.row, currentPage)
     
     return cell
   }
@@ -188,7 +205,7 @@ private extension NoneChallengeHomeViewController {
   
   func offSetDidChange(_ offset: CGPoint) {
     let page = currentPage(for: offset)
-    
+    defer { currentPage = page }
     guard
       let beforeCell = cellForPage(currentPage),
       let currentCell = cellForPage(page)
@@ -196,7 +213,13 @@ private extension NoneChallengeHomeViewController {
     
     beforeCell.isCurrentPage = false
     currentCell.isCurrentPage = true
-    currentPage = page
+    
+    if page == items.count - 1 {
+      presentCreateChallengeInformationView()
+    } else {
+      presentChallengeInformationView()
+      challengeInformationView.configure(with: items[page])
+    }
   }
   
   func currentPage(for offset: CGPoint) -> Int {
@@ -222,5 +245,14 @@ private extension NoneChallengeHomeViewController {
     DispatchQueue.main.async {
       self.challengeImageCollectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
     }
+  }
+  func presentChallengeInformationView() {
+    challengeInformationView.isHidden = false
+    createChallengeInformationView.isHidden = true
+  }
+
+  func presentCreateChallengeInformationView() {
+    challengeInformationView.isHidden = true
+    createChallengeInformationView.isHidden = false
   }
 }
