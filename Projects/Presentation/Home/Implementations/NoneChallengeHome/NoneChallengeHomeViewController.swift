@@ -169,7 +169,6 @@ extension NoneChallengeHomeViewController: UICollectionViewDataSource {
     
     cell.configure(with: items[indexPath.row])
     cell.isCurrentPage = indexPath.row == currentPage
-    print(indexPath.row, currentPage)
     
     return cell
   }
