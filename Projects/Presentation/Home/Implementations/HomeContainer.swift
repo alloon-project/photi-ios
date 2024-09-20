@@ -17,16 +17,19 @@ public protocol HomeDependency: Dependency {
 public final class HomeContainer:
   Container<HomeDependency>,
   HomeContainable,
-  NoneMemberHomeDependency {
+  NoneMemberHomeDependency,
+  NoneChallengeHomeDependency {
   public func coordinator(listener: HomeListener) -> Coordinating {
     let viewModel = HomeViewModel()
     
     let noneMemberHome = NoneMemberHomeContainer(dependency: self)
+    let noneChallengeHome = NoneChallengeHomeContainer(dependency: self)
     
     let coordinator = HomeCoordinator(
       viewModel: viewModel,
       loginContainer: dependency.loginContainable,
-      noneMemberHomeContainer: noneMemberHome
+      noneMemberHomeContainer: noneMemberHome,
+      noneChallengeHomeContainer: noneChallengeHome
     )
     coordinator.listener = listener
     return coordinator
