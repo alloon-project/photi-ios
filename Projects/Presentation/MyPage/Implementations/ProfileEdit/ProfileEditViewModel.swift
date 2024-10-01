@@ -9,6 +9,8 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol ProfileEditCoordinatable: AnyObject {
   func attachChangePassword()
@@ -21,24 +23,37 @@ protocol ProfileEditViewModelType: AnyObject, ProfileEditViewModelable {
   
   var disposeBag: DisposeBag { get }
   var coordinator: ProfileEditCoordinatable? { get set }
+  
+  init(useCase: ProfileEditUseCase)
+  
+  func transform(input: Input) -> Output
 }
 
 final class ProfileEditViewModel: ProfileEditViewModelType {
+  private let useCase: ProfileEditUseCase
+
   let disposeBag = DisposeBag()
   
   weak var coordinator: ProfileEditCoordinatable?
+  
+  private var userInfoRelay = PublishRelay<ProfileEditInfo>()
   
   // MARK: - Input
   struct Input {
     let didTapCell: ControlEvent<IndexPath>
     let didTapResignButton: ControlEvent<Void>
+    let viewWillAppear: ControlEvent<Bool>
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output {
+    let userInfo: Driver<ProfileEditInfo>
+  }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: ProfileEditUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapCell
@@ -58,6 +73,30 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
         onwer.coordinator?.attachResign()
       }.disposed(by: disposeBag)
     
-    return Output()
+    input.viewWillAppear
+      .bind(with: self) { onwer, isViewAppeared in
+        if isViewAppeared {
+          onwer.userInfo()
+        }
+      }.disposed(by: disposeBag)
+    
+    return Output(
+      userInfo: userInfoRelay.asDriver(onErrorJustReturn: .init(imageUrl: "ㅇ", userName: "ㄷ", userEmail: "ㅋ"))
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension ProfileEditViewModel {
+  func userInfo() {
+    useCase.userInfo()
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { onwer, userInfo in
+          onwer.userInfoRelay.accept(userInfo)
+        }
+      )
+      .disposed(by: disposeBag)
   }
 }

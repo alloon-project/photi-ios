@@ -34,7 +34,9 @@ final class AppContainer:
   SignUpDependency,
   HomeDependency,
   SearchChallengeDependency,
-  MyPageDependency {
+  MyPageDependency,
+  SettingDependency,
+  ProfileEditDependency {
   func coordinator() -> Coordinating {
     let home = HomeContainer(dependency: self)
     let searchChallenge = SearchChallengeContainer(dependency: self)
@@ -56,6 +58,14 @@ final class AppContainer:
     return SignUpContainer(dependency: self)
   }()
   
+  lazy var profileEditContainable: ProfileEditContainable = {
+    return ProfileEditContainer(dependency: self)
+  }()
+
+  lazy var settingContainable: SettingContainable = {
+    return SettingContainer(dependency: self)
+  }()
+  
   // MARK: - UseCase
   lazy var logInUseCase: LogInUseCase = {
     return LogInUseCaseImpl(repository: logInRepository)
@@ -65,6 +75,10 @@ final class AppContainer:
     return SignUpUseCaseImpl(repository: signUpRepository)
   }()
   
+  lazy var profileEditUseCase: ProfileEditUseCase = {
+    return ProfileEditUseCaseImpl(repository: profileEditRepository)
+  }()
+  
   // MARK: - Repository
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
@@ -72,5 +86,9 @@ final class AppContainer:
   
   lazy var signUpRepository: SignUpRepository = {
     return SignUpRepositoryImpl(dataMapper: SignUpDataMapperImpl())
+  }()
+  
+  lazy var profileEditRepository: ProfileEditRepository = {
+    return ProfileEditRepositoryImpl(dataMapper: ProfileEditDataMapperImpl())
   }()
 }

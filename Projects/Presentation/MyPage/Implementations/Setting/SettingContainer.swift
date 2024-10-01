@@ -7,27 +7,26 @@
 //
 
 import Core
+import MyPage
+import UseCase
 import ReportImpl
 
-public protocol SettingDependency: Dependency { }
-
-public protocol SettingContainable: Containable {
-  func coordinator(listener: SettingListener) -> Coordinating
+public protocol SettingDependency: Dependency {
+  var profileEditContainable: ProfileEditContainable { get }
 }
 
 public final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
-  ProfileEditDependency,
   ReportDependency {
   public func coordinator(listener: SettingListener) -> Coordinating {
-    let profileEdit = ProfileEditContainer(dependency: self)
-    let report = ReportContainer(dependency: self)
     let viewModel = SettingViewModel()
+    
+    let report = ReportContainer(dependency: self)
     
     let coordinator = SettingCoordinator(
       viewModel: viewModel,
-      profileEditContainable: profileEdit,
+      profileEditContainable: dependency.profileEditContainable,
       reportContainable: report
     )
     coordinator.listener = listener

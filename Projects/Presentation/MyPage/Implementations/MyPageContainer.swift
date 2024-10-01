@@ -9,20 +9,21 @@
 import Core
 import MyPage
 
-public protocol MyPageDependency: Dependency { }
+public protocol MyPageDependency: Dependency {
+  var settingContainable: SettingContainable { get }
+}
 
 public final class MyPageContainer:
   Container<MyPageDependency>,
-  MyPageContainable,
-  SettingDependency {
+  MyPageContainable {    
   public func coordinator(listener: MyPageListener) -> Coordinating {
-    let setting = SettingContainer(dependency: self)
     let viewModel = MyPageViewModel()
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: setting
+      settingContainable: dependency.settingContainable
     )
+    
     coordinator.listener = listener
     return coordinator
   }

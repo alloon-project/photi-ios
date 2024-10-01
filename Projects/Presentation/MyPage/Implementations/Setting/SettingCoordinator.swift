@@ -8,13 +8,10 @@
 
 import UIKit
 import Core
+import MyPage
 import Report
 
 protocol SettingViewModelable { }
-
-public protocol SettingListener: AnyObject {
-  func didTapBackButtonAtSetting()
-}
 
 final class SettingCoordinator: Coordinator {
   weak var listener: SettingListener?
@@ -48,6 +45,7 @@ final class SettingCoordinator: Coordinator {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - Profile Edit
   func attachProfileEdit() {
     guard profileEditCoordinator == nil else { return }
     
@@ -66,6 +64,7 @@ final class SettingCoordinator: Coordinator {
     navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - Inquiry
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
@@ -95,10 +94,12 @@ final class SettingCoordinator: Coordinator {
     navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - Service Term
   func attachServiceTerms() {}
   
   func detachServiceTerms() {}
   
+  // MARK: - Privacy
   func attachPrivacy() {}
   
   func detachPrivacy() {}

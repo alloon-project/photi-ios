@@ -7,11 +7,10 @@
 //
 
 import UIKit
+import MyPage
 import Core
 
 protocol ProfileEditViewModelable { }
-
-public protocol ProfileEditListener: AnyObject { }
 
 final class ProfileEditCoordinator: Coordinator {
   weak var listener: ProfileEditListener?

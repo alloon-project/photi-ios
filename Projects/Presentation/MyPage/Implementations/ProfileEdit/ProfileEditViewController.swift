@@ -12,11 +12,15 @@ import RxCocoa
 import SnapKit
 import Core
 import DesignSystem
+import Entity
 
 final class ProfileEditViewController: UIViewController {
   private let viewModel: ProfileEditViewModel
   
   private let disposeBag = DisposeBag()
+  
+  // MARK: - Variables
+  private var userInfo: [String] = []
   // MARK: - UIComponents
   private let navigationBar = PrimaryNavigationView(
     textType: .center,
@@ -123,10 +127,21 @@ private extension ProfileEditViewController {
   func bind() {
     let input = ProfileEditViewModel.Input(
       didTapCell: menuTableView.rx.itemSelected,
-      didTapResignButton: resignButton.rx.tap
+      didTapResignButton: resignButton.rx.tap,
+      viewWillAppear: self.rx.viewWillAppear
     )
     
     let output = viewModel.transform(input: input)
+    bind(output: output)
+  }
+  
+  func bind(output: ProfileEditViewModel.Output) {
+    output.userInfo.drive(onNext: { [weak self] userInfo in
+      guard let url = URL(string: userInfo.imageUrl) else { return }
+      
+      self?.profileImageView.load(url: url)
+      self?.userInfo = [userInfo.userName, userInfo.userEmail]
+    }).disposed(by: disposeBag)
   }
 }
 
