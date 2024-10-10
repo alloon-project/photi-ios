@@ -24,9 +24,12 @@ final class HomeViewController: UIViewController {
   private let viewModel: HomeViewModel
   
   private var dataSources: [ProofChallengePresentationModel] = []
+  private var myChallengeDataSources: [MyChallengePresentationModel] = []
   
   // MARK: - UI Components
   private let navigationBar = PrimaryNavigationView(textType: .logo, iconType: .one, colorType: .blue)
+  private let scrollView = UIScrollView()
+  private let scrollContentView = UIView()
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "인증샷 찍으러 가볼까요?".attributedString(
@@ -38,15 +41,17 @@ final class HomeViewController: UIViewController {
   }()
   
   private let proofChallengeCollectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     collectionView.registerCell(ProofChallengeCell.self)
     collectionView.decelerationRate = .fast
     collectionView.isPagingEnabled = true
     collectionView.showsHorizontalScrollIndicator = false
+    collectionView.alwaysBounceVertical = false
     
     return collectionView
   }()
+  
+  private let bottomView = HomeBottomView()
   
   // MARK: - Initializers
   init(viewModel: HomeViewModel) {
@@ -63,6 +68,7 @@ final class HomeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    bottomView.dataSources = myChallengeDataSources
     proofChallengeCollectionView.collectionViewLayout = compositionalLayout()
     proofChallengeCollectionView.dataSource = self
     setupUI()
@@ -72,12 +78,15 @@ final class HomeViewController: UIViewController {
 // MARK: - UI Methods
 private extension HomeViewController {
   func setupUI() {
+    scrollView.showsVerticalScrollIndicator = false
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, titleLabel, proofChallengeCollectionView)
+    view.addSubviews(navigationBar, scrollView)
+    scrollView.addSubview(scrollContentView)
+    scrollContentView.addSubviews(titleLabel, proofChallengeCollectionView, bottomView)
   }
   
   func setConstraints() {
@@ -87,15 +96,30 @@ private extension HomeViewController {
       $0.height.equalTo(56)
     }
     
-    titleLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+    scrollView.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(24)
+      $0.bottom.leading.trailing.equalToSuperview()
+    }
+    
+    scrollContentView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+      $0.width.equalToSuperview()
+    }
+    
+    titleLabel.snp.makeConstraints {
+      $0.top.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
     }
     
     proofChallengeCollectionView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.height.equalTo(298)
+    }
+    
+    bottomView.snp.makeConstraints {
+      $0.top.equalTo(proofChallengeCollectionView.snp.bottom).offset(32)
+      $0.leading.trailing.bottom.equalToSuperview()
     }
   }
 }
