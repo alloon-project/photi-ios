@@ -132,7 +132,7 @@ extension HomeViewController: UICollectionViewDataSource {
   }
 }
 
-// MARK: - Image
+// MARK: - UIImagePickerControllerDelegate, UINavigationControllerDelegate
 extension HomeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
   func imagePickerController(
     _ picker: UIImagePickerController,
@@ -142,9 +142,19 @@ extension HomeViewController: UIImagePickerControllerDelegate, UINavigationContr
       picker.dismiss(animated: true)
       return
     }
-    print(image.size)
-    // TODO: 서버로 보낸 후 UI 수정 예정
     picker.dismiss(animated: true)
+    
+    let popOver = UploadPhotoPopOverViewController(type: .two, image: image)
+    popOver.present(to: self, animated: true)
+    popOver.delegate = self
+  }
+}
+
+// MARK: - Upload
+extension HomeViewController: UploadPhotoPopOverDelegate {
+  func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
+    // TODO: 서버로 전송
+    print(image.size)
   }
 }
 
