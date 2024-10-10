@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import AVFoundation
 import UIKit
 import RxSwift
 import SnapKit
@@ -63,7 +64,6 @@ final class HomeViewController: UIViewController {
     super.viewDidLoad()
     
     proofChallengeCollectionView.collectionViewLayout = compositionalLayout()
-    proofChallengeCollectionView.delegate = self
     proofChallengeCollectionView.dataSource = self
     setupUI()
   }
@@ -100,6 +100,22 @@ private extension HomeViewController {
   }
 }
 
+// MARK: - Bind Methods
+private extension HomeViewController {
+  func bind(for cell: ProofChallengeCell) {
+    guard let model = cell.model else { return }
+    
+    cell.rx.didTapImage
+      .bind(with: self) { owner, _ in
+        switch model.type {
+          case .didNotProof: owner.requestOpenCamera()
+          case .proof: return
+        }
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
 // MARK: - UICollectionViewDataSource
 extension HomeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -110,18 +126,25 @@ extension HomeViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
     let model = dataSources[indexPath.row]
     cell.configure(with: model, isLast: indexPath.row == dataSources.count - 1)
+    bind(for: cell)
+    
     return cell
   }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
-extension HomeViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    sizeForItemAt indexPath: IndexPath
-  ) -> CGSize {
-    return .init(width: 288, height: 284)
+// MARK: - Image
+extension HomeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+  func imagePickerController(
+    _ picker: UIImagePickerController,
+    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+  ) {
+    guard let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else {
+      picker.dismiss(animated: true)
+      return
+    }
+    print(image.size)
+    // TODO: 서버로 보낸 후 UI 수정 예정
+    picker.dismiss(animated: true)
   }
 }
 
@@ -146,6 +169,55 @@ private extension HomeViewController {
       section.interGroupSpacing = Constants.groupSpacing
       
       return section
+    }
+  }
+  
+  func requestOpenCamera() {
+    AVCaptureDevice.requestAccess(for: .video) { [weak self] isAuthorized in
+      guard let self else { return }
+      guard isAuthorized else {
+        self.displayAlertToSetting()
+        return
+      }
+      
+      openCamera()
+    }
+  }
+  
+  func displayAlertToSetting() {
+    let alertController = UIAlertController(
+      title: "현재 카메라 사용에 대한 접근 권한이 없습니다.",
+      message: "설정 > {앱 이름}탭에서 접근을 활성화 할 수 있습니다.",
+      preferredStyle: .alert
+    )
+    let cancel = UIAlertAction(title: "취소", style: .cancel) { _ in
+      alertController.dismiss(animated: true, completion: nil)
+    }
+    
+    let goToSetting = UIAlertAction(title: "설정으로 이동하기", style: .default) { _ in
+      guard
+        let settingURL = URL(string: UIApplication.openSettingsURLString),
+        UIApplication.shared.canOpenURL(settingURL)
+      else { return }
+      UIApplication.shared.open(settingURL, options: [:])
+    }
+    
+    [cancel, goToSetting].forEach(alertController.addAction(_:))
+    DispatchQueue.main.async {
+      self.present(alertController, animated: true)
+    }
+  }
+  
+  func openCamera() {
+    DispatchQueue.main.async { [weak self] in
+      guard let self else { return }
+      let pickerController = UIImagePickerController()
+      pickerController.sourceType = .camera
+      pickerController.allowsEditing = false
+      pickerController.mediaTypes = ["public.image"]
+      pickerController.delegate = self
+      
+      self.present(pickerController, animated: true)
     }
   }
 }
