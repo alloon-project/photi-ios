@@ -10,7 +10,7 @@ import UIKit
 
 open class SelfSizingTableView: UITableView {
   private let minHeight: CGFloat
-  private let maxHeight: CGFloat
+  private let maxHeight: CGFloat?
   
   open override var contentSize: CGSize {
     didSet {
@@ -22,10 +22,9 @@ open class SelfSizingTableView: UITableView {
     layoutIfNeeded()
     
     var height: CGFloat = 0
-    
-    if contentSize.height > maxHeight {
+      
+    if let maxHeight = maxHeight, contentSize.height > maxHeight {
       height = maxHeight
-      return CGSize(width: contentSize.width, height: maxHeight)
     } else if contentSize.height < minHeight {
       height = minHeight
     } else {
@@ -36,10 +35,14 @@ open class SelfSizingTableView: UITableView {
   }
   
   // MARK: - Initalizers
-  public init(minHeight: CGFloat = 0, maxHeight: CGFloat = UIScreen.main.bounds.size.height) {
+  public init(minHeight: CGFloat = 0, maxHeight: CGFloat?) {
     self.minHeight = minHeight
     self.maxHeight = maxHeight
     super.init(frame: .zero, style: .plain)
+  }
+  
+  public convenience init() {
+    self.init(minHeight: 0, maxHeight: nil)
   }
   
   @available(*, unavailable)
