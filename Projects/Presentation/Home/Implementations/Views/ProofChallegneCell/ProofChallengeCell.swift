@@ -17,6 +17,7 @@ final class ProofChallengeCell: UICollectionViewCell {
   
   // MARK: - Properties
   private(set) var isLast: Bool = false
+  private(set) var model: ProofChallengePresentationModel?
   
   // MARK: - UI Components
   private let deadLineChip = TextChip(type: .green, size: .large)
@@ -37,6 +38,7 @@ final class ProofChallengeCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with model: ProofChallengePresentationModel, isLast: Bool) {
+    self.model = model
     deadLineChip.text = model.deadLine
     setupUI(type: model.type, isLast: isLast)
     titleView.configure(title: model.title, type: model.type)
