@@ -41,4 +41,38 @@ public extension UIView {
     layer.shadowRadius = radius
     layer.shadowOffset = offset
   }
+  
+  func roundCorners(
+    leftTop: CGFloat = 0,
+    rightTop: CGFloat = 0,
+    leftBottom: CGFloat = 0,
+    rightBottom: CGFloat = 0
+  ) {
+    let leftTopSize = CGSize(width: leftTop, height: leftTop)
+    let rightTopSize = CGSize(width: rightTop, height: rightTop)
+    let leftBottomSize = CGSize(width: leftBottom, height: leftBottom)
+    let rightBottomSize = CGSize(width: rightBottom, height: rightBottom)
+    let maskedPath = UIBezierPath(
+      for: self.bounds,
+      leftTopSize: leftTopSize,
+      rightTopSize: rightTopSize,
+      leftBottomSize: leftBottomSize,
+      rightBottomSize: rightBottomSize
+    )
+    
+    let shape = CAShapeLayer()
+    shape.path = maskedPath.cgPath
+
+    self.layer.mask = shape
+  }
+    
+  func configureShapeBorder(width: CGFloat, strockColor: UIColor, backGroundColor: UIColor) {
+    let borderLayer = CAShapeLayer()
+    borderLayer.path = (layer.mask as? CAShapeLayer)?.path
+    borderLayer.strokeColor = strockColor.cgColor
+    borderLayer.fillColor = backGroundColor.cgColor
+    borderLayer.lineWidth = width
+    borderLayer.frame = bounds
+    layer.addSublayer(borderLayer)
+  }
 }
