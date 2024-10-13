@@ -76,7 +76,7 @@ private extension HomeBottomView {
     containerView.snp.makeConstraints {
       $0.top.equalTo(seperatorView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(0)
+      $0.bottom.equalToSuperview()
     }
     
     titleLabel.snp.makeConstraints {
