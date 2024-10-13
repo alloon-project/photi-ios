@@ -13,6 +13,7 @@ import Entity
 import UseCase
 
 protocol ProfileEditCoordinatable: AnyObject {
+  func didTapBackButton()
   func attachChangePassword()
   func attachResign()
 }
@@ -40,9 +41,10 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
 
   // MARK: - Input
   struct Input {
+    let didTapBackButton: ControlEvent<Void>
     let didTapCell: ControlEvent<IndexPath>
     let didTapResignButton: ControlEvent<Void>
-    let viewWillAppear: ControlEvent<Bool>
+    let viewWillAppear: Observable<Bool>
   }
   
   // MARK: - Output
@@ -56,6 +58,12 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { onwer, _ in
+        onwer.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapCell
       .bind(with: self) { onwer, index in
         switch index.row {
@@ -76,6 +84,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     input.viewWillAppear
       .bind(with: self) { onwer, isViewAppeared in
         if isViewAppeared {
+          print("??")
           onwer.userInfo()
         }
       }.disposed(by: disposeBag)

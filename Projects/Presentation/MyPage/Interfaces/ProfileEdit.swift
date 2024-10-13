@@ -12,4 +12,6 @@ public protocol ProfileEditContainable: Containable {
   func coordinator(listener: ProfileEditListener) -> Coordinating
 }
 
-public protocol ProfileEditListener: AnyObject { }
+public protocol ProfileEditListener: AnyObject {
+  func didTapBackButtonAtProfileEdit()
+}

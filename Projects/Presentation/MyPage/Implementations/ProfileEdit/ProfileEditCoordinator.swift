@@ -47,6 +47,10 @@ final class ProfileEditCoordinator: Coordinator {
 
 // MARK: - Coordinatable
 extension ProfileEditCoordinator: ProfileEditCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtProfileEdit()
+  }
+  
   func attachChangePassword() {
     guard passwordCoordinator == nil else { return }
     

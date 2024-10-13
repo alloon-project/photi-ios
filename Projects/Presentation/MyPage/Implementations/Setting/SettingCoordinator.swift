@@ -112,11 +112,15 @@ extension SettingCoordinator: SettingCoordinatable {
   }
 }
 // MARK: - ProfileEditListener
-extension SettingCoordinator: ProfileEditListener {}
+extension SettingCoordinator: ProfileEditListener {
+  func didTapBackButtonAtProfileEdit() {
+    detachProfileEdit()
+  }
+}
 
 // MARK: - Report
 extension SettingCoordinator: ReportListener {
   func detachReport() {
-    self.detachInquiry()
+    detachInquiry()
   }
 }
