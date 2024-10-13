@@ -90,7 +90,7 @@ private extension IconRoundButton {
   func backGroundColor(for type: RoundButtonType) -> UIColor {
     switch type {
       case .primary:
-        return .green400
+        return .blue400
       case .secondary:
         return .green400
       case .tertiary:

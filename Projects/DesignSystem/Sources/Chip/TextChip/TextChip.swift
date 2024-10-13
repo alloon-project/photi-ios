@@ -16,7 +16,13 @@ public final class TextChip: UIView {
   public let size: ChipSize
   
   /// Text Chip의 type입니다.
-  public let type: TextChipType
+  public var type: TextChipType {
+    didSet {
+      self.backgroundColor = backgoundColor(for: type)
+      setBorderLine(for: type)
+      setLabel(text)
+    }
+  }
   
   /// Chip의 text입니다.
   public var text: String {
