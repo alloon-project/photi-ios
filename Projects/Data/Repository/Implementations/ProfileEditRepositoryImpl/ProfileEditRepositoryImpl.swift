@@ -20,7 +20,7 @@ public struct ProfileEditRepositoryImpl: ProfileEditRepository {
     self.dataMapper = dataMapper
   }
   
-  public func userInfo() -> Single<ProfileEditInfo> {
+  public func userInfo() -> Single<UserProfile> {
     return Single.create { single in
       Task {
         do {

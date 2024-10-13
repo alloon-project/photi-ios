@@ -1,5 +1,5 @@
 //
-//  ProfileEditInfo.swift
+//  UserProfile.swift
 //  Domain
 //
 //  Created by 임우섭 on 9/26/24.
@@ -8,13 +8,21 @@
 
 import Foundation
 
-public struct ProfileEditInfo {
-  public let imageUrl: String
+public struct UserProfile {
+  public let imageUrl: URL
   public let userName: String
   public let userEmail: String
   
+  public static var defaultValue: UserProfile {
+    return UserProfile(
+      imageUrl: URL(string: "exampleUrl")!,
+      userName: "닉네임 불러오는중",
+      userEmail: "example@example.com"
+    )
+  }
+  
   public init(
-    imageUrl: String,
+    imageUrl: URL,
     userName: String,
     userEmail: String
   ) {

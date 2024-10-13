@@ -10,14 +10,14 @@ import DTO
 import Entity
 
 public protocol ProfileEditDataMapper {
-  func mapToProfileEditInfo(responseDTO: ProfileEditResponseDTO) -> ProfileEditInfo
+  func mapToProfileEditInfo(responseDTO: ProfileEditResponseDTO) -> UserProfile
 }
 
 public struct ProfileEditDataMapperImpl: ProfileEditDataMapper {
   public init() {}
   
-  public func mapToProfileEditInfo(responseDTO: ProfileEditResponseDTO) -> ProfileEditInfo {
-    return ProfileEditInfo(
+  public func mapToProfileEditInfo(responseDTO: ProfileEditResponseDTO) -> UserProfile {
+    return UserProfile(
       imageUrl: responseDTO.imageUrl,
       userName: responseDTO.userName,
       userEmail: responseDTO.userEmail

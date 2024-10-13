@@ -13,5 +13,5 @@ import Repository
 public protocol ProfileEditUseCase {
   init(repository: ProfileEditRepository)
   
-  func userInfo() -> Single<ProfileEditInfo>
+  func userInfo() -> Single<UserProfile>
 }

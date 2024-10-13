@@ -36,8 +36,8 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   weak var coordinator: ProfileEditCoordinatable?
   
-  private var userInfoRelay = PublishRelay<ProfileEditInfo>()
-  
+  private let userInfoRelay = PublishRelay<UserProfile>()
+
   // MARK: - Input
   struct Input {
     let didTapCell: ControlEvent<IndexPath>
@@ -47,7 +47,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   // MARK: - Output
   struct Output {
-    let userInfo: Driver<ProfileEditInfo>
+    let userInfo: Driver<UserProfile>
   }
   
   // MARK: - Initializers
@@ -81,7 +81,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
       }.disposed(by: disposeBag)
     
     return Output(
-      userInfo: userInfoRelay.asDriver(onErrorJustReturn: .init(imageUrl: "ㅇ", userName: "ㄷ", userEmail: "ㅋ"))
+      userInfo: userInfoRelay.asDriver(onErrorJustReturn: .defaultValue)
     )
   }
 }

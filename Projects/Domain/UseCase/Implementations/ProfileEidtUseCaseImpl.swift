@@ -18,7 +18,7 @@ public struct ProfileEditUseCaseImpl: ProfileEditUseCase {
     self.repository = repository
   }
   
-  public func userInfo() -> Single<ProfileEditInfo> {
+  public func userInfo() -> Single<UserProfile> {
     return repository.userInfo()
   }
 }

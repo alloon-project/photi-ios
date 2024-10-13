@@ -13,5 +13,5 @@ import Entity
 public protocol ProfileEditRepository {
   init (dataMapper: ProfileEditDataMapper)
   
-  func userInfo() -> Single<ProfileEditInfo>
+  func userInfo() -> Single<UserProfile>
 }

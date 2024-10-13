@@ -137,9 +137,7 @@ private extension ProfileEditViewController {
   
   func bind(output: ProfileEditViewModel.Output) {
     output.userInfo.drive(onNext: { [weak self] userInfo in
-      guard let url = URL(string: userInfo.imageUrl) else { return }
-      
-      self?.profileImageView.load(url: url)
+      self?.profileImageView.load(url: userInfo.imageUrl)
       self?.userInfo = [userInfo.userName, userInfo.userEmail]
     }).disposed(by: disposeBag)
   }

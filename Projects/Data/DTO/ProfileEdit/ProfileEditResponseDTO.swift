@@ -6,14 +6,14 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Entity
+import Foundation
 
 public struct ProfileEditResponseDTO: Decodable {
-  public let imageUrl: String
+  public let imageUrl: URL
   public let userName: String
   public let userEmail: String
   
-  public init(imageUrl: String, userName: String, userEmail: String) {
+  public init(imageUrl: URL, userName: String, userEmail: String) {
     self.imageUrl = imageUrl
     self.userName = userName
     self.userEmail = userEmail
