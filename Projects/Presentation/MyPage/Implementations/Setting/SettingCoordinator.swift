@@ -48,6 +48,7 @@ final class SettingCoordinator: Coordinator {
     navigationController?.pushViewController(viewController, animated: true)
   }
   
+  // MARK: - Profile Edit
   func attachProfileEdit() {
     guard profileEditCoordinator == nil else { return }
     
@@ -66,6 +67,7 @@ final class SettingCoordinator: Coordinator {
     navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - Inquiry
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
@@ -95,10 +97,12 @@ final class SettingCoordinator: Coordinator {
     navigationController?.popViewController(animated: true)
   }
   
+  // MARK: - Service Term
   func attachServiceTerms() {}
   
   func detachServiceTerms() {}
   
+  // MARK: - Privacy
   func attachPrivacy() {}
   
   func detachPrivacy() {}
@@ -111,11 +115,15 @@ extension SettingCoordinator: SettingCoordinatable {
   }
 }
 // MARK: - ProfileEditListener
-extension SettingCoordinator: ProfileEditListener {}
+extension SettingCoordinator: ProfileEditListener {
+  func didTapBackButtonAtProfileEdit() {
+    detachProfileEdit()
+  }
+}
 
 // MARK: - Report
 extension SettingCoordinator: ReportListener {
   func detachReport() {
-    self.detachInquiry()
+    detachInquiry()
   }
 }

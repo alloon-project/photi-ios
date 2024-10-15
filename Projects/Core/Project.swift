@@ -18,7 +18,11 @@ let project = Project.make(
 			sources: [
 				"Extensions/**",
 				"Utils/**"
-			]
+			],
+            dependencies: [
+                .SPM.RxCocoa,
+                .SPM.RxSwift
+            ]
 		)
 	]
 )

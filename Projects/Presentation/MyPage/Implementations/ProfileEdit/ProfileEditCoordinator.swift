@@ -11,7 +11,9 @@ import Core
 
 protocol ProfileEditViewModelable { }
 
-public protocol ProfileEditListener: AnyObject { }
+public protocol ProfileEditListener: AnyObject {
+  func didTapBackButtonAtProfileEdit()
+}
 
 final class ProfileEditCoordinator: Coordinator {
   weak var listener: ProfileEditListener?
@@ -48,6 +50,10 @@ final class ProfileEditCoordinator: Coordinator {
 
 // MARK: - Coordinatable
 extension ProfileEditCoordinator: ProfileEditCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtProfileEdit()
+  }
+  
   func attachChangePassword() {
     guard passwordCoordinator == nil else { return }
     
