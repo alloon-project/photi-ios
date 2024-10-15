@@ -7,14 +7,17 @@
 //
 
 import Core
-import MyPage
 import UseCase
 
-public protocol ProfileEditDependency: Dependency {
+protocol ProfileEditContainable: Containable {
+  func coordinator(listener: ProfileEditListener) -> Coordinating
+}
+
+protocol ProfileEditDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
 }
 
-public final class ProfileEditContainer:
+final class ProfileEditContainer:
   Container<ProfileEditDependency>,
   ProfileEditContainable,
   PasswordChangeDependency,
@@ -24,7 +27,7 @@ public final class ProfileEditContainer:
   public func coordinator(listener: ProfileEditListener) -> Coordinating {
     let passwordChange = PasswordChangeContainer(dependency: self)
     let resign = ResignContainer(dependency: self)
-    let viewModel = ProfileEditViewModel(useCase: profileEditUseCase)
+    let viewModel = ProfileEditViewModel(useCase: dependency.profileEditUseCase)
     
     let coordinator = ProfileEditCoordinator(
       viewModel: viewModel,

@@ -8,10 +8,13 @@
 
 import UIKit
 import Core
-import MyPage
 import Report
 
 protocol SettingViewModelable { }
+
+public protocol SettingListener: AnyObject {
+  func didTapBackButtonAtSetting()
+}
 
 final class SettingCoordinator: Coordinator {
   weak var listener: SettingListener?

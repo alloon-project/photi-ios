@@ -7,10 +7,13 @@
 //
 
 import UIKit
-import MyPage
 import Core
 
 protocol ProfileEditViewModelable { }
+
+public protocol ProfileEditListener: AnyObject {
+  func didTapBackButtonAtProfileEdit()
+}
 
 final class ProfileEditCoordinator: Coordinator {
   weak var listener: ProfileEditListener?
