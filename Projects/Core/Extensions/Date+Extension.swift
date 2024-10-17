@@ -27,9 +27,10 @@ public extension Date {
     return component.day ?? 0
   }
   
-  func toString() -> String {
-    let monthText = month < 10 ? "0\(month)" : "\(month)"
-    let dayText = day < 10 ? "0\(day)" : "\(day)"
-    return "\(year).\(monthText).\(dayText)"
+  func toString(_ format: String) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = format
+    
+    return formatter.string(from: self)
   }
 }

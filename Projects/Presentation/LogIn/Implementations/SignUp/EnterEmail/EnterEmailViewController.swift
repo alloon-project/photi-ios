@@ -157,7 +157,7 @@ private extension EnterEmailViewController {
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.displayAlertPopUp()
+        owner.presentWarningPopup()
       }
       .disposed(by: disposeBag)
     
@@ -179,10 +179,5 @@ private extension EnterEmailViewController {
       lineTextField.commentViews = []
       lineTextField.mode = .success
     }
-  }
-  
-  func displayAlertPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
-    alertVC.present(to: self, animted: false)
   }
 }

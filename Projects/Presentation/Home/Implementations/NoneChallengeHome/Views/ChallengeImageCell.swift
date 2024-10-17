@@ -36,15 +36,14 @@ final class ChallengeImageCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure(with viewModel: ChallengeViewModel) {
+  func configure(with viewModel: ChallengePresentationModel) {
     var defaultImage = UIImage.defaultChallengeImage
-    
-    if case .create = viewModel.mode {
-      defaultImage = .createChallenge
-    }
-    
     let image: UIImage = (viewModel.image == nil) ? defaultImage : viewModel.image!
     imageView.image = image
+  }
+  
+  func configureCreateCell() {
+    imageView.image = .createChallenge
   }
 }
 

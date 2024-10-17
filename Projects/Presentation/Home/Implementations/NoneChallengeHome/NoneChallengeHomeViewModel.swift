@@ -8,6 +8,8 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol NoneChallengeHomeCoordinatable: AnyObject { }
 
@@ -20,20 +22,75 @@ protocol NoneChallengeHomeViewModelType: AnyObject {
 }
 
 final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType, NoneChallengeHomeViewModelable {
+  private let useCase: HomeUseCase
   let disposeBag = DisposeBag()
   
   weak var coordinator: NoneChallengeHomeCoordinatable?
   
+  private let challengesRelay = BehaviorRelay<[ChallengePresentationModel]>(value: [])
+  private let requestFailedRelay = PublishRelay<Void>()
+
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let viewWillAppear: Signal<Void>
+  }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let challenges: Driver<[ChallengePresentationModel]>
+    let requestFailed: Signal<Void>
+  }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: HomeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
-    return Output()
+    input.viewWillAppear
+      .emit(with: self) { owner, _ in
+        owner.fetchPopularChallenge()
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      challenges: challengesRelay.asDriver(),
+      requestFailed: requestFailedRelay.asSignal()
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension NoneChallengeHomeViewModel {
+  func fetchPopularChallenge() {
+    useCase.fetchPopularChallenge()
+      .subscribe(
+        with: self,
+        onSuccess: { owner, challenges in
+          let models = challenges.map { owner.mapToChallengePresentationModel($0) }
+          
+          owner.challengesRelay.accept(models)
+        },
+        onFailure: { owner, err in
+          print(err)
+          owner.requestFailedRelay.accept(())
+        }
+      )
+      .disposed(by: disposeBag)
+  }
+  
+  func mapToChallengePresentationModel(_ challenge: Challenge) -> ChallengePresentationModel {
+    let proveTime = challenge.proveTime.toString("HH:mm")
+    let endDate = challenge.endDate.toString("yyyy.MM.dd")
+    
+    return .init(
+      name: challenge.name,
+      image: nil,
+      goal: challenge.goal,
+      proveTime: proveTime,
+      endDate: endDate,
+      numberOfPersons: 0,
+      hashTags: challenge.hashTags
+    )
   }
 }

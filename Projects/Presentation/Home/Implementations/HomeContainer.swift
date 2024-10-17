@@ -9,9 +9,11 @@
 import Core
 import Home
 import LogIn
+import UseCase
 
 public protocol HomeDependency: Dependency {
   var loginContainable: LogInContainable { get }
+  var homeUseCae: HomeUseCase { get }
 }
 
 public final class HomeContainer:
@@ -19,8 +21,10 @@ public final class HomeContainer:
   HomeContainable,
   NoneMemberHomeDependency,
   NoneChallengeHomeDependency {
+  var homeUseCase: HomeUseCase { dependency.homeUseCae }
+  
   public func coordinator(listener: HomeListener) -> Coordinating {
-    let viewModel = HomeViewModel()
+    let viewModel = HomeViewModel(useCase: dependency.homeUseCae)
     
     let noneMemberHome = NoneMemberHomeContainer(dependency: self)
     let noneChallengeHome = NoneChallengeHomeContainer(dependency: self)

@@ -59,8 +59,8 @@ public final class DateTextField: UIView {
   public var endDate: Date? {
     didSet {
       guard let endDate else { return }
-      
-      self.setAttributedText(endDate.toString())
+      let dateString = endDate.toString("yyyy.MM.dd")
+      self.setAttributedText(dateString)
     }
   }
   
@@ -166,7 +166,7 @@ private extension DateTextField {
   
   func setLeftView(_ textField: PhotiTextField, date: Date) {
     let startDateLabel = UILabel()
-    let text = date.toString()
+    let text = date.toString("yyyy.MM.dd")
     
     startDateLabel.attributedText = text.attributedString(
       font: .body2,

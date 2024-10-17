@@ -159,7 +159,7 @@ private extension VerifyEmailViewController {
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.displayRequestFailedPopUp()
+        owner.presentWarningPopup()
       }
       .disposed(by: disposeBag)
     
@@ -190,11 +190,6 @@ extension VerifyEmailViewController {
 
 // MARK: - Private Methods
 private extension VerifyEmailViewController {
-  func displayRequestFailedPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
-    alertVC.present(to: self, animted: false)
-  }
-  
   func displayEmailNotFoundPopUp() {
     let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "해당 이메일이 존재하지 않습니다.")
     alertVC.present(to: self, animted: false)

@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol HomeCoordinatable: AnyObject { }
 
@@ -21,6 +22,7 @@ protocol HomeViewModelType: AnyObject, HomeViewModelable {
 }
 
 final class HomeViewModel: HomeViewModelType {
+  private let useCase: HomeUseCase
   let disposeBag = DisposeBag()
   
   weak var coordinator: HomeCoordinatable?
@@ -32,7 +34,9 @@ final class HomeViewModel: HomeViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: HomeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     return Output()

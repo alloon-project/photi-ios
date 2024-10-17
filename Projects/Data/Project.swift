@@ -24,7 +24,8 @@ let project = Project.make(
 			sources: ["DataMapper/**"],
 			dependencies: [
 				.Project.Data.DTO,
-				.Project.Domain.Entity
+				.Project.Domain.Entity,
+				.Project.Core
 			]
 		),
 		.make(
