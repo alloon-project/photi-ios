@@ -44,12 +44,12 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     let didTapBackButton: ControlEvent<Void>
     let didTapCell: ControlEvent<IndexPath>
     let didTapResignButton: ControlEvent<Void>
-    let viewWillAppear: Observable<Bool>
+    let isVisible: Observable<Bool>
   }
   
   // MARK: - Output
   struct Output {
-    let userInfo: Driver<UserProfile>
+    let userInfo: Signal<UserProfile>
   }
   
   // MARK: - Initializers
@@ -81,16 +81,13 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
         onwer.coordinator?.attachResign()
       }.disposed(by: disposeBag)
     
-    input.viewWillAppear
-      .bind(with: self) { onwer, isViewAppeared in
-        if isViewAppeared {
-          print("??")
-          onwer.userInfo()
-        }
+    input.isVisible
+      .bind(with: self) { onwer, _ in
+        onwer.userInfo()
       }.disposed(by: disposeBag)
     
     return Output(
-      userInfo: userInfoRelay.asDriver(onErrorJustReturn: .defaultValue)
+      userInfo: userInfoRelay.asSignal()
     )
   }
 }

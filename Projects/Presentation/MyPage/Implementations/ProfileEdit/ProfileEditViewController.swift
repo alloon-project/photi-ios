@@ -129,7 +129,7 @@ private extension ProfileEditViewController {
       didTapBackButton: navigationBar.rx.didTapLeftButton,
       didTapCell: menuTableView.rx.itemSelected,
       didTapResignButton: resignButton.rx.tap,
-      viewWillAppear: self.rx.isVisible
+      isVisible: self.rx.isVisible
     )
     
     let output = viewModel.transform(input: input)
@@ -137,10 +137,12 @@ private extension ProfileEditViewController {
   }
   
   func bind(output: ProfileEditViewModel.Output) {
-    output.userInfo.drive(onNext: { [weak self] userInfo in
-      self?.profileImageView.load(url: userInfo.imageUrl)
-      self?.userInfo = [userInfo.userName, userInfo.userEmail]
-    }).disposed(by: disposeBag)
+    output.userInfo
+      .emit(with: self) { onwer, userInfo in
+        // TODO: -  캐싱 적용 후 수정     self?.profileImageView.load(url: userInfo.imageUrl)
+        onwer.userInfo = [userInfo.userName, userInfo.userEmail]
+      }
+      .disposed(by: disposeBag)
   }
 }
 
