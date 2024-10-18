@@ -23,11 +23,13 @@ final class NoneChallengeHomeViewController: UIViewController {
   private let viewModel: NoneChallengeHomeViewModel
   private let disposeBag = DisposeBag()
   private var currentPage = 0
-  private var items: [ChallengeViewModel] = [] {
+  private var dataSource: [ChallengePresentationModel] = [] {
     didSet {
       challengeImageCollectionView.reloadData()
     }
   }
+  
+  private let viewWillAppear = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
@@ -95,10 +97,18 @@ final class NoneChallengeHomeViewController: UIViewController {
     challengeImageCollectionView.dataSource = self
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    
+    viewWillAppear.accept(())
+  }
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-
+    
+    guard !dataSource.isEmpty else { return }
     scrollToPage(currentPage)
+    challengeInformationView.configure(with: dataSource[currentPage])
   }
 }
 
@@ -155,19 +165,45 @@ private extension NoneChallengeHomeViewController {
 
 // MARK: - Bind Methods
 private extension NoneChallengeHomeViewController {
-  func bind() { }
+  func bind() {
+    let input = NoneChallengeHomeViewModel.Input(
+      viewWillAppear: viewWillAppear.asSignal()
+    )
+    
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: NoneChallengeHomeViewModel.Output) {
+    output.challenges
+      .drive(with: self) { owner, challenges in
+        owner.dataSource = challenges
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - UICollectionViewDataSource
 extension NoneChallengeHomeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return items.count
+    return dataSource.count + 1
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(ChallengeImageCell.self, for: indexPath)
     
-    cell.configure(with: items[indexPath.row])
+    if indexPath.row == dataSource.count {
+      cell.configureCreateCell()
+    } else {
+      cell.configure(with: dataSource[indexPath.row])
+    }
+    
     cell.isCurrentPage = indexPath.row == currentPage
     
     return cell
@@ -204,7 +240,7 @@ private extension NoneChallengeHomeViewController {
   
   func offSetDidChange(_ offset: CGPoint) {
     let page = currentPage(for: offset)
-    defer { currentPage = page }
+    guard page <= dataSource.count && page >= 0 else { return }
     guard
       let beforeCell = cellForPage(currentPage),
       let currentCell = cellForPage(page)
@@ -213,12 +249,14 @@ private extension NoneChallengeHomeViewController {
     beforeCell.isCurrentPage = false
     currentCell.isCurrentPage = true
     
-    if page == items.count - 1 {
+    if page == dataSource.count {
       presentCreateChallengeInformationView()
     } else {
       presentChallengeInformationView()
-      challengeInformationView.configure(with: items[page])
+      challengeInformationView.configure(with: dataSource[page])
     }
+    
+    currentPage = page
   }
   
   func currentPage(for offset: CGPoint) -> Int {
@@ -238,13 +276,14 @@ private extension NoneChallengeHomeViewController {
   }
   
   func scrollToPage(_ page: Int, animated: Bool = false) {
-    guard items.count > page else { return }
+    guard dataSource.count > page else { return }
     let indexPath = IndexPath(row: page, section: 0)
     
     DispatchQueue.main.async {
       self.challengeImageCollectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
     }
   }
+
   func presentChallengeInformationView() {
     challengeInformationView.isHidden = false
     createChallengeInformationView.isHidden = true

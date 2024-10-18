@@ -69,20 +69,27 @@ final class ChallengeInformationView: UIView {
     fatalError("init(coder:) has not been implemented")
   }
   
-  func configure(with viewModel: ChallengeViewModel) {
-    goalContentView.configure(firstContent: viewModel.goal)
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    
+    centerContentHorizontalyByInsetIfNeeded()
+  }
+  
+  // MARK: - Configure Methods
+  func configure(with model: ChallengePresentationModel) {
+    goalContentView.configure(firstContent: model.goal)
     challengeTimeContentView.configure(
-      firstContent: viewModel.verificatoinTime,
-      secondContent: viewModel.expirationTime
+      firstContent: model.proveTime,
+      secondContent: model.endDate
     )
     
-    challengeNameLabel.attributedText = viewModel.name.attributedString(font: .body1Bold, color: .gray900)
-    participateCountLabel.attributedText = "\(viewModel.numberOfPersons)명 도전 중".attributedString(
+    challengeNameLabel.attributedText = model.name.attributedString(font: .body1Bold, color: .gray900)
+    participateCountLabel.attributedText = "\(model.numberOfPersons)명 도전 중".attributedString(
       font: .caption1,
       color: .gray700
     )
     
-    self.hashTags = ["해시태그 1", "해시태그 2", "해시태그 3"]
+    self.hashTags = model.hashTags
   }
 }
 
