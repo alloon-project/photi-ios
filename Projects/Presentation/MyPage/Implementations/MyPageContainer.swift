@@ -8,21 +8,27 @@
 
 import Core
 import MyPage
+import UseCase
 
-public protocol MyPageDependency: Dependency { }
+public protocol MyPageDependency: Dependency {
+  var profileEditUseCase: ProfileEditUseCase { get }
+}
 
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
   SettingDependency {
+  var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
+  
   public func coordinator(listener: MyPageListener) -> Coordinating {
-    let setting = SettingContainer(dependency: self)
     let viewModel = MyPageViewModel()
+    let settingContainable = SettingContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: setting
+      settingContainable: settingContainable
     )
+    
     coordinator.listener = listener
     return coordinator
   }

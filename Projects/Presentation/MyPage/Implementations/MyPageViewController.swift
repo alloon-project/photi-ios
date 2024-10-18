@@ -174,7 +174,7 @@ private extension MyPageViewController {
       $0.top.equalTo(userInfoView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
       $0.bottom.equalToSuperview()
-      $0.height.equalTo(451)
+      $0.height.equalTo(471)
     }
     setConstraintsOfUserInfoView()
     setConstraintsOfFeedInfoView()

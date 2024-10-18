@@ -65,6 +65,10 @@ final class AppContainer:
     return SignUpUseCaseImpl(repository: signUpRepository)
   }()
   
+  lazy var profileEditUseCase: ProfileEditUseCase = {
+    return ProfileEditUseCaseImpl(repository: profileEditRepository)
+  }()
+
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
@@ -78,6 +82,9 @@ final class AppContainer:
     return SignUpRepositoryImpl(dataMapper: SignUpDataMapperImpl())
   }()
   
+  lazy var profileEditRepository: ProfileEditRepository = {
+    return ProfileEditRepositoryImpl(dataMapper: ProfileEditDataMapperImpl())
+  }()
   lazy var challengeRepository: ChallengeRepository = {
     return ChallengeRepositoryImpl(dataMapper: ChallengeDataMapperImpl())
   }()

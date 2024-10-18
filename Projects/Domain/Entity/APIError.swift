@@ -22,4 +22,9 @@ public enum APIError: Error {
   case serverError
   case loginFailed
   case signUpFailed(reason: SignUpFailedReason)
+  
+  // MARK: - Profile Edit
+  case tokenUnauthenticated
+  case tokenUnauthorized
+  case userNotFound
 }

@@ -122,7 +122,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
             single(.failure(register400Error(result.code)))
           } else if result.statusCode == 409 {
             single(.failure(register409Error(result.code)))
-          } else if result.statusCode == 201, let userName = result.data?.username {
+          } else if result.statusCode == 201, let userName = result.data?.userName {
             single(.success(userName))
           } else {
             single(.failure(APIError.serverError))
