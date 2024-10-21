@@ -20,6 +20,10 @@ let dependencies = Dependencies(
 				.remote(
 					url: "https://github.com/RxSwiftCommunity/RxGesture.git",
 					requirement: .exact("4.0.1")
+				),
+				.remote(
+					url: "https://github.com/onevcat/Kingfisher.git",
+					requirement: .exact("8.1.0")
 				)
 		],
 		platforms: [.iOS]
