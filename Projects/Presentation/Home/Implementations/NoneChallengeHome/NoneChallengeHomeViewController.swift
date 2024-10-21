@@ -14,7 +14,7 @@ import DesignSystem
 import Core
 
 final class NoneChallengeHomeViewController: UIViewController {
-  struct Constants {
+  enum Constants {
     static let itemSize = 160.0
     static let groupSpacing = 10.0
   }
