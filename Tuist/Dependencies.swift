@@ -24,6 +24,10 @@ let dependencies = Dependencies(
 				.remote(
 					url: "https://github.com/onevcat/Kingfisher.git",
 					requirement: .exact("8.1.0")
+				),
+				.remote(
+					url: "https://github.com/airbnb/lottie-ios.git",
+					requirement: .exact("4.5.0")
 				)
 		],
 		platforms: [.iOS]
