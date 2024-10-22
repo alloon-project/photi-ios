@@ -10,7 +10,7 @@ import UIKit
 
 struct ChallengePresentationModel {
   let name: String
-  let image: UIImage?
+  let imageURL: URL?
   let goal: String
   let proveTime: String
   let endDate: String

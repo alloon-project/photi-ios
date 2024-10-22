@@ -17,4 +17,5 @@ public extension TargetDependency.SPM {
 	static let RxRelay = TargetDependency.external(name: "RxRelay")
 	static let RxGesture = TargetDependency.external(name: "RxGesture")
 	static let SnapKit = TargetDependency.external(name: "SnapKit")
+	static let Kingfisher = TargetDependency.external(name: "Kingfisher")
 }

@@ -85,7 +85,7 @@ private extension NoneChallengeHomeViewModel {
     
     return .init(
       name: challenge.name,
-      image: nil,
+      imageURL: challenge.imageURL,
       goal: challenge.goal,
       proveTime: proveTime,
       endDate: endDate,

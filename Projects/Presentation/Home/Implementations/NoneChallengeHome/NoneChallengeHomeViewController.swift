@@ -14,7 +14,7 @@ import DesignSystem
 import Core
 
 final class NoneChallengeHomeViewController: UIViewController {
-  struct Constants {
+  enum Constants {
     static let itemSize = 160.0
     static let groupSpacing = 10.0
   }
@@ -26,6 +26,7 @@ final class NoneChallengeHomeViewController: UIViewController {
   private var dataSource: [ChallengePresentationModel] = [] {
     didSet {
       challengeImageCollectionView.reloadData()
+      configureInformatoinView(for: currentPage)
     }
   }
   
@@ -91,10 +92,10 @@ final class NoneChallengeHomeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    setupUI()
-    bind()
     challengeImageCollectionView.collectionViewLayout = compositionalLayout()
     challengeImageCollectionView.dataSource = self
+    setupUI()
+    bind()
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -240,6 +241,10 @@ private extension NoneChallengeHomeViewController {
   
   func offSetDidChange(_ offset: CGPoint) {
     let page = currentPage(for: offset)
+    configureInformatoinView(for: page)
+  }
+  
+  func configureInformatoinView(for page: Int) {
     guard page <= dataSource.count && page >= 0 else { return }
     guard
       let beforeCell = cellForPage(currentPage),

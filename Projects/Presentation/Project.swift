@@ -25,7 +25,8 @@ let project = Project.make(
 				.Project.DesignSystem,
 				.SPM.RxCocoa,
 				.SPM.RxGesture,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.Kingfisher
 			]
 		),
 		.make(
@@ -49,7 +50,8 @@ let project = Project.make(
 				.Project.DesignSystem,
 				.SPM.RxCocoa,
 				.SPM.RxGesture,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.Kingfisher
 			]
 		),
 		.make(
@@ -73,7 +75,8 @@ let project = Project.make(
 				.Project.DesignSystem,
 				.SPM.RxCocoa,
 				.SPM.RxGesture,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.Kingfisher
 			]
 		),
 		.make(
@@ -122,7 +125,8 @@ let project = Project.make(
 				.Project.DesignSystem,
 				.SPM.RxCocoa,
 				.SPM.RxGesture,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.Kingfisher
 			]
 		),
 		.make(
