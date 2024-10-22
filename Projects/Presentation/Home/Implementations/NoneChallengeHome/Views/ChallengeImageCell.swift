@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import SnapKit
 import Core
 import DesignSystem
@@ -37,9 +38,11 @@ final class ChallengeImageCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with viewModel: ChallengePresentationModel) {
-    var defaultImage = UIImage.defaultChallengeImage
-    let image: UIImage = (viewModel.image == nil) ? defaultImage : viewModel.image!
-    imageView.image = image
+    if let url = viewModel.imageURL {
+      imageView.kf.setImage(with: url)
+    } else {
+      imageView.image = .defaultChallengeImage
+    }
   }
   
   func configureCreateCell() {

@@ -11,7 +11,7 @@ import Foundation
 public struct Challenge: Identifiable {
   public let id: Int
   public let name: String
-  public let imageURL: URL
+  public let imageURL: URL?
   public let goal: String
   public let proveTime: Date
   public let endDate: Date
@@ -20,7 +20,7 @@ public struct Challenge: Identifiable {
   public init(
     id: Int,
     name: String,
-    imageURL: URL,
+    imageURL: URL?,
     goal: String,
     proveTime: Date,
     endDate: Date,
