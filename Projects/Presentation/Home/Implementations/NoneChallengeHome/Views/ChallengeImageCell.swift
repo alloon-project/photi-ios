@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Kingfisher
 import UIKit
+import Kingfisher
 import SnapKit
 import Core
 import DesignSystem

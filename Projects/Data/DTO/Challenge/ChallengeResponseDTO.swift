@@ -11,7 +11,7 @@ import Foundation
 public struct ChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let imageUrl: URL
+  public let imageUrl: URL?
   public let goal: String
   public let proveTime: String
   public let endDate: String
