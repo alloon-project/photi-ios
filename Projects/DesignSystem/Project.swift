@@ -21,7 +21,8 @@ let project = Project.make(
 				.Project.Core,
 				.SPM.RxCocoa,
 				.SPM.RxSwift,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.Lottie
 			]
 		)
 	],
