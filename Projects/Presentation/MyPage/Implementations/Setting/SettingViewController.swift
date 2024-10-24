@@ -107,7 +107,10 @@ extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
     if settingMenuDatasource[indexPath.row].1 == 0 {
-      cell.configure(with: settingMenuDatasource[indexPath.row].0)
+      cell.configure(
+        with: settingMenuDatasource[indexPath.row].0,
+        type: .default
+      )
     } else {
       if let currentVerison = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
         cell.configure(
