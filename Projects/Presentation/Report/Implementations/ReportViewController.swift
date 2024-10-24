@@ -23,7 +23,7 @@ final class ReportViewController: UIViewController {
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
-  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let reasonLabel = UILabel()
   private let reasonTableView = {

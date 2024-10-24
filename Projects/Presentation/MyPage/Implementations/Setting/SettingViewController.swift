@@ -20,10 +20,10 @@ final class SettingViewController: UIViewController {
   private var disposeBag = DisposeBag()
   
   // MARK: - UIComponents
-  private let navigationBar = TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "설정"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "설정",
+    displayMode: .dark
   )
   
   private let menuTableView = {
@@ -71,7 +71,7 @@ private extension SettingViewController {
       didTapCell: menuTableView.rx.itemSelected
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
   
   func setViewHierarchy() {

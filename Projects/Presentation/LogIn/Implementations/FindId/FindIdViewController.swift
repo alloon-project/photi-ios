@@ -18,11 +18,12 @@ final class FindIdViewController: UIViewController {
   private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
-  private let navigationBar = TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "아이디 찾기"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "아이디 찾기",
+    displayMode: .dark
   )
+  
   private let announceLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 2

@@ -21,7 +21,7 @@ final class PasswordChangeViewController: UIViewController {
   private var isKeyboardDisplay: Bool = false
   private var keyboardOffSet: CGFloat?
   // MARK: - UI Components
-  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let currentPasswordTitleLabel: UILabel = {
     let label = UILabel()

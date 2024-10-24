@@ -23,7 +23,7 @@ final class EnterPasswordViewController: UIViewController {
   private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .four)
   
   private let passwordTitleLabel: UILabel = {

@@ -18,7 +18,7 @@ final class NoneMemberHomeViewController: UIViewController {
   private let viewModel: NoneMemberHomeViewModel
   
   // MARK: - UI Components
-  private let navigationBar = LogoNavigationBar(mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
   
   private let titleLabel: UILabel = {
     let label = UILabel()

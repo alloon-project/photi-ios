@@ -22,10 +22,10 @@ final class ProfileEditViewController: UIViewController {
   // MARK: - Variables
   private var userInfo: [String] = []
   // MARK: - UIComponents
-  private let navigationBar = TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "프로필 수정"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "프로필 수정",
+    displayMode: .dark
   )
   
   private let profileImageView = {

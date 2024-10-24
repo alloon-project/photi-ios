@@ -18,7 +18,7 @@ final class EnterIdViewController: UIViewController {
   private let viewModel: EnterIdViewModel
   
   // MARK: - UI Components
-  private let navigationBar =  NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .three)
   
   private let titleLabel: UILabel = {

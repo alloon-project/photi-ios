@@ -20,10 +20,10 @@ final class NewPasswordViewController: UIViewController {
   private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "비밀번호 재설정"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "비밀번호 재설정",
+    displayMode: .dark
   )
   
   private let passwordTitleLabel: UILabel = {

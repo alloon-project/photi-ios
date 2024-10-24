@@ -16,11 +16,12 @@ final class TempPasswordViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
   // MARK: - UI Components
-  private let navigationBar =  TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "비밀번호 찾기"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "비밀번호 찾기",
+    displayMode: .dark
   )
+
   private let enterTempPasswordLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left

@@ -18,7 +18,7 @@ final class EnterEmailViewController: UIViewController {
   private let viewModel: EnterEmailViewModel
   
   // MARK: - UI Components
-  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .one)
   private let titleLabel: UILabel = {
     let label = UILabel()

@@ -18,7 +18,7 @@ final class ResignViewController: UIViewController {
   
   private let disposeBag = DisposeBag()
   // MARK: - UIComponents
-  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let titleLabel = {
     let label = UILabel()

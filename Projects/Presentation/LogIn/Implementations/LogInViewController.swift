@@ -17,11 +17,12 @@ final class LogInViewController: UIViewController {
   private let viewModel: LogInViewModel
   
   // MARK: - UI Components
-  private let navigationBar = TitleNavigationBar(
-    rightButtonCount: .zero,
-    mode: .dark,
-    title: "로그인"
-  ) 
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "로그인",
+    displayMode: .dark
+  )
+  
   private let idTextField = LineTextField(placeholder: "아이디를 입력해주세요.", type: .helper)
   private let passwordTextField = PasswordTextField(placeholder: "비밀번호를 입력해주세요", type: .helper)
   private let loginButton = FilledRoundButton(type: .primary, size: .xLarge, text: "로그인")
