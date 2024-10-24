@@ -17,7 +17,8 @@ import Core
 public class SearchNavigation: UIView {
   fileprivate let leftBackButtonImage = {
     var imageView = UIImageView()
-    imageView.image = .leftBackButtonDark.resize(CGSize(width: 24, height: 24))
+    imageView.image = .chevronBackWhite
+      .resize(CGSize(width: 24, height: 24))
     
     return imageView
   }()

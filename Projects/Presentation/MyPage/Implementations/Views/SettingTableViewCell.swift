@@ -11,6 +11,13 @@ import Core
 import DesignSystem
 
 final class SettingTableViewCell: UITableViewCell {
+  enum SettingTableViewCellType {
+    case `default`
+    case label(text: String)
+  }
+  
+  private let arrowImage: UIImage = .chevronForwardWhite.color(.gray300)
+  
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let arrowImageView = UIImageView()

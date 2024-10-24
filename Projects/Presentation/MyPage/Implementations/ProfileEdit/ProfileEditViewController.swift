@@ -34,7 +34,7 @@ final class ProfileEditViewController: UIViewController {
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
-    imageView.image = .person
+    imageView.image = .personLight
     imageView.contentMode = .scaleAspectFill
     
     return imageView
@@ -160,7 +160,7 @@ extension ProfileEditViewController: UITableViewDelegate, UITableViewDataSource 
     let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
     
     if profileEditMenuDataSource[indexPath.row].1 == 0 {
-      cell.configure(with: profileEditMenuDataSource[indexPath.row].0)
+      cell.configure(with: profileEditMenuDataSource[indexPath.row].0, type: .default)
     } else {
       cell.configure(with: profileEditMenuDataSource[indexPath.row].0,
                      type: .label(text: "불러오는중")) // TODO: - 아이디 & 이메일 조회 후 변경 예정
