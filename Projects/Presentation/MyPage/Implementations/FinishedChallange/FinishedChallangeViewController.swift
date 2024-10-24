@@ -19,6 +19,14 @@ final class FinishedChallengeViewController: UIViewController {
   // MARK: - Variables
   private var disposeBag = DisposeBag()
   
+  private let layout: GridCollectionViewFlowLayout = {
+    let layout = GridCollectionViewFlowLayout()
+    layout.cellSpacing = 16
+    layout.numberOfColumns = 2
+    
+    return layout
+  }()
+  
   // MARK: - UIComponents
   private let grayBackgroundView = {
     let view = UIView()
@@ -53,19 +61,16 @@ final class FinishedChallengeViewController: UIViewController {
     return pinkingView
   }()
   
-  private let finishedChallengeCollectionView = {
-    let layout = GridCollectionViewFlowLayout()
-    layout.cellSpacing = 16
-    layout.numberOfColumns = 2
-    
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.contentInset = .init(top: 0, left: 24, bottom: 0, right: 24)
+  private lazy var finishedChallengeCollectionView = {
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: self.layout)
+    collectionView.contentInset = .init(top: 35, left: 24, bottom: 0, right: 24)
     collectionView.backgroundColor = .white
-    collectionView.registerCell(SearchCardCell.self)
+    collectionView.registerCell(SearchCardOffTypeCell.self)
     collectionView.isPagingEnabled = false
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
     collectionView.translatesAutoresizingMaskIntoConstraints = false
+    
     return collectionView
   }()
   
@@ -84,6 +89,7 @@ final class FinishedChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    finishedChallengeCollectionView.delegate = self
     finishedChallengeCollectionView.dataSource = self
     setupUI()
     bind()
@@ -154,7 +160,7 @@ extension FinishedChallengeViewController: UICollectionViewDataSource {
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(SearchCardCell.self, for: indexPath)
+    let cell = collectionView.dequeueCell(SearchCardOffTypeCell.self, for: indexPath)
     
     return cell
   }
@@ -166,13 +172,15 @@ extension FinishedChallengeViewController: UICollectionViewDelegateFlowLayout {
                       sizeForItemAt indexPath: IndexPath) -> CGSize {
     guard let flowLayout = collectionViewLayout as? GridCollectionViewFlowLayout,
           flowLayout.numberOfColumns > 0
-     else { fatalError() }
-     
-     let widthOfCells = collectionView.bounds.width - (collectionView.contentInset.left + collectionView.contentInset.right)
-     let widthOfSpacing = CGFloat(flowLayout.numberOfColumns - 1) * flowLayout.cellSpacing
-     let width = (widthOfCells - widthOfSpacing) / CGFloat(flowLayout.numberOfColumns)
-
-     return CGSize(width: width, height: width * flowLayout.ratioHeightToWidth)
+    else { fatalError() }
+    
+    let widthOfCells = collectionView.bounds.width -
+    (collectionView.contentInset.left + collectionView.contentInset.right)
+    
+    let widthOfSpacing = CGFloat(flowLayout.numberOfColumns - 1) * flowLayout.cellSpacing
+    let width = (widthOfCells - widthOfSpacing) / CGFloat(flowLayout.numberOfColumns)
+    
+    return CGSize(width: width, height: 182.0)
   }
   
   func collectionView(_ collectionView: UICollectionView,
@@ -182,21 +190,4 @@ extension FinishedChallengeViewController: UICollectionViewDelegateFlowLayout {
   }
 }
 
-class GridCollectionViewFlowLayout: UICollectionViewFlowLayout {
-  var ratioHeightToWidth = 1.0
-  var numberOfColumns = 1
-  var cellSpacing = 0.0 {
-    didSet {
-      self.minimumLineSpacing = self.cellSpacing
-      self.minimumInteritemSpacing = self.cellSpacing
-    }
-  }
-  
-  override init() {
-    super.init()
-    self.scrollDirection = .vertical
-  }
-  required init?(coder: NSCoder) {
-    fatalError()
-  }
-}
+

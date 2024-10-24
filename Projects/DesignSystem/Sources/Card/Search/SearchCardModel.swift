@@ -9,11 +9,6 @@
 import UIKit
 
 struct SearchCardPresentationModel {
-  enum ModelType {
-    case offState
-    case onState
-  }
-  
   let challengeImage: UIImage
   let challengeTitle: String
   let finishedDate: Date
