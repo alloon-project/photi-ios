@@ -22,11 +22,10 @@ final class ProfileEditViewController: UIViewController {
   // MARK: - Variables
   private var userInfo: [String] = []
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(
-    textType: .center,
-    iconType: .one,
-    colorType: .dark,
-    titleText: "프로필 수정"
+  private let navigationBar = TitleNavigationBar(
+    rightButtonCount: .zero,
+    mode: .dark,
+    title: "프로필 수정"
   )
   
   private let profileImageView = {
@@ -126,7 +125,7 @@ private extension ProfileEditViewController {
 private extension ProfileEditViewController {
   func bind() {
     let input = ProfileEditViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapCell: menuTableView.rx.itemSelected,
       didTapResignButton: resignButton.rx.tap,
       isVisible: self.rx.isVisible

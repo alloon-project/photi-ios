@@ -18,13 +18,7 @@ final class NoneMemberHomeViewController: UIViewController {
   private let viewModel: NoneMemberHomeViewModel
   
   // MARK: - UI Components
-  private let logoImageView: UIImageView = {
-    let imageView = UIImageView()
-    imageView.image = .logoLettersBlue
-    imageView.contentMode = .left
-    
-    return imageView
-  }()
+  private let navigationBar = LogoNavigationBar(mode: .dark)
   
   private let titleLabel: UILabel = {
     let label = UILabel()
@@ -68,20 +62,19 @@ private extension NoneMemberHomeViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(logoImageView, titleLabel, mainImageView, loginButton)
+    view.addSubviews(navigationBar, titleLabel, mainImageView, loginButton)
   }
   
   func setConstraints() {
-    logoImageView.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(44)
-      $0.trailing.equalToSuperview()
-      $0.leading.equalToSuperview().offset(24)
+    navigationBar.snp.makeConstraints {
+      $0.top.equalTo(view.safeAreaLayoutGuide)
+      $0.trailing.leading.equalToSuperview()
       $0.height.equalTo(56)
     }
     
     titleLabel.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
-      $0.top.equalTo(logoImageView.snp.bottom).offset(24)
+      $0.top.equalTo(navigationBar.snp.bottom).offset(24)
     }
     
     mainImageView.snp.makeConstraints {

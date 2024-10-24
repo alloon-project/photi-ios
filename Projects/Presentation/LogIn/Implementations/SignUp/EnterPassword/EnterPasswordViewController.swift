@@ -23,7 +23,7 @@ final class EnterPasswordViewController: UIViewController {
   private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let navigationBar = NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
   private let progressBar = LargeProgressBar(step: .four)
   
   private let passwordTitleLabel: UILabel = {
@@ -162,7 +162,7 @@ private extension EnterPasswordViewController {
     let input = EnterPasswordViewModel.Input(
       password: passwordTextField.rx.text,
       reEnteredPassword: passwordCheckTextField.rx.text,
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
     )
     

@@ -18,7 +18,7 @@ final class EnterIdViewController: UIViewController {
   private let viewModel: EnterIdViewModel
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let navigationBar =  NoneNavigationBar(rightButtonCount: .zero, mode: .dark)
   private let progressBar = LargeProgressBar(step: .three)
   
   private let titleLabel: UILabel = {
@@ -134,7 +134,7 @@ private extension EnterIdViewController {
 private extension EnterIdViewController {
   func bind() {
     let input = EnterIdViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapNextButton: nextButton.rx.tap,
       didTapVerifyIdButton: idTextField.rx.didTapButton,
       userId: idTextField.rx.text

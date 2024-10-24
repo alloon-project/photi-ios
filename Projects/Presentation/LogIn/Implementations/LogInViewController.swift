@@ -17,7 +17,11 @@ final class LogInViewController: UIViewController {
   private let viewModel: LogInViewModel
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "로그인")
+  private let navigationBar = TitleNavigationBar(
+    rightButtonCount: .zero,
+    mode: .dark,
+    title: "로그인"
+  ) 
   private let idTextField = LineTextField(placeholder: "아이디를 입력해주세요.", type: .helper)
   private let passwordTextField = PasswordTextField(placeholder: "비밀번호를 입력해주세요", type: .helper)
   private let loginButton = FilledRoundButton(type: .primary, size: .xLarge, text: "로그인")
@@ -128,7 +132,7 @@ private extension LogInViewController {
     let input = LogInViewModel.Input(
       id: idTextField.rx.text,
       password: passwordTextField.rx.text,
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapLoginButton: loginButton.rx.tap,
       didTapFindIdButton: findView.rx.didTapFindIdButton,
       didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,

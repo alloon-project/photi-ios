@@ -27,7 +27,7 @@ final class HomeViewController: UIViewController {
   private var myChallengeDataSources: [MyChallengePresentationModel] = []
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .logo, iconType: .one, colorType: .blue)
+  private let navigationBar = LogoNavigationBar(mode: .dark)
   private let scrollView = UIScrollView()
   private let scrollContentView = UIView()
   private let titleLabel: UILabel = {

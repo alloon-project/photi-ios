@@ -20,11 +20,10 @@ final class SettingViewController: UIViewController {
   private var disposeBag = DisposeBag()
   
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(
-    textType: .center,
-    iconType: .one,
-    colorType: .dark,
-    titleText: "설정"
+  private let navigationBar = TitleNavigationBar(
+    rightButtonCount: .zero,
+    mode: .dark,
+    title: "설정"
   )
   
   private let menuTableView = {
@@ -68,7 +67,7 @@ private extension SettingViewController {
   
   func bind() {
     let input = SettingViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapCell: menuTableView.rx.itemSelected
     )
     
