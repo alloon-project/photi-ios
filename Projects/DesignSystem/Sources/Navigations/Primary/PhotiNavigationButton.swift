@@ -9,11 +9,14 @@
 import UIKit
 
 public final class PhotiNavigationButton: UIButton {
-  public static var backButton: PhotiNavigationButton {
-    return PhotiNavigationButton(image: .chevronBackWhite)
+  public static var optionButton: PhotiNavigationButton {
+    return PhotiNavigationButton(image: .ellipsisVerticalWhite)
   }
   public static var searchButton: PhotiNavigationButton {
     return PhotiNavigationButton(image: .searchWhite)
+  }
+  public static var shareButton: PhotiNavigationButton {
+    return PhotiNavigationButton(image: .shareWhite)
   }
   
   // MARK: - intrinsicContentSize
@@ -40,7 +43,12 @@ public final class PhotiNavigationButton: UIButton {
 
 // MARK: - UI Methods
 public extension PhotiNavigationButton {
-  func configure(with image: UIImage, with color: UIColor) {
+  func configure(with image: UIImage, color: UIColor) {
+    let colorImage = image.withTintColor(color, renderingMode: .alwaysOriginal)
+    configure(with: colorImage)
+  }
+  
+  func convert(color: UIColor) {
     let colorImage = image.withTintColor(color, renderingMode: .alwaysOriginal)
     configure(with: colorImage)
   }
