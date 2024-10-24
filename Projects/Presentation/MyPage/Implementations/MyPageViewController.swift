@@ -52,7 +52,7 @@ final class MyPageViewController: UIViewController {
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
-    imageView.image = .person
+    imageView.image = .personLight
     imageView.contentMode = .scaleAspectFill
     
     return imageView
@@ -60,7 +60,7 @@ final class MyPageViewController: UIViewController {
   
   private let settingButton = {
     let button = UIButton()
-    button.setImage(.setting.resize(CGSize(width: 24, height: 24)),
+    button.setImage(.settingsWhite.resize(CGSize(width: 24, height: 24)),
                     for: .normal)
     return button
   }()

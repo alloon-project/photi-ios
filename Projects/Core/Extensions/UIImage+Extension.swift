@@ -19,4 +19,8 @@ public extension UIImage {
     
     return image.withRenderingMode(renderingMode)
   }
+  
+  func color(_ color: UIColor) -> UIImage {
+    return self.withTintColor(color, renderingMode: .alwaysOriginal)
+  }
 }

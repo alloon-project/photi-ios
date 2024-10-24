@@ -164,7 +164,7 @@ private extension HomeMyChallengeCell {
   }
   
   func configureInformationViews(time: String, date: String) {
-    timeInformationView.configure(image: .clockGray, text: time)
-    dateInformationView.configure(image: .calendarGray, text: date)
+    timeInformationView.configure(image: .timeGray400, text: time)
+    dateInformationView.configure(image: .calendarGray400, text: date)
   }
 }

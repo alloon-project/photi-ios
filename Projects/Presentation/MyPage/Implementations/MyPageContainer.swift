@@ -8,16 +8,20 @@
 
 import Core
 import MyPage
+import Report
 import UseCase
 
 public protocol MyPageDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
+  var reportContainable: ReportContainable { get }
 }
 
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
   SettingDependency {
+  var reportContainable: ReportContainable { dependency.reportContainable }
+  
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: MyPageListener) -> Coordinating {

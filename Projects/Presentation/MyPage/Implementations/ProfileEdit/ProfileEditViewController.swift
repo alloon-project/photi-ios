@@ -22,11 +22,10 @@ final class ProfileEditViewController: UIViewController {
   // MARK: - Variables
   private var userInfo: [String] = []
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(
-    textType: .center,
-    iconType: .one,
-    colorType: .dark,
-    titleText: "프로필 수정"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "프로필 수정",
+    displayMode: .dark
   )
   
   private let profileImageView = {
@@ -34,7 +33,7 @@ final class ProfileEditViewController: UIViewController {
     imageView.layer.cornerRadius = 48
     imageView.backgroundColor = .gray400
     imageView.clipsToBounds = true
-    imageView.image = .person
+    imageView.image = .personLight
     imageView.contentMode = .scaleAspectFill
     
     return imageView
@@ -126,7 +125,7 @@ private extension ProfileEditViewController {
 private extension ProfileEditViewController {
   func bind() {
     let input = ProfileEditViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapCell: menuTableView.rx.itemSelected,
       didTapResignButton: resignButton.rx.tap,
       isVisible: self.rx.isVisible
@@ -160,7 +159,7 @@ extension ProfileEditViewController: UITableViewDelegate, UITableViewDataSource 
     let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
     
     if profileEditMenuDataSource[indexPath.row].1 == 0 {
-      cell.configure(with: profileEditMenuDataSource[indexPath.row].0)
+      cell.configure(with: profileEditMenuDataSource[indexPath.row].0, type: .default)
     } else {
       cell.configure(with: profileEditMenuDataSource[indexPath.row].0,
                      type: .label(text: "불러오는중")) // TODO: - 아이디 & 이메일 조회 후 변경 예정

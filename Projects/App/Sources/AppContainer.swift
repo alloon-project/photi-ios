@@ -14,6 +14,8 @@ import LogIn
 import LogInImpl
 import MyPage
 import MyPageImpl
+import Report
+import ReportImpl
 import Repository
 import RepositoryImpl
 import SearchChallenge
@@ -34,7 +36,8 @@ final class AppContainer:
   SignUpDependency,
   HomeDependency,
   SearchChallengeDependency,
-  MyPageDependency {
+  MyPageDependency,
+  ReportDependency {
   func coordinator() -> Coordinating {
     let home = HomeContainer(dependency: self)
     let searchChallenge = SearchChallengeContainer(dependency: self)
@@ -54,6 +57,10 @@ final class AppContainer:
   
   lazy var signUpContainable: SignUpContainable = {
     return SignUpContainer(dependency: self)
+  }()
+  
+  lazy var reportContainable: ReportContainable = {
+    return ReportContainer(dependency: self)
   }()
   
   // MARK: - UseCase

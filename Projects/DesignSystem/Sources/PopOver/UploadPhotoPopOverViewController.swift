@@ -48,7 +48,12 @@ public final class UploadPhotoPopOverViewController: PopOverViewController {
     self.image = image
     var buttonSize: ButtonSize = .small
     if case .one = type { buttonSize = .medium }
-    self.uploadButton = IconRoundButton(text: "올리기", icon: .rocketWhite, type: .primary, size: buttonSize)
+    self.uploadButton = IconRoundButton(
+      text: "올리기",
+      icon: UIImage(resource: .rocketWhite),
+      type: .primary,
+      size: buttonSize
+    )
     
     super.init(nibName: nil, bundle: nil)
     imageView.image = image

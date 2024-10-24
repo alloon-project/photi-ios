@@ -85,7 +85,7 @@ private extension ChallengeTitleView {
       case .proof:
         self.imageView.image = .cloverGreen
       case .didNotProof:
-        self.imageView.image = .clockBlue
+        self.imageView.image = .timeLightBlue
     }
   }
 }

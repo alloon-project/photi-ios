@@ -27,7 +27,7 @@ final class HomeViewController: UIViewController {
   private var myChallengeDataSources: [MyChallengePresentationModel] = []
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .logo, iconType: .one, colorType: .blue)
+  private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
   private let scrollView = UIScrollView()
   private let scrollContentView = UIView()
   private let titleLabel: UILabel = {
@@ -221,7 +221,7 @@ private extension HomeViewController {
   func displayAlertToSetting() {
     let alertController = UIAlertController(
       title: "현재 카메라 사용에 대한 접근 권한이 없습니다.",
-      message: "설정 > {앱 이름}탭에서 접근을 활성화 할 수 있습니다.",
+      message: "설정 > Photi탭에서 접근을 활성화 할 수 있습니다.",
       preferredStyle: .alert
     )
     let cancel = UIAlertAction(title: "취소", style: .cancel) { _ in
