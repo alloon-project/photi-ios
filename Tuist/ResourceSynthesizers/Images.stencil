@@ -47,7 +47,9 @@ import UIKit
 {{accessModifier}} extension UIImage {
 	{% for category in catalogs where category.name == "Images" %}
 	{% for asset in category.assets %}
-	static let {{asset.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = {{imageType}}(name: "{{asset.value}}").image
+	{% for image in asset.items %}
+	static let {{image.name|swiftIdentifier:"pretty"|lowerFirstWord|escapeReservedKeywords}} = {{imageType}}(name: "{{image.value}}").image
+	{% endfor %}
 	{% endfor %}
 	{% endfor %}
 }
