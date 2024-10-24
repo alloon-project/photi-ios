@@ -38,7 +38,7 @@ final class HomeCoordinator: Coordinator, HomeCoordinatable {
     self.loginContainer = loginContainer
     self.noneMemberHomeContainer = noneMemberHomeContainer
     self.noneChallengeHomeContainer = noneChallengeHomeContainer
-    self.viewController = HomeViewController()
+    self.viewController = HomeViewController(viewModel: self.viewModel)
     super.init()
     viewModel.coordinator = self
   }

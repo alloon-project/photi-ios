@@ -17,16 +17,19 @@ public protocol MyPageDependency: Dependency {
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
-  SettingDependency {
+  SettingDependency,
+  FinishedChallengeDependency {
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: MyPageListener) -> Coordinating {
     let viewModel = MyPageViewModel()
     let settingContainable = SettingContainer(dependency: self)
+    let finishedChallengeContainable = FinishedChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: settingContainable
+      settingContainable: settingContainable,
+      finishedChallengeContainable: finishedChallengeContainable
     )
     
     coordinator.listener = listener
