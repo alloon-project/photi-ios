@@ -8,10 +8,11 @@
 
 import Core
 import UseCase
-import ReportImpl
+import Report
 
 protocol SettingDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
+  var reportContainable: ReportContainable { get }
 }
 
 protocol SettingContainable: Containable {
@@ -21,20 +22,18 @@ protocol SettingContainable: Containable {
 final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
-  ProfileEditDependency,
-  ReportDependency {
+  ProfileEditDependency {
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: SettingListener) -> Coordinating {
     let viewModel = SettingViewModel()
     
     let profileEdit = ProfileEditContainer(dependency: self)
-    let report = ReportContainer(dependency: self)
     
     let coordinator = SettingCoordinator(
       viewModel: viewModel,
       profileEditContainable: profileEdit,
-      reportContainable: report
+      reportContainable: dependency.reportContainable
     )
     coordinator.listener = listener
     
