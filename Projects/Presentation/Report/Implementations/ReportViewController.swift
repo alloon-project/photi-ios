@@ -23,7 +23,7 @@ final class ReportViewController: UIViewController {
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let reasonLabel = UILabel()
   private let reasonTableView = {
@@ -143,7 +143,7 @@ private extension ReportViewController {
 private extension ReportViewController {
   func bind() {
     let input = ReportViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton
+      didTapBackButton: navigationBar.rx.didTapBackButton
     )
     
     let output = viewModel.transform(input: input)

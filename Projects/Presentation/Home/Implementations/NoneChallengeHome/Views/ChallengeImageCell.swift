@@ -22,7 +22,7 @@ final class ChallengeImageCell: UICollectionViewCell {
   
   // MARK: - UI Components
   private let imageView = UIImageView()
-  private let pinImageView = UIImageView(image: .pin)
+  private let pinImageView = UIImageView(image: .pinBlue)
   
   // MARK: - Initializers
   override init(frame: CGRect) {

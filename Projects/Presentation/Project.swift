@@ -70,6 +70,7 @@ let project = Project.make(
 			sources: ["MyPage/Implementations/**"],
 			dependencies: [
 				.Project.Presentation.MyPage,
+				.Project.Presentation.Report,
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,

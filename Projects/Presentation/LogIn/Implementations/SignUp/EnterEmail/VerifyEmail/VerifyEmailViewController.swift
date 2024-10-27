@@ -20,7 +20,7 @@ final class VerifyEmailViewController: UIViewController {
   private let didTapEmailNotFoundConfirmButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .none, iconType: .one)
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .two)
   private let titleLabel: UILabel = {
     let label = UILabel()
@@ -142,7 +142,7 @@ private extension VerifyEmailViewController {
 private extension VerifyEmailViewController {
   func bind() {
     let input = VerifyEmailViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapResendButton: resendButton.rx.tap,
       didTapNextButton: nextButton.rx.tap,
       verificationCode: lineTextField.rx.text
