@@ -34,7 +34,7 @@ open class PhotiNavigationBar: UIView {
   }
   public let leftViewType: LeftViewType
   public var title: String
-  public var rightItems: [UIView] {
+  public var rightItems: [PhotiNavigationButton] {
     didSet {
       oldValue.forEach { rightStackView.removeArrangedSubview($0) }
       configureRightItems(rightItems)
@@ -99,7 +99,7 @@ open class PhotiNavigationBar: UIView {
   public init(
     leftView: LeftViewType,
     title: String,
-    rightItems: [UIView],
+    rightItems: [PhotiNavigationButton],
     displayMode: DisplayMode
   ) {
     self.displayMode = displayMode
@@ -125,7 +125,7 @@ open class PhotiNavigationBar: UIView {
   
   public convenience init(
     leftView: LeftViewType,
-    rigthItems: [UIView],
+    rigthItems: [PhotiNavigationButton],
     displayMode: DisplayMode
   ) {
     self.init(
@@ -211,9 +211,7 @@ private extension PhotiNavigationBar {
   }
   
   func configureRightView(for mode: DisplayMode) {
-    rightItems
-      .compactMap { $0 as? PhotiNavigationButton }
-      .forEach { $0.convert(color: rightButtonImageColor) }
+    rightItems.forEach { $0.convert(color: rightButtonImageColor) }
   }
   
   func configureTitle(_ title: String) {
