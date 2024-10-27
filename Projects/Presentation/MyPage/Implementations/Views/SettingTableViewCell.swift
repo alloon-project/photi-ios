@@ -7,16 +7,20 @@
 //
 
 import UIKit
+import Core
 import DesignSystem
 
 final class SettingTableViewCell: UITableViewCell {
+  enum SettingTableViewCellType {
+    case `default`
+    case label(text: String)
+  }
+  
+  private let arrowImage: UIImage = .chevronForwardWhite.color(.gray300)
+  
   // MARK: - UI Components
   private let titleLabel = UILabel()
-  private let arrowImageView = {
-    let imageView = UIImageView()
-    imageView.image = .iconArrowRight
-    return imageView
-  }()
+  private let arrowImageView = UIImageView()
   private let rightLabel = UILabel()
   
   // MARK: - Initializers
@@ -34,7 +38,7 @@ final class SettingTableViewCell: UITableViewCell {
   // MARK: - Configure
   func configure(
     with text: String,
-    type: SettingTableViewCellType = .image(image: .iconArrowRight),
+    type: SettingTableViewCellType,
     font: UIFont = .body2,
     rightTextColor: UIColor = .gray900
   ) {
@@ -44,8 +48,8 @@ final class SettingTableViewCell: UITableViewCell {
     )
     
     switch type {
-    case .image(let image):
-      arrowImageView.image = image
+      case .default:
+      arrowImageView.image = arrowImage
       arrowImageView.isHidden = false
       rightLabel.isHidden = true
     case .label(let text):
@@ -89,9 +93,4 @@ private extension SettingTableViewCell {
       $0.trailing.equalToSuperview().offset(-24)
     }
   }
-}
-
-enum SettingTableViewCellType {
-  case image(image: UIImage)
-  case label(text: String)
 }

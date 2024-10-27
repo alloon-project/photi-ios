@@ -20,11 +20,10 @@ final class SettingViewController: UIViewController {
   private var disposeBag = DisposeBag()
   
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(
-    textType: .center,
-    iconType: .one,
-    colorType: .dark,
-    titleText: "설정"
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "설정",
+    displayMode: .dark
   )
   
   private let menuTableView = {
@@ -68,11 +67,11 @@ private extension SettingViewController {
   
   func bind() {
     let input = SettingViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapCell: menuTableView.rx.itemSelected
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
   
   func setViewHierarchy() {
@@ -107,7 +106,10 @@ extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
     if settingMenuDatasource[indexPath.row].1 == 0 {
-      cell.configure(with: settingMenuDatasource[indexPath.row].0)
+      cell.configure(
+        with: settingMenuDatasource[indexPath.row].0,
+        type: .default
+      )
     } else {
       if let currentVerison = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
         cell.configure(

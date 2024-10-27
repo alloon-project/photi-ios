@@ -18,7 +18,12 @@ final class FindPasswordViewController: UIViewController {
   private let viewModel: FindPasswordViewModel
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "비밀번호 찾기")
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "비밀번호 찾기",
+    displayMode: .dark
+  )
+  
   private let enterIdLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left
@@ -131,7 +136,7 @@ private extension FindPasswordViewController {
 private extension FindPasswordViewController {
   func bind() {
     let input = FindPasswordViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       userId: idTextField.rx.text,
       endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd),
       editingUserId: idTextField.textField.rx.controlEvent(.editingChanged),

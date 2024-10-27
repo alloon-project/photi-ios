@@ -20,7 +20,11 @@ final class NewPasswordViewController: UIViewController {
   private let didTapContinueButton = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = PrimaryNavigationView(textType: .center, iconType: .one, titleText: "비밀번호 재설정")
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    title: "비밀번호 재설정",
+    displayMode: .dark
+  )
   
   private let passwordTitleLabel: UILabel = {
     let label = UILabel()
@@ -150,7 +154,7 @@ private extension NewPasswordViewController {
     let input = NewPasswordViewModel.Input(
       password: passwordTextField.rx.text,
       reEnteredPassword: passwordCheckTextField.rx.text,
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapContinueButton: nextButton.rx.tap, 
       didAppearAlert: alertRelay
     )

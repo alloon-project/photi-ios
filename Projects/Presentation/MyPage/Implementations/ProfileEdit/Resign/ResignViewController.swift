@@ -18,11 +18,7 @@ final class ResignViewController: UIViewController {
   
   private let disposeBag = DisposeBag()
   // MARK: - UIComponents
-  private let navigationBar = PrimaryNavigationView(
-    textType: .none,
-    iconType: .one,
-    colorType: .dark
-  )
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let titleLabel = {
     let label = UILabel()
@@ -107,7 +103,7 @@ private extension ResignViewController {
 private extension ResignViewController {
   func bind() {
     let input = ResignViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton,
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapResginButton: resignButton.rx.tap,
       didTapCancelButton: cancelButton.rx.tap
     )
