@@ -8,28 +8,29 @@
 
 import Core
 import MyPage
+import Report
 import UseCase
 
 public protocol MyPageDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
+  var reportContainable: ReportContainable { get }
 }
 
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
-  SettingDependency,
-  FinishedChallengeDependency {
+  SettingDependency {
+  var reportContainable: ReportContainable { dependency.reportContainable }
+  
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: MyPageListener) -> Coordinating {
     let viewModel = MyPageViewModel()
     let settingContainable = SettingContainer(dependency: self)
-    let finishedChallengeContainable = FinishedChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: settingContainable,
-      finishedChallengeContainable: finishedChallengeContainable
+      settingContainable: settingContainable
     )
     
     coordinator.listener = listener
