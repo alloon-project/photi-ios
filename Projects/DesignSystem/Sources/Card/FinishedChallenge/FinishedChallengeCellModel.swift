@@ -8,7 +8,7 @@
 
 import UIKit
 
-struct SearchCardPresentationModel {
+struct FinishedChallengeCellPresentationModel {
   let challengeImage: UIImage
   let challengeTitle: String
   let finishedDate: Date

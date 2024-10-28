@@ -19,14 +19,6 @@ final class FinishedChallengeViewController: UIViewController {
   // MARK: - Variables
   private var disposeBag = DisposeBag()
   
-  private let layout: GridCollectionViewFlowLayout = {
-    let layout = GridCollectionViewFlowLayout()
-    layout.cellSpacing = 16
-    layout.numberOfColumns = 2
-    
-    return layout
-  }()
-  
   // MARK: - UIComponents
   private let grayBackgroundView = {
     let view = UIView()
@@ -61,15 +53,17 @@ final class FinishedChallengeViewController: UIViewController {
     return pinkingView
   }()
   
-  private lazy var finishedChallengeCollectionView = {
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: self.layout)
+  private let finishedChallengeCollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.minimumLineSpacing = 16
+    layout.minimumInteritemSpacing = 12
+    
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.contentInset = .init(top: 35, left: 24, bottom: 0, right: 24)
     collectionView.backgroundColor = .white
-    collectionView.registerCell(SearchCardOffTypeCell.self)
-    collectionView.isPagingEnabled = false
+    collectionView.registerCell(FinishedChallengeCell.self)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
-    collectionView.translatesAutoresizingMaskIntoConstraints = false
     
     return collectionView
   }()
@@ -96,20 +90,12 @@ final class FinishedChallengeViewController: UIViewController {
   }
 }
 
-// MARK: - Private methods
+// MARK: - UI methods
 private extension FinishedChallengeViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
-  }
-  
-  func bind() {
-    let input = FinishedChallengeViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton
-    )
-    
-    let output = viewModel.transform(input: input)
   }
   
   func setViewHierarchy() {
@@ -153,6 +139,16 @@ private extension FinishedChallengeViewController {
   }
 }
 
+// MARK: - Bind Method
+private extension FinishedChallengeViewController {
+  func bind() {
+    let input = FinishedChallengeViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapLeftButton
+    )
+    
+    let output = viewModel.transform(input: input)
+  }
+}
 // MARK: - UICollectionViewDataSource
 extension FinishedChallengeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -160,7 +156,7 @@ extension FinishedChallengeViewController: UICollectionViewDataSource {
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(SearchCardOffTypeCell.self, for: indexPath)
+    let cell = collectionView.dequeueCell(FinishedChallengeCell.self, for: indexPath)
     
     return cell
   }
@@ -170,24 +166,10 @@ extension FinishedChallengeViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView,
                       layout collectionViewLayout: UICollectionViewLayout,
                       sizeForItemAt indexPath: IndexPath) -> CGSize {
-    guard let flowLayout = collectionViewLayout as? GridCollectionViewFlowLayout,
-          flowLayout.numberOfColumns > 0
-    else { fatalError() }
-    
     let widthOfCells = collectionView.bounds.width -
     (collectionView.contentInset.left + collectionView.contentInset.right)
-    
-    let widthOfSpacing = CGFloat(flowLayout.numberOfColumns - 1) * flowLayout.cellSpacing
-    let width = (widthOfCells - widthOfSpacing) / CGFloat(flowLayout.numberOfColumns)
+    let width = (widthOfCells - 16) / 2.0
     
     return CGSize(width: width, height: 182.0)
   }
-  
-  func collectionView(_ collectionView: UICollectionView,
-                      layout collectionViewLayout: UICollectionViewLayout,
-                      minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-    11.0
-  }
 }
-
-
