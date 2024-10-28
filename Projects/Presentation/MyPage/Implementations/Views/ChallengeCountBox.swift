@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
+import RxGesture
 import SnapKit
 import Core
 import DesignSystem
@@ -76,5 +79,13 @@ private extension ChallengeCountBox {
   
   func setCountLabel(_ text: String) {
     countLabel.attributedText = text.attributedString(font: .heading1, color: .white)
+  }
+}
+
+// MARK: - Reactive Extension
+extension Reactive where Base: ChallengeCountBox {
+  var didTapBox: ControlEvent<Void> {
+    let source = base.rx.tapGesture().when(.recognized).map { _ in }
+    return .init(events: source)
   }
 }
