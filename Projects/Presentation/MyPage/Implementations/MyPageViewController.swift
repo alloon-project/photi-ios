@@ -240,12 +240,15 @@ private extension MyPageViewController {
 private extension MyPageViewController {
   func bind() {
     let input = MyPageViewModel.Input(
-      didTapSettingButton: settingButton.rx.tap
+      didTapSettingButton: settingButton.rx.tap,
+      didTapAuthCountBox: authCountBox.rx.didTapBox,
+      didTapFinishedChallengeBox: finishedChallengeCountBox.rx.didTapBox
     )
     
     let output = viewModel.transform(input: input)
   }
 }
+
 // MARK: - CalendarView Delegate
 extension MyPageViewController: CalendarViewDelegate {
   func didSelect(_ date: Date) { }

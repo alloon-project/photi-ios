@@ -21,13 +21,19 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
   private let settingContainable: SettingContainable
   private var settingCoordinator: Coordinating?
   
+  private let finishedChallengeContainable: FinishedChallengeContainable
+  private var finishedChallengeCoordinator: Coordinating?
+  
   init(
     viewModel: MyPageViewModel,
-    settingContainable: SettingContainable
+    settingContainable: SettingContainable,
+    finishedChallengeContainable: FinishedChallengeContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
+    self.finishedChallengeContainable = finishedChallengeContainable
+    
     self.viewController = MyPageViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -56,11 +62,42 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     self.settingCoordinator = nil
     navigationController?.popViewController(animated: true)
   }
+  
+  func attachAuthCountDetail() {
+  }
+  
+  func detachAuthCountDetail() {
+  }
+  
+  func attachFinishedChallenge() {
+    guard finishedChallengeCoordinator == nil else { return }
+    
+    let coordinater = finishedChallengeContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.finishedChallengeCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
+  }
+  
+  func detachFinishedChallenge() {
+    guard let coordinator = finishedChallengeCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.finishedChallengeCoordinator = nil
+    navigationController?.popViewController(animated: true)
+  }
 }
 
 // MARK: - SettingListener
 extension MyPageCoordinator: SettingListener {
   func didTapBackButtonAtSetting() {
     detachSetting()
+  }
+}
+
+// MARK: - FinishedListener
+extension MyPageCoordinator: FinishedChallengeListener {
+  func didTapBackButtonAtFinishedChallenge() {
+    detachFinishedChallenge()
   }
 }
