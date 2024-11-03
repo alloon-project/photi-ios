@@ -1,14 +1,14 @@
 //
-//  FinishedChallengePresentationModel.swift
-//  Presentation
+//  EndedChallengeCardCellPresentationModel.swift
+//  DesignSystem
 //
-//  Created by wooseob on 10/18/24.
+//  Created by 임우섭 on 11/3/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
 import UIKit
 
-struct FinishedChallengeCellPresentationModel {
+struct EndedChallengeCardCellPresentationModel {
   let challengeImage: UIImage
   let challengeTitle: String
   let finishedDate: Date
