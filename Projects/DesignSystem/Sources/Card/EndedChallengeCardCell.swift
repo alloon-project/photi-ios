@@ -1,8 +1,8 @@
 //
-//  FinishedChallengeCell.swift
-//  Presentation
+//  EndedChallengeCardCell.swift
+//  DesignSystem
 //
-//  Created by wooseob on 10/18/24.
+//  Created by 임우섭 on 11/3/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
@@ -11,9 +11,9 @@ import RxCocoa
 import RxSwift
 import Core
 
-public final class FinishedChallengeCell: UICollectionViewCell {
+public final class EndedChallengeCardCell: UICollectionViewCell {
   // MARK: - Properties
-  private(set) var model: FinishedChallengeCellPresentationModel?
+  private(set) var model: EndedChallengeCardCellPresentationModel?
   
   // MARK: - UI Components
   private let whiteBackGroundView = {
@@ -130,7 +130,7 @@ public final class FinishedChallengeCell: UICollectionViewCell {
 }
 
 // MARK: - UI Methods
-private extension FinishedChallengeCell {
+private extension EndedChallengeCardCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()

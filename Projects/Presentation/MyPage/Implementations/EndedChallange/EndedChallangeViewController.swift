@@ -1,5 +1,5 @@
 //
-//  FinishedChallengeViewController.swift
+//  EndedChallengeViewController.swift
 //  MyPageImpl
 //
 //  Created by wooseob on 10/18/24.
@@ -13,8 +13,8 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FinishedChallengeViewController: UIViewController {
-  private let viewModel: FinishedChallengeViewModel
+final class EndedChallengeViewController: UIViewController {
+  private let viewModel: EndedChallengeViewModel
   
   // MARK: - Variables
   private var disposeBag = DisposeBag()
@@ -27,10 +27,9 @@ final class FinishedChallengeViewController: UIViewController {
     return view
   }()
   
-  private let navigationBar = PrimaryNavigationView(
-    textType: .none,
-    iconType: .one,
-    colorType: .dark
+  private let navigationBar = PhotiNavigationBar(
+    leftView: .backButton,
+    displayMode: .dark
   )
   
   private let titleLabel = {
@@ -53,7 +52,7 @@ final class FinishedChallengeViewController: UIViewController {
     return pinkingView
   }()
   
-  private let finishedChallengeCollectionView = {
+  private let endedChallengeCollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.minimumLineSpacing = 16
     layout.minimumInteritemSpacing = 12
@@ -61,7 +60,7 @@ final class FinishedChallengeViewController: UIViewController {
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
     collectionView.contentInset = .init(top: 35, left: 24, bottom: 0, right: 24)
     collectionView.backgroundColor = .white
-    collectionView.registerCell(FinishedChallengeCell.self)
+    collectionView.registerCell(EndedChallengeCardCell.self)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
     
@@ -69,7 +68,7 @@ final class FinishedChallengeViewController: UIViewController {
   }()
   
   // MARK: - Initializers
-  init(viewModel: FinishedChallengeViewModel) {
+  init(viewModel: EndedChallengeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -83,15 +82,15 @@ final class FinishedChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    finishedChallengeCollectionView.delegate = self
-    finishedChallengeCollectionView.dataSource = self
+    endedChallengeCollectionView.delegate = self
+    endedChallengeCollectionView.dataSource = self
     setupUI()
     bind()
   }
 }
 
 // MARK: - UI methods
-private extension FinishedChallengeViewController {
+private extension EndedChallengeViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     setViewHierarchy()
@@ -101,7 +100,7 @@ private extension FinishedChallengeViewController {
   func setViewHierarchy() {
     self.view.addSubviews(
       grayBackgroundView,
-      finishedChallengeCollectionView,
+      endedChallengeCollectionView,
       grayBottomImageView
     )
     
@@ -126,7 +125,7 @@ private extension FinishedChallengeViewController {
       $0.trailing.equalToSuperview().offset(-24)
     }
     
-    finishedChallengeCollectionView.snp.makeConstraints {
+    endedChallengeCollectionView.snp.makeConstraints {
       $0.top.equalTo(grayBackgroundView.snp.bottom)
       $0.leading.trailing.bottom.equalToSuperview()
     }
@@ -140,29 +139,29 @@ private extension FinishedChallengeViewController {
 }
 
 // MARK: - Bind Method
-private extension FinishedChallengeViewController {
+private extension EndedChallengeViewController {
   func bind() {
-    let input = FinishedChallengeViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapLeftButton
+    let input = EndedChallengeViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton
     )
     
     let output = viewModel.transform(input: input)
   }
 }
 // MARK: - UICollectionViewDataSource
-extension FinishedChallengeViewController: UICollectionViewDataSource {
+extension EndedChallengeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     10
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(FinishedChallengeCell.self, for: indexPath)
+    let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
     
     return cell
   }
 }
 
-extension FinishedChallengeViewController: UICollectionViewDelegateFlowLayout {
+extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView,
                       layout collectionViewLayout: UICollectionViewLayout,
                       sizeForItemAt indexPath: IndexPath) -> CGSize {

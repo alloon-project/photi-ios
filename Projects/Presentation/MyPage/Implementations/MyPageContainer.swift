@@ -12,6 +12,7 @@ import Report
 import UseCase
 
 public protocol MyPageDependency: Dependency {
+  var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
 }
@@ -19,18 +20,21 @@ public protocol MyPageDependency: Dependency {
 public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
-  SettingDependency {
+  SettingDependency,
+  EndedChallengeDependency {
   var reportContainable: ReportContainable { dependency.reportContainable }
   
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: MyPageListener) -> Coordinating {
-    let viewModel = MyPageViewModel()
+    let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
     let settingContainable = SettingContainer(dependency: self)
+    let endedChallengeContainable = EndedChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
-      settingContainable: settingContainable
+      settingContainable: settingContainable,
+      endedChallengeContainable: endedChallengeContainable
     )
     
     coordinator.listener = listener

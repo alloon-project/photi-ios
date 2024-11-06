@@ -7,12 +7,16 @@
 //
 
 import UIKit
+import Kingfisher
+import RxSwift
+import RxCocoa
 import SnapKit
 import DesignSystem
 
 final class MyPageViewController: UIViewController {
   private let viewModel: MyPageViewModel
   
+  private let disposeBag = DisposeBag()
   // MARK: - UIComponents
   private let scrollView = {
     let scrollView = UIScrollView()
@@ -87,7 +91,7 @@ final class MyPageViewController: UIViewController {
   
   private let authCountBox = ChallengeCountBox(title: "인증 횟수", count: 0)
   
-  private let finishedChallengeCountBox = ChallengeCountBox(title: "종료된 챌린지", count: 0)
+  private let endedChallengeCountBox = ChallengeCountBox(title: "종료된 챌린지", count: 0)
   
   // 피드
   private let myFeedLabel = {
@@ -146,7 +150,7 @@ private extension MyPageViewController {
       settingButton,
       userNameLabel,
       authCountBox,
-      finishedChallengeCountBox
+      endedChallengeCountBox
     )
     feedInfoView.addSubviews(
       userInfoBottomImageView,
@@ -212,7 +216,7 @@ private extension MyPageViewController {
       $0.bottom.equalToSuperview().offset(-31)
     }
     
-    finishedChallengeCountBox.snp.makeConstraints {
+    endedChallengeCountBox.snp.makeConstraints {
       $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(authCountBox)
       $0.leading.equalTo(userNameLabel.snp.centerX).offset(3.5)
@@ -242,10 +246,26 @@ private extension MyPageViewController {
     let input = MyPageViewModel.Input(
       didTapSettingButton: settingButton.rx.tap,
       didTapAuthCountBox: authCountBox.rx.didTapBox,
-      didTapFinishedChallengeBox: finishedChallengeCountBox.rx.didTapBox
+      didTapEndedChallengeBox: endedChallengeCountBox.rx.didTapBox,
+      isVisible: self.rx.isVisible
     )
     
     let output = viewModel.transform(input: input)
+    bind(output: output)
+  }
+  
+  func bind(output: MyPageViewModel.Output) {
+    output.userChallengeHistory
+      .emit(with: self) { onwer, userChallengeHistory in
+        // TODO: -  캐싱 적용 후 수정     self?.profileImageView.load(url: userInfo.imageUrl)
+        if let url = userChallengeHistory.imageUrl {
+          onwer.userImageView.kf.setImage(with: url)
+        }
+        onwer.userNameLabel.text = userChallengeHistory.userName
+        onwer.authCountBox.count = userChallengeHistory.feedCnt
+        onwer.endedChallengeCountBox.count = userChallengeHistory.endedChallengeCnt
+      }
+      .disposed(by: disposeBag)
   }
 }
 

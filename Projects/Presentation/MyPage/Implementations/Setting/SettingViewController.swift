@@ -71,7 +71,7 @@ private extension SettingViewController {
       didTapCell: menuTableView.rx.itemSelected
     )
     
-    let _ = viewModel.transform(input: input)
+    let output = viewModel.transform(input: input)
   }
   
   func setViewHierarchy() {
