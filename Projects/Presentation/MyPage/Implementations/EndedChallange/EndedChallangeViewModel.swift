@@ -1,5 +1,5 @@
 //
-//  FinishedChallengeViewModel.swift
+//  EndedChallengeViewModel.swift
 //  MyPageImpl
 //
 //  Created by wooseob on 10/18/24.
@@ -10,24 +10,24 @@ import Foundation
 import RxCocoa
 import RxSwift
 
-protocol FinishedChallengeCoordinatable: AnyObject {
+protocol EndedChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChallengeDetail()
   func detachChallengeDetail()
 }
 
-protocol FinishedChallengeViewModelType: AnyObject, FinishedChallengeViewModelable {
+protocol EndedChallengeViewModelType: AnyObject, EndedChallengeViewModelable {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
-  var coordinator: FinishedChallengeCoordinatable? { get set }
+  var coordinator: EndedChallengeCoordinatable? { get set }
 }
 
-final class FinishedChallengeViewModel: FinishedChallengeViewModelType {
+final class EndedChallengeViewModel: EndedChallengeViewModelType {
   let disposeBag = DisposeBag()
   
-  weak var coordinator: FinishedChallengeCoordinatable?
+  weak var coordinator: EndedChallengeCoordinatable?
   
   // MARK: - Input
   struct Input {

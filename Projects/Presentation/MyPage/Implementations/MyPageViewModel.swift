@@ -8,13 +8,15 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
-protocol MyPageCoordinatable: AnyObject { 
+protocol MyPageCoordinatable: AnyObject {
   func attachSetting()
   func detachSetting()
-  func attachFinishedChallenge()
+  func attachEndedChallenge()
   func attachAuthCountDetail()
-  func detachFinishedChallenge()
+  func detachEndedChallenge()
   func detachAuthCountDetail()
 }
 
@@ -27,22 +29,31 @@ protocol MyPageViewModelType: AnyObject, MyPageViewModelable {
 }
 
 final class MyPageViewModel: MyPageViewModelType {
+  private let useCase: MyPageUseCase
+  
   let disposeBag = DisposeBag()
   
   weak var coordinator: MyPageCoordinatable?
+  
+  private let userChallengeHistoryRelay = PublishRelay<UserChallengeHistory>()
   
   // MARK: - Input
   struct Input {
     let didTapSettingButton: ControlEvent<Void>
     let didTapAuthCountBox: ControlEvent<Void>
-    let didTapFinishedChallengeBox: ControlEvent<Void>
+    let didTapEndedChallengeBox: ControlEvent<Void>
+    let isVisible: Observable<Bool>
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let userChallengeHistory: Signal<UserChallengeHistory>
+  }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: MyPageUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapSettingButton
@@ -55,10 +66,33 @@ final class MyPageViewModel: MyPageViewModelType {
         onwer.coordinator?.attachAuthCountDetail()
       }.disposed(by: disposeBag)
     
-    input.didTapFinishedChallengeBox
+    input.didTapEndedChallengeBox
       .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachFinishedChallenge()
+        onwer.coordinator?.attachEndedChallenge()
       }.disposed(by: disposeBag)
-    return Output()
+    
+    input.isVisible
+      .bind(with: self) { onwer, _ in
+        onwer.userChallengeHistory()
+      }.disposed(by: disposeBag)
+    
+    return Output(
+      userChallengeHistory: userChallengeHistoryRelay.asSignal()
+    )
+  }
+}
+
+// MARK: - Private
+private extension MyPageViewModel {
+  func userChallengeHistory() {
+    useCase.userChallengeHistory()
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { onwer, userChallengeHistory in
+          onwer.userChallengeHistoryRelay.accept(userChallengeHistory)
+        }
+      )
+      .disposed(by: disposeBag)
   }
 }
