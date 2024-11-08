@@ -23,13 +23,7 @@ final class ChallengeInformationView: UIView {
     contentCount: .two(firstTitle: "인증 시간", secondTitle: "챌린지 종료")
   )
   
-  private let hashTagCollectionView: HashTagCollectionView = {
-    let collectionView = HashTagCollectionView(allignMent: .center)
-    collectionView.registerCell(HashTagCell.self)
-    
-    return collectionView
-  }()
-  
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center)
   private let participateCountView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100

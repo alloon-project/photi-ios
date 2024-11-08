@@ -39,12 +39,7 @@ final class HomeMyChallengeCell: UITableViewCell {
     return imageView
   }()
   
-  private let hashTagCollectionView: HashTagCollectionView = {
-    let collectionView = HashTagCollectionView(allignMent: .center)
-    collectionView.registerCell(HashTagCell.self)
-    
-    return collectionView
-  }()
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center)
   
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
