@@ -25,8 +25,10 @@ final class NoneChallengeHomeViewController: UIViewController {
   private var currentPage = 0
   private var dataSource: [ChallengePresentationModel] = [] {
     didSet {
-      challengeImageCollectionView.reloadData()
-      configureInformatoinView(for: currentPage)
+      challengeImageCollectionView.reloadData { [weak self] in
+        guard let self else { return }
+        configureInformatoinView(for: currentPage)
+      }
     }
   }
   
@@ -177,7 +179,7 @@ private extension NoneChallengeHomeViewController {
   
   func bind(for output: NoneChallengeHomeViewModel.Output) {
     output.challenges
-      .drive(with: self) { owner, challenges in
+      .emit(with: self) { owner, challenges in
         owner.dataSource = challenges
       }
       .disposed(by: disposeBag)
