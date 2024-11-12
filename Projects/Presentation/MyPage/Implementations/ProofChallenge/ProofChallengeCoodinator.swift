@@ -21,9 +21,7 @@ final class ProofChallengeCoordinator: Coordinator {
   private let viewController: ProofChallengeViewController
   private let viewModel: ProofChallengeViewModel
   
-  init(
-    viewModel: ProofChallengeViewModel
-  ) {
+  init(viewModel: ProofChallengeViewModel) {
     self.viewModel = viewModel
     self.viewController = ProofChallengeViewController(viewModel: viewModel)
     super.init()

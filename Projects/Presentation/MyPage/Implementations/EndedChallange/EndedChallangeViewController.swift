@@ -31,7 +31,7 @@ final class EndedChallengeViewController: UIViewController {
     leftView: .backButton,
     displayMode: .dark
   )
-
+  
   private let titleLabel = {
     let label = UILabel()
     label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
@@ -58,7 +58,12 @@ final class EndedChallengeViewController: UIViewController {
     layout.minimumInteritemSpacing = 12
     
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.contentInset = .init(top: 35, left: 24, bottom: 0, right: 24)
+    collectionView.contentInset = .init(
+      top: 35,
+      left: 24,
+      bottom: 0,
+      right: 24
+    )
     collectionView.backgroundColor = .white
     collectionView.registerCell(EndedChallengeCardCell.self)
     collectionView.showsVerticalScrollIndicator = false
@@ -154,7 +159,10 @@ extension EndedChallengeViewController: UICollectionViewDataSource {
     10
   }
   
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
     
     return cell
@@ -162,9 +170,11 @@ extension EndedChallengeViewController: UICollectionViewDataSource {
 }
 
 extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(_ collectionView: UICollectionView,
-                      layout collectionViewLayout: UICollectionViewLayout,
-                      sizeForItemAt indexPath: IndexPath) -> CGSize {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
     let widthOfCells = collectionView.bounds.width -
     (collectionView.contentInset.left + collectionView.contentInset.right)
     let width = (widthOfCells - 16) / 2.0

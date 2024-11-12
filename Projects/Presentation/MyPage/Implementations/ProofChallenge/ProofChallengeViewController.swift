@@ -55,7 +55,12 @@ final class ProofChallengeViewController: UIViewController {
     layout.minimumInteritemSpacing = 12
     
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.contentInset = .init(top: 35, left: 24, bottom: 0, right: 24)
+    collectionView.contentInset = .init(
+      top: 35,
+      left: 24,
+      bottom: 0,
+      right: 24
+    )
     collectionView.backgroundColor = .white
     collectionView.registerCell(ProofChallengeCell.self)
     collectionView.showsVerticalScrollIndicator = false
@@ -147,11 +152,17 @@ private extension ProofChallengeViewController {
 }
 // MARK: - UICollectionViewDataSource
 extension ProofChallengeViewController: UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
     10
   }
   
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
     
     return cell
@@ -159,9 +170,11 @@ extension ProofChallengeViewController: UICollectionViewDataSource {
 }
 
 extension ProofChallengeViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(_ collectionView: UICollectionView,
+  func collectionView(
+    _ collectionView: UICollectionView,
                       layout collectionViewLayout: UICollectionViewLayout,
-                      sizeForItemAt indexPath: IndexPath) -> CGSize {
+                      sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
     let widthOfCells = collectionView.bounds.width -
     (collectionView.contentInset.left + collectionView.contentInset.right)
     let width = (widthOfCells - 16) / 2.0
