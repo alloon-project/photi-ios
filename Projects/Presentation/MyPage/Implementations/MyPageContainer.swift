@@ -21,7 +21,8 @@ public final class MyPageContainer:
   Container<MyPageDependency>,
   MyPageContainable,
   SettingDependency,
-  EndedChallengeDependency {
+  EndedChallengeDependency,
+  ProofChallengeDependency {
   var reportContainable: ReportContainable { dependency.reportContainable }
   
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
@@ -30,11 +31,13 @@ public final class MyPageContainer:
     let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
     let settingContainable = SettingContainer(dependency: self)
     let endedChallengeContainable = EndedChallengeContainer(dependency: self)
+    let proofChallengeContainable = ProofChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewModel: viewModel,
       settingContainable: settingContainable,
-      endedChallengeContainable: endedChallengeContainable
+      endedChallengeContainable: endedChallengeContainable,
+      proofChallengeContainable: proofChallengeContainable
     )
     
     coordinator.listener = listener

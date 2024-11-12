@@ -24,15 +24,20 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
   private let endedChallengeContainable: EndedChallengeContainable
   private var endedChallengeCoordinator: Coordinating?
   
+  private let proofChallengeContainable: ProofChallengeContainable
+  private var proofChallengeCoordinator: Coordinating?
+  
   init(
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
-    endedChallengeContainable: EndedChallengeContainable
+    endedChallengeContainable: EndedChallengeContainable,
+    proofChallengeContainable: ProofChallengeContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
     self.endedChallengeContainable = endedChallengeContainable
+    self.proofChallengeContainable = proofChallengeContainable
     
     self.viewController = MyPageViewController(viewModel: viewModel)
     super.init()
@@ -63,10 +68,22 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     navigationController?.popViewController(animated: true)
   }
   
-  func attachAuthCountDetail() {
+  func attachProofChallenge() {
+    guard proofChallengeCoordinator == nil else { return }
+    
+    let coordinater = proofChallengeContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    self.proofChallengeCoordinator = coordinater
+    coordinater.start(at: self.navigationController)
   }
   
-  func detachAuthCountDetail() {
+  func detachProofChallenge() {
+    guard let coordinator = proofChallengeCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.proofChallengeCoordinator = nil
+    navigationController?.popViewController(animated: true)
   }
   
   func attachEndedChallenge() {
@@ -92,6 +109,13 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
 extension MyPageCoordinator: SettingListener {
   func didTapBackButtonAtSetting() {
     detachSetting()
+  }
+}
+
+// MARK: - ProofListener
+extension MyPageCoordinator: ProofChallengeListener {
+  func didTapBackButtonAtProofChallenge() {
+    detachProofChallenge()
   }
 }
 
