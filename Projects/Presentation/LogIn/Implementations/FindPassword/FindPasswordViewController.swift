@@ -27,7 +27,10 @@ final class FindPasswordViewController: UIViewController {
   private let enterIdLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left
-    label.attributedText = "아이디를 입력해주세요".attributedString(font: .heading4, color: .gray900)
+    label.attributedText = "아이디를 입력해주세요".attributedString(
+      font: .heading4,
+      color: .gray900
+    )
     return label
   }()
   private let idTextField: LineTextField = {
@@ -36,26 +39,43 @@ final class FindPasswordViewController: UIViewController {
     return textField
   }()
   private let idWarningView = CommentView(
-    .warning, text: "ID 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning,
+    text: "ID 형태가 올바르지 않아요",
+    icon: UIImage(systemName: "xmark")!,
+    isActivate: true
   )
   private let announceLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left
-    label.attributedText = "가입 시 사용했던 이메일을 입력해주세요".attributedString(font: .heading4, color: .gray900)
+    label.attributedText = "가입 시 사용했던 이메일을 입력해주세요".attributedString(
+      font: .heading4,
+      color: .gray900
+    )
     return label
   }()
   private let emailFormWarningView = CommentView(
-    .warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning,
+    text: "이메일 형태가 올바르지 않아요",
+    icon: UIImage(systemName: "xmark")!,
+    isActivate: true
   )
   private let emailTextCountWarningView = CommentView(
-    .warning, text: "100자 이하의 이메일을 사용해주세요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning,
+    text: "100자 이하의 이메일을 사용해주세요",
+    icon: UIImage(systemName: "xmark")!,
+    isActivate: true
   )
   private let emailTextField: LineTextField = {
     let textField = LineTextField(placeholder: "이메일", type: .default)
     textField.setKeyboardType(.emailAddress)
     return textField
   }()
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  
+  private let nextButton = FilledRoundButton(
+    type: .primary,
+    size: .xLarge,
+    text: "다음"
+  )
   
   // MARK: - Initializers
   init(viewModel: FindPasswordViewModel) {
@@ -93,7 +113,14 @@ private extension FindPasswordViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, enterIdLabel, idTextField, announceLabel, emailTextField, nextButton)
+    view.addSubviews(
+      navigationBar,
+      enterIdLabel,
+      idTextField,
+      announceLabel,
+      emailTextField,
+      nextButton
+    )
   }
   
   func setConstraints() {
@@ -110,7 +137,8 @@ private extension FindPasswordViewController {
     }
     
     idTextField.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(enterIdLabel.snp.bottom).offset(20)
     }
     
@@ -121,12 +149,14 @@ private extension FindPasswordViewController {
     }
     
     emailTextField.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(announceLabel.snp.bottom).offset(20)
     }
     
     nextButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.bottom.equalToSuperview().offset(-56)
     }
   }
