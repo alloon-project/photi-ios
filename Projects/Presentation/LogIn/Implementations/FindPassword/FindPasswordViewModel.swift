@@ -82,7 +82,7 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
     let idWithEmailValid = Observable.combineLatest(input.userEmail, input.userId)
     
     let isEnabledConfirm = idWithEmailValid
-      .map { $0.0.isValidateEmail() && $0.1.isValidateId}
+      .map { $0.0.isValidateEmail() && $0.1.isValidateId }
     
     let didTapNextButtonWithInfo = input.didTapNextButton
       .withLatestFrom(idWithEmailValid)
