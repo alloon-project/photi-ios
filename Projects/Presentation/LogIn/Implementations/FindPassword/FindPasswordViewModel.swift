@@ -9,6 +9,8 @@
 import Core
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol FindPasswordCoordinatable: AnyObject {
   func didTapBackButton()
@@ -26,6 +28,10 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
   let disposeBag = DisposeBag()
   
   weak var coordinator: FindPasswordCoordinatable?
+  
+  private let useCase: FindPasswordUseCase
+  private let invalidIdOrEmailRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
@@ -44,21 +50,18 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
     var isValidEmailForm: Signal<Bool>
     var isOverMaximumText: Signal<Bool>
     var isEnabledNextButton: Signal<Bool>
+    var invalidIdOrEmail: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: FindPasswordUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
       .bind(with: self) { onwer, _ in
         onwer.coordinator?.didTapBackButton()
-      }.disposed(by: disposeBag)
-    
-    input.didTapNextButton // TODO: - 이메일 & 아이디 확인 로직필요
-      .withLatestFrom(input.userEmail)
-      .bind(with: self) { onwer, email in
-        onwer.coordinator?.attachTempPassword(userEmail: email) // 입력받은값으로변경
       }.disposed(by: disposeBag)
     
     let isValidId = input.endEditingUserId
@@ -76,21 +79,47 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
       .withLatestFrom(input.userEmail)
       .map { $0.count > 100 }
     
-    let idWithEmailValid = Observable.combineLatest(input.userId, input.userEmail)
+    let idWithEmailValid = Observable.combineLatest(input.userEmail, input.userId)
     
     let isEnabledConfirm = idWithEmailValid
-      .map { $0.0.isValidateId && $0.1.isValidateEmail() }
-      
+      .map { $0.0.isValidateEmail() && $0.1.isValidateId}
+    
+    let didTapNextButtonWithInfo = input.didTapNextButton
+      .withLatestFrom(idWithEmailValid)
+      .share()
+    
+    didTapNextButtonWithInfo
+      .filter { !$0.0.isEmpty && !$0.1.isEmpty }
+      .subscribe(with: self) { owner, info in
+        owner.findPassword(userEmail: info.0, userName: info.1)
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       isVaildId: isValidId.asSignal(onErrorJustReturn: false), 
       isValidEmailForm: isValidEmailForm.asSignal(onErrorJustReturn: false),
       isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false))
+      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
+      invalidIdOrEmail: invalidIdOrEmailRelay.asSignal()
+    )
   }
 }
 
 // MARK: - Private Methods
 private extension FindPasswordViewModel {
   // TODO: 서버 연결 시 아이디 & 이메일 확인 로직 구현
-
+  func findPassword(userEmail: String, userName: String) {
+    useCase.findPassword(userEmail: userEmail, userName: userName)
+      .subscribe(
+        with: self,
+        onSuccess: { onwer, _ in
+          onwer.coordinator?.attachTempPassword(userEmail: userEmail)
+        },
+        onFailure: { onwer, err in
+          print(err)
+          onwer.invalidIdOrEmailRelay.accept(())
+        }
+      )
+      .disposed(by: disposeBag)
+  }
 }
