@@ -92,7 +92,13 @@ open class PhotiNavigationBar: UIView {
   }()
   
   private lazy var leftTitleLabel = UILabel()
-  private lazy var logoImageView = UIImageView()
+  private lazy var logoImageView: UIImageView = {
+    let imageView = UIImageView()
+    imageView.contentMode = .center
+    
+    return imageView
+  }()
+  
   fileprivate lazy var backButton = PhotiNavigationButton(image: .chevronBackWhite)
   
   // MARK: - Initializers
@@ -186,7 +192,7 @@ private extension PhotiNavigationBar {
     
     leftContentView.addSubview(leftInsertingView)
     leftInsertingView.snp.makeConstraints {
-      $0.leading.centerY.equalToSuperview()
+      $0.edges.equalToSuperview()
     }
     
     configureLeftView(for: type)
