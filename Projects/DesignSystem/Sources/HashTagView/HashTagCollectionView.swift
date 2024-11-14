@@ -8,6 +8,7 @@
 
 import UIKit
 import SnapKit
+import Core
 
 public final class HashTagCollectionView: UICollectionView {
   public enum Allignment {
@@ -25,14 +26,14 @@ public final class HashTagCollectionView: UICollectionView {
   private let layout: UICollectionViewFlowLayout
   
   // MARK: - Initializers
-  public init(allignMent: Allignment, cellType: UICollectionViewCell.Type = HashTagCell.self) {
+  public init(allignMent: Allignment) {
     self.allignMent = allignMent
     self.layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
     layout.minimumLineSpacing = spacing
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
     super.init(frame: .zero, collectionViewLayout: layout)
-    self.registerCell(cellType.self)
+    self.registerCell(HashTagCell.self)
     
     setupUI()
   }
