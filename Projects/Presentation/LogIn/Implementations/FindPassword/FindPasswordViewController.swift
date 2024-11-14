@@ -33,11 +33,13 @@ final class FindPasswordViewController: UIViewController {
     )
     return label
   }()
+  
   private let idTextField: LineTextField = {
     let textField = LineTextField(placeholder: "아이디", type: .default)
     textField.setKeyboardType(.default)
     return textField
   }()
+  
   private let idWarningView = CommentView(
     .warning,
     text: "ID 형태가 올바르지 않아요",
@@ -77,6 +79,12 @@ final class FindPasswordViewController: UIViewController {
     text: "다음"
   )
   
+  private let warningToastView = ToastView(
+    tipPosition: .none,
+    text: "아이디 혹은 이메일이 일치하지 않아요",
+    icon: .bulbWhite
+  )
+  
   // MARK: - Initializers
   init(viewModel: FindPasswordViewModel) {
     self.viewModel = viewModel
@@ -94,6 +102,7 @@ final class FindPasswordViewController: UIViewController {
     setupUI()
     bind()
   }
+  
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
@@ -212,6 +221,12 @@ private extension FindPasswordViewController {
     output.isEnabledNextButton
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.invalidIdOrEmail
+      .emit(with: self) { onwer, _ in
+        onwer.displayToastView()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -226,6 +241,7 @@ private extension FindPasswordViewController {
       idTextField.mode = .success
     }
   }
+  
   func convertEmailTextField(commentView: CommentView?) {
     if let commentView = commentView {
       emailTextField.commentViews = [commentView]
@@ -234,5 +250,9 @@ private extension FindPasswordViewController {
       emailTextField.commentViews = []
       emailTextField.mode = .success
     }
+  }
+  
+  func displayToastView() {
+    warningToastView.present(to: self)
   }
 }
