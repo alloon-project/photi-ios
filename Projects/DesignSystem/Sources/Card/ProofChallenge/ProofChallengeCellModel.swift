@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 public struct ProofChallengeCellPresentationModel {
   let challengeImage: URL?

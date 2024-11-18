@@ -64,9 +64,7 @@ public final class ProofChallengeCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure() {
-    setupUI()
-  }
+  func configure() {}
 }
 
 // MARK: - UI Methods

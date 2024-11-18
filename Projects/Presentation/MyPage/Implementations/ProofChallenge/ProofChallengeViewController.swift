@@ -17,7 +17,7 @@ final class ProofChallengeViewController: UIViewController {
   private let viewModel: ProofChallengeViewModel
   
   // MARK: - Variables
-  private var disposeBag = DisposeBag()
+  private let disposeBag = DisposeBag()
   
   // MARK: - UIComponents
   private let grayBackgroundView = {
