@@ -15,9 +15,9 @@ protocol MyPageCoordinatable: AnyObject {
   func attachSetting()
   func detachSetting()
   func attachEndedChallenge()
-  func attachAuthCountDetail()
   func detachEndedChallenge()
-  func detachAuthCountDetail()
+  func attachProofChallenge()
+  func detachProofChallenge()
 }
 
 protocol MyPageViewModelType: AnyObject, MyPageViewModelable {
@@ -63,7 +63,7 @@ final class MyPageViewModel: MyPageViewModelType {
     
     input.didTapAuthCountBox
       .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachAuthCountDetail()
+        onwer.coordinator?.attachProofChallenge()
       }.disposed(by: disposeBag)
     
     input.didTapEndedChallengeBox

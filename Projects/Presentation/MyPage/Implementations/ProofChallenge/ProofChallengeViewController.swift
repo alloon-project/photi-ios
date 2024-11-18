@@ -1,8 +1,8 @@
 //
-//  EndedChallengeViewController.swift
-//  MyPageImpl
+//  ProofChallengeViewController.swift
+//  Presentation
 //
-//  Created by wooseob on 10/18/24.
+//  Created by wooseob on 10/29/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
@@ -13,11 +13,11 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EndedChallengeViewController: UIViewController {
-  private let viewModel: EndedChallengeViewModel
+final class ProofChallengeViewController: UIViewController {
+  private let viewModel: ProofChallengeViewModel
   
   // MARK: - Variables
-  private var disposeBag = DisposeBag()
+  private let disposeBag = DisposeBag()
   
   // MARK: - UIComponents
   private let grayBackgroundView = {
@@ -27,11 +27,8 @@ final class EndedChallengeViewController: UIViewController {
     return view
   }()
   
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    displayMode: .dark
-  )
-  
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
+
   private let titleLabel = {
     let label = UILabel()
     label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
@@ -52,7 +49,7 @@ final class EndedChallengeViewController: UIViewController {
     return pinkingView
   }()
   
-  private let endedChallengeCollectionView = {
+  private let proofChallengeCollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.minimumLineSpacing = 16
     layout.minimumInteritemSpacing = 12
@@ -65,7 +62,7 @@ final class EndedChallengeViewController: UIViewController {
       right: 24
     )
     collectionView.backgroundColor = .white
-    collectionView.registerCell(EndedChallengeCardCell.self)
+    collectionView.registerCell(ProofChallengeCell.self)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
     
@@ -73,7 +70,7 @@ final class EndedChallengeViewController: UIViewController {
   }()
   
   // MARK: - Initializers
-  init(viewModel: EndedChallengeViewModel) {
+  init(viewModel: ProofChallengeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -87,15 +84,15 @@ final class EndedChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    endedChallengeCollectionView.delegate = self
-    endedChallengeCollectionView.dataSource = self
+    proofChallengeCollectionView.delegate = self
+    proofChallengeCollectionView.dataSource = self
     setupUI()
     bind()
   }
 }
 
 // MARK: - UI methods
-private extension EndedChallengeViewController {
+private extension ProofChallengeViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     setViewHierarchy()
@@ -105,7 +102,7 @@ private extension EndedChallengeViewController {
   func setViewHierarchy() {
     self.view.addSubviews(
       grayBackgroundView,
-      endedChallengeCollectionView,
+      proofChallengeCollectionView,
       grayBottomImageView
     )
     
@@ -130,7 +127,7 @@ private extension EndedChallengeViewController {
       $0.trailing.equalToSuperview().offset(-24)
     }
     
-    endedChallengeCollectionView.snp.makeConstraints {
+    proofChallengeCollectionView.snp.makeConstraints {
       $0.top.equalTo(grayBackgroundView.snp.bottom)
       $0.leading.trailing.bottom.equalToSuperview()
     }
@@ -144,9 +141,9 @@ private extension EndedChallengeViewController {
 }
 
 // MARK: - Bind Method
-private extension EndedChallengeViewController {
+private extension ProofChallengeViewController {
   func bind() {
-    let input = EndedChallengeViewModel.Input(
+    let input = ProofChallengeViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton
     )
     
@@ -154,8 +151,11 @@ private extension EndedChallengeViewController {
   }
 }
 // MARK: - UICollectionViewDataSource
-extension EndedChallengeViewController: UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension ProofChallengeViewController: UICollectionViewDataSource {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
     10
   }
   
@@ -163,17 +163,17 @@ extension EndedChallengeViewController: UICollectionViewDataSource {
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
+    let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
     
     return cell
   }
 }
 
-extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
+extension ProofChallengeViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
     _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    sizeForItemAt indexPath: IndexPath
+                      layout collectionViewLayout: UICollectionViewLayout,
+                      sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
     let widthOfCells = collectionView.bounds.width -
     (collectionView.contentInset.left + collectionView.contentInset.right)
