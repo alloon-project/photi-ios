@@ -43,7 +43,7 @@ final class FindPasswordViewController: UIViewController {
   private let idWarningView = CommentView(
     .warning,
     text: "ID 형태가 올바르지 않아요",
-    icon: UIImage(systemName: "xmark")!,
+    icon: .closeRed,
     isActivate: true
   )
   private let announceLabel: UILabel = {
@@ -58,13 +58,13 @@ final class FindPasswordViewController: UIViewController {
   private let emailFormWarningView = CommentView(
     .warning,
     text: "이메일 형태가 올바르지 않아요",
-    icon: UIImage(systemName: "xmark")!,
+    icon: .closeRed,
     isActivate: true
   )
   private let emailTextCountWarningView = CommentView(
     .warning,
     text: "100자 이하의 이메일을 사용해주세요",
-    icon: UIImage(systemName: "xmark")!,
+    icon: .closeRed,
     isActivate: true
   )
   private let emailTextField: LineTextField = {

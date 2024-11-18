@@ -19,7 +19,7 @@ public struct FindPasswordRepositoryImpl: FindPasswordRepository {
     self.dataMapper = dataMapper
   }
   
-  public func findPassword(userEmail: String, userName: String) -> RxSwift.Single<Void> {
+  public func findPassword(userEmail: String, userName: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToFindPasswordRequestDTO(userEmail: userEmail, userName: userName)
     
         return Single.create { single in
@@ -31,7 +31,7 @@ public struct FindPasswordRepositoryImpl: FindPasswordRepository {
               if result.statusCode == 200 {
                 single(.success(()))
               } else {
-                single(.failure(APIError.loginFailed))
+                single(.failure(APIError.userNotFound))
               }
             } catch {
               single(.failure(error))
