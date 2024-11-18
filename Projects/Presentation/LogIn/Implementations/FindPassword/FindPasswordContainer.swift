@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol FindPasswordDependency: Dependency { }
+protocol FindPasswordDependency: Dependency {
+  var findPasswordUseCase: FindPasswordUseCase { get }
+}
 
 protocol FindPasswordContainable: Containable {
   func coordinator(listener: FindPasswordListener) -> Coordinating
@@ -20,15 +23,17 @@ final class FindPasswordContainer:
   TempPasswordDependency, 
   NewPasswordDependency {
   func coordinator(listener: FindPasswordListener) -> Coordinating {
-    let viewModel = FindPasswordViewModel()
+    let viewModel = FindPasswordViewModel(useCase: dependency.findPasswordUseCase)
     let tempPasswordContainable = TempPasswordContainer(dependency: self)
     let newPasswordContainable = NewPasswordContainer(dependency: self)
+    
     let coordinator = FindPasswordCoordinator(
       viewModel: viewModel,
       tempPasswordContainable: tempPasswordContainable, 
       newPasswordContainable: newPasswordContainable
     )
     coordinator.listener = listener
+    
     return coordinator
   }
 }
