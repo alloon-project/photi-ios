@@ -15,6 +15,7 @@ import DesignSystem
 final class TempPasswordViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
+  
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
     leftView: .backButton,
@@ -38,14 +39,23 @@ final class TempPasswordViewController: UIViewController {
     label.attributedText = "".attributedString(font: .heading4, color: .gray700)
     return label
   }()
-  private let resendButton = TextButton(text: "재전송", size: .xSmall, type: .primary, isEnabledUnderLine: true)
+  private let resendButton = TextButton(
+    text: "재전송",
+    size: .xSmall,
+    type: .primary,
+    isEnabledUnderLine: true
+  )
   private let tempPasswordTextField: LineTextField = {
     let textField = LineTextField(placeholder: "임시 비밀번호", type: .default)
     textField.setKeyboardType(.default)
     return textField
   }()
   
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  private let nextButton = FilledRoundButton(
+    type: .primary,
+    size: .xLarge,
+    text: "다음"
+  )
   
   // MARK: - Initalizers
   init(viewModel: TempPasswordViewModel) {
@@ -85,8 +95,13 @@ private extension TempPasswordViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, enterTempPasswordLabel, userEmailLabel, resendButton, tempPasswordTextField,
-                     nextButton)
+    view.addSubviews(
+      navigationBar,
+      enterTempPasswordLabel,
+      userEmailLabel,
+      resendButton,
+      tempPasswordTextField,
+      nextButton)
   }
   
   func setConstraints() {
