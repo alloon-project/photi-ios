@@ -168,6 +168,11 @@ private extension FindPasswordViewController {
       $0.trailing.equalToSuperview().offset(-24)
       $0.bottom.equalToSuperview().offset(-56)
     }
+    
+    warningToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
   }
 }
 
