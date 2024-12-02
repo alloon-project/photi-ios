@@ -58,10 +58,14 @@ final class FindPasswordCoordinator: Coordinator, FindPasswordCoordinatable {
   }
   
   // MARK: - Temp Password
-  func attachTempPassword(userEmail: String) {
+  func attachTempPassword(userEmail: String, userName: String) {
     guard tempPasswordCoordinator == nil else { return }
     
-    let coordinater = tempPasswordContainable.coordinator(listener: self, userEmail: userEmail)
+    let coordinater = tempPasswordContainable.coordinator(
+      listener: self,
+      userEmail: userEmail,
+      userName: userName
+    )
     addChild(coordinater)
     
     self.tempPasswordCoordinator = coordinater
