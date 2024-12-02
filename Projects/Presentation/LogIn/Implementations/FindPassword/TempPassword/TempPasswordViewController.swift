@@ -22,7 +22,6 @@ final class TempPasswordViewController: UIViewController {
     title: "비밀번호 찾기",
     displayMode: .dark
   )
-
   private let enterTempPasswordLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left
@@ -50,11 +49,15 @@ final class TempPasswordViewController: UIViewController {
     textField.setKeyboardType(.default)
     return textField
   }()
-  
   private let nextButton = FilledRoundButton(
     type: .primary,
     size: .xLarge,
     text: "다음"
+  )
+  private let resentEmailToastView = ToastView(
+    tipPosition: .none,
+    text: "인증메일이 재전송되었어요",
+    icon: .bulbWhite
   )
   
   // MARK: - Initalizers
@@ -136,6 +139,11 @@ private extension TempPasswordViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+    
+    resentEmailToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
   }
 }
 
@@ -157,6 +165,12 @@ extension TempPasswordViewController {
     output.isEnabledNextButton
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.isEmailResendSucceed
+      .emit(with: self) { owner, _ in
+        owner.displayToastView()
+      }
+      .disposed(by: disposeBag)
   }
 }
 // MARK: - Internal Methods
@@ -166,5 +180,9 @@ extension TempPasswordViewController {
       font: .caption1,
       color: .gray700
     )
+  }
+  
+  func displayToastView() {
+    resentEmailToastView.present(to: self)
   }
 }
