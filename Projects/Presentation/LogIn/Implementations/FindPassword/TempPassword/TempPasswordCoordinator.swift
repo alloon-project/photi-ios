@@ -43,7 +43,7 @@ final class TempPasswordCoordinator: Coordinator, TempPasswordCoordinatable {
     listener?.didTapBackButtonAtTempPassword()
   }
   
-  func didTapContinueButton() {
+  func attachNewPassword() {
     listener?.didFinishTempPassword()
   }
 }

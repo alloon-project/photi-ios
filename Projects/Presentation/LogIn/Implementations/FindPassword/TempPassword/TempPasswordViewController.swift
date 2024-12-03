@@ -15,13 +15,13 @@ import DesignSystem
 final class TempPasswordViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
+  
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
     leftView: .backButton,
     title: "비밀번호 찾기",
     displayMode: .dark
   )
-
   private let enterTempPasswordLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .left
@@ -38,14 +38,27 @@ final class TempPasswordViewController: UIViewController {
     label.attributedText = "".attributedString(font: .heading4, color: .gray700)
     return label
   }()
-  private let resendButton = TextButton(text: "재전송", size: .xSmall, type: .primary, isEnabledUnderLine: true)
+  private let resendButton = TextButton(
+    text: "재전송",
+    size: .xSmall,
+    type: .primary,
+    isEnabledUnderLine: true
+  )
   private let tempPasswordTextField: LineTextField = {
     let textField = LineTextField(placeholder: "임시 비밀번호", type: .default)
     textField.setKeyboardType(.default)
     return textField
   }()
-  
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
+  private let nextButton = FilledRoundButton(
+    type: .primary,
+    size: .xLarge,
+    text: "다음"
+  )
+  private let resentEmailToastView = ToastView(
+    tipPosition: .none,
+    text: "인증메일이 재전송되었어요",
+    icon: .bulbWhite
+  )
   
   // MARK: - Initalizers
   init(viewModel: TempPasswordViewModel) {
@@ -85,8 +98,13 @@ private extension TempPasswordViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, enterTempPasswordLabel, userEmailLabel, resendButton, tempPasswordTextField,
-                     nextButton)
+    view.addSubviews(
+      navigationBar,
+      enterTempPasswordLabel,
+      userEmailLabel,
+      resendButton,
+      tempPasswordTextField,
+      nextButton)
   }
   
   func setConstraints() {
@@ -121,6 +139,11 @@ private extension TempPasswordViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
+    
+    resentEmailToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
   }
 }
 
@@ -142,6 +165,12 @@ extension TempPasswordViewController {
     output.isEnabledNextButton
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.isEmailResendSucceed
+      .emit(with: self) { owner, _ in
+        owner.displayToastView()
+      }
+      .disposed(by: disposeBag)
   }
 }
 // MARK: - Internal Methods
@@ -151,5 +180,9 @@ extension TempPasswordViewController {
       font: .caption1,
       color: .gray700
     )
+  }
+  
+  func displayToastView() {
+    resentEmailToastView.present(to: self)
   }
 }

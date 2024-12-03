@@ -21,6 +21,7 @@ public final class LogInContainer:
   LogInContainable,
   FindIdDependency,
   FindPasswordDependency {
+  var loginUseCase: LogInUseCase { dependency.logInUseCase }
   var findPasswordUseCase: FindPasswordUseCase { dependency.findPasswordUseCase }
 
   public func coordinator(listener: LogInListener) -> Coordinating {
