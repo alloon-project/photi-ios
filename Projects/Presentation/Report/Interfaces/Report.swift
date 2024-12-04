@@ -9,7 +9,7 @@
 import Core
 
 public protocol ReportContainable: Containable {
-  func coordinator(listener: ReportListener, reportData: ReportDataSource) -> Coordinating
+  func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating
 }
 
 public protocol ReportListener: AnyObject { 

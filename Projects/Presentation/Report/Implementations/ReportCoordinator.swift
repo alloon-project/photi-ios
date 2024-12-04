@@ -18,9 +18,9 @@ final class ReportCoordinator: Coordinator {
   private let viewController: ReportViewController
   private let viewModel: any ReportViewModelType
   
-  init(viewModel: ReportViewModel, reportData: ReportDataSource) {
+  init(viewModel: ReportViewModel, reportType: ReportType) {
     self.viewModel = viewModel
-    self.viewController = ReportViewController(viewModel: viewModel, reportData: reportData)
+    self.viewController = ReportViewController(viewModel: viewModel, reportType: reportType)
     
     super.init()
     viewModel.coordinator = self
