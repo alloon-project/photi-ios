@@ -27,4 +27,8 @@ public enum APIError: Error {
   case tokenUnauthenticated
   case tokenUnauthorized
   case userNotFound
+  
+  // MARK: - 비밀번호 변경
+  case passwordMatchInvalid
+  case loginUnauthenticated
 }
