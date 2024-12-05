@@ -1,5 +1,5 @@
 //
-//  PasswordChangeViewController.swift
+//  ChangePasswordViewController.swift
 //  MyPageImpl
 //
 //  Created by wooseob on 8/16/24.
@@ -13,9 +13,9 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class PasswordChangeViewController: UIViewController {
+final class ChangePasswordViewController: UIViewController {
   private let disposeBag = DisposeBag()
-  private let viewModel: PasswordChangeViewModel
+  private let viewModel: ChangePasswordViewModel
   private let alertRelay = PublishRelay<Void>()
   private let didTapContinueButton = PublishRelay<Void>()
   private var isKeyboardDisplay: Bool = false
@@ -73,44 +73,38 @@ final class PasswordChangeViewController: UIViewController {
   )
   
   // TODO: - DS 적용후 이미지 수정
-  private let currentPasswordCommentView = CommentView(
-    .condition, 
-    text: "비밀번호 일치",
-    icon: UIImage(systemName: "checkmark")!
-  )
-  
   private let containAlphabetCommentView = CommentView(
     .condition, 
     text: "영문 포함",
-    icon: UIImage(systemName: "checkmark")!
+    icon: .checkGray400
   )
   
   private let containNumberCommentView = CommentView(
     .condition,
     text: "숫자 포함",
-    icon: UIImage(systemName: "checkmark")!
+    icon: .checkGray400
   )
   
   private let containSpecialCommentView = CommentView(
     .condition, 
     text: "특수문자 포함",
-    icon: UIImage(systemName: "checkmark")!
+    icon: .checkGray400
   )
   
   private let validRangeCommentView = CommentView(
     .condition, 
     text: "8~30자",
-    icon: UIImage(systemName: "checkmark")!
+    icon: .checkGray400
   )
   
   private let correnspondPasswordCommentView = CommentView(
     .condition, 
     text: "새 비밀번호 일치",
-    icon: UIImage(systemName: "checkmark")!
+    icon: .checkGray400
   )
   
   // MARK: - Initializers
-  init(viewModel: PasswordChangeViewModel) {
+  init(viewModel: ChangePasswordViewModel) {
     self.viewModel = viewModel
     
     super.init(nibName: nil, bundle: nil)
@@ -153,11 +147,10 @@ final class PasswordChangeViewController: UIViewController {
 }
 
 // MARK: - UI Methods
-private extension PasswordChangeViewController {
+private extension ChangePasswordViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     
-    currentPasswordTextField.commentViews = [currentPasswordCommentView]
     newPasswordTextField.commentViews = [
       containAlphabetCommentView,
       containNumberCommentView,
@@ -237,14 +230,14 @@ private extension PasswordChangeViewController {
 }
 
 // MARK: - Bind
-private extension PasswordChangeViewController {
+private extension ChangePasswordViewController {
   func bind() {
-    let input = PasswordChangeViewModel.Input(
+    let input = ChangePasswordViewModel.Input(
       currentPassrod: currentPasswordTextField.rx.text,
       newPassword: newPasswordTextField.rx.text,
       reEnteredPassword: newPasswordCheckTextField.rx.text,
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapContinueButton: changePasswordButton.rx.tap,
+      didTapChangePasswordButton: changePasswordButton.rx.tap,
       didAppearAlert: alertRelay
     )
     
@@ -252,7 +245,7 @@ private extension PasswordChangeViewController {
     bind(output: output)
   }
   
-  func bind(output: PasswordChangeViewModel.Output) {
+  func bind(output: ChangePasswordViewModel.Output) {
     output.containAlphabet
       .drive(containAlphabetCommentView.rx.isActivate)
       .disposed(by: disposeBag)
@@ -299,7 +292,7 @@ private extension PasswordChangeViewController {
 }
 
 // MARK: - Private Methods
-private extension PasswordChangeViewController {
+private extension ChangePasswordViewController {
   @objc func keyboardAppear(notification: Notification) {
     guard let userInfo = notification.userInfo,
           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
@@ -311,7 +304,7 @@ private extension PasswordChangeViewController {
 }
 
 // MARK: - UITextFieldDelegate
-extension PasswordChangeViewController: UITextFieldDelegate {
+extension ChangePasswordViewController: UITextFieldDelegate {
   func textFieldDidBeginEditing(_ textField: UITextField) {
     if let keyboardOffSet, keyboardOffSet > 0 {
       UIView.animate(withDuration: 0.2) {
