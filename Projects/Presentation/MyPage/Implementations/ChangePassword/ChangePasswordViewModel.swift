@@ -1,5 +1,5 @@
 //
-//  PasswordChangeViewModel.swift
+//  ChangePasswordViewModel.swift
 //  MyPageImpl
 //
 //  Created by wooseob on 8/16/24.
@@ -9,26 +9,28 @@
 import RxCocoa
 import RxSwift
 import DesignSystem
+import UseCase
 
-protocol PasswordChangeCoordinatable: AnyObject {
+protocol ChangePasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapChangePasswordAlert()
+  func didChangedPassword()
 }
 
-protocol PasswordChangeViewModelType: PasswordChangeViewModelable {
+protocol ChangePasswordViewModelType: ChangePasswordViewModelable {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
-  var coordinator: PasswordChangeCoordinatable? { get set }
+  var coordinator: ChangePasswordCoordinatable? { get set }
   
   func transform(input: Input) -> Output
 }
 
-final class PasswordChangeViewModel: PasswordChangeViewModelType {
+final class ChangePasswordViewModel: ChangePasswordViewModelType {
+  private let useCase: ChangePasswordUseCase
   let disposeBag = DisposeBag()
   
-  weak var coordinator: PasswordChangeCoordinatable?
+  weak var coordinator: ChangePasswordCoordinatable?
   
   // MARK: - Input
   struct Input {
@@ -36,7 +38,7 @@ final class PasswordChangeViewModel: PasswordChangeViewModelType {
     var newPassword: ControlProperty<String>
     var reEnteredPassword: ControlProperty<String>
     var didTapBackButton: ControlEvent<Void>
-    var didTapContinueButton: ControlEvent<Void>
+    var didTapChangePasswordButton: ControlEvent<Void>
     let didAppearAlert: PublishRelay<Void>
   }
   
@@ -52,19 +54,14 @@ final class PasswordChangeViewModel: PasswordChangeViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: ChangePasswordUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-    
-    input.didTapContinueButton
-      .bind(with: self) { owner, _ in
-        // TODO: 비밀번호 재설정 API
-        owner.coordinator?.didTapChangePasswordAlert()
       }
       .disposed(by: disposeBag)
     
@@ -92,8 +89,21 @@ final class PasswordChangeViewModel: PasswordChangeViewModelType {
       isValidPassword, correspondPassword
     ) { $0 && $1 }
     
-    // TODO: 비밀번호 재설정 요청 -> 성공시 팝업 팝업 끝나면 로그인으로 이동
-    
+    input.didTapChangePasswordButton
+      .withLatestFrom(Observable.combineLatest(
+        input.currentPassrod,
+        input.newPassword,
+        input.reEnteredPassword
+      ))
+      .subscribe(with: self) { owner, info in
+        owner.changePassword(
+          password: info.0,
+          newPassword: info.1,
+          newPasswordReEnter: info.2
+        )
+      }
+      .disposed(by: disposeBag)
+        
     return Output(
       containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
       containNumber: containNumber.asDriver(onErrorJustReturn: false),
@@ -103,5 +113,28 @@ final class PasswordChangeViewModel: PasswordChangeViewModelType {
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
     )
+  }
+}
+
+// MARK: - Private
+private extension ChangePasswordViewModel {
+  func changePassword(
+    password: String,
+    newPassword: String,
+    newPasswordReEnter: String
+  ) {
+    useCase.changePassword(
+      password: password,
+      newPassword: newPassword,
+      newPasswordReEnter: newPasswordReEnter
+    )
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { onwer, _ in
+          onwer.coordinator?.didChangedPassword()
+        }
+      )
+      .disposed(by: disposeBag)
   }
 }
