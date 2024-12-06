@@ -13,6 +13,7 @@ import Report
 protocol SettingDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
+  var changePasswordUseCase: ChangePasswordUseCase { get }
 }
 
 protocol SettingContainable: Containable {
@@ -23,6 +24,8 @@ final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
   ProfileEditDependency {
+  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
+  
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: SettingListener) -> Coordinating {
