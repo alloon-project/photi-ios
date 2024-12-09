@@ -14,7 +14,7 @@ import UseCase
 
 protocol FindPasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachTempPassword(userEmail: String)
+  func attachTempPassword(userEmail: String, userName: String)
 }
 
 protocol FindPasswordViewModelType: FindPasswordViewModelable {
@@ -113,7 +113,7 @@ private extension FindPasswordViewModel {
       .subscribe(
         with: self,
         onSuccess: { onwer, _ in
-          onwer.coordinator?.attachTempPassword(userEmail: userEmail)
+          onwer.coordinator?.attachTempPassword(userEmail: userEmail, userName: userName)
         },
         onFailure: { onwer, err in
           print(err)
