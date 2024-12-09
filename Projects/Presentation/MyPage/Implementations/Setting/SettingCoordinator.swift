@@ -71,7 +71,7 @@ final class SettingCoordinator: Coordinator {
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
-    let coordinator = reportContainable.coordinator(listener: self, reportType: .INQUIRY)
+    let coordinator = reportContainable.coordinator(listener: self, reportType: .inquiry)
     addChild(coordinator)
     
     self.reportCoordinator = coordinator

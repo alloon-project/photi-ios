@@ -9,27 +9,27 @@
 import Foundation
 
 public enum ReportType {
-  case CHALLENGE
-  case MEMBER
-  case FEED
-  case INQUIRY
+  case challenge
+  case member
+  case feed
+  case inquiry
   
   public var title: String {
     switch self {
-    case .CHALLENGE:
+    case .challenge:
       "챌린지를 신고하는 이유가 무엇인가요?"
-    case .MEMBER:
+    case .member:
       "파티원을 신고하는 이유가 무엇인가요?"
-    case .FEED:
+    case .feed:
       "피드를 신고하는 이유가 무엇인가요?"
-    case .INQUIRY:
+    case .inquiry:
       "문의 내용이 무엇인가요?"
     }
   }
   
   public var contents: [String] {
     switch self {
-    case .CHALLENGE:
+    case .challenge:
       ["중복 / 도배성 챌린지",
        "음란성 / 선정적인 챌린지",
        "욕설 / 혐오 발언 챌린지",
@@ -37,7 +37,7 @@ public enum ReportType {
        "상업적 홍보 / 광고 챌린지",
        "타인을 비방하는 챌린지",
        "직접 작성"]
-    case .MEMBER:
+    case .member:
       ["중복 / 도배를 해요",
        "음란성 / 선정적인 이야기를 해요",
        "욕설 / 혐오적인 이야기를 해요",
@@ -45,7 +45,7 @@ public enum ReportType {
        "상업적 홍보 / 광고를 해요",
        "타인을 비방해요",
        "직접 작성"]
-    case .FEED:
+    case .feed:
       ["중복 / 도배성 피드",
        "음란성 / 선정적인 피드",
        "욕설 / 혐오 발언 피드",
@@ -53,7 +53,7 @@ public enum ReportType {
        "상업적 홍보 / 광고 피드",
        "타인을 비방하는 피드",
        "직접 작성"]
-    case .INQUIRY:
+    case .inquiry:
       ["서비스 이용 문의",
        "개선 / 제안 요청",
        "오류 문의",
@@ -73,27 +73,27 @@ public enum ReportType {
   
   public var textViewTitle: String {
     switch self {
-    case .CHALLENGE, .FEED, .MEMBER:
+    case .challenge, .feed, .member:
       "자세한 내용을 적어주시면 신고에 도움이 돼요"
-    case .INQUIRY:
+    case .inquiry:
       "자세한 내용을 적어주세요"
     }
   }
   
   public var textViewPlaceholder: String {
     switch self {
-    case .CHALLENGE, .FEED, .MEMBER:
+    case .challenge, .feed, .member:
       "신고 내용을 상세히 알려주세요"
-    case .INQUIRY:
+    case .inquiry:
       "문의 내용을 상세히 알려주세요"
     }
   }
   
   public var buttonTitle: String {
     switch self {
-    case .CHALLENGE, .FEED, .MEMBER:
+    case .challenge, .feed, .member:
       "신고하기"
-    case .INQUIRY:
+    case .inquiry:
       "제출하기"
     }
   }
