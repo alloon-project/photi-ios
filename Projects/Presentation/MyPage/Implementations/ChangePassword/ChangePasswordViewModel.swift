@@ -9,6 +9,7 @@
 import RxCocoa
 import RxSwift
 import DesignSystem
+import Entity
 import UseCase
 
 protocol ChangePasswordCoordinatable: AnyObject {
@@ -32,9 +33,13 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   
   weak var coordinator: ChangePasswordCoordinatable?
   
+  private let unMatchedCurrentPasswordRelay = PublishRelay<Void>()
+  private let tokenUnauthorizedRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
-    var currentPassrod: ControlProperty<String>
+    var currentPassword: ControlProperty<String>
     var newPassword: ControlProperty<String>
     var reEnteredPassword: ControlProperty<String>
     var didTapBackButton: ControlEvent<Void>
@@ -51,6 +56,9 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     var isValidPassword: Driver<Bool>
     var correspondPassword: Driver<Bool>
     var isEnabledNextButton: Driver<Bool>
+    var unMatchedCurrentPassword: Signal<Void>
+    var tokenUnauthorized: Signal<Void>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -91,7 +99,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     
     input.didTapChangePasswordButton
       .withLatestFrom(Observable.combineLatest(
-        input.currentPassrod,
+        input.currentPassword,
         input.newPassword,
         input.reEnteredPassword
       ))
@@ -111,7 +119,10 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
       isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false),
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
+      unMatchedCurrentPassword: unMatchedCurrentPasswordRelay.asSignal(),
+      tokenUnauthorized: tokenUnauthorizedRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
@@ -133,8 +144,26 @@ private extension ChangePasswordViewModel {
         with: self,
         onSuccess: { onwer, _ in
           onwer.coordinator?.didChangedPassword()
+        },
+        onFailure: { onwer, error in
+          onwer.requestFailed(with: error)
         }
       )
       .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError {
+      switch error {
+      case .tokenUnauthorized:
+        tokenUnauthorizedRelay.accept(())
+      case .loginUnauthenticated:
+        unMatchedCurrentPasswordRelay.accept(())
+      default:
+        break
+      }
+    } else {
+      requestFailedRelay.accept(())
+    }
   }
 }

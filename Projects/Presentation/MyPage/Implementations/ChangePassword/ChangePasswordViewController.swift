@@ -73,6 +73,18 @@ final class ChangePasswordViewController: UIViewController {
   )
   
   // TODO: - DS 적용후 이미지 수정
+  private let wrongPasswordCommentView = CommentView(
+    .warning,
+    text: "기존 비밀번호가  일치하지 않아요",
+    icon: .closeRed
+  )
+  
+  private let isDifferentPasswordCommentView = CommentView(
+    .warning,
+    text: "새 비밀번호는 기존 비밀번호와 동일할 수 없어요",
+    icon: .closeRed
+  )
+  
   private let containAlphabetCommentView = CommentView(
     .condition, 
     text: "영문 포함",
@@ -103,6 +115,10 @@ final class ChangePasswordViewController: UIViewController {
     icon: .checkGray400
   )
   
+  private let warningToastView = ToastView(
+    tipPosition: .none, text: "권한이 없는 요청입니다. 로그인 후에 다시 시도 해주세요.", icon: .bulbWhite
+  )
+  
   // MARK: - Initializers
   init(viewModel: ChangePasswordViewModel) {
     self.viewModel = viewModel
@@ -119,7 +135,13 @@ final class ChangePasswordViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    wrongPasswordCommentView.isActivate = true
+    isDifferentPasswordCommentView.isActivate = true
+    
+    currentPasswordTextField.textField.delegate = self
+    newPasswordTextField.textField.delegate = self
     newPasswordCheckTextField.textField.delegate = self
+    
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(keyboardAppear),
@@ -150,7 +172,6 @@ final class ChangePasswordViewController: UIViewController {
 private extension ChangePasswordViewController {
   func setupUI() {
     self.view.backgroundColor = .white
-    
     newPasswordTextField.commentViews = [
       containAlphabetCommentView,
       containNumberCommentView,
@@ -226,6 +247,11 @@ private extension ChangePasswordViewController {
       $0.centerX.equalToSuperview()
       $0.bottom.equalTo(changePasswordButton.snp.top).offset(-14)
     }
+    
+    warningToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
   }
 }
 
@@ -233,7 +259,7 @@ private extension ChangePasswordViewController {
 private extension ChangePasswordViewController {
   func bind() {
     let input = ChangePasswordViewModel.Input(
-      currentPassrod: currentPasswordTextField.rx.text,
+      currentPassword: currentPasswordTextField.rx.text,
       newPassword: newPasswordTextField.rx.text,
       reEnteredPassword: newPasswordCheckTextField.rx.text,
       didTapBackButton: navigationBar.rx.didTapBackButton,
@@ -288,6 +314,21 @@ private extension ChangePasswordViewController {
     output.isEnabledNextButton
       .drive(changePasswordButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.tokenUnauthorized
+      .emit(with: self) { onwer, _ in
+        onwer.displayToastView()
+      }.disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { onwer, _ in
+        onwer.displayAlertPopUp()
+      }.disposed(by: disposeBag)
+    
+    output.unMatchedCurrentPassword
+      .emit(with: self) { onwer, _ in
+        onwer.currentPasswordTextField.commentViews = [onwer.wrongPasswordCommentView]
+      }.disposed(by: disposeBag)
   }
 }
 
@@ -301,18 +342,56 @@ private extension ChangePasswordViewController {
     let textFieldBottom =  newPasswordCheckTextField.frame.maxY
     keyboardOffSet = textFieldBottom - keyboardFrame.minY
   }
+  
+  func displayToastView() {
+    warningToastView.present(to: self)
+  }
+  
+  func displayAlertPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
+  }
 }
 
 // MARK: - UITextFieldDelegate
 extension ChangePasswordViewController: UITextFieldDelegate {
   func textFieldDidBeginEditing(_ textField: UITextField) {
+    if textField == currentPasswordTextField && currentPasswordTextField.commentViews == [wrongPasswordCommentView] {
+      currentPasswordTextField.text = nil
+      currentPasswordTextField.commentViews.removeAll()
+    }
+    
+    if textField == newPasswordTextField && newPasswordTextField.commentViews == [isDifferentPasswordCommentView] {
+      newPasswordTextField.text = nil
+      newPasswordTextField.commentViews = [
+        containAlphabetCommentView,
+        containNumberCommentView,
+        containSpecialCommentView,
+        validRangeCommentView
+      ]
+    }
+    
     if let keyboardOffSet, keyboardOffSet > 0 {
       UIView.animate(withDuration: 0.2) {
         self.view.frame.origin.y -= keyboardOffSet
       }
     }
   }
+  
   func textFieldDidEndEditing(_ textField: UITextField) {
+    if textField == currentPasswordTextField.textField || textField == newPasswordTextField.textField {
+      let isDifferentPassword = currentPasswordTextField.text != newPasswordTextField.text
+      if !isDifferentPassword && newPasswordTextField.text != nil {
+        newPasswordTextField.commentViews = [isDifferentPasswordCommentView]
+      } else {
+        newPasswordTextField.commentViews = [
+          containAlphabetCommentView,
+          containNumberCommentView,
+          containSpecialCommentView,
+          validRangeCommentView
+        ]
+      }
+    }
     if let keyboardOffSet, keyboardOffSet > 0 {
       UIView.animate(withDuration: 0.2) {
         self.view.frame.origin.y += keyboardOffSet
