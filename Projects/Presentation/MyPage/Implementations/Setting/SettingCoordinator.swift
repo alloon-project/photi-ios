@@ -71,22 +71,11 @@ final class SettingCoordinator: Coordinator {
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
-    let reportData = ReportDataSource(
-      title: "문의 내용이 무엇인가요?",
-      contents: ["서비스 이용 문의",
-                 "개선 / 제안 요청",
-                 "오류 문의",
-                 "기타 문의"],
-      textViewTitle: "자세한 내용을 적어주세요",
-      textViewPlaceholder: "문의 내용을 상세히 알려주세요",
-      buttonTitle: "제출하기"
-    )
+    let coordinator = reportContainable.coordinator(listener: self, reportType: .inquiry)
+    addChild(coordinator)
     
-    let coordinater = reportContainable.coordinator(listener: self, reportData: reportData)
-    addChild(coordinater)
-    
-    self.reportCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    self.reportCoordinator = coordinator
+    coordinator.start(at: self.navigationController)
   }
   
   func detachInquiry() {
