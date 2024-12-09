@@ -13,16 +13,4 @@ public struct ProofChallengeCellPresentationModel {
   let challengeTitle: String
   let finishedDate: Date
   let challengeId: String
-  
-  init(
-    challengeImage: URL?,
-    challengeTitle: String,
-    finishedDate: Date,
-    challengeId: String
-  ) {
-    self.challengeImage = challengeImage
-    self.challengeTitle = challengeTitle
-    self.finishedDate = finishedDate
-    self.challengeId = challengeId
-  }
 }
