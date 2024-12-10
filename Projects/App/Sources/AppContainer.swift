@@ -71,7 +71,7 @@ final class AppContainer:
   lazy var findPasswordUseCase: FindPasswordUseCase = {
     return FindPasswordUseCaseImpl(repository: findPasswordRepository)
   }()
-
+  
   lazy var signUpUseCase: SignUpUseCase = {
     return SignUpUseCaseImpl(repository: signUpRepository)
   }()
@@ -79,9 +79,13 @@ final class AppContainer:
   lazy var myPageUseCase: MyPageUseCase = {
     return MyPageUseCaseImpl(repository: myPageRepository)
   }()
-
+  
   lazy var profileEditUseCase: ProfileEditUseCase = {
     return ProfileEditUseCaseImpl(repository: profileEditRepository)
+  }()
+  
+  lazy var changePasswordUseCase: ChangePasswordUseCase = {
+    return ChangePasswordUseCaseImpl(repository: changePasswordRepository)
   }()
 
   lazy var homeUseCae: HomeUseCase = {
@@ -107,6 +111,10 @@ final class AppContainer:
   
   lazy var profileEditRepository: ProfileEditRepository = {
     return ProfileEditRepositoryImpl(dataMapper: ProfileEditDataMapperImpl())
+  }()
+  
+  lazy var changePasswordRepository: ChangePasswordRepository = {
+    return ChangePasswordRepositoryImpl(dataMapper: ChangePasswordDataMapperImpl())
   }()
   
   lazy var challengeRepository: ChallengeRepository = {

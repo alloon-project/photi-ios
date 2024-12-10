@@ -15,23 +15,25 @@ protocol ProfileEditContainable: Containable {
 
 protocol ProfileEditDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
+  var changePasswordUseCase: ChangePasswordUseCase { get }
 }
 
 final class ProfileEditContainer:
   Container<ProfileEditDependency>,
   ProfileEditContainable,
-  PasswordChangeDependency,
+  ChangePasswordDependency,
   ResignDependency {
+  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase}
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   public func coordinator(listener: ProfileEditListener) -> Coordinating {
-    let passwordChange = PasswordChangeContainer(dependency: self)
+    let changePassword = ChangePasswordContainer(dependency: self)
     let resign = ResignContainer(dependency: self)
     let viewModel = ProfileEditViewModel(useCase: dependency.profileEditUseCase)
     
     let coordinator = ProfileEditCoordinator(
       viewModel: viewModel,
-      passwordChangeContainable: passwordChange, 
+      changePasswordContainable: changePassword, 
       resignContainable: resign
     )
     coordinator.listener = listener
