@@ -17,9 +17,7 @@ public final class PhotiSegmentControl: UIControl {
     didSet { setupSegmentControl(with: items) }
   }
   
-  public private(set) var selectedSegmentIndex: Int = 0 {
-    didSet { }
-  }
+  public private(set) var selectedSegmentIndex: Int = 0
   
   // MARK: - UI Componenets
   private let stackView: UIStackView = {
