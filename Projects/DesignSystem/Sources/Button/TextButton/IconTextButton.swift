@@ -56,6 +56,10 @@ public final class IconTextButton: UIButton {
     setupUI()
   }
   
+  public convenience init(icon: UIImage, size: ButtonSize) {
+    self.init(text: "", icon: icon, size: size)
+  }
+  
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -63,9 +67,13 @@ public final class IconTextButton: UIButton {
   
   // MARK: - Setup UI
   func setupUI() {
-    stackView.addArrangedSubviews(label, iconView)
     addSubview(stackView)
-    stackView.snp.makeConstraints { $0.center.equalToSuperview() }
+    stackView.addArrangedSubviews(label, iconView)
+    
+    stackView.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview().inset(topAndBottomMargin(for: size))
+      $0.leading.trailing.equalToSuperview().inset(leadingAndTrailingMargin(for: size))
+    }
     
     setLabel(text)
     setIconView(icon)
@@ -86,21 +94,6 @@ private extension IconTextButton {
     iconView.image = resizeIcon
   }
   
-  func cgSize(for size: ButtonSize) -> CGSize {
-    switch size {
-      case .xLarge:
-        return CGSize(width: 79, height: 38)
-      case .large:
-        return CGSize(width: 75, height: 37)
-      case .medium:
-        return CGSize(width: 66, height: 32)
-      case .small:
-        return CGSize(width: 63, height: 30)
-      case .xSmall:
-        return CGSize(width: 54, height: 22)
-    }
-  }
-  
   func iconSize(for size: ButtonSize) -> CGSize {
     switch size {
       case .xLarge, .large:
@@ -111,6 +104,28 @@ private extension IconTextButton {
         return CGSize(width: 10, height: 10)
       case .xSmall:
         return CGSize(width: 9, height: 9)
+    }
+  }
+  
+  func topAndBottomMargin(for size: ButtonSize) -> CGFloat {
+    switch size {
+      case .xLarge, .large:
+        return 12
+      case .medium, .small:
+        return 10
+      case .xSmall:
+        return 6
+    }
+  }
+  
+  func leadingAndTrailingMargin(for size: ButtonSize) -> CGFloat {
+    switch size {
+      case .xLarge, .large:
+        return 12
+      case .medium, .small:
+        return 10
+      case .xSmall:
+        return 8
     }
   }
   
