@@ -32,7 +32,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeId: Int) { }
   
   func transform(input: Input) -> Output {
     return Output()

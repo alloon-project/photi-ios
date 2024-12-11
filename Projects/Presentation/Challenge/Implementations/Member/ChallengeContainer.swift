@@ -13,10 +13,18 @@ public protocol ChallengeDependency: Dependency { }
 
 public final class ChallengeContainer:
   Container<ChallengeDependency>,
-  ChallengeContainable {
+  ChallengeContainable,
+  FeedDependency {
   public func coordinator(listener: ChallengeListener, challengeId: Int) -> Coordinating {
+    let feedContainer = FeedContainer(dependency: self)
+    
     let viewModel = ChallengeViewModel(challengeId: challengeId)
-    let coordinator = ChallengeCoordinator(viewModel: viewModel)
+    let viewController = ChallengeViewController(viewModel: viewModel)
+    let coordinator = ChallengeCoordinator(
+      viewController: viewController,
+      viewModel: viewModel,
+      feedContainer: feedContainer
+    )
     coordinator.listener = listener
     return coordinator
   }
