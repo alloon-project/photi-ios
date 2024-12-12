@@ -29,6 +29,12 @@ final class ChallengeViewController: UIViewController {
   private let segmentControl = PhotiSegmentControl(items: ["피드", "소개", "파티원"])
   private let mainContentScrollView = UIScrollView()
   private let mainContentView = UIView()
+  private let cameraShutterButton: UIButton = {
+    let button = UIButton()
+    button.setImage(.shutterWhite, for: .normal)
+    
+    return button
+  }()
   
   // MARK: - Initializers
   init(viewModel: ChallengeViewModel) {
@@ -45,6 +51,21 @@ final class ChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    let tipView = ToastView(
+      tipPosition: .centerBottom,
+      text: "오늘의 인증이 완료되지 않았어요!",
+      icon: .bulbWhite
+    )
+    
+    tipView.setConstraints { [weak self] make in
+      guard let self else { return }
+      make.bottom.equalTo(cameraShutterButton.snp.top).offset(-6)
+      make.centerX.equalToSuperview()
+    }
+    
+    tipView.present(to: self)
   }
 }
 
@@ -56,7 +77,7 @@ private extension ChallengeViewController {
   }
   
   func setViewHierarhcy() {
-    view.addSubviews(titleView, navigationBar, segmentControl, mainContentScrollView)
+    view.addSubviews(titleView, navigationBar, segmentControl, mainContentScrollView, cameraShutterButton)
     mainContentScrollView.addSubview(mainContentView)
   }
   
@@ -86,6 +107,12 @@ private extension ChallengeViewController {
     mainContentView.snp.makeConstraints {
       $0.edges.equalToSuperview()
       $0.width.equalToSuperview()
+    }
+    
+    cameraShutterButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.width.height.equalTo(64)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(22)
     }
   }
 }

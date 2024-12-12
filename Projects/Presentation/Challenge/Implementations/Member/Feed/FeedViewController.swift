@@ -39,6 +39,7 @@ final class FeedViewController: UIViewController {
     layout.minimumLineSpacing = 10
     layout.minimumInteritemSpacing = 7
     layout.itemSize = .init(width: 160, height: 160)
+    layout.sectionHeadersPinToVisibleBounds = true
     
     let collectionView = SelfVerticalSizingCollectionView(layout: layout)
     collectionView.registerCell(FeedCell.self)
