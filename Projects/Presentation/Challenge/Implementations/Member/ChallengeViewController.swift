@@ -12,7 +12,7 @@ import RxCocoa
 import Core
 import DesignSystem
 
-final class ChallengeViewController: UIViewController {
+final class ChallengeViewController: UIViewController, CameraRequestable {
   // MARK: - Properties
   private let viewModel: ChallengeViewModel
   private let disposeBag = DisposeBag()
@@ -127,7 +127,15 @@ private extension ChallengeViewController {
 
 // MARK: - Bind
 private extension ChallengeViewController {
-  func bind() { }
+  func bind() {
+    viewBind()
+  func viewBind() {
+    cameraShutterButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.requestOpenCamera(delegate: owner)
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengePresentable
@@ -136,6 +144,31 @@ extension ChallengeViewController: ChallengePresentable {
     segmentViewControllers = viewControllers
 
     attachViewController(segmentIndex: segmentIndex)
+  }
+}
+
+// MARK: - UIImagePickerControllerDelegate, UINavigationControllerDelegate
+extension ChallengeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+  func imagePickerController(
+    _ picker: UIImagePickerController,
+    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+  ) {
+    guard let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else {
+      picker.dismiss(animated: true)
+      return
+    }
+    picker.dismiss(animated: true)
+    
+    let popOver = UploadPhotoPopOverViewController(type: .two, image: image)
+    popOver.present(to: self, animated: true)
+    popOver.delegate = self
+  }
+}
+
+// MARK: - UploadPhotoPopOverDelegate
+extension ChallengeViewController: UploadPhotoPopOverDelegate {
+  func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
+    print(image.size)
   }
 }
 
