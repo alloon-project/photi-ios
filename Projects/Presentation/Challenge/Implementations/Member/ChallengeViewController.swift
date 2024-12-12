@@ -18,6 +18,8 @@ final class ChallengeViewController: UIViewController, CameraRequestable {
   private let disposeBag = DisposeBag()
   private var segmentIndex: Int = 0
   
+  private let uploadImageRelay = PublishRelay<Data>()
+  
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
   private let navigationBar = PhotiNavigationBar(
@@ -168,7 +170,8 @@ extension ChallengeViewController: UIImagePickerControllerDelegate, UINavigation
 // MARK: - UploadPhotoPopOverDelegate
 extension ChallengeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
-    print(image.size)
+    uploadImageRelay.accept(image.pngData() ?? Data())
+    LoadingAnimation.default.start()
   }
 }
 
