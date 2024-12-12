@@ -23,12 +23,32 @@ final class FeedViewController: UIViewController {
   private let viewModel: FeedViewModel
   private let disposeBag = DisposeBag()
   private var contentOrderType: ContentOrderType = .recent
+  private var feeds = [[FeedPresentationModel]]() {
+    didSet {
+      feedCollectionView.reloadData()
+    }
+  }
 
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent60)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
   private let tagView = TagView(image: .peopleWhite)
-  private let cardCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+  private let feedCollectionView: SelfVerticalSizingCollectionView = {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .vertical
+    layout.minimumLineSpacing = 10
+    layout.minimumInteritemSpacing = 7
+    layout.itemSize = .init(width: 160, height: 160)
+    
+    let collectionView = SelfVerticalSizingCollectionView(layout: layout)
+    collectionView.registerCell(FeedCell.self)
+    collectionView.registerHeader(FeedCollectionHeaderView.self)
+    collectionView.showsHorizontalScrollIndicator = false
+    collectionView.showsVerticalScrollIndicator = false
+    collectionView.isScrollEnabled = false
+
+    return collectionView
+  }()
   
   // MARK: - Initializers
   init(viewModel: FeedViewModel) {
@@ -63,13 +83,12 @@ final class FeedViewController: UIViewController {
 // MARK: - UI Methods
 private extension FeedViewController {
   func setupUI() {
-    view.backgroundColor = .red100
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    view.addSubviews(progressBar, orderButton, cardCollectionView, tagView)
+    view.addSubviews(progressBar, orderButton, feedCollectionView, tagView)
   }
   
   func setConstraints() {
@@ -90,11 +109,68 @@ private extension FeedViewController {
       $0.top.equalTo(progressBar.snp.bottom).offset(8)
     }
     
-    cardCollectionView.backgroundColor = .blue100
-    cardCollectionView.snp.makeConstraints {
+    feedCollectionView.snp.makeConstraints {
       $0.top.equalTo(orderButton.snp.bottom).offset(30)
-      $0.height.equalTo(600)
-      $0.leading.trailing.bottom.equalToSuperview()
+      $0.centerX.equalToSuperview()
+      $0.width.equalTo(327)
+      $0.bottom.equalToSuperview()
     }
+  }
+}
+
+// MARK: -
+extension FeedViewController: UICollectionViewDataSource {
+  func numberOfSections(in collectionView: UICollectionView) -> Int {
+    return feeds.count
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return feeds[section].count
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
+    cell.configure(with: feeds[indexPath.section][indexPath.row])
+    
+    return cell
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    viewForSupplementaryElementOfKind kind: String,
+    at indexPath: IndexPath
+  ) -> UICollectionReusableView {
+    guard  kind == UICollectionView.elementKindSectionHeader else {
+      return UICollectionReusableView()
+    }
+      
+    let header = collectionView.dequeueHeader(FeedCollectionHeaderView.self, for: indexPath)
+    
+    /// 테스트용 코드입니다.
+    if indexPath.section == 0 {
+      header.configure(date: "오늘", type: .didNotProof(deadLine: "18:00까지"))
+    } else {
+      header.configure(date: "1일 전", type: .none)
+    }
+    
+    return header
+  }
+}
+
+extension FeedViewController: UICollectionViewDelegateFlowLayout {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    referenceSizeForHeaderInSection section: Int
+  ) -> CGSize {
+    return CGSize(width: collectionView.bounds.width, height: 44)
+  }
+  
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    insetForSectionAt section: Int
+  ) -> UIEdgeInsets {
+    return .init(top: 8, left: 0, bottom: 18, right: 0)
   }
 }
