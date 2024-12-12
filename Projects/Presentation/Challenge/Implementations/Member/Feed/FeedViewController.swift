@@ -20,6 +20,12 @@ final class FeedViewController: UIViewController {
   }
   
   // MARK: - Properties
+  private var currentPercent = PhotiProgressPercent.percent0 {
+    didSet {
+      progressBar.percent = currentPercent
+      updateTagViewContraints(percent: currentPercent)
+    }
+  }
   private let viewModel: FeedViewModel
   private let disposeBag = DisposeBag()
   private var contentOrderType: ContentOrderType = .recent
@@ -30,7 +36,7 @@ final class FeedViewController: UIViewController {
   }
 
   // MARK: - UI Components
-  private let progressBar = MediumProgressBar(percent: .percent60)
+  private let progressBar = MediumProgressBar(percent: .percent0)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
   private let tagView = TagView(image: .peopleWhite)
   private let feedCollectionView: SelfVerticalSizingCollectionView = {
@@ -65,19 +71,9 @@ final class FeedViewController: UIViewController {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
-  }
-  
-  override func viewDidLayoutSubviews() {
-    super.viewDidLayoutSubviews()
-    
-    let centerX = progressBar.bounds.width * 0.6
-    let leading = centerX - tagView.frame.width / 2
-    
-    tagView.snp.updateConstraints {
-      $0.leading.equalToSuperview().offset(leading)
-    }
+    feedCollectionView.dataSource = self
+    feedCollectionView.delegate = self
   }
 }
 
@@ -106,7 +102,7 @@ private extension FeedViewController {
     }
     
     tagView.snp.makeConstraints {
-      $0.leading.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
       $0.top.equalTo(progressBar.snp.bottom).offset(8)
     }
     
@@ -119,7 +115,7 @@ private extension FeedViewController {
   }
 }
 
-// MARK: -
+// MARK: - UICollectionViewDataSource
 extension FeedViewController: UICollectionViewDataSource {
   func numberOfSections(in collectionView: UICollectionView) -> Int {
     return feeds.count
@@ -158,6 +154,7 @@ extension FeedViewController: UICollectionViewDataSource {
   }
 }
 
+// MARK: - UICollectionViewDelegateFlowLayout
 extension FeedViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
     _ collectionView: UICollectionView,
@@ -173,5 +170,27 @@ extension FeedViewController: UICollectionViewDelegateFlowLayout {
     insetForSectionAt section: Int
   ) -> UIEdgeInsets {
     return .init(top: 8, left: 0, bottom: 18, right: 0)
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedViewController {
+  func updateTagViewContraints(percent: PhotiProgressPercent) {
+    let tagViewLeading = tagViewLeading(for: percent.rawValue)
+    
+    UIView.animate(withDuration: 0.4) { [weak self] in
+      guard let self else { return }
+      tagView.snp.updateConstraints {
+        $0.leading.equalToSuperview().offset(tagViewLeading)
+      }
+      view.layoutIfNeeded()
+    }
+  }
+  
+  func tagViewLeading(for progess: Double) -> Double {
+    let centerX = progressBar.bounds.width * progess
+    let leading: Double = centerX - tagView.frame.width / 2.0
+
+    return leading.bound(lower: 24, upper: progressBar.bounds.width - tagView.frame.width)
   }
 }
