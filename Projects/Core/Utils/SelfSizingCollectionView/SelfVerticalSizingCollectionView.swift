@@ -35,7 +35,11 @@ open class SelfVerticalSizingCollectionView: UICollectionView {
   }
   
   // MARK: - Initalizers
-  public init(minHeight: CGFloat = 0, maxHeight: CGFloat?, layout: UICollectionViewLayout) {
+  public init(
+    minHeight: CGFloat = 0,
+    maxHeight: CGFloat?,
+    layout: UICollectionViewLayout
+  ) {
     self.minHeight = minHeight
     self.maxHeight = maxHeight
     super.init(frame: .zero, collectionViewLayout: layout)
