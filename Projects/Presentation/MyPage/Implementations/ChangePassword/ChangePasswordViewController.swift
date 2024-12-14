@@ -381,7 +381,7 @@ extension ChangePasswordViewController: UITextFieldDelegate {
   func textFieldDidEndEditing(_ textField: UITextField) {
     if textField == currentPasswordTextField.textField || textField == newPasswordTextField.textField {
       let isDifferentPassword = currentPasswordTextField.text != newPasswordTextField.text
-      if !isDifferentPassword && newPasswordTextField.text != nil {
+      if !isDifferentPassword && newPasswordTextField.text != "" {
         newPasswordTextField.commentViews = [isDifferentPasswordCommentView]
       } else {
         newPasswordTextField.commentViews = [

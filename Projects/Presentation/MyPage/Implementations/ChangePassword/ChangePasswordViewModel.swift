@@ -73,6 +73,10 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       }
       .disposed(by: disposeBag)
     
+    let isDifferentPassword = Observable.combineLatest(
+      input.currentPassword, input.newPassword
+    ) { $0 != $1 }
+    
     let containAlphabet = input.newPassword
       .map { $0.contain("[a-zA-Z]") }
     
@@ -86,8 +90,8 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       .map { $0.count >= 8 && $0.count <= 30 }
     
     let isValidPassword = Observable.combineLatest(
-      containAlphabet, containNumber, containSpecial, isValidRange
-    ) { $0 && $1 && $2 && $3 }
+      containAlphabet, containNumber, containSpecial, isValidRange, isDifferentPassword
+    ) { $0 && $1 && $2 && $3 && $4 }
     
     let correspondPassword = Observable.combineLatest(
       input.newPassword, input.reEnteredPassword
