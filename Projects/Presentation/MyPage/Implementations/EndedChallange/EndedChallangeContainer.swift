@@ -9,17 +9,19 @@
 import Core
 import UseCase
 
-protocol EndedChallengeDependency: Dependency {}
-
 protocol EndedChallengeContainable: Containable {
   func coordinator(listener: EndedChallengeListener) -> Coordinating
 }
 
+protocol EndedChallengeDependency: Dependency {
+  var endedChallengeUseCase: EndedChallengeUseCase { get }
+}
+
 final class EndedChallengeContainer:
   Container<EndedChallengeDependency>,
-  EndedChallengeContainable {  
+  EndedChallengeContainable {
   public func coordinator(listener: EndedChallengeListener) -> Coordinating {
-    let viewModel = EndedChallengeViewModel()
+    let viewModel = EndedChallengeViewModel(useCase: dependency.endedChallengeUseCase)
     
     let coordinator = EndedChallengeCoordinator(
       viewModel: viewModel
