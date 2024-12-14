@@ -13,10 +13,7 @@ import DesignSystem
 
 final class ChallengeInformationView: UIView {
   private var hashTags = [String]() {
-    didSet {
-      hashTagCollectionView.reloadData()
-      centerContentHorizontalyByInsetIfNeeded()
-    }
+    didSet { hashTagCollectionView.reloadData() }
   }
   
   // MARK: - UI Components
@@ -26,18 +23,7 @@ final class ChallengeInformationView: UIView {
     contentCount: .two(firstTitle: "인증 시간", secondTitle: "챌린지 종료")
   )
   
-  private let hashTagCollectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    layout.scrollDirection = .horizontal
-    layout.minimumLineSpacing = 8
-    collectionView.registerCell(HashTagCell.self)
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    collectionView.showsVerticalScrollIndicator = false
-    
-    return collectionView
-  }()
-  
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center)
   private let participateCountView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
@@ -67,12 +53,6 @@ final class ChallengeInformationView: UIView {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    
-    centerContentHorizontalyByInsetIfNeeded()
   }
   
   // MARK: - Configure Methods
@@ -170,23 +150,10 @@ extension ChallengeInformationView: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
-    cell.configure(text: hashTags[indexPath.row])
+    cell.configure(
+      type: .text(size: .medium, type: .gray),
+      text: hashTags[indexPath.row]
+    )
     return cell
-  }
-}
-
-// MARK: - Private Methods
-private extension ChallengeInformationView {
-  func centerContentHorizontalyByInsetIfNeeded() {
-    if hashTagCollectionView.contentSize.width > hashTagCollectionView.frame.size.width {
-      hashTagCollectionView.contentInset = .zero
-    } else {
-      hashTagCollectionView.contentInset = UIEdgeInsets(
-        top: 0,
-        left: (hashTagCollectionView.frame.size.width) / 2 - (hashTagCollectionView.contentSize.width) / 2,
-        bottom: 0,
-        right: 0
-      )
-    }
   }
 }

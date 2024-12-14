@@ -40,7 +40,8 @@ final class ChallengeImageCell: UICollectionViewCell {
   func configure(with viewModel: ChallengePresentationModel) {
     if let url = viewModel.imageURL {
       imageView.kf.setImage(with: url)
-    } else {
+    }     
+    if imageView.image == nil {
       imageView.image = .defaultChallengeImage
     }
   }
