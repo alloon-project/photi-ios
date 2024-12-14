@@ -28,14 +28,14 @@ extension ProfileEditAPI: TargetType {
     }
   }
   
-  public var method: PhotiNetwork.HTTPMethod {
+  public var method: HTTPMethod {
     switch self {
       case .userInfo:
       return .get
     }
   }
   
-  public var task: PhotiNetwork.TaskType {
+  public var task: TaskType {
     switch self {
       case .userInfo:
       return .requestPlain
