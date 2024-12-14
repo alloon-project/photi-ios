@@ -85,7 +85,12 @@ private extension FeedViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(progressBar, orderButton, feedCollectionView, tagView)
+    view.addSubviews(
+      progressBar,
+      orderButton,
+      feedCollectionView,
+      tagView
+    )
   }
   
   func setConstraints() {
