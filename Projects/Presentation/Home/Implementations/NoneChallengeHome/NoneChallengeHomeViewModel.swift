@@ -27,7 +27,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType, NoneChal
   
   weak var coordinator: NoneChallengeHomeCoordinatable?
   
-  private let challengesRelay = BehaviorRelay<[ChallengePresentationModel]>(value: [])
+  private let challengesRelay = PublishRelay<[ChallengePresentationModel]>()
   private let requestFailedRelay = PublishRelay<Void>()
 
   // MARK: - Input
@@ -37,7 +37,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType, NoneChal
   
   // MARK: - Output
   struct Output {
-    let challenges: Driver<[ChallengePresentationModel]>
+    let challenges: Signal<[ChallengePresentationModel]>
     let requestFailed: Signal<Void>
   }
   
@@ -54,7 +54,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType, NoneChal
       .disposed(by: disposeBag)
     
     return Output(
-      challenges: challengesRelay.asDriver(),
+      challenges: challengesRelay.asSignal(),
       requestFailed: requestFailedRelay.asSignal()
     )
   }

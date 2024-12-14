@@ -75,4 +75,10 @@ public extension UICollectionView {
     }
     return footer
   }
+  
+  func reloadData(_ completion: @escaping () -> Void) {
+    UIView.animate(withDuration: 0, animations: reloadData) { _ in
+      completion()
+    }
+  }
 }

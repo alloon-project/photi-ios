@@ -53,8 +53,6 @@ private extension SegmentButton {
   func setupUI() {
     layer.cornerRadius = 12
     layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-    backgroundColor = .white
-    
     layer.addSublayer(dashLine)
     setupUI(for: isSelected)
   }
@@ -75,6 +73,7 @@ private extension SegmentButton {
   
   func setupUI(for isSelected: Bool) {
     let alphaComponent: CGFloat = isSelected ? 1.0 : 0.3
+    
     backgroundColor = .white.withAlphaComponent(alphaComponent)
     dashLine.isHidden = !isSelected
     setTitle(title)

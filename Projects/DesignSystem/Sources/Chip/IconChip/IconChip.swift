@@ -29,8 +29,9 @@ public final class IconChip: UIView {
   }
   
   /// Icon Chip의 Image입니다.
-  public var icon: UIImage {
+  public var icon: UIImage? {
     didSet {
+      guard let icon else { return }
       setIconView(icon)
     }
   }
@@ -52,7 +53,7 @@ public final class IconChip: UIView {
   // MARK: - Initializers
   public init(
     text: String,
-    icon: UIImage,
+    icon: UIImage?,
     type: IconChipType,
     size: ChipSize
   ) {
@@ -70,6 +71,10 @@ public final class IconChip: UIView {
     size: ChipSize
   ) {
     self.init(text: "", icon: icon, type: type, size: size)
+  }
+  
+  public convenience init(type: IconChipType, size: ChipSize) {
+    self.init(text: "", icon: nil, type: type, size: size)
   }
   
   @available(*, unavailable)
@@ -93,7 +98,8 @@ private extension IconChip {
     setConstraints(for: size)
     setBorderLine(for: type)
     setLabel(text)
-    setIconView(icon)
+    
+    if let icon = icon { setIconView(icon) }
   }
   
   func setViewHierarchy() {
@@ -141,7 +147,7 @@ private extension IconChip {
   func setIconView(_ icon: UIImage) {
     let resizeIcon = icon
       .resize(iconSize(for: size))
-      .withTintColor(iconColor(for: type))
+      .color(iconColor(for: type))
     
     iconView.image = resizeIcon
     iconView.contentMode = .center

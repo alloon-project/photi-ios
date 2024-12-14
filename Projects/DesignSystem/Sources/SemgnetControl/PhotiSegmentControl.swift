@@ -13,7 +13,7 @@ import RxSwift
 
 public final class PhotiSegmentControl: UIControl {
   // MARK: - Properties
-  public var items: [String] = [] {
+  public var items: [String] {
     didSet { setupSegmentControl(with: items) }
   }
   
@@ -31,10 +31,15 @@ public final class PhotiSegmentControl: UIControl {
   }()
   
   // MARK: - Initializers
-  public init() {
+  public init(items: [String]) {
+    self.items = items
     super.init(frame: .zero)
     
     setupUI()
+  }
+  
+  convenience init() {
+    self.init(items: [])
   }
   
   @available(*, unavailable)
@@ -49,6 +54,7 @@ private extension PhotiSegmentControl {
     backgroundColor = .clear
     setViewHierarchy()
     setConstraints()
+    setupSegmentControl(with: items)
   }
   
   func setViewHierarchy() {

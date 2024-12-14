@@ -14,10 +14,7 @@ import DesignSystem
 final class HomeMyChallengeCell: UITableViewCell {
   // MARK: - Properties
   var hashTags: [String] = [] {
-    didSet {
-      hashTagCollectionView.reloadData()
-      centerContentHorizontalyByInsetIfNeeded()
-    }
+    didSet { hashTagCollectionView.reloadData() }
   }
   
   // MARK: - UI Components
@@ -38,24 +35,11 @@ final class HomeMyChallengeCell: UITableViewCell {
   private let challengeImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 6
+    
     return imageView
   }()
   
-  private let hashTagCollectionView: UICollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.scrollDirection = .horizontal
-    layout.minimumLineSpacing = 8
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.registerCell(HashTagCell.self)
-    collectionView.backgroundColor = .clear
-    collectionView.showsHorizontalScrollIndicator = false
-    collectionView.automaticallyAdjustsScrollIndicatorInsets = false
-    collectionView.contentInsetAdjustmentBehavior = .never
-
-    return collectionView
-  }()
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center)
   
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -74,12 +58,8 @@ final class HomeMyChallengeCell: UITableViewCell {
     configureTitleLabel(text: model.title)
     configureInformationViews(time: model.deadLineTime, date: model.deadLineDate)
     challengeImageView.image = model.image ?? .defaultHomeCard
+
     self.hashTags = model.hashTags
-  }
-  
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    centerContentHorizontalyByInsetIfNeeded()
   }
 }
 
@@ -138,7 +118,8 @@ extension HomeMyChallengeCell: UICollectionViewDataSource {
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
-    cell.configure(text: hashTags[indexPath.row])
+    let text = hashTags[indexPath.row]
+    cell.configure(type: .text(size: .medium, type: .gray), text: text)
     
     return cell
   }
@@ -146,19 +127,6 @@ extension HomeMyChallengeCell: UICollectionViewDataSource {
 
 // MARK: - Private Methods
 private extension HomeMyChallengeCell {
-  func centerContentHorizontalyByInsetIfNeeded() {
-    if hashTagCollectionView.contentSize.width > hashTagCollectionView.frame.size.width {
-      hashTagCollectionView.contentInset = .zero
-    } else {
-      hashTagCollectionView.contentInset = UIEdgeInsets(
-        top: 0,
-        left: (hashTagCollectionView.frame.size.width) / 2 - (hashTagCollectionView.contentSize.width) / 2,
-        bottom: 0,
-        right: 0
-      )
-    }
-  }
-  
   func configureTitleLabel(text: String) {
     titleLabel.attributedText = text.attributedString(font: .body1Bold, color: .photiBlack)
   }
