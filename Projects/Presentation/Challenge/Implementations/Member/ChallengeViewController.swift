@@ -51,6 +51,8 @@ final class ChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+  }
+  
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     let tipView = ToastView(
@@ -77,7 +79,13 @@ private extension ChallengeViewController {
   }
   
   func setViewHierarhcy() {
-    view.addSubviews(titleView, navigationBar, segmentControl, mainContentScrollView, cameraShutterButton)
+    view.addSubviews(
+      titleView,
+      navigationBar,
+      segmentControl,
+      mainContentScrollView,
+      cameraShutterButton
+    )
     mainContentScrollView.addSubview(mainContentView)
   }
   
