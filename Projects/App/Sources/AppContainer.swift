@@ -80,6 +80,9 @@ final class AppContainer:
     return ProfileEditUseCaseImpl(repository: profileEditRepository)
   }()
 
+  lazy var endedChallengeUseCase: EndedChallengeUseCase = {
+    return EndedChallengeUseCaseImpl(repository: endedChallengeRepository)
+  }()
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
@@ -99,6 +102,10 @@ final class AppContainer:
   
   lazy var profileEditRepository: ProfileEditRepository = {
     return ProfileEditRepositoryImpl(dataMapper: ProfileEditDataMapperImpl())
+  }()
+  
+  lazy var endedChallengeRepository: EndedChallengeRepository = {
+    return EndedChallengeRepositoryImpl(dataMapper: EndedChallengeDataMapperImpl())
   }()
   
   lazy var challengeRepository: ChallengeRepository = {
