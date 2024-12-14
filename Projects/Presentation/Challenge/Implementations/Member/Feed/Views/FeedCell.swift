@@ -30,22 +30,6 @@ final class FeedCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
   
-  override func layoutSubviews() {
-    super.layoutSubviews()
-    self.roundCorners(
-      leftTop: 8,
-      rightTop: 8,
-      leftBottom: 8,
-      rightBottom: 40
-    )
-
-    configureShapeBorder(
-      width: 3,
-      strockColor: .gray200,
-      backGroundColor: .clear
-    )
-  }
-  
   // MARK: - Configure
   func configure(with model: FeedPresentationModel) {
     userNameLabel.attributedText = model.userName.attributedString(font: .body2Bold, color: .white)
@@ -62,6 +46,19 @@ private extension FeedCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
+    
+    self.roundCorners(
+      leftTop: 8,
+      rightTop: 8,
+      leftBottom: 8,
+      rightBottom: 40
+    )
+
+    configureShapeBorder(
+      width: 3,
+      strockColor: .gray200,
+      backGroundColor: .clear
+    )
   }
   
   func setViewHierarchy() {
