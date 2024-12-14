@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import RxCocoa
 import RxSwift
 import Core
@@ -50,7 +51,7 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
     return label
   }()
   
-  private let finishedDateLabel = {
+  private let endedDateLabel = {
     let label = UILabel()
     label.attributedText = "2024. 8. 30 종료".attributedString(
       font: .body1,
@@ -111,11 +112,22 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
     return imageView
   }()
   
+  private let moreUserNumberLabel = {
+    let label = UILabel()
+    label.configureShapeBorder(
+      width: 1,
+      strockColor: .white,
+      backGroundColor: .gray500
+    )
+    label.layer.cornerRadius = 12
+    
+    return label
+  }()
+  
   // MARK: - Initializers
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
-    addUserImageViews()
   }
   
   @available(*, unavailable)
@@ -124,8 +136,43 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure() {
-    setupUI()
+  func configure(with viewModel: EndedChallengeCardCellPresentationModel) {
+    if let url = viewModel.challengeImageUrl {
+      challengeImageView.kf.setImage(with: url)
+    }
+    
+    challengeTitleLabel.text = viewModel.challengeTitle
+    endedDateLabel.text = viewModel.endedDate
+    
+    if viewModel.currentMemberCnt == 1 {
+      firstUserImageView.isHidden = false
+      secondUserImageView.isHidden = true
+      moreUserImageView.isHidden = true
+      moreUserNumberLabel.isHidden = true
+
+    } else if viewModel.currentMemberCnt == 2 {
+      firstUserImageView.isHidden = false
+      secondUserImageView.isHidden = false
+      moreUserImageView.isHidden = true
+      moreUserNumberLabel.isHidden = true
+
+    } else if viewModel.currentMemberCnt == 3{
+      firstUserImageView.isHidden = false
+      secondUserImageView.isHidden = false
+      moreUserImageView.isHidden = false
+      moreUserNumberLabel.isHidden = true
+
+    } else if viewModel.currentMemberCnt > 3 {
+      firstUserImageView.isHidden = false
+      secondUserImageView.isHidden = false
+      moreUserImageView.isHidden = true
+      moreUserNumberLabel.isHidden = false
+      
+      moreUserNumberLabel.attributedText = "+\(viewModel.currentMemberCnt - 2)".attributedString(
+        font: .caption2Bold,
+        color: .gray0
+      )
+    }
   }
 }
 
@@ -134,6 +181,7 @@ private extension EndedChallengeCardCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
+    addUserImageViews()
   }
   
   func setViewHierarchy() {
@@ -142,7 +190,7 @@ private extension EndedChallengeCardCell {
     whiteBackGroundView.addSubviews(
       challengeImageView,
       challengeTitleLabel,
-      finishedDateLabel,
+      endedDateLabel,
       bottomWhiteView
     )
     
@@ -163,13 +211,13 @@ private extension EndedChallengeCardCell {
       $0.height.equalTo(49)
     }
     
-    finishedDateLabel.snp.makeConstraints {
+    endedDateLabel.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.bottom.equalTo(bottomWhiteView.snp.top).offset(-8)
     }
     
     challengeTitleLabel.snp.makeConstraints {
-      $0.bottom.equalTo(finishedDateLabel.snp.top).offset(-10)
+      $0.bottom.equalTo(endedDateLabel.snp.top).offset(-10)
       $0.leading.equalToSuperview().offset(8)
       $0.trailing.equalToSuperview().offset(-8)
     }
@@ -191,12 +239,18 @@ private extension EndedChallengeCardCell {
     moreUserImageView.snp.makeConstraints {
       $0.width.height.equalTo(24)
     }
+    
+    moreUserNumberLabel.snp.makeConstraints {
+      $0.width.height.equalTo(24)
+    }
   }
   
-  // API 연결 후 변경하여 사용 예정입니다.
   func addUserImageViews() {
-    participantStackView.addArrangedSubview(firstUserImageView)
-    participantStackView.addArrangedSubview(secondUserImageView)
-    participantStackView.addArrangedSubview(moreUserImageView)
+    participantStackView.addArrangedSubviews(
+      firstUserImageView,
+      secondUserImageView,
+      moreUserImageView,
+      moreUserNumberLabel
+    )
   }
 }
