@@ -56,6 +56,12 @@ final class ProfileEditViewController: UIViewController {
     return button
   }()
   
+  private let changedPasswordToastView = ToastView(
+    tipPosition: .none,
+    text: "비밀번호 변경이 완료됐어요",
+    icon: .bulbWhite
+  )
+  
   // MARK: - Initializers
   init(viewModel: ProfileEditViewModel) {
     self.viewModel = viewModel
@@ -75,6 +81,10 @@ final class ProfileEditViewController: UIViewController {
     menuTableView.rx.setDataSource(self).disposed(by: disposeBag)
     setupUI()
     bind()
+  }
+  
+  func displayToastView() {
+    changedPasswordToastView.present(to: self)
   }
 }
 
@@ -117,6 +127,11 @@ private extension ProfileEditViewController {
     resignButton.snp.makeConstraints {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
       $0.trailing.equalToSuperview().offset(-14)
+    }
+    
+    changedPasswordToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
     }
   }
 }

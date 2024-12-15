@@ -117,7 +117,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
               SignUpAPI.register(dto: requestDTO),
               type: RegisterResponseDTO.self
             ).value
-       
+          
           if result.statusCode == 400 {
             single(.failure(register400Error(result.code)))
           } else if result.statusCode == 409 {
