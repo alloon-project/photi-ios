@@ -8,7 +8,6 @@
 
 import RxCocoa
 import RxSwift
-import DesignSystem
 import Entity
 import UseCase
 
