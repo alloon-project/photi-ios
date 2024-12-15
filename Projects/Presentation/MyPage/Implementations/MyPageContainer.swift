@@ -14,6 +14,7 @@ import UseCase
 public protocol MyPageDependency: Dependency {
   var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }
+  var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
 }
 
@@ -23,6 +24,8 @@ public final class MyPageContainer:
   SettingDependency,
   EndedChallengeDependency,
   ProofChallengeDependency {
+  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
+  
   var reportContainable: ReportContainable { dependency.reportContainable }
   
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
