@@ -116,7 +116,9 @@ final class ChangePasswordViewController: UIViewController {
   )
   
   private let warningToastView = ToastView(
-    tipPosition: .none, text: "권한이 없는 요청입니다. 로그인 후에 다시 시도 해주세요.", icon: .bulbWhite
+    tipPosition: .none,
+    text: "권한이 없는 요청입니다. 로그인 후에 다시 시도 해주세요.",
+    icon: .bulbWhite
   )
   
   // MARK: - Initializers
@@ -348,7 +350,11 @@ private extension ChangePasswordViewController {
   }
   
   func displayAlertPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    let alertVC = AlertViewController(
+      alertType: .confirm,
+      title: "오류",
+      subTitle: "잠시 후에 다시 시도해주세요."
+    )
     alertVC.present(to: self, animted: false)
   }
 }
