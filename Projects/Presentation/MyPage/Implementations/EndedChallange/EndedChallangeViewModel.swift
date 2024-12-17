@@ -10,7 +10,6 @@ import RxCocoa
 import RxSwift
 import Entity
 import UseCase
-import DesignSystem
 
 protocol EndedChallengeCoordinatable: AnyObject {
   func didTapBackButton()
