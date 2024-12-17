@@ -88,6 +88,9 @@ final class AppContainer:
     return ChangePasswordUseCaseImpl(repository: changePasswordRepository)
   }()
 
+  lazy var endedChallengeUseCase: EndedChallengeUseCase = {
+    return EndedChallengeUseCaseImpl(repository: endedChallengeRepository)
+  }()
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
@@ -115,6 +118,10 @@ final class AppContainer:
   
   lazy var changePasswordRepository: ChangePasswordRepository = {
     return ChangePasswordRepositoryImpl(dataMapper: ChangePasswordDataMapperImpl())
+  }()
+    
+  lazy var endedChallengeRepository: EndedChallengeRepository = {
+    return EndedChallengeRepositoryImpl(dataMapper: EndedChallengeDataMapperImpl())
   }()
   
   lazy var challengeRepository: ChallengeRepository = {
