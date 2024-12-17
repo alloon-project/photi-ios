@@ -1,12 +1,12 @@
 //
-//  EndedChallengeCardCellPresentationModel.swift
-//  DesignSystem
+//  EndedChallengeCardCellPresentaionModel.swift
+//  Presentation
 //
-//  Created by 임우섭 on 11/3/24.
+//  Created by wooseob on 12/17/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 public struct EndedChallengeCardCellPresentationModel {
   let challengeImageUrl: URL?
