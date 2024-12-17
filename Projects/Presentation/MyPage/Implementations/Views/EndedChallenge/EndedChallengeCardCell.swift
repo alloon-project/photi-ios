@@ -1,8 +1,8 @@
 //
 //  EndedChallengeCardCell.swift
-//  DesignSystem
+//  Presentation
 //
-//  Created by 임우섭 on 11/3/24.
+//  Created by wooseob on 12/17/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
@@ -102,11 +102,10 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
   
   private let moreUserImageView = {
     let imageView = UIImageView()
-    imageView.configureShapeBorder(
-      width: 1,
-      strockColor: .white,
-      backGroundColor: .gray400
-    )
+
+    imageView.layer.borderWidth = 1.0
+    imageView.layer.borderColor = UIColor.white.cgColor
+    
     imageView.layer.cornerRadius = 12
     
     return imageView
@@ -144,35 +143,7 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
     challengeTitleLabel.text = viewModel.challengeTitle
     endedDateLabel.text = viewModel.endedDate
     
-    if viewModel.currentMemberCnt == 1 {
-      firstUserImageView.isHidden = false
-      secondUserImageView.isHidden = true
-      moreUserImageView.isHidden = true
-      moreUserNumberLabel.isHidden = true
-
-    } else if viewModel.currentMemberCnt == 2 {
-      firstUserImageView.isHidden = false
-      secondUserImageView.isHidden = false
-      moreUserImageView.isHidden = true
-      moreUserNumberLabel.isHidden = true
-
-    } else if viewModel.currentMemberCnt == 3{
-      firstUserImageView.isHidden = false
-      secondUserImageView.isHidden = false
-      moreUserImageView.isHidden = false
-      moreUserNumberLabel.isHidden = true
-
-    } else if viewModel.currentMemberCnt > 3 {
-      firstUserImageView.isHidden = false
-      secondUserImageView.isHidden = false
-      moreUserImageView.isHidden = true
-      moreUserNumberLabel.isHidden = false
-      
-      moreUserNumberLabel.attributedText = "+\(viewModel.currentMemberCnt - 2)".attributedString(
-        font: .caption2Bold,
-        color: .gray0
-      )
-    }
+    setupImageView(memberCount: viewModel.currentMemberCnt)
   }
 }
 
@@ -181,7 +152,6 @@ private extension EndedChallengeCardCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
-    addUserImageViews()
   }
   
   func setViewHierarchy() {
@@ -195,6 +165,13 @@ private extension EndedChallengeCardCell {
     )
     
     bottomWhiteView.addSubview(participantStackView)
+    
+    participantStackView.addArrangedSubviews(
+      firstUserImageView,
+      secondUserImageView,
+      moreUserImageView,
+      moreUserNumberLabel
+    )
   }
   
   func setConstraints() {
@@ -245,12 +222,14 @@ private extension EndedChallengeCardCell {
     }
   }
   
-  func addUserImageViews() {
-    participantStackView.addArrangedSubviews(
-      firstUserImageView,
-      secondUserImageView,
-      moreUserImageView,
-      moreUserNumberLabel
+  func setupImageView(memberCount: Int) {
+    secondUserImageView.isHidden = memberCount < 2
+    moreUserImageView.isHidden = memberCount != 3
+    moreUserNumberLabel.isHidden = memberCount <= 3
+    
+    moreUserNumberLabel.attributedText = "+\(memberCount - 2)".attributedString(
+      font: .caption2Bold,
+      color: .gray0
     )
   }
 }
