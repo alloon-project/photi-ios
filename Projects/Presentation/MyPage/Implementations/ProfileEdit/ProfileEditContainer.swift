@@ -21,7 +21,7 @@ final class ProfileEditContainer:
   Container<ProfileEditDependency>,
   ProfileEditContainable,
   PasswordChangeDependency,
-  ResignDependency{
+  ResignDependency {
   public func coordinator(listener: ProfileEditListener) -> Coordinating {
     let passwordChange = PasswordChangeContainer(dependency: self)
     let resign = ResignContainer(dependency: self)
