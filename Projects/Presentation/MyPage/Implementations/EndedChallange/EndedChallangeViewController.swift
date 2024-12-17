@@ -18,6 +18,11 @@ final class EndedChallengeViewController: UIViewController {
   
   // MARK: - Variables
   private var disposeBag = DisposeBag()
+  private var dataSource: [EndedChallengeCardCellPresentationModel] = [] {
+    didSet {
+      endedChallengeCollectionView.reloadData()
+    }
+  }
   
   // MARK: - UIComponents
   private let grayBackgroundView = {
@@ -142,21 +147,40 @@ private extension EndedChallengeViewController {
 private extension EndedChallengeViewController {
   func bind() {
     let input = EndedChallengeViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      isVisible: self.rx.isVisible
     )
     
     let output = viewModel.transform(input: input)
+    
+    bind(for: output)
+  }
+  
+  func bind(for output: EndedChallengeViewModel.Output) {
+    output.endedChallenges
+      .drive(with: self) { owner, challenges in
+        owner.dataSource = challenges
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
   }
 }
+  
 // MARK: - UICollectionViewDataSource
 extension EndedChallengeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    10
+    dataSource.count
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
     
+    cell.configure(with: dataSource[indexPath.row])
     return cell
   }
 }
