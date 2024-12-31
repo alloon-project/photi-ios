@@ -13,13 +13,15 @@ import SnapKit
 import Core
 import DesignSystem
 import Report
-
+// 카테고리, 리즌, 콘텐츠
+// 타입, 콘텐츠
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Refactoring
   private var reportType: ReportType
-  private var selectedRow: Int?
+  private var selectedSection: Int?
+  private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
@@ -93,7 +95,12 @@ private extension ReportViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, reportButton)
+    self.view.addSubviews(
+      navigationBar,
+      reasonLabel,
+      reasonTableView,
+      reportButton
+    )
   }
   
   func setConstraints() {
@@ -143,7 +150,10 @@ private extension ReportViewController {
 private extension ReportViewController {
   func bind() {
     let input = ReportViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapReportButton: reportButton.rx.tap,
+      category: <#Observable<String>#>,
+      content: detailContentTextView.rx.text
     )
     
     let output = viewModel.transform(input: input)
@@ -174,10 +184,11 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard selectedRow != indexPath.section else { return }
+    guard selectedSection != indexPath.section else { return }
     
     self.setupDetailContentUI()
-    selectedRow = indexPath.section
+    selectedSection = indexPath.section
+    selectedRowRelay.accept(reportType.reason[indexPath.row])
     selectRow(at: indexPath)
   }
   
@@ -255,7 +266,7 @@ private extension ReportViewController {
     let totalPadding = keyboardHeight - bottomPadding
     
     if view.frame.origin.y == 0 {
-      view.frame.origin.y -= totalPadding
+      view.frame.origin.y += totalPadding
     }
   }
   

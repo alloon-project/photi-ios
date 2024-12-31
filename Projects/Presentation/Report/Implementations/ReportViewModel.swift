@@ -30,8 +30,11 @@ final class ReportViewModel: ReportViewModelType {
   weak var coordinator: ReportCoordinatable?
   
   // MARK: - Input
-  struct Input { 
+  struct Input {
     let didTapBackButton: ControlEvent<Void>
+    let didTapReportButton: ControlEvent<Void>
+    let category: Observable<String>
+    let content: ControlProperty<String>
   }
   
   // MARK: - Output
@@ -47,6 +50,27 @@ final class ReportViewModel: ReportViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapReportButton
+      .bind(with: self) { onwer, _ in
+        
+      }
+      .disposed(by: disposeBag)
     return Output()
+  }
+}
+
+// MARK: - Private Methods
+private extension ReportViewModel {
+  func requestInquiry(type: String, content: String) {
+    
+  }
+  
+  func requestReport(
+    category: String,
+    reason: String,
+    content: String,
+    targetId: Int
+  ) {
+    
   }
 }
