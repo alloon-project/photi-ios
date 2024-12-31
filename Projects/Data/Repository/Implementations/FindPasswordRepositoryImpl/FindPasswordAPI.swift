@@ -24,7 +24,7 @@ extension FindPasswordAPI: TargetType {
   public var path: String {
     switch self {
       case .findPassword:
-        return "api/users/find-userword"
+        return "api/users/find-password"
     }
   }
   
