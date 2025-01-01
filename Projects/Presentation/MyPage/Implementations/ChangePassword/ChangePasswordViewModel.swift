@@ -76,17 +76,13 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       input.currentPassword, input.newPassword
     ) { $0 != $1 }
     
-    let containAlphabet = input.newPassword
-      .map { $0.contain("[a-zA-Z]") }
+    let containAlphabet = input.newPassword.map { $0.contain("[a-zA-Z]") }
     
-    let containNumber = input.newPassword
-      .map { $0.contain("[0-9]") }
+    let containNumber = input.newPassword.map { $0.contain("[0-9]") }
     
-    let containSpecial = input.newPassword
-      .map { $0.contain("[^a-zA-Z0-9]") }
+    let containSpecial = input.newPassword.map { $0.contain("[^a-zA-Z0-9]") }
     
-    let isValidRange = input.newPassword
-      .map { $0.count >= 8 && $0.count <= 30 }
+    let isValidRange = input.newPassword.map { $0.count >= 8 && $0.count <= 30 }
     
     let isValidPassword = Observable.combineLatest(
       containAlphabet, containNumber, containSpecial, isValidRange, isDifferentPassword
@@ -114,7 +110,6 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
         )
       }
       .disposed(by: disposeBag)
-        
     return Output(
       containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
       containNumber: containNumber.asDriver(onErrorJustReturn: false),

@@ -22,7 +22,6 @@ public final class LogInContainer:
   LogInContainable,
   FindIdDependency,
   FindPasswordDependency {
-  
   var loginUseCase: LogInUseCase { dependency.logInUseCase }
   var findIdUseCase: FindIdUseCase { dependency.findIdUseCase }
   var findPasswordUseCase: FindPasswordUseCase { dependency.findPasswordUseCase }
