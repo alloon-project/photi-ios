@@ -144,14 +144,15 @@ public extension ToastView {
   
   func present(
     to viewController: UIViewController,
+    at view: UIView? = nil,
     duration: CGFloat = 3.0,
     completion: (() -> Void)? = nil
   ) {
     guard let constraint = toastViewConstraints else { return }
-    
+    let superView = view == nil ? viewController.view : view
     workItem?.cancel()
     self.isRemoved = false
-    viewController.view.addSubview(self)
+    superView?.addSubview(self)
     self.snp.makeConstraints(constraint)
     
     let workItem = DispatchWorkItem { [weak self] in
