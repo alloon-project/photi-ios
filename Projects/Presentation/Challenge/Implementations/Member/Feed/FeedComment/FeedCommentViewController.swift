@@ -15,6 +15,9 @@ import Core
 import DesignSystem
 
 final class FeedCommentViewController: UIViewController {
+  typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
+
   // MARK: - Properties
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
@@ -28,7 +31,6 @@ final class FeedCommentViewController: UIViewController {
 
     return view
   }()
-  
   private let mainContainerView: UIView = {
     let view = UIView()
     view.backgroundColor = .white
@@ -37,7 +39,6 @@ final class FeedCommentViewController: UIViewController {
     
     return view
   }()
-  
   private let imageView = UIImageView()
   private let topView = UIView()
   private let bottomView = UIView()
@@ -77,6 +78,10 @@ final class FeedCommentViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    let dataSource = diffableDataSource()
+    self.dataSource = dataSource
+    tableView.dataSource = dataSource
+    tableView.delegate = self
     setupUI()
     bind()
   }
@@ -215,6 +220,7 @@ private extension FeedCommentViewController {
   }
 }
 
+// MARK: - UITableViewDelegate
 extension FeedCommentViewController: UITableViewDelegate {
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     setupBoundaryCellAlpha()
@@ -225,6 +231,49 @@ extension FeedCommentViewController: UITableViewDelegate {
     let view = UIView()
     view.backgroundColor = .clear
     return view
+  }
+}
+
+// MARK: - TableView DataSource
+private extension FeedCommentViewController {
+  func diffableDataSource() -> DataSourceType {
+    return .init(tableView: tableView) { tableView, indexPath, model in
+      let cell = tableView.dequeueCell(FeedCommentCell.self, for: indexPath)
+      cell.configure(userName: model.userName, comment: model.content)
+
+      return cell
+    }
+  }
+  
+  func configureInitialData(models: [CommentPresentationModel]) {
+    var snapshot = Snapshot()
+    let sections = models.map { $0.id }
+    snapshot.appendSections(sections)
+
+    models.forEach { model in
+      snapshot.appendItems([model], toSection: model.id)
+    }
+    
+    dataSource?.apply(snapshot)
+  }
+  
+  func append(model: CommentPresentationModel) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    snapshot.appendSections([model.id])
+    snapshot.appendItems([model], toSection: model.id)
+    dataSource.apply(snapshot)
+    setupBoundaryCellAlpha()
+  }
+  
+  func delete(model: CommentPresentationModel) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    snapshot.deleteItems([model])
+    snapshot.deleteSections([model.id])
+    dataSource.apply(snapshot)
+    setupBoundaryCellAlpha()
   }
 }
 
