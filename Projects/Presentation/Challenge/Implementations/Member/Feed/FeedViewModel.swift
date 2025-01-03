@@ -9,7 +9,12 @@
 import Foundation
 import RxSwift
 
-protocol FeedCoordinatable: AnyObject { }
+enum FeedAlignMode: String, CaseIterable {
+  case recent = "최신순"
+  case popular = "인기순"
+}
+
+protocol FeedCoordinatable: AnyObject {
 
 protocol FeedViewModelType: AnyObject {
   associatedtype Input

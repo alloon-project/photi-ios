@@ -14,11 +14,6 @@ import Core
 import DesignSystem
 
 final class FeedViewController: UIViewController {
-  enum ContentOrderType: String {
-    case recent = "최신순"
-    case popular = "인기순"
-  }
-  
   // MARK: - Properties
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {
@@ -26,9 +21,10 @@ final class FeedViewController: UIViewController {
       updateTagViewContraints(percent: currentPercent)
     }
   }
+  private var feedAlign: FeedAlignMode = .recent
   private let viewModel: FeedViewModel
   private let disposeBag = DisposeBag()
-  private var contentOrderType: ContentOrderType = .recent
+  private var didProof: Bool = false
   private var feeds = [[FeedPresentationModel]]() {
     didSet {
       feedCollectionView.reloadData()
@@ -197,5 +193,17 @@ private extension FeedViewController {
     let leading: Double = centerX - tagView.frame.width / 2.0
 
     return leading.bound(lower: 24, upper: progressBar.bounds.width - tagView.frame.width)
+  }
+  func presentBottomSheet() {
+    let dataSource = FeedAlignMode.allCases.map { $0.rawValue }
+    let selectedRow = dataSource.firstIndex(of: feedAlign.rawValue)
+    
+    let bottomSheet = AlignBottomSheetViewController(
+      type: .default,
+      selectedRow: selectedRow ?? 0,
+      dataSource: dataSource
+    )
+    bottomSheet.delegate = self
+    bottomSheet.present(to: self, animated: true)
   }
 }
