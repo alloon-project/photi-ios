@@ -25,36 +25,16 @@ final class ChallengeViewModel: ChallengeViewModelType {
   
   weak var coordinator: ChallengeCoordinatable?
   
-  private let isUploadSuccessRelay = PublishRelay<Bool>()
-  
   // MARK: - Input
-  struct Input {
-    let uploadImage: Signal<Data>
-  }
+  struct Input { }
   
   // MARK: - Output
-  struct Output {
-    let isUploadSuccess: Signal<Bool>
-  }
+  struct Output { }
   
   // MARK: - Initializers
   init(challengeId: Int) { }
   
   func transform(input: Input) -> Output {
-    input.uploadImage
-      .emit(with: self) { owner, imageData in
-        // TODO: - 서버로 전공
-        /// 로딩화면을 테스트해보기 위한 테스트 코드입니다.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-          if imageData.count % 2 == 0 {
-            owner.isUploadSuccessRelay.accept(true)
-          } else {
-            owner.isUploadSuccessRelay.accept(false)
-          }
-        }
-      }
-      .disposed(by: disposeBag)
-    
-    return Output(isUploadSuccess: isUploadSuccessRelay.asSignal())
+    return Output()
   }
 }
