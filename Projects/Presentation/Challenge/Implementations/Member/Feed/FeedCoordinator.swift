@@ -9,7 +9,9 @@
 import UIKit
 import Core
 
-protocol FeedListener: AnyObject { }
+protocol FeedListener: AnyObject {
+  func didChangeContentOffsetAtFeed(_ offset: Double)
+}
 
 final class FeedCoordinator: Coordinator {
   weak var listener: FeedListener?
@@ -26,4 +28,8 @@ final class FeedCoordinator: Coordinator {
 }
 
 // MARK: - Coordinatable
-extension FeedCoordinator: FeedCoordinatable { }
+extension FeedCoordinator: FeedCoordinatable {
+  func didChangeContentOffset(_ offset: Double) {
+    listener?.didChangeContentOffsetAtFeed(offset)
+  }
+}

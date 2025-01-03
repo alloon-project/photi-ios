@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import RxCocoa
 import RxSwift
 
 enum FeedAlignMode: String, CaseIterable {
@@ -15,6 +16,9 @@ enum FeedAlignMode: String, CaseIterable {
 }
 
 protocol FeedCoordinatable: AnyObject {
+  func attachFeedDetail(for feedID: String)
+  func didChangeContentOffset(_ offset: Double)
+}
 
 protocol FeedViewModelType: AnyObject {
   associatedtype Input
@@ -27,16 +31,58 @@ final class FeedViewModel: FeedViewModelType {
   weak var coordinator: FeedCoordinatable?
   private let disposeBag = DisposeBag()
   
+  private let isUploadSuccessRelay = PublishRelay<Bool>()
+  
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let didTapOrderButton: Signal<FeedAlignMode>
+    let didTapFeed: Signal<String>
+    let contentOffset: Signal<Double>
+    let uploadImage: Signal<Data>
+  }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let isUploadSuccess: Signal<Bool>
+  }
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
-    return Output()
+    input.didTapOrderButton
+      .emit(with: self) { owner, align in
+        // TODO: 서버 연동 후, 구현 예정
+        print("didTapOrderButton")
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapFeed
+      .emit(with: self) {owner, _ in
+        owner.coordinator?.attachFeedDetail(for: "0")
+      }
+      .disposed(by: disposeBag)
+    
+    input.contentOffset
+      .emit(with: self) {owner, offset in
+        owner.coordinator?.didChangeContentOffset(offset)
+      }
+      .disposed(by: disposeBag)
+    
+    input.uploadImage
+      .emit(with: self) { owner, imageData in
+        // TODO: - 서버로 전송
+        /// 로딩화면을 테스트해보기 위한 테스트 코드입니다.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+          if imageData.count % 2 == 0 {
+            owner.isUploadSuccessRelay.accept(true)
+          } else {
+            owner.isUploadSuccessRelay.accept(false)
+          }
+        }
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(isUploadSuccess: isUploadSuccessRelay.asSignal())
   }
 }

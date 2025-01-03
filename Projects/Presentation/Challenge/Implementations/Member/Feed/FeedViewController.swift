@@ -32,6 +32,7 @@ final class FeedViewController: UIViewController, CameraRequestable {
     }
   }
   private let didTapFeedCell = PublishRelay<String>()
+  private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<Data>()
   
   // MARK: - UI Components
@@ -155,6 +156,7 @@ private extension FeedViewController {
         .asSignal()
         .map { .popular },
       didTapFeed: didTapFeedCell.asSignal(),
+      contentOffset: contentOffset.asSignal(),
       uploadImage: uploadImageRelay.asSignal()
     )
     
@@ -224,6 +226,19 @@ extension FeedViewController: UICollectionViewDataSource {
     }
     
     return header
+  }
+}
+
+// MARK: - UICollectionViewDelegate
+extension FeedViewController: UICollectionViewDelegate {
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    // TODO: API 연결 후 수정
+    didTapFeedCell.accept("0")
+  }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let offSet = scrollView.contentOffset.y
+    contentOffset.accept(offSet)
   }
 }
 
