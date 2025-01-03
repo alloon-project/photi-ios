@@ -17,7 +17,7 @@ import DesignSystem
 final class FeedCommentViewController: UIViewController {
   typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
   typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
-
+  
   // MARK: - Properties
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
@@ -28,7 +28,7 @@ final class FeedCommentViewController: UIViewController {
     let view = UIView()
     view.layer.compositingFilter = "multiplyBlendMode"
     view.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.4)
-
+    
     return view
   }()
   private let mainContainerView: UIView = {
@@ -146,7 +146,7 @@ private extension FeedCommentViewController {
     blurView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-
+    
     mainContainerView.snp.makeConstraints {
       $0.center.equalToSuperview()
       $0.width.equalTo(327)
@@ -217,6 +217,29 @@ private extension FeedCommentViewController {
         owner.presentToastView()
       }
       .disposed(by: disposeBag)
+    
+    commentTextField.rx.didTapReturn
+      .bind(with: self) { owner, _ in
+        owner.didTapReturnButton()
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for cell: FeedCommentCell, model: CommentPresentationModel) {
+    cell.rx.longPressGesture()
+      .map { $0.state }
+      .bind(with: self) { owner, state in
+        switch state {
+          case .began:
+            cell.isPressed = true
+          case .failed, .cancelled:
+            cell.isPressed = false
+          case .ended:
+            owner.delete(model: model)
+          default: break
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -237,10 +260,12 @@ extension FeedCommentViewController: UITableViewDelegate {
 // MARK: - TableView DataSource
 private extension FeedCommentViewController {
   func diffableDataSource() -> DataSourceType {
-    return .init(tableView: tableView) { tableView, indexPath, model in
+    return .init(tableView: tableView) { [weak self] tableView, indexPath, model in
       let cell = tableView.dequeueCell(FeedCommentCell.self, for: indexPath)
       cell.configure(userName: model.userName, comment: model.content)
-
+      
+      self?.bind(for: cell, model: model)
+      
       return cell
     }
   }
@@ -249,7 +274,7 @@ private extension FeedCommentViewController {
     var snapshot = Snapshot()
     let sections = models.map { $0.id }
     snapshot.appendSections(sections)
-
+    
     models.forEach { model in
       snapshot.appendItems([model], toSection: model.id)
     }
@@ -282,7 +307,7 @@ private extension FeedCommentViewController {
   func setupBoundaryCellAlpha() {
     let minOffsetY = tableView.contentOffset.y
     let maxOffsetY = minOffsetY + tableView.frame.height
-
+    
     let visibleCells = tableView.visibleCells.compactMap { $0 as? FeedCommentCell }
     visibleCells.forEach { $0.alpha = 1.0; $0.isPressed = false }
     let filtersCell = visibleCells.filter { cellDidInBoundary($0, minBoundary: minOffsetY, maxBoundary: maxOffsetY) }
@@ -329,6 +354,43 @@ private extension FeedCommentViewController {
     }
     
     toastView.present(to: self, at: bottomView)
+  }
+  
+  func presentDeleteToastView() {
+    let toastText = "길게 누르면 댓글이 삭제돼요~"
+    let toastView = ToastView(tipPosition: .leftBottom, text: toastText, icon: .bulbWhite)
+    let inset = deleteToastViewBottomInset()
+    toastView.setConstraints { [weak self] in
+      guard let self else { return }
+      $0.leading.equalTo(tableView)
+      $0.bottom.equalTo(tableView).inset(inset)
+    }
+    
+    toastView.present(to: self, at: bottomView)
+  }
+  
+  func deleteToastViewBottomInset() -> CGFloat {
+    guard let dataSource else { return 0.0 }
+    let count = dataSource.snapshot().numberOfItems
+    let indexPath = IndexPath(row: 0, section: count - 1)
+    
+    guard let cell = tableView.cellForRow(at: indexPath) else { return 0.0 }
+    let cellRect = cell.convert(cell.bounds, to: tableView)
+    
+    return cellRect.height + 18
+  }
+  
+  func didTapReturnButton() {
+    view.endEditing(true)
+    guard !commentTextField.text.isEmpty else { return }
+    // TODO: 서버 연동 후, 수정 예정
+    let model = CommentPresentationModel(id: UUID().uuidString, userName: "석영", content: commentTextField.text, isOwner: true, updatedAt: Date())
+    append(model: model)
+    commentTextField.text = ""
+    
+    scrollToBottom { [weak self] in
+      self?.presentDeleteToastView()
+    }
   }
   
   func scrollToBottom(_ completion: (() -> Void)? = nil) {
