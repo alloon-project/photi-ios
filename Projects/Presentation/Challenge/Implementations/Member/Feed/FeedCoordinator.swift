@@ -54,9 +54,12 @@ extension FeedCoordinator: FeedCoordinatable {
   func detachFeedDetail() {
     guard let coordinator = feedDetailCoordinator else { return }
     
+    // TODO: - Coordinator 리팩토링 후 수정 예정
+    guard let coordinator = coordinator as? FeedCommentCoordinator else { return }
+    
+    coordinator.viewController.dismiss(animated: false)
     removeChild(coordinator)
     self.feedDetailCoordinator = nil
-    
   }
   
   func didChangeContentOffset(_ offset: Double) {
@@ -65,4 +68,8 @@ extension FeedCoordinator: FeedCoordinatable {
 }
 
 // MARK: - Listener
-extension FeedCoordinator: FeedCommentListener { }
+extension FeedCoordinator: FeedCommentListener {
+  func requestDismissAtFeedComment() {
+    detachFeedDetail()
+  }
+}

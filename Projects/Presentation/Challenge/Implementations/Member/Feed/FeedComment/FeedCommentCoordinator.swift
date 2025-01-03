@@ -9,7 +9,9 @@
 import UIKit
 import Core
 
-protocol FeedCommentListener: AnyObject { }
+protocol FeedCommentListener: AnyObject {
+  func requestDismissAtFeedComment()
+}
 
 final class FeedCommentCoordinator: Coordinator {
   weak var listener: FeedCommentListener?
@@ -31,4 +33,8 @@ final class FeedCommentCoordinator: Coordinator {
 }
 
 // MARK: - Coordinatable
-extension FeedCommentCoordinator: FeedCommentCoordinatable { }
+extension FeedCommentCoordinator: FeedCommentCoordinatable {
+  func requestDismiss() {
+    listener?.requestDismissAtFeedComment()
+  }
+}

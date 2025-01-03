@@ -10,6 +10,7 @@ import UIKit
 import Kingfisher
 import RxCocoa
 import RxSwift
+import RxGesture
 import SnapKit
 import Core
 import DesignSystem
@@ -162,6 +163,16 @@ private extension FeedCommentViewController {
 // MARK: - Bind Methods
 private extension FeedCommentViewController {
   func bind() {
+    let didTapBackground = blurView.rx.tapGesture()
+      .when(.recognized)
+      .map { _ in () }
+      .asSignal(onErrorJustReturn: ())
+    
+    let input = FeedCommentViewModel.Input(
+      didTapBackground: didTapBackground
+    )
+    let output = viewModel.transform(input: input)
+    bind(for: output)
     viewBind()
   }
   
@@ -178,6 +189,8 @@ private extension FeedCommentViewController {
       }
       .disposed(by: disposeBag)
   }
+  
+  func bind(for output: FeedCommentViewModel.Output) { }
   
   func bind(for cell: FeedCommentCell, model: CommentPresentationModel) {
     cell.rx.longPressGesture()

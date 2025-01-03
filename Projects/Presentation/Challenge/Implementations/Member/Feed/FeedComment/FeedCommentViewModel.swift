@@ -8,8 +8,11 @@
 
 import Foundation
 import RxSwift
+import RxCocoa
 
-protocol FeedCommentCoordinatable: AnyObject { }
+protocol FeedCommentCoordinatable: AnyObject {
+  func requestDismiss()
+}
 
 protocol FeedCommentViewModelType: AnyObject {
   associatedtype Input
@@ -23,7 +26,9 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let disposeBag = DisposeBag()
 
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    var didTapBackground: Signal<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -32,6 +37,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   init(feedID: String) { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackground
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestDismiss()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }
