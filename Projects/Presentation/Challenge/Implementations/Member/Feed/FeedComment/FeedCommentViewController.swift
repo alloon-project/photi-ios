@@ -19,6 +19,9 @@ final class FeedCommentViewController: UIViewController {
   typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
   
   // MARK: - Properties
+  var keyboardShowNotification: NSObjectProtocol?
+  var keyboardHideNotification: NSObjectProtocol?
+
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
@@ -108,6 +111,11 @@ final class FeedCommentViewController: UIViewController {
     scrollToBottom()
   }
   
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    removeKeyboardNotification(keyboardShowNotification, keyboardHideNotification)
+  }
+  
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
@@ -125,11 +133,7 @@ private extension FeedCommentViewController {
   
   func setViewHierarchy() {
     view.addSubviews(blurView, mainContainerView)
-    mainContainerView.addSubviews(
-      imageView,
-      topView,
-      bottomView
-    )
+    mainContainerView.addSubviews(imageView, topView, bottomView)
     topView.layer.addSublayer(topGradientLayer)
     bottomView.layer.addSublayer(bottomGradientLayer)
     topView.addSubviews(
@@ -254,6 +258,21 @@ extension FeedCommentViewController: UITableViewDelegate {
     let view = UIView()
     view.backgroundColor = .clear
     return view
+  }
+}
+
+// MARK: - KeyboardListener
+extension FeedCommentViewController: KeyboardListener {
+  func keyboardWillShow(keyboardHeight: CGFloat) {
+    let remainPlace = view.frame.height - mainContainerView.frame.maxY
+    self.bottomView.transform = CGAffineTransform(
+      translationX: 0,
+      y: remainPlace - keyboardHeight
+    )
+  }
+  
+  func keyboardWillHide() {
+    self.bottomView.transform = .identity
   }
 }
 
@@ -394,8 +413,8 @@ private extension FeedCommentViewController {
   }
   
   func scrollToBottom(_ completion: (() -> Void)? = nil) {
-    let count = dataSource?.snapshot().numberOfItems ?? 0
-    let indexPath = IndexPath(row: 0, section: count - 1)
+    guard let itemCount = dataSource?.snapshot().numberOfItems, itemCount >= 1 else { return }
+    let indexPath = IndexPath(row: 0, section: itemCount - 1)
     UIView.animate(withDuration: 0.3) {
       self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
       self.view.layoutIfNeeded()
