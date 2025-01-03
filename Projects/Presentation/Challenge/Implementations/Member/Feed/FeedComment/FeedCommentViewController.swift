@@ -43,17 +43,9 @@ final class FeedCommentViewController: UIViewController {
     return view
   }()
   private let imageView = UIImageView()
-  private let topView = UIView()
+  private let topView = FeedCommentTopView()
   private let bottomView = UIView()
-  
-  private let topGradientLayer = FeedCommentGradientLayer(mode: .topToBottom, maxAlpha: 0.5)
   private let bottomGradientLayer = FeedCommentGradientLayer(mode: .bottomToTop, maxAlpha: 0.8)
-  
-  private let avatarImageView = AvatarImageView(size: .xSmall)
-  private let userNameLabel = UILabel()
-  private let updateTimeLabel = UILabel()
-  private let likeButton = IconButton(size: .small)
-  private let likeCountLabel = UILabel()
   private let tableView: UITableView = {
     let tableView = UITableView()
     tableView.registerCell(FeedCommentCell.self)
@@ -92,18 +84,8 @@ final class FeedCommentViewController: UIViewController {
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     mainContainerView.layoutIfNeeded()
-    let width = mainContainerView.frame.width
     
-    topGradientLayer.frame = .init(
-      origin: .zero,
-      size: .init(width: width, height: 80)
-    )
-    topGradientLayer.bounds.origin.y = -80
-    
-    bottomGradientLayer.frame = .init(
-      origin: .zero,
-      size: .init(width: width, height: 279)
-    )
+    bottomGradientLayer.frame = bottomView.bounds
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -134,15 +116,7 @@ private extension FeedCommentViewController {
   func setViewHierarchy() {
     view.addSubviews(blurView, mainContainerView)
     mainContainerView.addSubviews(imageView, topView, bottomView)
-    topView.layer.addSublayer(topGradientLayer)
     bottomView.layer.addSublayer(bottomGradientLayer)
-    topView.addSubviews(
-      avatarImageView,
-      userNameLabel,
-      updateTimeLabel,
-      likeButton,
-      likeCountLabel
-    )
     bottomView.addSubviews(tableView, commentTextField)
   }
   
@@ -164,30 +138,6 @@ private extension FeedCommentViewController {
     topView.snp.makeConstraints {
       $0.top.leading.trailing.equalToSuperview()
       $0.height.equalTo(80)
-    }
-    
-    avatarImageView.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(18)
-      $0.top.equalToSuperview().offset(22)
-    }
-    
-    userNameLabel.snp.makeConstraints {
-      $0.centerY.equalTo(avatarImageView)
-      $0.leading.equalTo(avatarImageView.snp.trailing).offset(6)
-    }
-    
-    updateTimeLabel.snp.makeConstraints {
-      $0.centerY.equalTo(avatarImageView)
-      $0.leading.equalTo(userNameLabel.snp.trailing).offset(12)
-    }
-    
-    likeButton.snp.makeConstraints {
-      $0.top.trailing.equalToSuperview().inset(18)
-    }
-    
-    likeCountLabel.snp.makeConstraints {
-      $0.centerX.equalTo(likeButton)
-      $0.top.equalTo(likeButton.snp.bottom).offset(6)
     }
     
     bottomView.snp.makeConstraints {
@@ -339,28 +289,6 @@ private extension FeedCommentViewController {
     let maxY = cell.frame.maxY
     
     return (minY < minBoundary && maxY > minBoundary) || (minY < maxBoundary && maxY > maxBoundary)
-  }
-  
-  func setUserName(_ userName: String) {
-    userNameLabel.attributedText = userName.attributedString(
-      font: .body2Bold,
-      color: .white
-    )
-  }
-  
-  func updateTime(_ updateTime: String) {
-    updateTimeLabel.attributedText = updateTime.attributedString(
-      font: .caption1,
-      color: .gray200
-    )
-  }
-  
-  func setLikeCount(_ likeCount: Int) {
-    let likeCountText = likeCount == 0 ? "" : "\(likeCount)"
-    likeCountLabel.attributedText = likeCountText.attributedString(
-      font: .caption1Bold,
-      color: .gray200
-    )
   }
   
   func presentToastView() {
