@@ -19,8 +19,15 @@ final class FeedCoordinator: Coordinator {
   let viewController: FeedViewController
   private let viewModel: FeedViewModel
   
-  init(viewModel: FeedViewModel) {
+  private let feedDetailContainer: FeedCommentContainable
+  private var feedDetailCoordinator: Coordinating?
+  
+  init(
+    viewModel: FeedViewModel,
+    feedDetailContainer: FeedCommentContainable
+  ) {
     self.viewModel = viewModel
+    self.feedDetailContainer = feedDetailContainer
     self.viewController = FeedViewController(viewModel: viewModel)
     super.init()
     viewModel.coordinator = self
@@ -29,7 +36,33 @@ final class FeedCoordinator: Coordinator {
 
 // MARK: - Coordinatable
 extension FeedCoordinator: FeedCoordinatable {
+  func attachFeedDetail(for feedID: String) {
+    guard feedDetailCoordinator == nil else { return }
+    
+    let coordinator = feedDetailContainer.coordinator(listener: self, feedID: feedID)
+    self.feedDetailCoordinator = coordinator
+    addChild(coordinator)
+    
+    // TODO: - Coordinator 리팩토링 후 수정 예정
+    guard let coordinator = coordinator as? FeedCommentCoordinator else { return }
+    
+    coordinator.viewController.modalPresentationStyle = .overFullScreen
+    self.viewController.present(coordinator.viewController, animated: false)
+  }
+  
+  // MARK: - Detach
+  func detachFeedDetail() {
+    guard let coordinator = feedDetailCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.feedDetailCoordinator = nil
+    
+  }
+  
   func didChangeContentOffset(_ offset: Double) {
     listener?.didChangeContentOffsetAtFeed(offset)
   }
 }
+
+// MARK: - Listener
+extension FeedCoordinator: FeedCommentListener { }
