@@ -30,8 +30,10 @@ public struct FindIdRepositoryImpl: FindIdRepository {
     
               if result.statusCode == 200 {
                 single(.success(()))
-              } else {
+              } else if result.statusCode == 404 {
                 single(.failure(APIError.userNotFound))
+              } else {
+                single(.failure(APIError.serverError))
               }
             } catch {
               single(.failure(error))

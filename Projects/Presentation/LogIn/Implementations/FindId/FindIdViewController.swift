@@ -51,6 +51,12 @@ final class FindIdViewController: UIViewController {
   
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
   
+  private let alertVC = AlertViewController(
+    alertType: .confirm,
+    title: "이메일로 회원정보를 보내드렸어요",
+    subTitle: "다시 로그인해주세요"
+  )
+  
   // MARK: - Initiazliers
   init(viewModel: FindIdViewModel) {
     self.viewModel = viewModel
@@ -156,14 +162,7 @@ private extension FindIdViewController {
     
     output.checkEmailSucceed
       .emit(with: self) { owner, _ in
-        let alertVC = AlertViewController(
-          alertType: .confirm,
-          title: "이메일로 회원정보를 보내드렸어요",
-          subTitle: "다시 로그인해주세요"
-        )
-        alertVC.present(to: owner, animted: false) {
-          owner.alertRelay.accept(())
-        }
+        owner.alertVC.present(to: owner, animted: false)
       }.disposed(by: disposeBag)
     
     output.requestFailed
@@ -171,5 +170,10 @@ private extension FindIdViewController {
         owner.presentWarningPopup()
       }
       .disposed(by: disposeBag)
+    
+    alertVC.rx.isDismissing
+      .bind(with: self) { owner, isDismissed in
+        owner.alertRelay.accept(())
+      }.disposed(by: disposeBag)
   }
 }
