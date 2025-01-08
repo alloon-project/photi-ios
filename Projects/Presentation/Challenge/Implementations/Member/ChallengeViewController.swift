@@ -13,6 +13,13 @@ import Core
 import DesignSystem
 
 final class ChallengeViewController: UIViewController {
+  enum Constants {
+    static let navigationHeight: CGFloat = 56
+    static let titleViewHeight: CGFloat = 300
+    static let mainViewTopOffset: CGFloat = titleViewHeight - segmentControlHeight
+    static let segmentControlHeight: CGFloat = 38
+  }
+  
   // MARK: - Properties
   private let viewModel: ChallengeViewModel
   private let disposeBag = DisposeBag()
@@ -27,13 +34,11 @@ final class ChallengeViewController: UIViewController {
   )
   private let titleView = ChallengeTitleView()
   private let segmentControl = PhotiSegmentControl(items: ["피드", "소개", "파티원"])
-  private let mainContentScrollView = UIScrollView()
-  private let mainContentView = UIView()
-  private let cameraShutterButton: UIButton = {
-    let button = UIButton()
-    button.setImage(.shutterWhite, for: .normal)
-    
-    return button
+  private let mainView = UIView()
+  private let mainContentView: UIView = {
+    let view = UIView()
+    view.backgroundColor = .white
+    return view
   }()
   
   // MARK: - Initializers
@@ -51,23 +56,7 @@ final class ChallengeViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    let tipView = ToastView(
-      tipPosition: .centerBottom,
-      text: "오늘의 인증이 완료되지 않았어요!",
-      icon: .bulbWhite
-    )
-    
-    tipView.setConstraints { [weak self] make in
-      guard let self else { return }
-      make.bottom.equalTo(cameraShutterButton.snp.top).offset(-6)
-      make.centerX.equalToSuperview()
-    }
-    
-    tipView.present(to: self)
+    bind()
   }
 }
 
@@ -79,48 +68,35 @@ private extension ChallengeViewController {
   }
   
   func setViewHierarhcy() {
-    view.addSubviews(
-      titleView,
-      navigationBar,
-      segmentControl,
-      mainContentScrollView,
-      cameraShutterButton
-    )
-    mainContentScrollView.addSubview(mainContentView)
+    view.addSubviews(titleView, navigationBar, mainView)
+    mainView.addSubviews(segmentControl, mainContentView)
   }
   
   func setConstraints() {
     navigationBar.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(view.safeAreaLayoutGuide)
-      $0.height.equalTo(56)
+      $0.height.equalTo(Constants.navigationHeight)
     }
     
     titleView.snp.makeConstraints {
       $0.top.leading.trailing.equalToSuperview()
-      $0.height.equalTo(300)
+      $0.height.equalTo(Constants.titleViewHeight)
+    }
+    
+    mainView.snp.makeConstraints {
+      $0.top.equalToSuperview().offset(Constants.mainViewTopOffset)
+      $0.leading.trailing.bottom.equalToSuperview()
     }
     
     segmentControl.snp.makeConstraints {
-      $0.bottom.equalTo(titleView)
-      $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(38)
+      $0.leading.trailing.top.equalToSuperview()
+      $0.height.equalTo(Constants.segmentControlHeight)
     }
     
-    mainContentScrollView.snp.makeConstraints {
-      $0.leading.trailing.bottom.equalToSuperview()
-      $0.top.equalTo(segmentControl.snp.bottom)
-    }
-
     mainContentView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-      $0.width.equalToSuperview()
-    }
-    
-    cameraShutterButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.width.height.equalTo(64)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(22)
+      $0.top.equalTo(segmentControl.snp.bottom)
+      $0.bottom.trailing.leading.equalToSuperview()
     }
   }
 }
@@ -131,16 +107,27 @@ private extension ChallengeViewController {
 }
 
 // MARK: - ChallengePresentable
-extension ChallengeViewController: ChallengePresentable {
+extension ChallengeViewController: ChallengePresentable {  
   func attachViewControllers(_ viewControllers: UIViewController...) {
     segmentViewControllers = viewControllers
 
     attachViewController(segmentIndex: segmentIndex)
   }
+  
+  func didChangeContentOffsetAtMainContainer(_ offset: Double) {
+    let minOffset = navigationBar.frame.maxY - 5
+    let maxOffset = Constants.mainViewTopOffset
+    
+    let offset = offset.bound(lower: minOffset, upper: maxOffset)
+    let mainContainerOffset = minOffset + maxOffset - offset
+
+    mainView.snp.updateConstraints {
+      $0.top.equalToSuperview().offset(mainContainerOffset)
+    }
+  }
 }
 
 // MARK: - Private Methods
-// TODO: - 네이밍 수정
 private extension ChallengeViewController {
   func updateSegmentViewController(to index: Int) {
     defer { segmentIndex = index }

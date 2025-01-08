@@ -13,7 +13,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: UIViewController, CameraRequestable {
   enum Constants {
     static let itemWidth: CGFloat = 288
     static let groupSpacing: CGFloat = 16
@@ -132,7 +132,7 @@ private extension HomeViewController {
     cell.rx.didTapImage
       .bind(with: self) { owner, _ in
         switch model.type {
-          case .didNotProof: owner.requestOpenCamera()
+          case .didNotProof: owner.requestOpenCamera(delegate: owner)
           case .proof: return
         }
       }
@@ -203,55 +203,6 @@ private extension HomeViewController {
       section.interGroupSpacing = Constants.groupSpacing
       
       return section
-    }
-  }
-  
-  func requestOpenCamera() {
-    AVCaptureDevice.requestAccess(for: .video) { [weak self] isAuthorized in
-      guard let self else { return }
-      guard isAuthorized else {
-        self.displayAlertToSetting()
-        return
-      }
-      
-      openCamera()
-    }
-  }
-  
-  func displayAlertToSetting() {
-    let alertController = UIAlertController(
-      title: "현재 카메라 사용에 대한 접근 권한이 없습니다.",
-      message: "설정 > Photi탭에서 접근을 활성화 할 수 있습니다.",
-      preferredStyle: .alert
-    )
-    let cancel = UIAlertAction(title: "취소", style: .cancel) { _ in
-      alertController.dismiss(animated: true, completion: nil)
-    }
-    
-    let goToSetting = UIAlertAction(title: "설정으로 이동하기", style: .default) { _ in
-      guard
-        let settingURL = URL(string: UIApplication.openSettingsURLString),
-        UIApplication.shared.canOpenURL(settingURL)
-      else { return }
-      UIApplication.shared.open(settingURL, options: [:])
-    }
-    
-    [cancel, goToSetting].forEach(alertController.addAction(_:))
-    DispatchQueue.main.async {
-      self.present(alertController, animated: true)
-    }
-  }
-  
-  func openCamera() {
-    DispatchQueue.main.async { [weak self] in
-      guard let self else { return }
-      let pickerController = UIImagePickerController()
-      pickerController.sourceType = .camera
-      pickerController.allowsEditing = false
-      pickerController.mediaTypes = ["public.image"]
-      pickerController.delegate = self
-      
-      self.present(pickerController, animated: true)
     }
   }
 }

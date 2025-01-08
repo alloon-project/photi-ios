@@ -17,6 +17,7 @@ public final class IconRoundButton: RoundButton {
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let stackView = UIStackView()
+    stackView.isUserInteractionEnabled = false
     stackView.axis = .horizontal
     stackView.spacing = 8
     stackView.alignment = .center

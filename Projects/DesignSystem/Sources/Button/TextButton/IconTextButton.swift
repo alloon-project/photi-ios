@@ -32,6 +32,7 @@ public final class IconTextButton: UIButton {
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let stackView = UIStackView()
+    stackView.isUserInteractionEnabled = false
     stackView.axis = .horizontal
     stackView.spacing = 6
     stackView.alignment = .center

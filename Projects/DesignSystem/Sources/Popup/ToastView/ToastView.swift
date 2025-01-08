@@ -148,10 +148,10 @@ public extension ToastView {
     completion: (() -> Void)? = nil
   ) {
     guard let constraint = toastViewConstraints else { return }
-    
+    let superView = viewController.view
     workItem?.cancel()
     self.isRemoved = false
-    viewController.view.addSubview(self)
+    superView?.addSubview(self)
     self.snp.makeConstraints(constraint)
     
     let workItem = DispatchWorkItem { [weak self] in

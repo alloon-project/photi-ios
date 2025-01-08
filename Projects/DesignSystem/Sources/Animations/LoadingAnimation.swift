@@ -12,6 +12,8 @@ import SnapKit
 import Core
 
 public final class LoadingAnimation {
+  public static let `default` = LoadingAnimation()
+  
   private let animationView: LottieAnimationView
   private let dimmedView: UIView = {
     let view = UIView()
@@ -22,7 +24,7 @@ public final class LoadingAnimation {
   
   // MARK: - Initializers
   public init(loopMode: LottieLoopMode = .loop) {
-    self.animationView = .init(name: "loading_logo")
+    self.animationView = .init(name: "loading_logo", bundle: .module)
     animationView.loopMode = loopMode
   }
   

@@ -88,7 +88,7 @@ private extension PopOverViewController {
 // MARK: - Public Methods
 public extension PopOverViewController {
   func dismissPopOver() {
-    UIView.animate(withDuration: 0.3) {
+    UIView.animate(withDuration: 0.2) {
       self.dimmedView.alpha = 0.7
       self.containerView.frame.origin.y = self.view.frame.height
     } completion: { _ in
