@@ -13,7 +13,7 @@ import RxSwift
 import Core
 
 public protocol AlignBottomSheetDelegate: AnyObject {
-  func didSeleted(at index: Int, data: String)
+  func didSelected(at index: Int, data: String)
 }
 
 public final class AlignBottomSheetViewController: BottomSheetViewController {
@@ -135,7 +135,7 @@ private extension AlignBottomSheetViewController {
   func bind() {
     button.rx.tap
       .bind(with: self) { owner, _ in
-        owner.delegate?.didSeleted(at: owner.selectedRow, data: owner.selectedData)
+        owner.delegate?.didSelected(at: owner.selectedRow, data: owner.selectedData)
         owner.dismissBottomSheet()
       }
       .disposed(by: disposeBag)
@@ -175,7 +175,7 @@ extension AlignBottomSheetViewController: UITableViewDelegate {
     
     switch type {
       case .default:
-        delegate?.didSeleted(at: selectedRow, data: selectedData)
+        delegate?.didSelected(at: selectedRow, data: selectedData)
         dismissBottomSheet()
       default: break
     }

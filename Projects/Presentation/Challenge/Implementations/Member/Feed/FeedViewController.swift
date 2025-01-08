@@ -80,6 +80,7 @@ final class FeedViewController: UIViewController, CameraRequestable {
     bind()
     feedCollectionView.dataSource = self
     feedCollectionView.delegate = self
+  }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -289,7 +290,7 @@ extension FeedViewController: UploadPhotoPopOverDelegate {
 
 // MARK: - AlignBottomSheetDelegate
 extension FeedViewController: AlignBottomSheetDelegate {
-  func didSeleted(at index: Int, data: String) {
+  func didSelected(at index: Int, data: String) {
     self.feedAlign = .init(rawValue: data) ?? feedAlign
     orderButton.text = feedAlign.rawValue
   }
