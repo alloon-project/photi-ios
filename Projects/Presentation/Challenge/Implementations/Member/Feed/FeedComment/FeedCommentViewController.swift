@@ -269,18 +269,23 @@ private extension FeedCommentViewController {
     var snapshot = dataSource.snapshot()
     snapshot.appendSections([model.id])
     snapshot.appendItems([model], toSection: model.id)
-    dataSource.apply(snapshot)
-    setupBoundaryCellAlpha()
+    dataSource.apply(snapshot) { [weak self] in
+      self?.setupBoundaryCellAlpha()
+    }
   }
   
   func delete(model: CommentPresentationModel) {
     guard let dataSource else { return }
+    defer {
+      scrollToBottom { [weak self] in
+        self?.setupBoundaryCellAlpha()
+      }
+    }
     var snapshot = dataSource.snapshot()
     
     snapshot.deleteItems([model])
     snapshot.deleteSections([model.id])
     dataSource.apply(snapshot)
-    setupBoundaryCellAlpha()
   }
 }
 
@@ -323,7 +328,7 @@ private extension FeedCommentViewController {
     toastView.setConstraints { [weak self] in
       guard let self else { return }
       $0.leading.equalTo(tableView)
-      $0.bottom.equalTo(tableView).inset(inset)
+      $0.bottom.equalTo(tableView).offset(-inset)
     }
     
     toastView.present(to: self)
@@ -333,10 +338,8 @@ private extension FeedCommentViewController {
     guard let dataSource else { return 0.0 }
     let count = dataSource.snapshot().numberOfItems
     let indexPath = IndexPath(row: 0, section: count - 1)
-    
     guard let cell = tableView.cellForRow(at: indexPath) else { return 0.0 }
     let cellRect = cell.convert(cell.bounds, to: tableView)
-    
     return cellRect.height + 18
   }
   
@@ -354,10 +357,10 @@ private extension FeedCommentViewController {
   }
   
   func scrollToBottom(_ completion: (() -> Void)? = nil) {
-    guard let itemCount = dataSource?.snapshot().numberOfItems, itemCount >= 1 else { return }
-    let indexPath = IndexPath(row: 0, section: itemCount - 1)
+    tableView.layoutIfNeeded()
     UIView.animate(withDuration: 0.3) {
-      self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+      let scrollDistance = self.tableView.contentSize.height - self.tableView.frame.height + 4
+      self.tableView.setContentOffset(CGPoint(x: 0, y: scrollDistance), animated: false)
       self.view.layoutIfNeeded()
     } completion: { _ in
       completion?()
