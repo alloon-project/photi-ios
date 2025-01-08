@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import RxSwift
 import RxCocoa
+import RxSwift
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
