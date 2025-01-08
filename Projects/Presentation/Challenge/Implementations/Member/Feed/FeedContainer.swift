@@ -14,11 +14,18 @@ protocol FeedContainable: Containable {
   func coordinator(listener: FeedListener) -> Coordinating
 }
 
-final class FeedContainer: Container<FeedDependency>, FeedContainable {
+final class FeedContainer:
+  Container<FeedDependency>,
+  FeedContainable,
+  FeedCommentDependency {
   func coordinator(listener: FeedListener) -> Coordinating {
     let viewModel = FeedViewModel()
+    let feedDetailContainer = FeedCommentContainer(dependency: self)
     
-    let coordinator = FeedCoordinator(viewModel: viewModel)
+    let coordinator = FeedCoordinator(
+      viewModel: viewModel,
+      feedDetailContainer: feedDetailContainer
+    )
     coordinator.listener = listener
     return coordinator
   }

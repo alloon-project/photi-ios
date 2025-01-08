@@ -14,6 +14,7 @@ protocol ChallengeViewModelable { }
 
 protocol ChallengePresentable {
   func attachViewControllers(_ viewControllers: UIViewController...)
+  func didChangeContentOffsetAtMainContainer(_ offset: Double)
 }
 
 final class ChallengeCoordinator: Coordinator, ChallengeCoordinatable {
@@ -55,4 +56,8 @@ final class ChallengeCoordinator: Coordinator, ChallengeCoordinatable {
 }
 
 // MARK: - FeedListener
-extension ChallengeCoordinator: FeedListener { }
+extension ChallengeCoordinator: FeedListener {  
+  func didChangeContentOffsetAtFeed(_ offset: Double) {
+    viewController.didChangeContentOffsetAtMainContainer(offset)
+  }
+}
