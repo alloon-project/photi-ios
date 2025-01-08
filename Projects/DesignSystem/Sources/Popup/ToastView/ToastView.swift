@@ -144,12 +144,11 @@ public extension ToastView {
   
   func present(
     to viewController: UIViewController,
-    at view: UIView? = nil,
     duration: CGFloat = 3.0,
     completion: (() -> Void)? = nil
   ) {
     guard let constraint = toastViewConstraints else { return }
-    let superView = view == nil ? viewController.view : view
+    let superView = viewController.view
     workItem?.cancel()
     self.isRemoved = false
     superView?.addSubview(self)

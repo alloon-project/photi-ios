@@ -313,7 +313,7 @@ private extension FeedCommentViewController {
       $0.bottom.equalTo(commentTextField.snp.top).offset(-18)
     }
     
-    toastView.present(to: self, at: bottomView)
+    toastView.present(to: self)
   }
   
   func presentDeleteToastView() {
@@ -326,7 +326,7 @@ private extension FeedCommentViewController {
       $0.bottom.equalTo(tableView).inset(inset)
     }
     
-    toastView.present(to: self, at: bottomView)
+    toastView.present(to: self)
   }
   
   func deleteToastViewBottomInset() -> CGFloat {
