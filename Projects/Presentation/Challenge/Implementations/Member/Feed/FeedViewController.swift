@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FeedViewController: UIViewController, CameraRequestable {
+final class FeedViewController: UIViewController, ViewControllable, CameraRequestable {
   // MARK: - Properties
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {
@@ -190,6 +190,9 @@ private extension FeedViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - FeedPresentable
+extension FeedViewController: FeedPresentable { }
 
 // MARK: - UICollectionViewDataSource
 extension FeedViewController: UICollectionViewDataSource {

@@ -6,60 +6,57 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
 protocol FeedListener: AnyObject {
   func didChangeContentOffsetAtFeed(_ offset: Double)
 }
 
-final class FeedCoordinator: Coordinator {
+protocol FeedPresentable { }
+
+final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
-  
-  let viewController: FeedViewController
+
   private let viewModel: FeedViewModel
   
-  private let feedDetailContainer: FeedCommentContainable
-  private var feedDetailCoordinator: Coordinating?
+  private let feedCommentContainer: FeedCommentContainable
+  private var feedCommentCoordinator: ViewableCoordinating?
   
   init(
+    viewControllerable: ViewControllable,
     viewModel: FeedViewModel,
-    feedDetailContainer: FeedCommentContainable
+    feedCommentContainer: FeedCommentContainable
   ) {
     self.viewModel = viewModel
-    self.feedDetailContainer = feedDetailContainer
-    self.viewController = FeedViewController(viewModel: viewModel)
-    super.init()
+    self.feedCommentContainer = feedCommentContainer
+    super.init(viewControllerable)
     viewModel.coordinator = self
+    print(viewModel.coordinator == nil)
   }
 }
 
-// MARK: - Coordinatable
+// MARK: - FeedCoordinatable
 extension FeedCoordinator: FeedCoordinatable {
   func attachFeedDetail(for feedID: String) {
-    guard feedDetailCoordinator == nil else { return }
-    
-    let coordinator = feedDetailContainer.coordinator(listener: self, feedID: feedID)
-    self.feedDetailCoordinator = coordinator
+    guard feedCommentCoordinator == nil else { return }
+    let coordinator = feedCommentContainer.coordinator(listener: self, feedID: feedID)
+    self.feedCommentCoordinator = coordinator
     addChild(coordinator)
     
-    // TODO: - Coordinator 리팩토링 후 수정 예정
-    guard let coordinator = coordinator as? FeedCommentCoordinator else { return }
-    
-    coordinator.viewController.modalPresentationStyle = .overFullScreen
-    self.viewController.present(coordinator.viewController, animated: false)
+    viewControllerable.present(
+      coordinator.viewControllerable,
+      animated: true,
+      modalPresentationStyle: .overFullScreen
+    )
   }
   
   // MARK: - Detach
   func detachFeedDetail() {
-    guard let coordinator = feedDetailCoordinator else { return }
+    guard let coordinator = feedCommentCoordinator else { return }
     
-    // TODO: - Coordinator 리팩토링 후 수정 예정
-    guard let coordinator = coordinator as? FeedCommentCoordinator else { return }
-    
-    coordinator.viewController.dismiss(animated: false)
     removeChild(coordinator)
-    self.feedDetailCoordinator = nil
+    coordinator.viewControllerable.dismiss(animated: false)
+    self.feedCommentCoordinator = nil
   }
   
   func didChangeContentOffset(_ offset: Double) {
