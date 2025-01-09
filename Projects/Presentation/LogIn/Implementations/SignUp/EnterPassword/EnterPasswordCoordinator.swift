@@ -6,34 +6,33 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol EnterPasswordViewModelable { }
 
 protocol EnterPasswordListener: AnyObject {
   func didTapBackButtonAtEnterPassword()
   func didFinishEnterPassword(userName: String)
 }
 
-final class EnterPasswordCoordinator: Coordinator, EnterPasswordCoordinatable {
+protocol EnterPasswordPresentable { }
+
+final class EnterPasswordCoordinator: ViewableCoordinator<EnterPasswordPresentable> {
   weak var listener: EnterPasswordListener?
   
-  private let viewController: EnterPasswordViewController
   private let viewModel: EnterPasswordViewModel
   
-  init(viewModel: EnterPasswordViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: EnterPasswordViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = EnterPasswordViewController(viewModel: viewModel)
-    super.init()
+    
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
-  }
-  
+}
+
+// MARK: EnterPasswordCoordinatable
+extension EnterPasswordCoordinator: EnterPasswordCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEnterPassword()
   }
