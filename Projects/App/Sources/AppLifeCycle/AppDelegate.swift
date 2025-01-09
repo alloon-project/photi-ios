@@ -1,3 +1,4 @@
+
 //
 //  AppDelegate.swift
 //  Alloon-DEV
@@ -18,16 +19,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
-    let navigationController = UINavigationController()
     let appContainer = AppContainer(dependency: AppDependency())
+    let appCoordinator = appContainer.coordinator()
+    
+    appCoordinator.start()
     
     let window = UIWindow(frame: UIScreen.main.bounds)
-    window.rootViewController = navigationController
+    window.rootViewController = appCoordinator.viewControllerable.uiviewController
     window.makeKeyAndVisible()
     self.window = window
-    
-    self.appCoordinator = appContainer.coordinator()
-    self.appCoordinator?.start(at: navigationController)
+    self.appCoordinator = appCoordinator
     
     return true
   }
