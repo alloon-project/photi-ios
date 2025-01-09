@@ -6,34 +6,31 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol EnterIdViewModelable { }
 
 protocol EnterIdListener: AnyObject {
   func didTapBackButtonAtEnterId()
   func didFinishEnterId(userName: String)
 }
 
-final class EnterIdCoordinator: Coordinator, EnterIdCoordinatable {
+protocol EnterIdPresentable { }
+
+final class EnterIdCoordinator: ViewableCoordinator<EnterIdPresentable> {
   weak var listener: EnterIdListener?
   
-  private let viewController: EnterIdViewController
   private let viewModel: EnterIdViewModel
   
-  init(viewModel: EnterIdViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: EnterIdViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = EnterIdViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
-  }
-  
+}
+
+extension EnterIdCoordinator: EnterIdCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEnterId()
   }

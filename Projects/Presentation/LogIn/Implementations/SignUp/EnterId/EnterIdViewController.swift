@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterIdViewController: UIViewController {
+final class EnterIdViewController: UIViewController, ViewControllable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterIdViewModel
   
@@ -200,3 +200,6 @@ private extension EnterIdViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EnterIdPresentable
+extension EnterIdViewController: EnterIdPresentable { }
