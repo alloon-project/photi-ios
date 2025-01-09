@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterIdViewController: UIViewController, ViewControllable {
+final class EnterIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterIdViewModel
   

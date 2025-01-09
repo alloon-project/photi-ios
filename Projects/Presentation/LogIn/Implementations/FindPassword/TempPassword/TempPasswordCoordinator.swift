@@ -25,7 +25,7 @@ final class TempPasswordCoordinator: ViewableCoordinator<TempPasswordPresentable
   private let userEmail: String
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: TempPasswordViewModel,
     userEmail: String
   ) {

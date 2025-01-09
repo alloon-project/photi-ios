@@ -14,7 +14,7 @@ import Core
 import DesignSystem
 import Entity
 
-final class ProfileEditViewController: UIViewController, ViewControllable {
+final class ProfileEditViewController: UIViewController, ViewControllerable {
   private let viewModel: ProfileEditViewModel
   
   private let disposeBag = DisposeBag()

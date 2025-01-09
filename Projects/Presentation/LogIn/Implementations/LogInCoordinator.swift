@@ -26,7 +26,7 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   private var findPasswordCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,

@@ -21,7 +21,7 @@ final class NewPasswordCoordinator: ViewableCoordinator<NewPasswordPresentable>,
   private let viewModel: any NewPasswordViewModelType
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: NewPasswordViewModel
   ) {
     self.viewModel = viewModel

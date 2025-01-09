@@ -14,7 +14,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class MyPageViewController: UIViewController, ViewControllable {
+final class MyPageViewController: UIViewController, ViewControllerable {
   private let viewModel: MyPageViewModel
   
   private let disposeBag = DisposeBag()

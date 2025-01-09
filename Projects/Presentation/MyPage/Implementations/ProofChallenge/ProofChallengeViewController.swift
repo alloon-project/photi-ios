@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ProofChallengeViewController: UIViewController, ViewControllable {
+final class ProofChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: ProofChallengeViewModel
   
   // MARK: - Variables

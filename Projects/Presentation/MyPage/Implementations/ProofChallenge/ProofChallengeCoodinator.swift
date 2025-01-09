@@ -20,7 +20,7 @@ final class ProofChallengeCoordinator: ViewableCoordinator<ProofChallengePresent
   private let viewModel: ProofChallengeViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ProofChallengeViewModel
   ) {
     self.viewModel = viewModel

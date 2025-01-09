@@ -26,7 +26,7 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   private var proofChallengeCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,

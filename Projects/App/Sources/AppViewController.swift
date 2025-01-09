@@ -11,7 +11,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class AppViewController: UITabBarController, ViewControllable {
+final class AppViewController: UITabBarController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()

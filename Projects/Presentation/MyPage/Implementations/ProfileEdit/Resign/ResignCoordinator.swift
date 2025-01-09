@@ -21,7 +21,7 @@ final class ResignCoordinator: ViewableCoordinator<ResignPresentable> {
   private let viewModel: ResignViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ResignViewModel
   ) {
     self.viewModel = viewModel

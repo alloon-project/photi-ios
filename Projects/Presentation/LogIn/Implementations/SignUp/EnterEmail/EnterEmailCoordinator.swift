@@ -26,7 +26,7 @@ final class EnterEmailCoordinator: ViewableCoordinator<EnterEmailPresentable> {
   private var verifyEmailCoordinator: Coordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: EnterEmailViewModel,
     verifyEmailContainable: VerifyEmailContainable
   ) {

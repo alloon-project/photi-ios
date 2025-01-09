@@ -30,7 +30,7 @@ final class FindPasswordCoordinator: ViewableCoordinator<FindPasswordPresentable
   private var newPasswordCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: FindPasswordViewModel,
     tempPasswordContainable: TempPasswordContainable,
     newPasswordContainable: NewPasswordContainable

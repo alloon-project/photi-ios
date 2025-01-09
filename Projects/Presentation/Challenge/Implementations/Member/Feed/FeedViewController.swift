@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FeedViewController: UIViewController, ViewControllable, CameraRequestable {
+final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
   // MARK: - Properties
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {

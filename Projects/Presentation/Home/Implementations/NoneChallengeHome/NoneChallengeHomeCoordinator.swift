@@ -18,7 +18,7 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
   private let viewModel: NoneChallengeHomeViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: NoneChallengeHomeViewModel
   ) {
     self.viewModel = viewModel

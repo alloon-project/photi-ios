@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class TempPasswordViewController: UIViewController, ViewControllable {
+final class TempPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
   

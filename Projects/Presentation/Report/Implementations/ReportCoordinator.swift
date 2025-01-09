@@ -17,7 +17,7 @@ final class ReportCoordinator: ViewableCoordinator<ReportPresentable> {
   private let viewModel: ReportViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ReportViewModel
   ) {
     self.viewModel = viewModel

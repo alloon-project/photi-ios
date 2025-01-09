@@ -24,7 +24,7 @@ final class VerifyEmailCoordinator: ViewableCoordinator<VerifyEmailPresentable> 
   private let viewModel: VerifyEmailViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: VerifyEmailViewModel,
     userEmail: String
   ) {

@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FindPasswordViewController: UIViewController, ViewControllable {
+final class FindPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: FindPasswordViewModel
   

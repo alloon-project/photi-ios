@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ResignViewController: UIViewController, ViewControllable {
+final class ResignViewController: UIViewController, ViewControllerable {
   private let viewModel: ResignViewModel
   
   private let disposeBag = DisposeBag()

@@ -21,7 +21,7 @@ final class ChangePasswordCoordinator: ViewableCoordinator<ChangePasswordPresent
   private let viewModel: ChangePasswordViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ChangePasswordViewModel
   ) {
     self.viewModel = viewModel

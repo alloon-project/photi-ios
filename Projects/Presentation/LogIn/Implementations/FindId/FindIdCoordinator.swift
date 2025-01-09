@@ -22,7 +22,7 @@ final class FindIdCoordinator: ViewableCoordinator<FindIdPresentable>, FindIdCoo
   private let viewModel: any FindIdViewModelType
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: FindIdViewModel
   ) {
     self.viewModel = viewModel

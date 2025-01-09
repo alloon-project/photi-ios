@@ -20,7 +20,7 @@ final class NoneMemberHomeCoordinator: ViewableCoordinator<NoneMemberHomePresent
   private let viewModel: NoneMemberHomeViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: NoneMemberHomeViewModel
   ) {
     self.viewModel = viewModel

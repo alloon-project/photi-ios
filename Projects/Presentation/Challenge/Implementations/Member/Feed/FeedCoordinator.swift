@@ -23,7 +23,7 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   private var feedCommentCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: FeedViewModel,
     feedCommentContainer: FeedCommentContainable
   ) {

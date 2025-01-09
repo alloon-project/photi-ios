@@ -8,18 +8,18 @@
 
 import UIKit
 
-public protocol ViewControllable: AnyObject {
+public protocol ViewControllerable: AnyObject {
   var uiviewController: UIViewController { get }
 }
 
-public extension ViewControllable where Self: UIViewController {
+public extension ViewControllerable where Self: UIViewController {
   var uiviewController: UIViewController { return self }
 }
 
 // MARK: - Present Methods
-public extension ViewControllable {
+public extension ViewControllerable {
   func present(
-    _ viewControllable: ViewControllable,
+    _ viewControllable: ViewControllerable,
     animated: Bool,
     completion: (() -> Void)? = nil
   ) {
@@ -31,7 +31,7 @@ public extension ViewControllable {
   }
   
   func present(
-    _ viewControllable: ViewControllable,
+    _ viewControllable: ViewControllerable,
     animated: Bool,
     modalPresentationStyle: UIModalPresentationStyle,
     completion: (() -> Void)? = nil
@@ -50,8 +50,8 @@ public extension ViewControllable {
 }
 
 // MARK: - Push Methods
-public extension ViewControllable {
-  func pushViewController(_ viewControllable: ViewControllable, animated: Bool) {
+public extension ViewControllerable {
+  func pushViewController(_ viewControllable: ViewControllerable, animated: Bool) {
     if let nav = self.uiviewController as? UINavigationController {
       nav.pushViewController(viewControllable.uiviewController, animated: animated)
     } else {
@@ -77,7 +77,7 @@ public extension ViewControllable {
     }
   }
   
-  func setViewControllers(_ viewControllerables: [ViewControllable]) {
+  func setViewControllers(_ viewControllerables: [ViewControllerable]) {
     if let nav = self.uiviewController as? UINavigationController {
       nav.setViewControllers(viewControllerables.map(\.uiviewController), animated: true)
     } else {
@@ -91,11 +91,11 @@ public extension ViewControllable {
   }
   
   /// 가장위에 있는 ViewControllable을 리턴합니다.
-  var topViewControllable: ViewControllable {
-    var top: ViewControllable = self
+  var topViewControllable: ViewControllerable {
+    var top: ViewControllerable = self
     
     while
-      let presented = getPresentedViewController(base: top.uiviewController) as? ViewControllable {
+      let presented = getPresentedViewController(base: top.uiviewController) as? ViewControllerable {
       top = presented
     }
 

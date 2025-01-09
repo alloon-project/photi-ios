@@ -9,7 +9,7 @@
 import UIKit
 import Core
 
-final class SearchChallengeViewController: UIViewController, ViewControllable {
+final class SearchChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: SearchChallengeViewModel
   
   init(viewModel: SearchChallengeViewModel) {

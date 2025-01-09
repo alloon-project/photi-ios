@@ -13,7 +13,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class NoneChallengeHomeViewController: UIViewController, ViewControllable {
+final class NoneChallengeHomeViewController: UIViewController, ViewControllerable {
   enum Constants {
     static let itemSize = 160.0
     static let groupSpacing = 10.0

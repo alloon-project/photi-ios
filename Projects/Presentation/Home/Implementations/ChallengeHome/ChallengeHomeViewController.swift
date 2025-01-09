@@ -12,7 +12,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllable {
+final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllerable {
   enum Constants {
     static let itemWidth: CGFloat = 288
     static let groupSpacing: CGFloat = 16

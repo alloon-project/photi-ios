@@ -12,7 +12,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class NoneMemberHomeViewController: UIViewController, ViewControllable {
+final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
   private let viewModel: NoneMemberHomeViewModel

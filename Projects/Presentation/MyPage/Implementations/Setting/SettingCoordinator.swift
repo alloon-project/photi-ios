@@ -27,7 +27,7 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   private var reportCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: SettingViewModel,
     profileEditContainable: ProfileEditContainable,
     reportContainable: ReportContainable

@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class VerifyEmailViewController: UIViewController, ViewControllable {
+final class VerifyEmailViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: VerifyEmailViewModel
   

@@ -14,7 +14,7 @@ import Core
 import DesignSystem
 import Report
 
-final class ReportViewController: UIViewController, ViewControllable {
+final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Refactoring

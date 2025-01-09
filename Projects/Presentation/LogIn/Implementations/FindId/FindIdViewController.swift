@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FindIdViewController: UIViewController, ViewControllable {
+final class FindIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let alertRelay = PublishRelay<Void>()
   private let viewModel: FindIdViewModel

@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class SettingViewController: UIViewController, ViewControllable {
+final class SettingViewController: UIViewController, ViewControllerable {
   private let viewModel: SettingViewModel
   
   // MARK: - Variables

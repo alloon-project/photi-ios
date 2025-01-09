@@ -17,7 +17,7 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
   private let viewModel: SearchChallengeViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: SearchChallengeViewModel
   ) {
     self.viewModel = viewModel

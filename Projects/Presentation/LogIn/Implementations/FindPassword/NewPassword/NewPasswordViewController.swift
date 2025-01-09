@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class NewPasswordViewController: UIViewController, ViewControllable {
+final class NewPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: NewPasswordViewModel
   private let alertRelay = PublishRelay<Void>()

@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EndedChallengeViewController: UIViewController, ViewControllable {
+final class EndedChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: EndedChallengeViewModel
   
   // MARK: - Variables

@@ -28,7 +28,7 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
   private var resignCoordinator: Coordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ProfileEditViewModel,
     changePasswordContainable: ChangePasswordContainable,
     resignContainable: ResignContainable

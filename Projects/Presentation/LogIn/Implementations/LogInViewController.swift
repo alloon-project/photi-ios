@@ -12,7 +12,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class LogInViewController: UIViewController, ViewControllable {
+final class LogInViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: LogInViewModel
   

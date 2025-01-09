@@ -20,7 +20,7 @@ final class FeedCommentCoordinator: ViewableCoordinator<FeedCommentPresentable> 
   private let viewModel: FeedCommentViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: FeedCommentViewModel
   ) {
     self.viewModel = viewModel

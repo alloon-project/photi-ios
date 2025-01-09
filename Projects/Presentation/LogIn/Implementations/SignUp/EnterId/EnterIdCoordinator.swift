@@ -21,7 +21,7 @@ final class EnterIdCoordinator: ViewableCoordinator<EnterIdPresentable> {
   private let viewModel: EnterIdViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: EnterIdViewModel
   ) {
     self.viewModel = viewModel

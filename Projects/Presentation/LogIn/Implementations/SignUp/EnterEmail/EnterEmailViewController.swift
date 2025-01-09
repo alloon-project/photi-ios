@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterEmailViewController: UIViewController, ViewControllable {
+final class EnterEmailViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterEmailViewModel
   

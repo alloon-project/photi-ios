@@ -10,7 +10,7 @@ import Core
 import Challenge
 
 protocol ChallengePresentable {
-  func attachViewControllerables(_ viewControllerables: ViewControllable...)
+  func attachViewControllerables(_ viewControllerables: ViewControllerable...)
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
 }
 
@@ -23,7 +23,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private var feedCoordinator: ViewableCoordinating?
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
     feedContainer: FeedContainable
   ) {

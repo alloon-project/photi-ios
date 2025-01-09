@@ -20,7 +20,7 @@ final class EndedChallengeCoordinator: ViewableCoordinator<EndedChallangePresent
   private let viewModel: EndedChallengeViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: EndedChallengeViewModel
   ) {
     self.viewModel = viewModel

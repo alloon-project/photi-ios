@@ -15,7 +15,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FeedCommentViewController: UIViewController, ViewControllable {
+final class FeedCommentViewController: UIViewController, ViewControllerable {
   typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
   typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
   

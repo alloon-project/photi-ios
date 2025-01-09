@@ -8,21 +8,21 @@
 
 import UIKit
 
-public extension ViewControllable where Self: NavigationControllerable {
+public extension ViewControllerable where Self: NavigationControllerable {
   var uiviewController: UIViewController { return self.navigationController }
 }
 
-extension NavigationControllerable: ViewControllable { }
+extension NavigationControllerable: ViewControllerable { }
 
 public class NavigationControllerable {
   public let navigationController: UINavigationController
   
   /// 가장위에 있는 ViewControllable을 리턴합니다.
-  public var topViewControllable: ViewControllable {
-    var top: ViewControllable = self
+  public var topViewControllable: ViewControllerable {
+    var top: ViewControllerable = self
     
     while
-      let presented = getPresentedViewController(base: top.uiviewController) as? ViewControllable {
+      let presented = getPresentedViewController(base: top.uiviewController) as? ViewControllerable {
       top = presented
     }
     
@@ -34,7 +34,7 @@ public class NavigationControllerable {
     self.navigationController = navigationController
   }
   
-  public init(_ rootViewControllerable: ViewControllable) {
+  public init(_ rootViewControllerable: ViewControllerable) {
     self.navigationController = UINavigationController(rootViewController: rootViewControllerable.uiviewController)
   }
   
@@ -45,7 +45,7 @@ public class NavigationControllerable {
 
 // MARK: - Public Methods
 public extension NavigationControllerable {
-  func pushViewController(_ viewControllable: ViewControllable, animated: Bool) {
+  func pushViewController(_ viewControllable: ViewControllerable, animated: Bool) {
     navigationController.pushViewController(viewControllable.uiviewController, animated: animated)
   }
   
@@ -57,7 +57,7 @@ public extension NavigationControllerable {
     navigationController.popToRootViewController(animated: animated)
   }
   
-  func setViewControllers(_ viewControllerables: [ViewControllable]) {
+  func setViewControllers(_ viewControllerables: [ViewControllerable]) {
     let uiviewControllers = viewControllerables.map(\.uiviewController)
     navigationController.setViewControllers(uiviewControllers, animated: true)
   }

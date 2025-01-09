@@ -21,7 +21,7 @@ final class EnterPasswordCoordinator: ViewableCoordinator<EnterPasswordPresentab
   private let viewModel: EnterPasswordViewModel
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     viewModel: EnterPasswordViewModel
   ) {
     self.viewModel = viewModel
