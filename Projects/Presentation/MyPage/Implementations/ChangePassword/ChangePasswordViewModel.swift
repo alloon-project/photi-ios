@@ -16,7 +16,7 @@ protocol ChangePasswordCoordinatable: AnyObject {
   func didChangedPassword()
 }
 
-protocol ChangePasswordViewModelType: ChangePasswordViewModelable {
+protocol ChangePasswordViewModelType {
   associatedtype Input
   associatedtype Output
   
@@ -35,6 +35,10 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   private let unMatchedCurrentPasswordRelay = PublishRelay<Void>()
   private let tokenUnauthorizedRelay = PublishRelay<Void>()
   private let requestFailedRelay = PublishRelay<Void>()
+  private let containAlphabetRelay = PublishRelay<Bool>()
+  private let containNumberRelay = PublishRelay<Bool>()
+  private let containSpecialRelay = PublishRelay<Bool>()
+  private let isValidRangeRelay = PublishRelay<Bool>()
   
   // MARK: - Input
   struct Input {
@@ -71,26 +75,14 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
         owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
-    
-    let isDifferentPassword = Observable.combineLatest(
-      input.currentPassword, input.newPassword
-    ) { $0 != $1 }
-    
-    let containAlphabet = input.newPassword
-      .map { $0.contain("[a-zA-Z]") }
-    
-    let containNumber = input.newPassword
-      .map { $0.contain("[0-9]") }
-    
-    let containSpecial = input.newPassword
-      .map { $0.contain("[^a-zA-Z0-9]") }
-    
-    let isValidRange = input.newPassword
-      .map { $0.count >= 8 && $0.count <= 30 }
-    
+   
     let isValidPassword = Observable.combineLatest(
-      containAlphabet, containNumber, containSpecial, isValidRange, isDifferentPassword
-    ) { $0 && $1 && $2 && $3 && $4 }
+      input.currentPassword, input.newPassword
+    )
+      .filter { $0 != $1 }
+      .map { $0.0 }
+      .withUnretained(self)
+      .map { $0.isValidPassword($1) }
     
     let correspondPassword = Observable.combineLatest(
       input.newPassword, input.reEnteredPassword
@@ -116,10 +108,10 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       .disposed(by: disposeBag)
         
     return Output(
-      containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
-      containNumber: containNumber.asDriver(onErrorJustReturn: false),
-      containSpecial: containSpecial.asDriver(onErrorJustReturn: false),
-      isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
+      containAlphabet: containAlphabetRelay.asDriver(onErrorJustReturn: false),
+      containNumber: containNumberRelay.asDriver(onErrorJustReturn: false),
+      containSpecial: containSpecialRelay.asDriver(onErrorJustReturn: false),
+      isValidRange: isValidRangeRelay.asDriver(onErrorJustReturn: false),
       isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false),
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
@@ -153,6 +145,13 @@ private extension ChangePasswordViewModel {
         }
       )
       .disposed(by: disposeBag)
+  }
+  
+  func isValidPassword(_ password: String) -> Bool {
+    return password.contain("[a-zA-Z]") &&
+    password.contain("[0-9]") &&
+    password.contain("[^a-zA-Z0-9]") &&
+    password.count >= 8 && password.count <= 30
   }
   
   func requestFailed(with error: Error) {

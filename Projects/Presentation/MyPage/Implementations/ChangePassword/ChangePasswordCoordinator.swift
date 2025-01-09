@@ -6,32 +6,27 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol ChangePasswordViewModelable { }
-
-public protocol ChangePasswordListener: AnyObject {
+protocol ChangePasswordListener: AnyObject {
   func didTapBackButtonAtChangePassword()
   func didChangedPassword()
 }
 
-final class ChangePasswordCoordinator: Coordinator {
+protocol ChangePasswordPresentable { }
+
+final class ChangePasswordCoordinator: ViewableCoordinator<ChangePasswordPresentable> {
   weak var listener: ChangePasswordListener?
-  
-  private let viewController: ChangePasswordViewController
+
   private let viewModel: ChangePasswordViewModel
   
-  init(viewModel: ChangePasswordViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: ChangePasswordViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = ChangePasswordViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
 }
 

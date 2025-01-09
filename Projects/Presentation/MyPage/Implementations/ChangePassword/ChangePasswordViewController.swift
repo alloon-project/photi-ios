@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ChangePasswordViewController: UIViewController {
+final class ChangePasswordViewController: UIViewController, ViewControllable {
   private let disposeBag = DisposeBag()
   private let viewModel: ChangePasswordViewModel
   private let alertRelay = PublishRelay<Void>()
@@ -333,6 +333,9 @@ private extension ChangePasswordViewController {
       }.disposed(by: disposeBag)
   }
 }
+
+// MARK: - ChangePasswordPresentable
+extension ChangePasswordViewController: ChangePasswordPresentable { }
 
 // MARK: - Private Methods
 private extension ChangePasswordViewController {
