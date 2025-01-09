@@ -6,37 +6,40 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol VerifyEmailViewModelable { }
-
-protocol VerifyEmailListener: AnyObject { 
+protocol VerifyEmailListener: AnyObject {
   func didTapBackButtonAtVerifyEmail()
   func didFinishVerifyEmail(with verificationCode: String)
 }
 
-final class VerifyEmailCoordinator: Coordinator, VerifyEmailCoordinatable {
+protocol VerifyEmailPresentable {
+  func setUserEmail(_ userEmail: String)
+}
+
+final class VerifyEmailCoordinator: ViewableCoordinator<VerifyEmailPresentable> {
   weak var listener: VerifyEmailListener?
   private let userEmail: String
   
-  private let viewController: VerifyEmailViewController
   private let viewModel: VerifyEmailViewModel
   
-  init(viewModel: VerifyEmailViewModel, userEmail: String) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: VerifyEmailViewModel,
+    userEmail: String
+  ) {
     self.viewModel = viewModel
     self.userEmail = userEmail
-    self.viewController = VerifyEmailViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    viewController.setUserEmail(userEmail)
-    navigationController?.pushViewController(viewController, animated: true)
+  override func start() {
+    presenter.setUserEmail(userEmail)
   }
-  
+}
+
+extension VerifyEmailCoordinator: VerifyEmailCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtVerifyEmail()
   }

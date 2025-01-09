@@ -16,7 +16,7 @@ protocol VerifyEmailCoordinatable: AnyObject {
   func didTapNextButton(verificationCode: String)
 }
 
-protocol VerifyEmailViewModelType: AnyObject, VerifyEmailViewModelable {
+protocol VerifyEmailViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
