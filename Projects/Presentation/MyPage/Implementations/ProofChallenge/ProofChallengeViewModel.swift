@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
 
@@ -16,7 +15,7 @@ protocol ProofChallengeCoordinatable: AnyObject {
   func detachChallengeDetail()
 }
 
-protocol ProofChallengeViewModelType: AnyObject, ProofChallengeViewModelable {
+protocol ProofChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

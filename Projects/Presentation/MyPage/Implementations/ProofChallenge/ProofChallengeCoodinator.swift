@@ -6,43 +6,36 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol ProofChallengeViewModelable { }
-
-public protocol ProofChallengeListener: AnyObject {
+protocol ProofChallengeListener: AnyObject {
   func didTapBackButtonAtProofChallenge()
 }
 
-final class ProofChallengeCoordinator: Coordinator {
+protocol ProofChallengePresentable { }
+
+final class ProofChallengeCoordinator: ViewableCoordinator<ProofChallengePresentable> {
   weak var listener: ProofChallengeListener?
   
-  private let viewController: ProofChallengeViewController
   private let viewModel: ProofChallengeViewModel
   
-  init(viewModel: ProofChallengeViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: ProofChallengeViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = ProofChallengeViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
 }
 
-// MARK: - Coordinatable
+// MARK: - ProofChallengeCoordinatable
 extension ProofChallengeCoordinator: ProofChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtProofChallenge()
   }
   
-  func attachChallengeDetail() {
-  }
+  func attachChallengeDetail() { }
   
-  func detachChallengeDetail() {
-  }
+  func detachChallengeDetail() { }
 }
