@@ -11,9 +11,10 @@ import Kingfisher
 import RxSwift
 import RxCocoa
 import SnapKit
+import Core
 import DesignSystem
 
-final class MyPageViewController: UIViewController {
+final class MyPageViewController: UIViewController, ViewControllable {
   private let viewModel: MyPageViewModel
   
   private let disposeBag = DisposeBag()
@@ -64,8 +65,7 @@ final class MyPageViewController: UIViewController {
   
   private let settingButton = {
     let button = UIButton()
-    button.setImage(.settingsWhite.resize(CGSize(width: 24, height: 24)),
-                    for: .normal)
+    button.setImage(.settingsWhite.resize(CGSize(width: 24, height: 24)), for: .normal)
     return button
   }()
   
@@ -143,8 +143,7 @@ private extension MyPageViewController {
   func setViewHierarchy() {
     self.view.addSubview(scrollView)
     scrollView.addSubview(containerView)
-    containerView.addSubviews(userInfoView,
-                              feedInfoView)
+    containerView.addSubviews(userInfoView, feedInfoView)
     userInfoView.addSubviews(
       userImageView,
       settingButton,
@@ -152,11 +151,7 @@ private extension MyPageViewController {
       authCountBox,
       endedChallengeCountBox
     )
-    feedInfoView.addSubviews(
-      userInfoBottomImageView,
-      myFeedLabel,
-      calendarView
-    )
+    feedInfoView.addSubviews(userInfoBottomImageView, myFeedLabel, calendarView)
   }
   
   func setConstraints() {
@@ -165,8 +160,7 @@ private extension MyPageViewController {
     }
     
     containerView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-      $0.width.equalTo(self.view.snp.width)
+      $0.edges.width.equalToSuperview()
     }
     
     userInfoView.snp.makeConstraints {
@@ -268,6 +262,9 @@ private extension MyPageViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - MyPagePresentable
+extension MyPageViewController: MyPagePresentable { }
 
 // MARK: - CalendarView Delegate
 extension MyPageViewController: CalendarViewDelegate {
