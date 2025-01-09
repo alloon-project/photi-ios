@@ -12,7 +12,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class LogInViewController: UIViewController {
+final class LogInViewController: UIViewController, ViewControllable {
   private let disposeBag = DisposeBag()
   private let viewModel: LogInViewModel
   
@@ -195,6 +195,9 @@ private extension LogInViewController {
       .disposed(by: disposeBag)
     }
 }
+
+// MARK: - LogInPresentable
+extension LogInViewController: LogInPresentable { }
 
 // MARK: - Private Methods
 private extension LogInViewController {

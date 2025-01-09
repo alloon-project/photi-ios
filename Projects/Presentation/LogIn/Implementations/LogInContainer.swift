@@ -24,12 +24,15 @@ public final class LogInContainer:
   var loginUseCase: LogInUseCase { dependency.logInUseCase }
   var findPasswordUseCase: FindPasswordUseCase { dependency.findPasswordUseCase }
 
-  public func coordinator(listener: LogInListener) -> Coordinating {
+  public func coordinator(listener: LogInListener) -> ViewableCoordinating {
+    let viewModel = LogInViewModel(useCase: dependency.logInUseCase)
+    let viewControllerable = LogInViewController(viewModel: viewModel)
+
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
-    let viewModel = LogInViewModel(useCase: dependency.logInUseCase)
     
     let coordinator = LogInCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel,
       signUpContainable: dependency.signUpContainable,
       findIdContainable: findId,

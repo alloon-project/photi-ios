@@ -9,7 +9,7 @@
 import Core
 
 public protocol LogInContainable: Containable {
-  func coordinator(listener: LogInListener) -> Coordinating
+  func coordinator(listener: LogInListener) -> ViewableCoordinating
 }
 
 public protocol LogInListener: AnyObject {
