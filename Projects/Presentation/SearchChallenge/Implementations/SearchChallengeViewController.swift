@@ -7,5 +7,22 @@
 //
 
 import UIKit
+import Core
 
-final class SearchChallengeViewController: UIViewController { }
+final class SearchChallengeViewController: UIViewController, ViewControllable {
+  private let viewModel: SearchChallengeViewModel
+  
+  init(viewModel: SearchChallengeViewModel) {
+    self.viewModel = viewModel
+    
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+}
+
+// MARK: - SearchChallengePresentable
+extension SearchChallengeViewController: SearchChallengePresentable { }
