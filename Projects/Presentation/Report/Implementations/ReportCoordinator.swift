@@ -6,32 +6,28 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import Report
 
-protocol ReportViewModelable { }
+protocol ReportPresentable { }
 
-final class ReportCoordinator: Coordinator {
+final class ReportCoordinator: ViewableCoordinator<ReportPresentable> {
   weak var listener: ReportListener?
   
-  private let viewController: ReportViewController
-  private let viewModel: any ReportViewModelType
+  private let viewModel: ReportViewModel
   
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: ReportViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = ReportViewController(viewModel: viewModel, reportType: reportType)
     
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
   }
 }
 
+// MARK: - ReportCoordinatable
 extension ReportCoordinator: ReportCoordinatable {
   func didTapBackButtonAtReport() {
     listener?.detachReport()
