@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class SettingViewController: UIViewController {
+final class SettingViewController: UIViewController, ViewControllable {
   private let viewModel: SettingViewModel
   
   // MARK: - Variables
@@ -71,7 +71,7 @@ private extension SettingViewController {
       didTapCell: menuTableView.rx.itemSelected
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
   
   func setViewHierarchy() {
@@ -94,6 +94,10 @@ private extension SettingViewController {
   }
 }
 
+// MARK: - SettingPresentable
+extension SettingViewController: SettingPresentable { }
+
+// MARK: - UITableViewDelegate
 extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
     56
