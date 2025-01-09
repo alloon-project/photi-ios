@@ -6,45 +6,36 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol EndedChallengeViewModelable { }
-
-public protocol EndedChallengeListener: AnyObject {
+protocol EndedChallengeListener: AnyObject {
   func didTapBackButtonAtEndedChallenge()
 }
 
-final class EndedChallengeCoordinator: Coordinator {
+protocol EndedChallangePresentable { }
+
+final class EndedChallengeCoordinator: ViewableCoordinator<EndedChallangePresentable> {
   weak var listener: EndedChallengeListener?
   
-  private let viewController: EndedChallengeViewController
   private let viewModel: EndedChallengeViewModel
   
   init(
+    viewControllerable: ViewControllable,
     viewModel: EndedChallengeViewModel
   ) {
     self.viewModel = viewModel
-    self.viewController = EndedChallengeViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
 }
 
-// MARK: - Coordinatable
+// MARK: - EndedChallengeCoordinatable
 extension EndedChallengeCoordinator: EndedChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEndedChallenge()
   }
   
-  func attachChallengeDetail() {
-  }
+  func attachChallengeDetail() { }
   
-  func detachChallengeDetail() {
-  }
+  func detachChallengeDetail() { }
 }

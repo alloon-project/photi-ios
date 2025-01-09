@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EndedChallengeViewController: UIViewController {
+final class EndedChallengeViewController: UIViewController, ViewControllable {
   private let viewModel: EndedChallengeViewModel
   
   // MARK: - Variables
@@ -175,6 +175,9 @@ private extension EndedChallengeViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EndedChallangePresentable
+extension EndedChallengeViewController: EndedChallangePresentable { }
   
 // MARK: - UICollectionViewDataSource
 extension EndedChallengeViewController: UICollectionViewDataSource {
