@@ -9,7 +9,7 @@
 import Core
 
 public protocol ChallengeContainable: Containable {
-  func coordinator(listener: ChallengeListener, challengeId: Int) -> Coordinating
+  func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating
 }
 
 public protocol ChallengeListener: AnyObject { }
