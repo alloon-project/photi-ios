@@ -8,19 +8,23 @@
 
 import Core
 
-public protocol ResignDependency: Dependency { }
+protocol ResignDependency: Dependency { }
 
-public protocol ResignContainable: Containable {
-  func coordinator(listener: ResignListener) -> Coordinating
+protocol ResignContainable: Containable {
+  func coordinator(listener: ResignListener) -> ViewableCoordinating
 }
 
-public final class ResignContainer:
+final class ResignContainer:
   Container<ResignDependency>,
   ResignContainable {
-  public func coordinator(listener: ResignListener) -> Core.Coordinating {
+  func coordinator(listener: ResignListener) -> ViewableCoordinating {
     let viewModel = ResignViewModel()
+    let viewControllerable = ResignViewController(viewModel: viewModel)
     
-    let coordinator = ResignCoordinator(viewModel: viewModel)
+    let coordinator = ResignCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     
     coordinator.listener = listener
     

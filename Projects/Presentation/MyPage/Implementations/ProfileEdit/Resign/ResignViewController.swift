@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ResignViewController: UIViewController {
+final class ResignViewController: UIViewController, ViewControllable {
   private let viewModel: ResignViewModel
   
   private let disposeBag = DisposeBag()
@@ -69,10 +69,12 @@ private extension ResignViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar,
-                          titleLabel,
-                          resignButton,
-                          cancelButton)
+    self.view.addSubviews(
+      navigationBar,
+      titleLabel,
+      resignButton,
+      cancelButton
+    )
   }
   
   func setConstraints() {
@@ -108,6 +110,9 @@ private extension ResignViewController {
       didTapCancelButton: cancelButton.rx.tap
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
 }
+
+// MARK: - ResignPresentable
+extension ResignViewController: ResignPresentable { }
