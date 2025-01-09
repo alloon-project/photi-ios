@@ -12,14 +12,14 @@ import LogIn
 
 protocol SignUpViewModelable { }
 
-final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
+final class SignUpCoordinator: Coordinator {
   private var email: String?
   private var verificationCode: String?
   private var userName: String?
   
   weak var listener: SignUpListener?
   
-  private let viewModel: SignUpViewModel
+  private let navigationControllerable: NavigationControllerable
   
   private let enterEmailContainable: EnterEmailContainable
   private var enterEmailCoordinator: Coordinating?
@@ -31,20 +31,19 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
   private var enterPasswordCoordinator: Coordinating?
   
   init(
-    viewModel: SignUpViewModel,
+    navigationControllerable: NavigationControllerable,
     enterEmailContainable: EnterEmailContainable,
     enterIdContainable: EnterIdContainable,
     enterPasswordContainable: EnterPasswordContainable
   ) {
-    self.viewModel = viewModel
+    self.navigationControllerable = navigationControllerable
     self.enterEmailContainable = enterEmailContainable
     self.enterIdContainable = enterIdContainable
     self.enterPasswordContainable = enterPasswordContainable
     super.init()
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
+  override func start() {
     attachEnterEmail()
   }
   
@@ -61,16 +60,16 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     let coordinater = enterEmailContainable.coordinator(listener: self)
     addChild(coordinater)
     
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.enterEmailCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachEnterEmail(animated: Bool) {
     guard let coordinater = enterEmailCoordinator else { return }
     
     removeChild(coordinater)
+    navigationControllerable.popViewController(animated: animated)
     self.enterEmailCoordinator = nil
-    navigationController?.popViewController(animated: animated)
   }
   
   // MARK: - EnterId
@@ -80,16 +79,16 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     let coordinater = enterIdContainable.coordinator(listener: self)
     addChild(coordinater)
     
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.enterIdCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachEnterId(animated: Bool) {
     guard let coordinater = enterIdCoordinator else { return }
     
     removeChild(coordinater)
+    navigationControllerable.popViewController(animated: animated)
     self.enterIdCoordinator = nil
-    navigationController?.popViewController(animated: animated)
   }
   
   // MARK: - EnterPassword
@@ -107,16 +106,16 @@ final class SignUpCoordinator: Coordinator, SignUpCoordinatable {
     )
     addChild(coordinater)
     
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.enterPasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachEnterPassword(animated: Bool) {
     guard let coordinater = enterPasswordCoordinator else { return }
     
     removeChild(coordinater)
+    navigationControllerable.popViewController(animated: animated)
     self.enterPasswordCoordinator = nil
-    navigationController?.popViewController(animated: animated)
   }
 }
 

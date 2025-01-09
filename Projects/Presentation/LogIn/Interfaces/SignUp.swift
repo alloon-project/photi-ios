@@ -9,7 +9,7 @@
 import Core
 
 public protocol SignUpContainable: Containable {
-  func coordinator(listener: SignUpListener) -> Coordinating
+  func coordinator(navigationControllerable: NavigationControllerable, listener: SignUpListener) -> Coordinating
 }
 
 public protocol SignUpListener: AnyObject {
