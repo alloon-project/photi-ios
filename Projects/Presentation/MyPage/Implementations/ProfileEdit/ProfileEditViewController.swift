@@ -14,13 +14,13 @@ import Core
 import DesignSystem
 import Entity
 
-final class ProfileEditViewController: UIViewController {
+final class ProfileEditViewController: UIViewController, ViewControllable {
   private let viewModel: ProfileEditViewModel
   
   private let disposeBag = DisposeBag()
-  
-  // MARK: - Variables
+
   private var userInfo: [String] = []
+
   // MARK: - UIComponents
   private let navigationBar = PhotiNavigationBar(
     leftView: .backButton,
@@ -48,19 +48,7 @@ final class ProfileEditViewController: UIViewController {
     return tableView
   }()
   
-  private let resignButton = {
-    let button = TextButton(text: "회원탈퇴",
-                            size: .small,
-                            type: .gray)
-    
-    return button
-  }()
-  
-  private let changedPasswordToastView = ToastView(
-    tipPosition: .none,
-    text: "비밀번호 변경이 완료됐어요",
-    icon: .bulbWhite
-  )
+  private let resignButton = TextButton(text: "회원탈퇴", size: .small, type: .gray)
   
   // MARK: - Initializers
   init(viewModel: ProfileEditViewModel) {
@@ -81,10 +69,6 @@ final class ProfileEditViewController: UIViewController {
     menuTableView.rx.setDataSource(self).disposed(by: disposeBag)
     setupUI()
     bind()
-  }
-  
-  func displayToastView() {
-    changedPasswordToastView.present(to: self)
   }
 }
 
@@ -128,11 +112,6 @@ private extension ProfileEditViewController {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
       $0.trailing.equalToSuperview().offset(-14)
     }
-    
-    changedPasswordToastView.setConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-64)
-    }
   }
 }
 
@@ -141,7 +120,7 @@ private extension ProfileEditViewController {
   func bind() {
     let input = ProfileEditViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapCell: menuTableView.rx.itemSelected,
+      didTapCell: menuTableView.rx.itemSelected.map { $0.row }.asDriver(onErrorJustReturn: 0),
       didTapResignButton: resignButton.rx.tap,
       isVisible: self.rx.isVisible
     )
@@ -157,6 +136,23 @@ private extension ProfileEditViewController {
         onwer.userInfo = [userInfo.userName, userInfo.userEmail]
       }
       .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - ProfileEditPresentable
+extension ProfileEditViewController: ProfileEditPresentable {
+  func displayToastView() {
+    let changedPasswordToastView = ToastView(
+      tipPosition: .none,
+      text: "비밀번호 변경이 완료됐어요",
+      icon: .bulbWhite
+    )
+    changedPasswordToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
+    
+    changedPasswordToastView.present(to: self)
   }
 }
 
