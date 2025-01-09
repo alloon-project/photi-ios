@@ -6,31 +6,26 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol NoneMemberHomeViewModelable: AnyObject { }
 
 protocol NoneMemberHomeListener: AnyObject {
   func didTapLogInButtonAtNoneMemberHome()
 }
 
-final class NoneMemberHomeCoordinator: Coordinator {
+protocol NoneMemberHomePresentable: AnyObject { }
+
+final class NoneMemberHomeCoordinator: ViewableCoordinator<NoneMemberHomePresentable> {
   weak var listener: NoneMemberHomeListener?
-  
-  private let viewController: NoneMemberHomeViewController
+
   private let viewModel: NoneMemberHomeViewModel
   
-  init(viewModel: NoneMemberHomeViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: NoneMemberHomeViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = NoneMemberHomeViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
   }
 }
 
