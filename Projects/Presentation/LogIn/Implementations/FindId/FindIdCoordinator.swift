@@ -6,36 +6,28 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import LogIn
-
-protocol FindIdViewModelable {
-  // Coordinator에서 ViewModel로 전달할 이벤트입니다.
-}
 
 protocol FindIdListener: AnyObject {
   func didTapBackButtonAtFindId()
   func didFinishAtFindId()
 }
 
-final class FindIdCoordinator: Coordinator, FindIdCoordinatable {
+protocol FindIdPresentable { }
+
+final class FindIdCoordinator: ViewableCoordinator<FindIdPresentable>, FindIdCoordinatable {
   weak var listener: FindIdListener?
   
-  private let viewController: FindIdViewController
   private let viewModel: any FindIdViewModelType
   
-  init(viewModel: FindIdViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: FindIdViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = FindIdViewController(viewModel: viewModel)
-    
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
   }
   
   func isRequestSucceed() {

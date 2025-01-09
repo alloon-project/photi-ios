@@ -8,18 +8,20 @@
 
 import Core
 
-protocol FindIdDependency: Dependency { 
-  // 부모에게 요구하는 의존성들을 정의합니다. ex) FindIdUseCase
-}
+protocol FindIdDependency: Dependency { }
 
 protocol FindIdContainable: Containable {
-  func coordinator(listener: FindIdListener) -> Coordinating
+  func coordinator(listener: FindIdListener) -> ViewableCoordinating
 }
 
 final class FindIdContainer: Container<FindIdDependency>, FindIdContainable {
-  func coordinator(listener: FindIdListener) -> Coordinating {
+  func coordinator(listener: FindIdListener) -> ViewableCoordinating {
     let viewModel = FindIdViewModel()
-    let coordinator = FindIdCoordinator(viewModel: viewModel)
+    let viewControllerable = FindIdViewController(viewModel: viewModel)
+    let coordinator = FindIdCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     return coordinator
   }

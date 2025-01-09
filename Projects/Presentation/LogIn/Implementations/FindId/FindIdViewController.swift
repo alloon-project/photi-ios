@@ -10,9 +10,10 @@ import UIKit
 import RxSwift
 import RxRelay
 import SnapKit
+import Core
 import DesignSystem
 
-final class FindIdViewController: UIViewController {
+final class FindIdViewController: UIViewController, ViewControllable {
   private let disposeBag = DisposeBag()
   private let alertRelay = PublishRelay<Void>()
   private let viewModel: FindIdViewModel
@@ -32,6 +33,7 @@ final class FindIdViewController: UIViewController {
     return label
   }()
   
+  // TODO: - icon 변경
   private let emailTextField: LineTextField = {
     let textField = LineTextField(placeholder: "이메일", type: .helper)
     textField.commentViews = [.init(.warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!)]
@@ -143,3 +145,6 @@ private extension FindIdViewController {
       }.disposed(by: disposeBag)
   }
 }
+
+// MARK: - FindIdPresentable
+extension FindIdViewController: FindIdPresentable { }

@@ -8,15 +8,13 @@
 
 import RxCocoa
 import RxSwift
-import DesignSystem
 
 protocol FindIdCoordinatable: AnyObject {
-  // viewModel에서 coordinator로 전달할 이벤트들을 정의합니다.
   func isRequestSucceed()
   func didTapBackButton()
 }
 
-protocol FindIdViewModelType: AnyObject, FindIdViewModelable {
+protocol FindIdViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
@@ -78,9 +76,11 @@ final class FindIdViewModel: FindIdViewModelType {
         onwer.coordinator?.isRequestSucceed()
       }.disposed(by: disposeBag)
     // Output 반환
-    return Output(isValidateEmail: isValidateEmail,
-                  isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-                  didSendInformation: source) // TODO: 서버 연결 후 수정
+    return Output(
+      isValidateEmail: isValidateEmail,
+      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
+      didSendInformation: source
+    ) // TODO: 서버 연결 후 수정
   }
 }
 
