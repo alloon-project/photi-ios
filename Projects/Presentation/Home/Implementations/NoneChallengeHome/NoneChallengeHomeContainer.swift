@@ -14,15 +14,20 @@ protocol NoneChallengeHomeDependency: Dependency {
 }
 
 protocol NoneChallengeHomeContainable: Containable {
-  func coordinator(listener: NoneChallengeHomeListener) -> Coordinating
+  func coordinator(listener: NoneChallengeHomeListener) -> ViewableCoordinating
 }
 
 final class NoneChallengeHomeContainer:
   Container<NoneChallengeHomeDependency>,
   NoneChallengeHomeContainable {
-  func coordinator(listener: NoneChallengeHomeListener) -> Coordinating {
+  func coordinator(listener: NoneChallengeHomeListener) -> ViewableCoordinating {
     let viewModel = NoneChallengeHomeViewModel(useCase: dependency.homeUseCase)
-    let coordinator = NoneChallengeHomeCoordinator(viewModel: viewModel)
+    let viewControllerable = NoneChallengeHomeViewController(viewModel: viewModel)
+    
+    let coordinator = NoneChallengeHomeCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     
     return coordinator

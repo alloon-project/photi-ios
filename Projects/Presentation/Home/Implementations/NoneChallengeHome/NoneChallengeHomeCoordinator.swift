@@ -6,29 +6,24 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol NoneChallengeHomeViewModelable: AnyObject { }
 
 protocol NoneChallengeHomeListener: AnyObject { }
 
-final class NoneChallengeHomeCoordinator: Coordinator {
+protocol NoneChallengeHomePresentable { }
+
+final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomePresentable> {
   weak var listener: NoneChallengeHomeListener?
-  
-  private let viewController: NoneChallengeHomeViewController
+
   private let viewModel: NoneChallengeHomeViewModel
   
-  init(viewModel: NoneChallengeHomeViewModel) {
+  init(
+    viewControllerable: ViewControllable,
+    viewModel: NoneChallengeHomeViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = NoneChallengeHomeViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
   }
 }
 
