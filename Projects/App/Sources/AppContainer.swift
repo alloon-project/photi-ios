@@ -68,6 +68,10 @@ final class AppContainer:
     return LogInUseCaseImpl(repository: logInRepository)
   }()
   
+  lazy var findIdUseCase: FindIdUseCase = {
+    return FindIdUseCaseImpl(repository: findIdRepository)
+  }()
+  
   lazy var findPasswordUseCase: FindPasswordUseCase = {
     return FindPasswordUseCaseImpl(repository: findPasswordRepository)
   }()
@@ -98,6 +102,10 @@ final class AppContainer:
   // MARK: - Repository
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
+  }()
+  
+  lazy var findIdRepository: FindIdRepository = {
+    return FindIdRepositoryImpl(dataMapper: FindIdDataMapperImpl())
   }()
   
   lazy var findPasswordRepository: FindPasswordRepository = {

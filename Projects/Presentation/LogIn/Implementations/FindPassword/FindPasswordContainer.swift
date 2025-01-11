@@ -27,7 +27,7 @@ final class FindPasswordContainer:
   var loginUseCase: LogInUseCase { dependency.loginUseCase }
   
   func coordinator(listener: FindPasswordListener) -> Coordinating {
-    let viewModel = FindPasswordViewModel(useCase: dependency.findPasswordUseCase)
+    let viewModel = FindPasswordViewModel(useCase: findPasswordUseCase)
     let tempPasswordContainable = TempPasswordContainer(dependency: self)
     let newPasswordContainable = NewPasswordContainer(dependency: self)
     

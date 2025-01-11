@@ -72,32 +72,16 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       }
       .disposed(by: disposeBag)
     
-    let isDifferentPassword = Observable.combineLatest(
-      input.currentPassword, input.newPassword
-    ) { $0 != $1 }
-    
-    let containAlphabet = input.newPassword
-      .map { $0.contain("[a-zA-Z]") }
-    
-    let containNumber = input.newPassword
-      .map { $0.contain("[0-9]") }
-    
-    let containSpecial = input.newPassword
-      .map { $0.contain("[^a-zA-Z0-9]") }
-    
-    let isValidRange = input.newPassword
-      .map { $0.count >= 8 && $0.count <= 30 }
-    
-    let isValidPassword = Observable.combineLatest(
-      containAlphabet, containNumber, containSpecial, isValidRange, isDifferentPassword
-    ) { $0 && $1 && $2 && $3 && $4 }
-    
-    let correspondPassword = Observable.combineLatest(
-      input.newPassword, input.reEnteredPassword
-    ) { $0 == $1 }
+    // 비밀번호 검증 로직을 하나의 메소드로 추출
+    let passwordValidation = validatePassword(
+      input.newPassword,
+      input.currentPassword,
+      input.reEnteredPassword
+    )
     
     let isEnabledNextButton = Observable.combineLatest(
-      isValidPassword, correspondPassword
+      passwordValidation.isValidPassword,
+      passwordValidation.correspondPassword
     ) { $0 && $1 }
     
     input.didTapChangePasswordButton
@@ -114,14 +98,14 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
         )
       }
       .disposed(by: disposeBag)
-        
+    
     return Output(
-      containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
-      containNumber: containNumber.asDriver(onErrorJustReturn: false),
-      containSpecial: containSpecial.asDriver(onErrorJustReturn: false),
-      isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
-      isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false),
-      correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
+      containAlphabet: passwordValidation.containAlphabet.asDriver(onErrorJustReturn: false),
+      containNumber: passwordValidation.containNumber.asDriver(onErrorJustReturn: false),
+      containSpecial: passwordValidation.containSpecial.asDriver(onErrorJustReturn: false),
+      isValidRange: passwordValidation.isValidRange.asDriver(onErrorJustReturn: false),
+      isValidPassword: passwordValidation.isValidPassword.asDriver(onErrorJustReturn: false),
+      correspondPassword: passwordValidation.correspondPassword.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
       unMatchedCurrentPassword: unMatchedCurrentPasswordRelay.asSignal(),
       tokenUnauthorized: tokenUnauthorizedRelay.asSignal(),
@@ -130,8 +114,48 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   }
 }
 
-// MARK: - Private
+// MARK: - Private Methods
 private extension ChangePasswordViewModel {
+  func validatePassword(
+    _ newPassword: ControlProperty<String>,
+    _ currentPassword: ControlProperty<String>,
+    _ reEnteredPassword: ControlProperty<String>
+  ) -> (
+    containAlphabet: Observable<Bool>,
+    containNumber: Observable<Bool>,
+    containSpecial: Observable<Bool>,
+    isValidRange: Observable<Bool>,
+    isValidPassword: Observable<Bool>,
+    correspondPassword: Observable<Bool>
+  ) {
+      
+      let isDifferentPassword = Observable.combineLatest(currentPassword, newPassword) { $0 != $1 }
+
+      let containAlphabet = newPassword.map { $0.contain("[a-zA-Z]") }
+      let containNumber = newPassword.map { $0.contain("[0-9]") }
+      let containSpecial = newPassword.map { $0.contain("[^a-zA-Z0-9]") }
+      let isValidRange = newPassword.map { $0.count >= 8 && $0.count <= 30 }
+      
+      let isValidPassword = Observable.combineLatest(
+          containAlphabet,
+          containNumber,
+          containSpecial,
+          isValidRange,
+          isDifferentPassword
+      ) { $0 && $1 && $2 && $3 && $4 }
+
+      let correspondPassword = Observable.combineLatest(newPassword, reEnteredPassword) { $0 == $1 }
+      
+      return (
+        containAlphabet,
+        containNumber,
+        containSpecial,
+        isValidRange,
+        isValidPassword,
+        correspondPassword
+      )
+  }
+  
   func changePassword(
     password: String,
     newPassword: String,
