@@ -13,6 +13,7 @@ import UseCase
 public protocol LogInDependency: Dependency {
   var signUpContainable: SignUpContainable { get }
   var logInUseCase: LogInUseCase { get }
+  var findIdUseCase: FindIdUseCase { get }
   var findPasswordUseCase: FindPasswordUseCase { get }
 }
 
@@ -22,6 +23,7 @@ public final class LogInContainer:
   FindIdDependency,
   FindPasswordDependency {
   var loginUseCase: LogInUseCase { dependency.logInUseCase }
+  var findIdUseCase: FindIdUseCase { dependency.findIdUseCase }
   var findPasswordUseCase: FindPasswordUseCase { dependency.findPasswordUseCase }
 
   public func coordinator(listener: LogInListener) -> Coordinating {

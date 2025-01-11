@@ -34,11 +34,28 @@ final class FindIdViewController: UIViewController {
   
   private let emailTextField: LineTextField = {
     let textField = LineTextField(placeholder: "이메일", type: .helper)
-    textField.commentViews = [.init(.warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!)]
     textField.setKeyboardType(.emailAddress)
     return textField
   }()
+  
+  private let invalidEmail = CommentView(
+    .warning,
+    text: "이메일 형태가 올바르지 않아요",
+    icon: .closeRed
+  )
+  private let isWrongEmail = CommentView(
+    .warning,
+    text: "가입되지 않은 이메일이에요",
+    icon: .closeRed
+  )
+  
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
+  
+  private let alertVC = AlertViewController(
+    alertType: .confirm,
+    title: "이메일로 회원정보를 보내드렸어요",
+    subTitle: "다시 로그인해주세요"
+  )
   
   // MARK: - Initiazliers
   init(viewModel: FindIdViewModel) {
@@ -94,12 +111,14 @@ private extension FindIdViewController {
     }
     
     emailTextField.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(announceLabel.snp.bottom).offset(20)
     }
     
     nextButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().offset(-24)
       $0.bottom.equalToSuperview().offset(-56)
     }
   }
@@ -120,10 +139,10 @@ private extension FindIdViewController {
     let output = viewModel.transform(input: input)
     
     output.isValidateEmail
-      .asObservable()
-      .bind(with: self) { owner, isValidate in
+      .emit(with: self) { owner, isValidate in
         if !isValidate {
           owner.emailTextField.mode = .error
+          owner.emailTextField.commentViews = [owner.invalidEmail]
           owner.emailTextField.commentViews.forEach { $0.isActivate = true }
           owner.nextButton.isEnabled = false
         } else {
@@ -133,13 +152,28 @@ private extension FindIdViewController {
         }
       }.disposed(by: disposeBag)
     
-    output.didSendInformation
-      .asObservable()
-      .bind(with: self) { owner, _ in
-        let alertVC = AlertViewController(alertType: .confirm, title: "이메일로 회원정보를 보내드렸어요", subTitle: "다시 로그인해주세요")
-        alertVC.present(to: owner, animted: false) {
-          owner.alertRelay.accept(())
-        }
+    output.wrongEmail
+      .emit(with: self) { owner, _ in
+        owner.emailTextField.mode = .error
+        owner.emailTextField.commentViews = [owner.isWrongEmail]
+        owner.emailTextField.commentViews.forEach { $0.isActivate = true }
+        owner.nextButton.isEnabled = false
+      }.disposed(by: disposeBag)
+    
+    output.checkEmailSucceed
+      .emit(with: self) { owner, _ in
+        owner.alertVC.present(to: owner, animted: false)
+      }.disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
+    
+    alertVC.rx.isDismissing
+      .bind(with: self) { owner, isDismissed in
+        owner.alertRelay.accept(())
       }.disposed(by: disposeBag)
   }
 }
