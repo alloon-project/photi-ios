@@ -87,9 +87,13 @@ final class FindIdViewModel: FindIdViewModelType {
         owner.coordinator?.isRequestSucceed()
       }.disposed(by: disposeBag)
     // Output 반환
-    return Output(isValidateEmail: isValidateEmail,
-                  isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-                  didSendInformation: source) // TODO: 서버 연결 후 수정
+    return Output(
+      isValidateEmail: isValidateEmail,
+      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
+      checkEmailSucceed: checkedEmailRelay.asSignal(),
+      wrongEmail: wrongEmailRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
+    ) // TODO: 서버 연결 후 수정
   }
 }
 

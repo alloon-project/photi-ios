@@ -293,7 +293,6 @@ private extension ChangePasswordViewController {
     
     output.isValidPassword
       .filter { $0 == false }
-      .map { _ in "" }
       .drive(with: self) { owner, _ in
         owner.newPasswordCheckTextField.text = ""
         owner.correnspondPasswordCommentView.isActivate = false
