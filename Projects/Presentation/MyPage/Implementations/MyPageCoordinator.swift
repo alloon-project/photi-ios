@@ -6,28 +6,27 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import MyPage
 
-protocol MyPageViewModelable { }
+protocol MyPagePresentable { }
 
-final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
+final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   weak var listener: MyPageListener?
-  
-  private let viewController: MyPageViewController
+
   private let viewModel: MyPageViewModel
   
   private let settingContainable: SettingContainable
-  private var settingCoordinator: Coordinating?
+  private var settingCoordinator: ViewableCoordinating?
   
   private let endedChallengeContainable: EndedChallengeContainable
-  private var endedChallengeCoordinator: Coordinating?
+  private var endedChallengeCoordinator: ViewableCoordinating?
   
   private let proofChallengeContainable: ProofChallengeContainable
-  private var proofChallengeCoordinator: Coordinating?
+  private var proofChallengeCoordinator: ViewableCoordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,
@@ -39,69 +38,63 @@ final class MyPageCoordinator: Coordinator, MyPageCoordinatable {
     self.endedChallengeContainable = endedChallengeContainable
     self.proofChallengeContainable = proofChallengeContainable
     
-    self.viewController = MyPageViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.setNavigationBarHidden(true, animated: false)
-    navigationController?.pushViewController(viewController, animated: true)
-  }
-  
+}
+
+extension MyPageCoordinator: MyPageCoordinatable {
   func attachSetting() {
     guard settingCoordinator == nil else { return }
     
-    let coordinater = settingContainable.coordinator(listener: self)
-    addChild(coordinater)
+    let coordinator = settingContainable.coordinator(listener: self)
+    addChild(coordinator)
     
-    self.settingCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.settingCoordinator = coordinator
   }
   
   func detachSetting() {
     guard let coordinator = settingCoordinator else { return }
     
     removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.settingCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   func attachProofChallenge() {
     guard proofChallengeCoordinator == nil else { return }
     
-    let coordinater = proofChallengeContainable.coordinator(listener: self)
-    addChild(coordinater)
-    
-    self.proofChallengeCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    let coordinator = proofChallengeContainable.coordinator(listener: self)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+
+    self.proofChallengeCoordinator = coordinator
   }
   
   func detachProofChallenge() {
     guard let coordinator = proofChallengeCoordinator else { return }
     
     removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.proofChallengeCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   func attachEndedChallenge() {
     guard endedChallengeCoordinator == nil else { return }
     
-    let coordinater = endedChallengeContainable.coordinator(listener: self)
-    addChild(coordinater)
-    
-    self.endedChallengeCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    let coordinator = endedChallengeContainable.coordinator(listener: self)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.endedChallengeCoordinator = coordinator
   }
   
   func detachEndedChallenge() {
     guard let coordinator = endedChallengeCoordinator else { return }
     
     removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.endedChallengeCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
 }
 

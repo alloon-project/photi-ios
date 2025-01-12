@@ -13,7 +13,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class NoneChallengeHomeViewController: UIViewController {
+final class NoneChallengeHomeViewController: UIViewController, ViewControllerable {
   enum Constants {
     static let itemSize = 160.0
     static let groupSpacing = 10.0
@@ -118,6 +118,7 @@ final class NoneChallengeHomeViewController: UIViewController {
 // MARK: - UI Methods
 private extension NoneChallengeHomeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
     
@@ -191,6 +192,9 @@ private extension NoneChallengeHomeViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - NoneChallengeHomePresentable
+extension NoneChallengeHomeViewController: NoneChallengeHomePresentable { }
 
 // MARK: - UICollectionViewDataSource
 extension NoneChallengeHomeViewController: UICollectionViewDataSource {

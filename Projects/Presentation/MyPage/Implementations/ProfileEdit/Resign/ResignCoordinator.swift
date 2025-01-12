@@ -6,35 +6,28 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol ResignViewModelable: AnyObject { }
-
-public protocol ResignListener: AnyObject {
+protocol ResignListener: AnyObject {
   func didTapBackButtonAtResign()
   func didTapCancelButtonAtResign()
 }
 
-final class ResignCoordinator: Coordinator {
+protocol ResignPresentable { }
+
+final class ResignCoordinator: ViewableCoordinator<ResignPresentable> {
   weak var listener: ResignListener?
-  
-  private let viewController: ResignViewController
+
   private let viewModel: ResignViewModel
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: ResignViewModel
   ) {
     self.viewModel = viewModel
-    self.viewController = ResignViewController(viewModel: viewModel)
     
-    super.init()
+    super.init(viewControllerable)
     viewModel.coodinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
 }
 

@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FindPasswordViewController: UIViewController {
+final class FindPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: FindPasswordViewModel
   
@@ -234,6 +234,9 @@ private extension FindPasswordViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - FindPasswordPresentable
+extension FindPasswordViewController: FindPasswordPresentable { }
 
 // MARK: - Private Methods
 private extension FindPasswordViewController {

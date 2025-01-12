@@ -11,7 +11,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class AppViewController: UITabBarController {
+final class AppViewController: UITabBarController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -27,15 +27,19 @@ final class AppViewController: UITabBarController {
     tabBar.itemWidth = 46
     tabBar.itemSpacing = 67
   }
-  
-  // MARK: - attachNavigationControllers
-  func attachNavigationControllers(_ navigationControllers: UINavigationController ...) {
-    navigationControllers.forEach {
-      $0.interactivePopGestureRecognizer?.isEnabled = false
-    }
+}
 
-    navigationControllers.forEach { $0.isNavigationBarHidden = true }
-    setViewControllers(navigationControllers, animated: false)
+// MARK: - AppPresentable
+extension AppViewController: AppPresentable {
+  func attachNavigationControllers(_ navigationControllers: NavigationControllerable...) {
+    let navigations = navigationControllers.map(\.navigationController)
+    
+    navigations.forEach {
+      $0.interactivePopGestureRecognizer?.isEnabled = false
+      $0.isNavigationBarHidden = true
+    }
+  
+    setViewControllers(navigations, animated: false)
     setTapBarItems()
   }
 }

@@ -22,7 +22,7 @@ protocol LogInCoordinatable: AnyObject {
   func didTapBackButton()
 }
 
-protocol LogInViewModelType: LogInViewModelable {
+protocol LogInViewModelType {
   associatedtype Input
   associatedtype Output
   

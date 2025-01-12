@@ -6,33 +6,31 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import LogIn
 
-protocol FindPasswordViewModelable { }
-
-// 부모 Coordinator에게 알리고 싶을 때 사용합니다.
 protocol FindPasswordListener: AnyObject {
   func didTapBackButtonAtFindPassword()
   func didFinishFindPassword()
 }
 
-final class FindPasswordCoordinator: Coordinator, FindPasswordCoordinatable {
+protocol FindPasswordPresentable { }
+
+final class FindPasswordCoordinator: ViewableCoordinator<FindPasswordPresentable>, FindPasswordCoordinatable {
   weak var listener: FindPasswordListener?
-  
-  private let viewController: FindPasswordViewController
+
   private let viewModel: any FindPasswordViewModelType
   
   // MARK: - Temp Password
   private let tempPasswordContainable: TempPasswordContainable
-  private var tempPasswordCoordinator: Coordinating?
+  private var tempPasswordCoordinator: ViewableCoordinating?
   
   // MARK: - New Password
   private let newPasswordContainable: NewPasswordContainable
-  private var newPasswordCoordinator: Coordinating?
+  private var newPasswordCoordinator: ViewableCoordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: FindPasswordViewModel,
     tempPasswordContainable: TempPasswordContainable,
     newPasswordContainable: NewPasswordContainable
@@ -40,21 +38,9 @@ final class FindPasswordCoordinator: Coordinator, FindPasswordCoordinatable {
     self.viewModel = viewModel
     self.tempPasswordContainable = tempPasswordContainable
     self.newPasswordContainable = newPasswordContainable
-    self.viewController = FindPasswordViewController(viewModel: viewModel)
     
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
-  }
-  
-  override func stop() {
-    super.stop()
-    detachNewPassword(animated: false)
-    detachTempPassword(animated: false)
   }
   
   // MARK: - Temp Password
@@ -67,16 +53,15 @@ final class FindPasswordCoordinator: Coordinator, FindPasswordCoordinatable {
       userName: userName
     )
     addChild(coordinater)
-    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.tempPasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
-  func detachTempPassword(animated: Bool) {
+  func detachTempPassword() {
     guard let coordinater = tempPasswordCoordinator else { return }
     
     self.tempPasswordCoordinator = nil
-    navigationController?.popViewController(animated: animated)
+    viewControllerable.popViewController(animated: true)
     removeChild(coordinater)
   }
   
@@ -86,16 +71,15 @@ final class FindPasswordCoordinator: Coordinator, FindPasswordCoordinatable {
     
     let coordinater = newPasswordContainable.coordinator(listener: self)
     addChild(coordinater)
-    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.newPasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
-  func detachNewPassword(animated: Bool) {
+  func detachNewPassword() {
     guard let coordinater = newPasswordCoordinator else { return }
     
     self.newPasswordCoordinator = nil
-    navigationController?.popViewController(animated: animated)
+    viewControllerable.popViewController(animated: true)
     removeChild(coordinater)
   }
   
@@ -110,13 +94,13 @@ extension FindPasswordCoordinator: TempPasswordListener {
   }
   
   func didTapBackButtonAtTempPassword() {
-    detachTempPassword(animated: true)
+    detachTempPassword()
   }
 }
 
 extension FindPasswordCoordinator: NewPasswordListener {
   func didTapBackButtonAtNewPassword() {
-    detachNewPassword(animated: true)
+    detachNewPassword()
   }
   
   func didFinishFindPassword() {

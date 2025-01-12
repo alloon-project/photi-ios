@@ -16,7 +16,7 @@ protocol EnterEmailCoordinatable: AnyObject {
   func didTapBackButton()
 }
 
-protocol EnterEmailViewModelType: AnyObject, EnterEmailViewModelable {
+protocol EnterEmailViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

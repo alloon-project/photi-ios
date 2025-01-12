@@ -21,7 +21,7 @@ protocol NoneChallengeHomeViewModelType: AnyObject {
   var coordinator: NoneChallengeHomeCoordinatable? { get set }
 }
 
-final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType, NoneChallengeHomeViewModelable {
+final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   private let useCase: HomeUseCase
   let disposeBag = DisposeBag()
   

@@ -31,13 +31,16 @@ public final class MyPageContainer:
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase}
   
-  public func coordinator(listener: MyPageListener) -> Coordinating {
+  public func coordinator(listener: MyPageListener) -> ViewableCoordinating {
     let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
+    let viewControllerable = MyPageViewController(viewModel: viewModel)
+    
     let settingContainable = SettingContainer(dependency: self)
     let endedChallengeContainable = EndedChallengeContainer(dependency: self)
     let proofChallengeContainable = ProofChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel,
       settingContainable: settingContainable,
       endedChallengeContainable: endedChallengeContainable,

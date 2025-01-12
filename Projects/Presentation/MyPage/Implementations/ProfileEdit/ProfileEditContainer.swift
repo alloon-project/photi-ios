@@ -9,13 +9,13 @@
 import Core
 import UseCase
 
-protocol ProfileEditContainable: Containable {
-  func coordinator(listener: ProfileEditListener) -> Coordinating
-}
-
 protocol ProfileEditDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
+}
+
+protocol ProfileEditContainable: Containable {
+  func coordinator(listener: ProfileEditListener) -> ViewableCoordinating
 }
 
 final class ProfileEditContainer:
@@ -23,15 +23,17 @@ final class ProfileEditContainer:
   ProfileEditContainable,
   ChangePasswordDependency,
   ResignDependency {
-  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase}
-  var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
+  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   
-  public func coordinator(listener: ProfileEditListener) -> Coordinating {
+  func coordinator(listener: ProfileEditListener) -> ViewableCoordinating {
+    let viewModel = ProfileEditViewModel(useCase: dependency.profileEditUseCase)
+    let viewControllerable = ProfileEditViewController(viewModel: viewModel)
+    
     let changePassword = ChangePasswordContainer(dependency: self)
     let resign = ResignContainer(dependency: self)
-    let viewModel = ProfileEditViewModel(useCase: dependency.profileEditUseCase)
     
     let coordinator = ProfileEditCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel,
       changePasswordContainable: changePassword, 
       resignContainable: resign

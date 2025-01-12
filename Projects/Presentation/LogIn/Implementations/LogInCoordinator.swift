@@ -6,28 +6,27 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import LogIn
 
-protocol LogInViewModelable { }
+protocol LogInPresentable { }
 
-final class LogInCoordinator: Coordinator {
+final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   weak var listener: LogInListener?
-  
-  private let viewController: LogInViewController
   private let viewModel: any LogInViewModelType
+  private var signUpNavigationControllerable: NavigationControllerable?
   
   private let signUpContainable: SignUpContainable
   private var signUpCoordinator: Coordinating?
   
   private let findIdContainable: FindIdContainable
-  private var findIdCoordinator: Coordinating?
+  private var findIdCoordinator: ViewableCoordinating?
   
   private let findPasswordContainable: FindPasswordContainable
-  private var findPasswordCoordinator: Coordinating?
+  private var findPasswordCoordinator: ViewableCoordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,
@@ -38,32 +37,31 @@ final class LogInCoordinator: Coordinator {
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
     
-    self.viewController = LogInViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    
-    navigationController?.pushViewController(viewController, animated: true)
   }
   
   // MARK: - SignUp
   func attachSignUp() {
     guard signUpCoordinator == nil else { return }
 
-    let coordinater = signUpContainable.coordinator(listener: self)
+    let navigation = NavigationControllerable()
+    let coordinater = signUpContainable.coordinator(navigationControllerable: navigation, listener: self)
+    viewControllerable.present(
+      navigation,
+      animated: true,
+      modalPresentationStyle: .overFullScreen
+    )
     addChild(coordinater)
-    
+    self.signUpNavigationControllerable = navigation
     self.signUpCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachSignUp() {
     guard let coordinater = signUpCoordinator else { return }
-    
+    signUpNavigationControllerable?.dismiss()
     removeChild(coordinater)
+    self.signUpNavigationControllerable = nil
     self.signUpCoordinator = nil
   }
   
@@ -73,17 +71,16 @@ final class LogInCoordinator: Coordinator {
     
     let coordinater = findIdContainable.coordinator(listener: self)
     addChild(coordinater)
-    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.findIdCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachFindId() { 
     guard let coordinater = findIdCoordinator else { return }
     
     removeChild(coordinater)
+    viewControllerable.popViewController(animated: true)
     self.findIdCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   // MARK: - FindPassword
@@ -92,17 +89,17 @@ final class LogInCoordinator: Coordinator {
     
     let coordinater = findPasswordContainable.coordinator(listener: self)
     addChild(coordinater)
-    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+
     self.findPasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachFindPassword() { 
     guard let coordinater = findPasswordCoordinator else { return }
     
     removeChild(coordinater)
+    viewControllerable.popViewController(animated: true)
     self.findPasswordCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
 }
 

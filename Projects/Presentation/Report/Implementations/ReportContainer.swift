@@ -12,9 +12,14 @@ import Report
 public protocol ReportDependency: Dependency { }
 
 public final class ReportContainer: Container<ReportDependency>, ReportContainable {
-  public func coordinator(listener: ReportListener, reportType: ReportType) -> Coordinating {
+  public func coordinator(listener: ReportListener, reportType: ReportType) -> ViewableCoordinating {
     let viewModel = ReportViewModel()
-    let coordinator = ReportCoordinator(viewModel: viewModel, reportType: reportType)
+    let viewControllerable = ReportViewController(viewModel: viewModel, reportType: reportType)
+    
+    let coordinator = ReportCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     return coordinator
   }

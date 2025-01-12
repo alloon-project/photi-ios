@@ -22,7 +22,7 @@ protocol SettingCoordinatable: AnyObject {
   func detachPrivacy()
 }
 
-protocol SettingViewModelType: AnyObject, SettingViewModelable {
+protocol SettingViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

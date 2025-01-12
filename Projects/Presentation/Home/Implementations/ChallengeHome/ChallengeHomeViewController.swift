@@ -1,19 +1,18 @@
 //
-//  HomeViewController.swift
+//  ChallengeHomeViewController.swift
 //  HomeImpl
 //
-//  Created by jung on 6/29/24.
-//  Copyright © 2024 com.alloon. All rights reserved.
+//  Created by jung on 1/7/25.
+//  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import AVFoundation
 import UIKit
 import RxSwift
 import SnapKit
 import DesignSystem
 import Core
 
-final class HomeViewController: UIViewController, CameraRequestable {
+final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllerable {
   enum Constants {
     static let itemWidth: CGFloat = 288
     static let groupSpacing: CGFloat = 16
@@ -21,7 +20,7 @@ final class HomeViewController: UIViewController, CameraRequestable {
   
   // MARK: - Properties
   private let disposeBag = DisposeBag()
-  private let viewModel: HomeViewModel
+  private let viewModel: ChallengeHomeViewModel
   
   private var dataSources: [ProofChallengePresentationModel] = []
   private var myChallengeDataSources: [MyChallengePresentationModel] = []
@@ -54,7 +53,7 @@ final class HomeViewController: UIViewController, CameraRequestable {
   private let bottomView = HomeBottomView()
   
   // MARK: - Initializers
-  init(viewModel: HomeViewModel) {
+  init(viewModel: ChallengeHomeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -76,7 +75,7 @@ final class HomeViewController: UIViewController, CameraRequestable {
 }
 
 // MARK: - UI Methods
-private extension HomeViewController {
+private extension ChallengeHomeViewController {
   func setupUI() {
     scrollView.showsVerticalScrollIndicator = false
     setViewHierarchy()
@@ -125,7 +124,7 @@ private extension HomeViewController {
 }
 
 // MARK: - Bind Methods
-private extension HomeViewController {
+private extension ChallengeHomeViewController {
   func bind(for cell: ProofChallengeCell) {
     guard let model = cell.model else { return }
     
@@ -140,8 +139,11 @@ private extension HomeViewController {
   }
 }
 
+// MARK: - ChallengeHomePresentable
+extension ChallengeHomeViewController: ChallengeHomePresentable { }
+
 // MARK: - UICollectionViewDataSource
-extension HomeViewController: UICollectionViewDataSource {
+extension ChallengeHomeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return dataSources.count
   }
@@ -157,7 +159,7 @@ extension HomeViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UIImagePickerControllerDelegate, UINavigationControllerDelegate
-extension HomeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+extension ChallengeHomeViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
   func imagePickerController(
     _ picker: UIImagePickerController,
     didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
@@ -175,7 +177,7 @@ extension HomeViewController: UIImagePickerControllerDelegate, UINavigationContr
 }
 
 // MARK: - Upload
-extension HomeViewController: UploadPhotoPopOverDelegate {
+extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
     // TODO: 서버로 전송
     print(image.size)
@@ -183,7 +185,7 @@ extension HomeViewController: UploadPhotoPopOverDelegate {
 }
 
 // MARK: - Private Methods
-private extension HomeViewController {
+private extension ChallengeHomeViewController {
   func compositionalLayout() -> UICollectionViewCompositionalLayout {
     return .init { _, _ in
       let itemSize = NSCollectionLayoutSize(

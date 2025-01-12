@@ -17,7 +17,7 @@ protocol FindPasswordCoordinatable: AnyObject {
   func attachTempPassword(userEmail: String, userName: String)
 }
 
-protocol FindPasswordViewModelType: FindPasswordViewModelable {
+protocol FindPasswordViewModelType {
   associatedtype Input
   associatedtype Output
   

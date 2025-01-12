@@ -14,7 +14,7 @@ import Core
 import DesignSystem
 import Report
 
-final class ReportViewController: UIViewController {
+final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Refactoring
@@ -36,9 +36,7 @@ final class ReportViewController: UIViewController {
   }()
   
   private let detailLabel = UILabel()
-  
   private let detailContentTextView: LineTextView
-  
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers
@@ -152,6 +150,9 @@ private extension ReportViewController {
   
   func bind(output: ReportViewModel.Output) { }
 }
+
+// MARK: - ReportPresentable
+extension ReportViewController: ReportPresentable { }
 
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {

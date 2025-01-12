@@ -6,69 +6,65 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import Home
 import LogIn
 
-protocol HomeViewModelable { }
-
-final class HomeCoordinator: Coordinator, HomeCoordinatable {
+final class HomeCoordinator: Coordinator {
   weak var listener: HomeListener?
+  private let navigationControllerable: NavigationControllerable
   
-  private let viewController: HomeViewController
-  private let viewModel: HomeViewModel
-  
+  private let challengeHomeContainer: ChallengeHomeContainable
+  private var challengeHomeCoordinator: ViewableCoordinating?
+
   private let noneMemberHomeContainer: NoneMemberHomeContainable
-  private var noneMemberHomeCoordinator: Coordinating?
+  private var noneMemberHomeCoordinator: ViewableCoordinating?
   
   private let noneChallengeHomeContainer: NoneChallengeHomeContainable
-  private var noneChallengeHomeCoordinator: Coordinating?
+  private var noneChallengeHomeCoordinator: ViewableCoordinating?
   
   private let loginContainer: LogInContainable
-  private var loginCoordinator: Coordinating?
+  private var loginCoordinator: ViewableCoordinating?
   
   init(
-    viewModel: HomeViewModel,
+    navigationControllerable: NavigationControllerable,
     loginContainer: LogInContainable,
+    challengeHomeContainer: ChallengeHomeContainable,
     noneMemberHomeContainer: NoneMemberHomeContainable,
     noneChallengeHomeContainer: NoneChallengeHomeContainable
   ) {
-    self.viewModel = viewModel
+    self.navigationControllerable = navigationControllerable
     self.loginContainer = loginContainer
+    self.challengeHomeContainer = challengeHomeContainer
     self.noneMemberHomeContainer = noneMemberHomeContainer
     self.noneChallengeHomeContainer = noneChallengeHomeContainer
-    self.viewController = HomeViewController(viewModel: self.viewModel)
     super.init()
-    viewModel.coordinator = self
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: false)
-    // TODO: - TOKEN에 따라 이동할지 여부 로직 구현
+  override func start() {
+    // TODO: - Token에 따라 어떤 Home으로 갈지 로직 구현
     attachNoneMemberHome()
   }
 }
 
-// MARK: - NoneMemberHome
+// MARK: - ChallengeHome
 private extension HomeCoordinator {
-  func attachNoneMemberHome() {
-    guard noneMemberHomeCoordinator == nil else { return }
+  func attachChallengeHome() {
+    guard challengeHomeCoordinator == nil else { return }
     
-    let coordinator = noneMemberHomeContainer.coordinator(listener: self)
+    let coordinator = challengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
-    
-    self.noneMemberHomeCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
+    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+
+    self.noneChallengeHomeCoordinator = coordinator
   }
   
-  func detachNoneMemberHome() {
-    guard let coordinator = noneMemberHomeCoordinator else { return }
+  func detachChallengeHome() {
+    guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
-    self.noneMemberHomeCoordinator = nil
-    navigationController?.popViewController(animated: true)
+    navigationControllerable.popViewController(animated: false)
+    self.noneChallengeHomeCoordinator = nil
   }
 }
 
@@ -79,17 +75,38 @@ private extension HomeCoordinator {
     
     let coordinator = noneChallengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
-    
+    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+
     self.noneChallengeHomeCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
   }
   
   func detachNoneChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
+    coordinator.viewControllerable.dismiss()
     self.noneChallengeHomeCoordinator = nil
-    navigationController?.popViewController(animated: true)
+  }
+}
+
+// MARK: - NoneMemberHome
+private extension HomeCoordinator {
+  func attachNoneMemberHome() {
+    guard noneMemberHomeCoordinator == nil else { return }
+    let coordinator = noneMemberHomeContainer.coordinator(listener: self)
+    addChild(coordinator)
+    
+    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+
+    self.noneMemberHomeCoordinator = coordinator
+  }
+  
+  func detachNoneMemberHome() {
+    guard let coordinator = noneMemberHomeCoordinator else { return }
+    
+    removeChild(coordinator)
+    navigationControllerable.popViewController(animated: false)
+    self.noneMemberHomeCoordinator = nil
   }
 }
 
@@ -100,9 +117,9 @@ private extension HomeCoordinator {
     
     let coordinator = loginContainer.coordinator(listener: self)
     addChild(coordinator)
-    
+    navigationControllerable.navigationController.hideTabBar(animated: true)
+    navigationControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.loginCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
   }
   
   func detachLogIn() {
@@ -111,12 +128,15 @@ private extension HomeCoordinator {
     removeChild(coordinator)
     self.loginCoordinator = nil
     
-    viewController.showTabBar(animted: false)
-    navigationController?.popViewController(animated: true)
+    navigationControllerable.navigationController.showTabBar(animted: true)
+    navigationControllerable.popViewController(animated: true)
   }
 }
 
-// MARK: - NoneMemberHomeListener
+// MARK: - ChallengeHome Listener
+extension HomeCoordinator: ChallengeHomeListener { }
+
+// MARK: - NoneMemberHome Listener
 extension HomeCoordinator: NoneMemberHomeListener {
   func didTapLogInButtonAtNoneMemberHome() {
     attachLogIn()

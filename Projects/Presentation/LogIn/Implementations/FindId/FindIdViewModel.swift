@@ -12,12 +12,11 @@ import Entity
 import UseCase
 
 protocol FindIdCoordinatable: AnyObject {
-  // viewModel에서 coordinator로 전달할 이벤트들을 정의합니다.
   func isRequestSucceed()
   func didTapBackButton()
 }
 
-protocol FindIdViewModelType: AnyObject, FindIdViewModelable {
+protocol FindIdViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
@@ -87,14 +86,14 @@ final class FindIdViewModel: FindIdViewModelType {
       .bind(with: self) { owner, _ in
         owner.coordinator?.isRequestSucceed()
       }.disposed(by: disposeBag)
-    
+    // Output 반환
     return Output(
       isValidateEmail: isValidateEmail,
       isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
       checkEmailSucceed: checkedEmailRelay.asSignal(),
       wrongEmail: wrongEmailRelay.asSignal(),
       requestFailed: requestFailedRelay.asSignal()
-    )
+    ) // TODO: 서버 연결 후 수정
   }
 }
 

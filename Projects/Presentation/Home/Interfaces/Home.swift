@@ -9,7 +9,7 @@
 import Core
 
 public protocol HomeContainable: Containable {
-  func coordinator(listener: HomeListener) -> Coordinating
+  func coordinator(navigationControllerable: NavigationControllerable, listener: HomeListener) -> Coordinating
 }
 
 public protocol HomeListener: AnyObject { }

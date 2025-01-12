@@ -26,7 +26,7 @@ import UseCaseImpl
 final class AppDependency: Dependency { }
 
 protocol AppContainable: Containable {
-  func coordinator() -> Coordinating
+  func coordinator() -> ViewableCoordinating
 }
 
 final class AppContainer:
@@ -37,13 +37,16 @@ final class AppContainer:
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
-  ReportDependency {
-  func coordinator() -> Coordinating {
+  ReportDependency  {
+  func coordinator() -> ViewableCoordinating {
+    let viewControllerable = AppViewController()
+    
     let home = HomeContainer(dependency: self)
     let searchChallenge = SearchChallengeContainer(dependency: self)
     let myPage = MyPageContainer(dependency: self)
     
     return AppCoordinator(
+      viewControllerable: viewControllerable,
       homeContainable: home,
       searchChallengeContainable: searchChallenge,
       myPageContainable: myPage

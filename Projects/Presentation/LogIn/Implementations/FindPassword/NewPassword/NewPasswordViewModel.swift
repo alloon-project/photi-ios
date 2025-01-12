@@ -8,14 +8,13 @@
 
 import RxCocoa
 import RxSwift
-import DesignSystem
 
 protocol NewPasswordCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapResetPasswordAlert()
 }
 
-protocol NewPasswordViewModelType: NewPasswordViewModelable {
+protocol NewPasswordViewModelType {
   associatedtype Input
   associatedtype Output
   
@@ -92,7 +91,6 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     ) { $0 && $1 }
     
     // TODO: 비밀번호 재설정 요청 -> 성공시 팝업 팝업 끝나면 로그인으로 이동
-    
     return Output(
       containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
       containNumber: containNumber.asDriver(onErrorJustReturn: false),

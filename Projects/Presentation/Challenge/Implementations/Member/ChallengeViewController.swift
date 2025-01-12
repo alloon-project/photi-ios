@@ -12,7 +12,7 @@ import RxCocoa
 import Core
 import DesignSystem
 
-final class ChallengeViewController: UIViewController {
+final class ChallengeViewController: UIViewController, ViewControllerable {
   enum Constants {
     static let navigationHeight: CGFloat = 56
     static let titleViewHeight: CGFloat = 300
@@ -108,8 +108,8 @@ private extension ChallengeViewController {
 
 // MARK: - ChallengePresentable
 extension ChallengeViewController: ChallengePresentable {  
-  func attachViewControllers(_ viewControllers: UIViewController...) {
-    segmentViewControllers = viewControllers
+  func attachViewControllerables(_ viewControllerables: ViewControllerable...) {
+    segmentViewControllers = viewControllerables.map(\.uiviewController)
 
     attachViewController(segmentIndex: segmentIndex)
   }

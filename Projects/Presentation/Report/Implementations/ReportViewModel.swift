@@ -8,13 +8,12 @@
 
 import RxCocoa
 import RxSwift
-import DesignSystem
 
 protocol ReportCoordinatable: AnyObject {
   func didTapBackButtonAtReport()
 }
 
-protocol ReportViewModelType: ReportViewModelable {
+protocol ReportViewModelType {
   associatedtype Input
   associatedtype Output
   

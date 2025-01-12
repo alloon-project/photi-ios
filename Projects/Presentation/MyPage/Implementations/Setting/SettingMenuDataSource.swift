@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-public let settingMenuDatasource = [
+let settingMenuDatasource = [
   ("프로필 수정", 0),
   ("문의하기", 0),
   ("서비스 이용약관", 0),

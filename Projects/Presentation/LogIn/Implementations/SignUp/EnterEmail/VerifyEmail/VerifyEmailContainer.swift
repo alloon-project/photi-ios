@@ -14,14 +14,19 @@ protocol VerifyEmailDependency: Dependency {
 }
 
 protocol VerifyEmailContainable: Containable {
-  func coordinator(listener: VerifyEmailListener, userEmail: String) -> Coordinating
+  func coordinator(listener: VerifyEmailListener, userEmail: String) -> ViewableCoordinating
 }
 
 final class VerifyEmailContainer: Container<VerifyEmailDependency>, VerifyEmailContainable {
-  func coordinator(listener: VerifyEmailListener, userEmail: String) -> Coordinating {
+  func coordinator(listener: VerifyEmailListener, userEmail: String) -> ViewableCoordinating {
     let viewModel = VerifyEmailViewModel(useCase: dependency.signUpUseCase, email: userEmail)
+    let viewControllerable = VerifyEmailViewController(viewModel: viewModel)
     
-    let coordinator = VerifyEmailCoordinator(viewModel: viewModel, userEmail: userEmail)
+    let coordinator = VerifyEmailCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel,
+      userEmail: userEmail
+    )
     coordinator.listener = listener
     return coordinator
   }

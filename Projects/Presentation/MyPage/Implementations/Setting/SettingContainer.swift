@@ -17,7 +17,7 @@ protocol SettingDependency: Dependency {
 }
 
 protocol SettingContainable: Containable {
-  func coordinator(listener: SettingListener) -> Coordinating
+  func coordinator(listener: SettingListener) -> ViewableCoordinating
 }
 
 final class SettingContainer:
@@ -28,12 +28,14 @@ final class SettingContainer:
   
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
-  public func coordinator(listener: SettingListener) -> Coordinating {
+  func coordinator(listener: SettingListener) -> ViewableCoordinating {
     let viewModel = SettingViewModel()
+    let viewControllerable = SettingViewController(viewModel: viewModel)
     
     let profileEdit = ProfileEditContainer(dependency: self)
     
     let coordinator = SettingCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel,
       profileEditContainable: profileEdit,
       reportContainable: dependency.reportContainable

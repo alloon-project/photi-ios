@@ -16,7 +16,7 @@ protocol EnterPasswordCoordinatable: AnyObject {
   func didTapContinueButton(userName: String)
 }
 
-protocol EnterPasswordViewModelType: AnyObject, EnterPasswordViewModelable {
+protocol EnterPasswordViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

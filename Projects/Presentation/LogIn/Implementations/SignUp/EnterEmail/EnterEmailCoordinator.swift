@@ -6,41 +6,34 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol EnterEmailViewModelable { }
 
 protocol EnterEmailListener: AnyObject {
   func didTapBackButtonAtEnterEmail()
   func didFinishEnterEmail(email: String, verificationCode: String)
 }
 
-final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
+protocol EnterEmailPresentable { }
+
+final class EnterEmailCoordinator: ViewableCoordinator<EnterEmailPresentable> {
   private var email: String?
   
   weak var listener: EnterEmailListener?
   
-  private let viewController: EnterEmailViewController
   private let viewModel: EnterEmailViewModel
   
   private let verifyEmailContainable: VerifyEmailContainable
   private var verifyEmailCoordinator: Coordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: EnterEmailViewModel,
     verifyEmailContainable: VerifyEmailContainable
   ) {
-    self.verifyEmailContainable = verifyEmailContainable
     self.viewModel = viewModel
-    self.viewController = EnterEmailViewController(viewModel: viewModel)
-    super.init()
+    self.verifyEmailContainable = verifyEmailContainable
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
   
   override func stop() {
@@ -55,18 +48,21 @@ final class EnterEmailCoordinator: Coordinator, EnterEmailCoordinatable {
     addChild(coordinater)
     
     self.email = userEmail
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.verifyEmailCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachVerifyEmail(animated: Bool) {
     guard let coordinater = verifyEmailCoordinator else { return }
     
     removeChild(coordinater)
+    viewControllerable.popViewController(animated: animated)
     self.verifyEmailCoordinator = nil
-    navigationController?.popViewController(animated: animated)
   }
-  
+}
+
+// MARK: - EnterEmailCoordinatable
+extension EnterEmailCoordinator: EnterEmailCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEnterEmail()
   }
