@@ -8,6 +8,8 @@
 
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol FindIdCoordinatable: AnyObject {
   func isRequestSucceed()
@@ -27,6 +29,11 @@ final class FindIdViewModel: FindIdViewModelType {
   
   weak var coordinator: FindIdCoordinatable?
   
+  private let useCase: FindIdUseCase
+  private let checkedEmailRelay = PublishRelay<Void>()
+  private let wrongEmailRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
@@ -41,17 +48,21 @@ final class FindIdViewModel: FindIdViewModelType {
   struct Output {
     var isValidateEmail: Signal<Bool>
     var isOverMaximumText: Signal<Bool>
-    var didSendInformation: Signal<Void>
+    var checkEmailSucceed: Signal<Void>
+    var wrongEmail: Signal<Void>
+    var requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: FindIdUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     // 단순 동작 bind
     input.didTapBackButton
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.didTapBackButton()
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
@@ -60,34 +71,52 @@ final class FindIdViewModel: FindIdViewModelType {
       .filter { $0.count <= 100 && !$0.isEmpty }
       .map { $0.isValidateEmail() }
       .asSignal(onErrorJustReturn: false)
-      
+    
     let isOverMaximumText = input.editingUserEmail
       .withLatestFrom(input.email)
       .map { $0.count > 100 }
     
-    let source = input.didTapNextButton
+    input.didTapNextButton
       .withLatestFrom(input.email)
-      .withUnretained(self)
-      .map { $0.0.requestCheckEmail(email: $0.1) }
-      .asSignal(onErrorJustReturn: ())
-      
+      .bind(with: self) { owner, email in
+        owner.requestCheckEmail(email: email)
+      }.disposed(by: disposeBag)
+    
     input.didAppearAlert
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.isRequestSucceed()
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.isRequestSucceed()
       }.disposed(by: disposeBag)
     // Output 반환
-    return Output(
-      isValidateEmail: isValidateEmail,
-      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-      didSendInformation: source
-    ) // TODO: 서버 연결 후 수정
+    return Output(isValidateEmail: isValidateEmail,
+                  isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
+                  didSendInformation: source) // TODO: 서버 연결 후 수정
   }
 }
 
 // MARK: - Private Methods
 private extension FindIdViewModel {
-  // TODO: - 서버 연결 후 수정
   func requestCheckEmail(email: String) {
-    // API 요청 응답 메시지 나타내줘야하면
+    useCase.findId(userEmail: email)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, _ in
+          owner.checkedEmailRelay.accept(())
+        },
+        onFailure: { owner, error in
+          print(error)
+          owner.requestFailed(error: error)
+        }
+      )
+      .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(error: Error) {
+    if
+      let error = error as? APIError,
+      case .userNotFound = error {
+      wrongEmailRelay.accept(())
+    } else {
+      requestFailedRelay.accept(())
+    }
   }
 }

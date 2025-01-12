@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol FindIdDependency: Dependency { }
+protocol FindIdDependency: Dependency {
+  var findIdUseCase: FindIdUseCase { get }
+}
 
 protocol FindIdContainable: Containable {
   func coordinator(listener: FindIdListener) -> ViewableCoordinating
