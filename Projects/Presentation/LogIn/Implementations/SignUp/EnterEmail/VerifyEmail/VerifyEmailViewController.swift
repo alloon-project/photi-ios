@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class VerifyEmailViewController: UIViewController {
+final class VerifyEmailViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: VerifyEmailViewModel
   
@@ -178,8 +178,8 @@ private extension VerifyEmailViewController {
   }
 }
 
-// MARK: - Internal Methods
-extension VerifyEmailViewController {
+// MARK: - VerifyEmailPresentable
+extension VerifyEmailViewController: VerifyEmailPresentable {
   func setUserEmail(_ email: String) {
     userEmailLabel.attributedText = email.attributedString(
       font: .caption1,

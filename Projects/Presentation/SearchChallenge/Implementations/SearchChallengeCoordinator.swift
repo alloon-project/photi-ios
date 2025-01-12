@@ -6,27 +6,22 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import SearchChallenge
 
-protocol SearchChallengeViewModelable { }
+protocol SearchChallengePresentable { }
 
-final class SearchChallengeCoordinator: Coordinator, SearchChallengeCoordinatable {
+final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePresentable>, SearchChallengeCoordinatable {
   weak var listener: SearchChallengeListener?
-  
-  private let viewController: SearchChallengeViewController
+
   private let viewModel: SearchChallengeViewModel
   
-  init(viewModel: SearchChallengeViewModel) {
+  init(
+    viewControllerable: ViewControllerable,
+    viewModel: SearchChallengeViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = SearchChallengeViewController()
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
 }

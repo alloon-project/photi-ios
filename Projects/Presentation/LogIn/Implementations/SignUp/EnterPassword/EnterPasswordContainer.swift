@@ -19,7 +19,7 @@ protocol EnterPasswordContainable: Containable {
     verificationCode: String,
     userName: String,
     listener: EnterPasswordListener
-  ) -> Coordinating
+  ) -> ViewableCoordinating
 }
 
 final class EnterPasswordContainer: Container<EnterPasswordDependency>, EnterPasswordContainable {
@@ -28,15 +28,19 @@ final class EnterPasswordContainer: Container<EnterPasswordDependency>, EnterPas
     verificationCode: String,
     userName: String,
     listener: EnterPasswordListener
-  ) -> Coordinating {
+  ) -> ViewableCoordinating {
     let viewModel = EnterPasswordViewModel(
       useCase: dependency.signUpUseCase,
       email: email,
       verificationCode: verificationCode,
       userName: userName
     )
+    let viewContollerable = EnterPasswordViewController(viewModel: viewModel)
     
-    let coordinator = EnterPasswordCoordinator(viewModel: viewModel)
+    let coordinator = EnterPasswordCoordinator(
+      viewControllerable: viewContollerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     return coordinator
   }

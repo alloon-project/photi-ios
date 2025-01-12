@@ -15,7 +15,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FeedCommentViewController: UIViewController {
+final class FeedCommentViewController: UIViewController, ViewControllerable {
   typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
   typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
   
@@ -80,6 +80,11 @@ final class FeedCommentViewController: UIViewController {
     tableView.delegate = self
     setupUI()
     bind()
+  }
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    keyboardShowNotification = registerKeyboardShowNotification()
+    keyboardHideNotification = registerKeyboardHideNotification()
   }
   
   override func viewIsAppearing(_ animated: Bool) {
@@ -209,6 +214,9 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - FeedCommentPresentable
+extension FeedCommentViewController: FeedCommentPresentable { }
 
 // MARK: - UITableViewDelegate
 extension FeedCommentViewController: UITableViewDelegate {
@@ -347,7 +355,13 @@ private extension FeedCommentViewController {
     view.endEditing(true)
     guard !commentTextField.text.isEmpty else { return }
     // TODO: 서버 연동 후, 수정 예정
-    let model = CommentPresentationModel(id: UUID().uuidString, userName: "석영", content: commentTextField.text, isOwner: true, updatedAt: Date())
+    let model = CommentPresentationModel(
+      id: UUID().uuidString,
+      userName: "석영",
+      content: commentTextField.text,
+      isOwner: true,
+      updatedAt: Date()
+    )
     append(model: model)
     commentTextField.text = ""
     

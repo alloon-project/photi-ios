@@ -6,32 +6,27 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol NewPasswordViewModelable { }
 
 protocol NewPasswordListener: AnyObject {
   func didTapBackButtonAtNewPassword()
   func didFinishFindPassword()
 }
 
-final class NewPasswordCoordinator: Coordinator, NewPasswordCoordinatable {
+protocol NewPasswordPresentable { }
+
+final class NewPasswordCoordinator: ViewableCoordinator<NewPasswordPresentable>, NewPasswordCoordinatable {
   weak var listener: NewPasswordListener?
-  
-  private let viewController: NewPasswordViewController
+
   private let viewModel: any NewPasswordViewModelType
   
-  init(viewModel: NewPasswordViewModel) {
+  init(
+    viewControllerable: ViewControllerable,
+    viewModel: NewPasswordViewModel
+  ) {
     self.viewModel = viewModel
-    self.viewController = NewPasswordViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
   
   func didTapBackButton() {

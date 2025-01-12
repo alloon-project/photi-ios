@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ChangePasswordViewController: UIViewController {
+final class ChangePasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ChangePasswordViewModel
   private let alertRelay = PublishRelay<Void>()
@@ -293,7 +293,6 @@ private extension ChangePasswordViewController {
     
     output.isValidPassword
       .filter { $0 == false }
-      .map { _ in "" }
       .drive(with: self) { owner, _ in
         owner.newPasswordCheckTextField.text = ""
         owner.correnspondPasswordCommentView.isActivate = false
@@ -324,6 +323,9 @@ private extension ChangePasswordViewController {
       }.disposed(by: disposeBag)
   }
 }
+
+// MARK: - ChangePasswordPresentable
+extension ChangePasswordViewController: ChangePasswordPresentable { }
 
 // MARK: - Private Methods
 private extension ChangePasswordViewController {

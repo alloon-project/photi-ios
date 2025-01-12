@@ -6,39 +6,42 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
-
-protocol TempPasswordViewModelable {
-  // Coordinator에서 ViewModel로 전달할 이벤트입니다.
-}
 
 protocol TempPasswordListener: AnyObject {
   func didTapBackButtonAtTempPassword()
   func didFinishTempPassword()
 }
 
-final class TempPasswordCoordinator: Coordinator, TempPasswordCoordinatable {
+protocol TempPasswordPresentable {
+  func setUserEmail(_ userEmail: String)
+}
+
+final class TempPasswordCoordinator: ViewableCoordinator<TempPasswordPresentable>, TempPasswordCoordinatable {
   weak var listener: TempPasswordListener?
-  private let userEmail: String
   
-  private let viewController: TempPasswordViewController
   private let viewModel: any TempPasswordViewModelType
   
-  init(viewModel: TempPasswordViewModel, userEmail: String) {
+  private let userEmail: String
+  
+  init(
+    viewControllerable: ViewControllerable,
+    viewModel: TempPasswordViewModel,
+    userEmail: String
+  ) {
     self.viewModel = viewModel
     self.userEmail = userEmail
-    self.viewController = TempPasswordViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    viewController.setUserEmail(userEmail)
-    navigationController?.pushViewController(viewController, animated: true)
+  override func start() {
+    presenter.setUserEmail(userEmail)
   }
-  
+}
+
+// MARK: - TempPasswordCoordinatable
+extension TempPasswordCoordinator {
   func didTapBackButton() {
     listener?.didTapBackButtonAtTempPassword()
   }

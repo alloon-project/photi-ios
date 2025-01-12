@@ -22,14 +22,16 @@ public final class SignUpContainer:
   EnterPasswordDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
   
-  public func coordinator(listener: SignUpListener) -> Coordinating {
-    let viewModel = SignUpViewModel()
+  public func coordinator(
+    navigationControllerable: NavigationControllerable,
+    listener: SignUpListener
+  ) -> Coordinating {
     let enterEmailContainable = EnterEmailContainer(dependency: self)
     let enterIdContainable = EnterIdContainer(dependency: self)
     let enterPasswordContainable = EnterPasswordContainer(dependency: self)
     
     let coordinator = SignUpCoordinator(
-      viewModel: viewModel,
+      navigationControllerable: navigationControllerable,
       enterEmailContainable: enterEmailContainable,
       enterIdContainable: enterIdContainable,
       enterPasswordContainable: enterPasswordContainable

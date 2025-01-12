@@ -11,15 +11,20 @@ import Core
 protocol NoneMemberHomeDependency: Dependency { }
 
 protocol NoneMemberHomeContainable: Containable {
-  func coordinator(listener: NoneMemberHomeListener) -> Coordinating
+  func coordinator(listener: NoneMemberHomeListener) -> ViewableCoordinating
 }
 
 final class NoneMemberHomeContainer:
   Container<NoneMemberHomeDependency>,
   NoneMemberHomeContainable {
-  func coordinator(listener: NoneMemberHomeListener) -> Coordinating {
+  func coordinator(listener: NoneMemberHomeListener) -> ViewableCoordinating {
     let viewModel = NoneMemberHomeViewModel()
-    let coordinator = NoneMemberHomeCoordinator(viewModel: viewModel)
+    let viewControllerable = NoneMemberHomeViewController(viewModel: viewModel)
+    
+    let coordinator = NoneMemberHomeCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     
     return coordinator

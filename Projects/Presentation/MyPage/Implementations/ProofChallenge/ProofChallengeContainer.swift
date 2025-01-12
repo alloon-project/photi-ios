@@ -8,20 +8,21 @@
 
 import Core
 
-protocol ProofChallengeDependency: Dependency {
-}
+protocol ProofChallengeDependency: Dependency { }
 
 protocol ProofChallengeContainable: Containable {
-  func coordinator(listener: ProofChallengeListener) -> Coordinating
+  func coordinator(listener: ProofChallengeListener) -> ViewableCoordinating
 }
 
 final class ProofChallengeContainer:
   Container<ProofChallengeDependency>,
   ProofChallengeContainable {
-  public func coordinator(listener: ProofChallengeListener) -> Coordinating {
+  func coordinator(listener: ProofChallengeListener) -> ViewableCoordinating {
     let viewModel = ProofChallengeViewModel()
+    let viewControllerable = ProofChallengeViewController(viewModel: viewModel)
     
     let coordinator = ProofChallengeCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel
     )
     coordinator.listener = listener

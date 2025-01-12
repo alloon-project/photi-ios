@@ -6,13 +6,12 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
 
 protocol ChallengeCoordinatable: AnyObject { }
 
-protocol ChallengeViewModelType: AnyObject, ChallengeViewModelable {
+protocol ChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

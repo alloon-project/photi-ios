@@ -6,19 +6,19 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol ProfileEditViewModelable { }
-
-public protocol ProfileEditListener: AnyObject {
+protocol ProfileEditListener: AnyObject {
   func didTapBackButtonAtProfileEdit()
 }
 
-final class ProfileEditCoordinator: Coordinator {
+protocol ProfileEditPresentable {
+  func displayToastView()
+}
+
+final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> {
   weak var listener: ProfileEditListener?
   
-  private let viewController: ProfileEditViewController
   private let viewModel: ProfileEditViewModel
   
   private let changePasswordContainable: ChangePasswordContainable
@@ -28,6 +28,7 @@ final class ProfileEditCoordinator: Coordinator {
   private var resignCoordinator: Coordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: ProfileEditViewModel,
     changePasswordContainable: ChangePasswordContainable,
     resignContainable: ResignContainable
@@ -37,57 +38,49 @@ final class ProfileEditCoordinator: Coordinator {
     self.changePasswordContainable = changePasswordContainable
     self.resignContainable = resignContainable
     
-    self.viewController = ProfileEditViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
+}
+
+// MARK: - ProfileEditCoordinatable
+extension ProfileEditCoordinator: ProfileEditCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtProfileEdit()
   }
   
   func attachChangePassword() {
     guard changePasswordCoordinator == nil else { return }
     
-    let coordinater = changePasswordContainable.coordinator(listener: self)
-    addChild(coordinater)
-    
-    self.changePasswordCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    let coordinator = changePasswordContainable.coordinator(listener: self)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.changePasswordCoordinator = coordinator
   }
   
   func detachChangePassword() {
-    guard let coordinater = changePasswordCoordinator else { return }
+    guard let coordinator = changePasswordCoordinator else { return }
     
-    removeChild(coordinater)
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.resignCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   func attachResign() {
     guard resignCoordinator == nil else { return }
     
-    let coordinater = resignContainable.coordinator(listener: self)
-    addChild(coordinater)
-    
-    self.resignCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
+    let coordinator = resignContainable.coordinator(listener: self)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.resignCoordinator = coordinator
   }
   
   func detachResign() {
-    guard let coordinater = resignCoordinator else { return }
+    guard let coordinator = resignCoordinator else { return }
     
-    removeChild(coordinater)
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.resignCoordinator = nil
-    navigationController?.popViewController(animated: true)
-  }
-}
-
-// MARK: - Coordinatable
-extension ProfileEditCoordinator: ProfileEditCoordinatable {
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtProfileEdit()
   }
 }
 
@@ -99,7 +92,7 @@ extension ProfileEditCoordinator: ChangePasswordListener {
   
   func didChangedPassword() {
     detachChangePassword()
-    viewController.displayToastView()
+    presenter.displayToastView()
   }
 }
 

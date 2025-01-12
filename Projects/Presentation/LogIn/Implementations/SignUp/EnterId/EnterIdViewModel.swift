@@ -16,7 +16,7 @@ protocol EnterIdCoordinatable: AnyObject {
   func didTapNextButton(userName: String)
 }
 
-protocol EnterIdViewModelType: AnyObject, EnterIdViewModelable {
+protocol EnterIdViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
