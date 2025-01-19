@@ -91,7 +91,7 @@ private extension IconTextButton {
   }
   
   func setIconView(_ icon: UIImage) {
-    let resizeIcon = icon.resize(iconSize(for: size)).withTintColor(.gray600)
+    let resizeIcon = icon.resize(iconSize(for: size))
     iconView.image = resizeIcon
   }
   

@@ -67,7 +67,6 @@ private extension IconRoundButton {
     // UI Components
     let resizeIcon = icon
       .resize(CGSize(width: height, height: height))
-      .withTintColor(textColor)
     let imageView = UIImageView(image: resizeIcon)
     let label = UILabel()
     
