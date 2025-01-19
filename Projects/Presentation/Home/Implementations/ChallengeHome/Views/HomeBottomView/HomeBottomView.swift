@@ -16,7 +16,12 @@ final class HomeBottomView: UIView {
   }
   
   // MARK: - UI Components
-  private let seperatorView = UIImageView(image: .pinkingGray)
+  private let seperatorView: UIImageView = {
+    let imageView = UIImageView(image: .pinkingGrayUp)
+    imageView.contentMode = .topLeft
+    return imageView
+  }()
+  
   private let containerView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
