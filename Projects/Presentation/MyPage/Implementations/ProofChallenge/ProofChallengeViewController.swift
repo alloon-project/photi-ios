@@ -43,8 +43,8 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
   /// 하단 톱니모양뷰
   private let grayBottomImageView = {
     let pinkingView = UIImageView()
-    pinkingView.image = .pinkingGray
-    pinkingView.clipsToBounds = true
+    pinkingView.image = .pinkingGrayDown
+    pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()

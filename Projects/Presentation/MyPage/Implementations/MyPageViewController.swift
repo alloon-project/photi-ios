@@ -46,8 +46,8 @@ final class MyPageViewController: UIViewController, ViewControllerable {
   /// 하단 톱니모양뷰
   private let userInfoBottomImageView = {
     let pinkingView = UIImageView()
-    pinkingView.image = .pinking
-    pinkingView.clipsToBounds = true
+    pinkingView.image = .pinkingBlueDown
+    pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()

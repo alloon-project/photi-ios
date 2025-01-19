@@ -17,12 +17,33 @@ final class ChallengeImageCell: UICollectionViewCell {
   var isCurrentPage: Bool = false {
     didSet {
       self.setImageView(for: isCurrentPage)
+      gradientLayer.isHidden = !(isDefaultImage && isCurrentPage)
     }
   }
   
   // MARK: - UI Components
-  private let imageView = UIImageView()
+  private var isDefaultImage: Bool = true {
+    didSet {
+      gradientLayer.isHidden = !(isDefaultImage && isCurrentPage)
+    }
+  }
+  private let imageView: UIImageView = {
+    let imageView = UIImageView()
+    imageView.layer.cornerRadius = 10
+    
+    return imageView
+  }()
   private let pinImageView = UIImageView(image: .pinBlue)
+  private let gradientLayer: CAGradientLayer = {
+    let layer = CAGradientLayer()
+    layer.colors = [
+      UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.2).cgColor,
+      UIColor(red: 0.118, green: 0.137, blue: 0.149, alpha: 0).cgColor
+    ]
+    layer.cornerRadius = 10
+
+    return layer
+  }()
   
   // MARK: - Initializers
   override init(frame: CGRect) {
@@ -40,14 +61,15 @@ final class ChallengeImageCell: UICollectionViewCell {
   func configure(with viewModel: ChallengePresentationModel) {
     if let url = viewModel.imageURL {
       imageView.kf.setImage(with: url)
-    }     
-    if imageView.image == nil {
+    } else {
       imageView.image = .defaultChallengeImage
     }
+    
+    isDefaultImage = viewModel.imageURL == nil
   }
   
   func configureCreateCell() {
-    imageView.image = .createChallenge
+    imageView.image = .homeMemberCreateChallenge
   }
 }
 
@@ -55,6 +77,8 @@ final class ChallengeImageCell: UICollectionViewCell {
 private extension ChallengeImageCell {
   func setupUI() {
     contentView.addSubviews(imageView, pinImageView)
+    imageView.layer.addSublayer(gradientLayer)
+    gradientLayer.frame = .init(x: 0, y: 0, width: 160, height: 160)
     
     imageView.snp.makeConstraints {
       $0.width.height.equalTo(160)
@@ -78,7 +102,7 @@ private extension ChallengeImageCell {
           $0.width.height.equalTo(160)
           $0.bottom.equalToSuperview()
         }
-        self.contentView.layoutSubviews()
+        self.contentView.layoutIfNeeded()
       }
     } else {
       UIView.animate(withDuration: 0.2) {
@@ -86,7 +110,7 @@ private extension ChallengeImageCell {
           $0.width.height.equalTo(140)
           $0.bottom.equalToSuperview().offset(-10)
         }
-        self.contentView.layoutSubviews()
+        self.contentView.layoutIfNeeded()
       }
     }
   }

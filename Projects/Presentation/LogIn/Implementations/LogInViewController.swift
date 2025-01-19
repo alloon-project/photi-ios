@@ -29,15 +29,14 @@ final class LogInViewController: UIViewController, ViewControllerable {
   private let findView = FindView()
   private let signUpButton = LineRoundButton(text: "회원가입", type: .primary, size: .xLarge)
   
-  // TODO: - DS 적용 후 수정
   private let warningToastView = ToastView(
-    tipPosition: .none, text: "아이디와 비밀번호 모두 입력해주세요", icon: UIImage(systemName: "lightbulb.fill")!
+    tipPosition: .none, text: "아이디와 비밀번호 모두 입력해주세요", icon: .bulbWhite
   )
   private let invalidId = CommentView(
-    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: true
   )
   private let invalidPassword = CommentView(
-    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: true
   )
   
   // MARK: - Initiazliers

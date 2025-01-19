@@ -30,9 +30,9 @@ final class TempPasswordViewController: UIViewController, ViewControllerable {
     label.numberOfLines = 2
     return label
   }()
-  // TODO: 이미지 교체
+
   private let tempPasswordWarningView = CommentView(
-    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: false
+    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: false
   )
   private let userEmailLabel: UILabel = {
     let label = UILabel()

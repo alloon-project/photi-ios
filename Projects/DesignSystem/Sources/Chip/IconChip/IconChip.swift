@@ -53,7 +53,7 @@ public final class IconChip: UIView {
   // MARK: - Initializers
   public init(
     text: String,
-    icon: UIImage?,
+    icon: UIImage,
     type: IconChipType,
     size: ChipSize
   ) {
@@ -74,7 +74,17 @@ public final class IconChip: UIView {
   }
   
   public convenience init(type: IconChipType, size: ChipSize) {
-    self.init(text: "", icon: nil, type: type, size: size)
+    var icon: UIImage
+    
+    switch type {
+      case .line: icon = .closeGray700
+      case .gray: icon = .closeGray400
+      case .darkGray: icon = .closeGray400.color(.gray500)
+      case .blue: icon = .closeBlue
+      case .green: icon = .closeGreen
+    }
+    
+    self.init(text: "", icon: icon, type: type, size: size)
   }
   
   @available(*, unavailable)
@@ -93,7 +103,8 @@ public final class IconChip: UIView {
 private extension IconChip {
   func setupUI() {
     self.backgroundColor = backgroundColor(for: type)
-    
+    iconView.contentMode = .center
+
     setViewHierarchy()
     setConstraints(for: size)
     setBorderLine(for: type)
@@ -147,10 +158,8 @@ private extension IconChip {
   func setIconView(_ icon: UIImage) {
     let resizeIcon = icon
       .resize(iconSize(for: size))
-      .color(iconColor(for: type))
     
     iconView.image = resizeIcon
-    iconView.contentMode = .center
   }
 }
 
@@ -184,21 +193,6 @@ private extension IconChip {
     }
   }
   
-  func iconColor(for type: IconChipType) -> UIColor {
-    switch type {
-      case .line:
-        return .gray600
-      case .gray:
-        return .gray400
-      case .darkGray:
-        return .gray500
-      case .blue:
-        return .blue400
-      case .green:
-        return .green500
-    }
-  }
-  
   func font(for size: ChipSize) -> UIFont {
     switch size {
       case .large:
@@ -220,8 +214,7 @@ private extension IconChip {
         return CGSize(width: 12, height: 12)
     }
   }
-  
-  // TODO: - DS Image 적용 후 삭제 예정
+
   func iconSize(for size: ChipSize) -> CGSize {
     switch size {
       case .large:

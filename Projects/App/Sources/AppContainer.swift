@@ -37,7 +37,7 @@ final class AppContainer:
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
-  ReportDependency  {
+  ReportDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     

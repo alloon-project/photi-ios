@@ -19,45 +19,23 @@ final class CalendarHeaderView: UIView {
   
   var leftDisabled: Bool = false {
     didSet {
-      self.leftImageView.tintColor = leftDisabled ? .gray200 : .gray500
+      leftImageView.image = leftDisabled ? .chevronBackGray400 : .chevronBackGray700
     }
   }
   
   var rightDisabled: Bool = false {
     didSet {
-      self.rightImageView.tintColor = rightDisabled ? .gray200 : .gray500
+      rightImageView.image = rightDisabled ? .chevronForwardGray400 : .chevronForwardGray700
     }
   }
   
   // MARK: - UI Components
-  // TODO: ICON 적용 이후 이미지 변경
-  private let leftImageView: UIImageView = {
-    let imageView = UIImageView()
-    let image = UIImage(systemName: "chevron.left")!
-    imageView.contentMode = .scaleAspectFill
-    imageView.image = image.withAlignmentRectInsets(UIEdgeInsets(top: -8, left: -8, bottom: -8, right: -8))
-    imageView.tintColor = .gray200
-    
-    return imageView
-  }()
+  private let leftImageView = UIImageView(image: .chevronBackGray400)
+  private let rightImageView = UIImageView(image: .chevronForwardGray700)
   
-  private let rightImageView: UIImageView = {
-    let imageView = UIImageView()
-    let image = UIImage(systemName: "chevron.right")!
-    imageView.contentMode = .scaleAspectFill
-    imageView.image = image.withAlignmentRectInsets(UIEdgeInsets(top: -8, left: -8, bottom: -8, right: -8))
-    imageView.tintColor = .gray500
-    
-    return imageView
-  }()
-  
-  // TODO: Icon DS작업 후 변경 예정
   let closeButton: UIButton = {
     let button = UIButton()
-    let image = UIImage(systemName: "xmark.circle.fill")!
-    let resizeImage = image.resize(CGSize(width: 24, height: 24)).withTintColor(.gray200)
-    
-    button.setImage(resizeImage, for: .normal)
+    button.setImage(.closeCircleLight, for: .normal)
     button.layer.cornerRadius = 12
     
     return button

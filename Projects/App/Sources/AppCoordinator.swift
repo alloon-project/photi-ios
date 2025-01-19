@@ -25,7 +25,7 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
   private let myPageContainable: MyPageContainable
   
   init(
-    viewControllerable: ViewControllable,
+    viewControllerable: ViewControllerable,
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
     myPageContainable: MyPageContainable,

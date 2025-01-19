@@ -20,7 +20,7 @@ public final class FloatingButton: UIButton {
   /// Floating Button의 mode입니다.
   public private(set) var mode: ButtonMode {
     didSet {
-      setupUI(type: type, mode: mode)
+      self.backgroundColor = backgroundColor(type: type, mode: mode)
     }
   }
   
@@ -44,15 +44,12 @@ public final class FloatingButton: UIButton {
   public init(
     type: FloatingButtonType,
     size: ButtonSize,
-    image: UIImage = UIImage(systemName: "plus")!,
     mode: ButtonMode = .default
   ) {
     self.type = type
     self.size = size
     self.mode = mode
     super.init(frame: .zero)
-    
-    setupUI(image)
   }
   
   @available(*, unavailable)
@@ -72,45 +69,41 @@ public final class FloatingButton: UIButton {
 
     return circlePath.contains(point)
   }
-  
-  // MARK: - Setup UI
-  func setupUI(_ image: UIImage) {
-    let resizeImage = image.resize(imageSize(for: size))
-    
-    switch type {
-      case .primary:
-        primarySetupUI(resizeImage)
-      case .secondary:
-        secondarySetupUI(resizeImage)
-    }
-
-    self.setupUI(type: type, mode: mode)
-  }
 }
 
 // MARK: - Private Methods
 private extension FloatingButton {
-  func setupUI(type: FloatingButtonType, mode: ButtonMode) {
+  func setupUI() {
     self.backgroundColor = backgroundColor(type: type, mode: mode)
+    
+    switch type {
+      case .primary:
+        primarySetupUI()
+      case .secondary:
+        secondarySetupUI()
+    }
   }
   
-  func primarySetupUI(_ image: UIImage) {
-    let image = image.withTintColor(.photiWhite)
+  func primarySetupUI() {
+    let image = UIImage.plusWhite.resize(imageSize(for: size))
     setImage(image, for: .normal)
     setImage(image, for: .highlighted)
     setImage(image, for: .disabled)
   }
   
-  func secondarySetupUI(_ image: UIImage) {
-    setImage(image.withTintColor(.gray600), for: .normal)
-    setImage(image.withTintColor(.gray800), for: .highlighted)
-    setImage(image.withTintColor(.gray500), for: .disabled)
+  func secondarySetupUI() {
+    let defaultImage = UIImage.plusGray700.resize(imageSize(for: size))
+    let disabledImage = UIImage.plusGray400.resize(imageSize(for: size))
+    
+    setImage(defaultImage, for: .normal)
+    setImage(defaultImage, for: .highlighted)
+    setImage(disabledImage, for: .disabled)
       
     self.drawShadow(
       color: UIColor(red: 0.118, green: 0.137, blue: 0.149, alpha: 0.1),
       opacity: 1,
       radius: 10
-      )
+    )
   }
   
   func backgroundColor(type: FloatingButtonType, mode: ButtonMode) -> UIColor {
@@ -137,9 +130,7 @@ private extension FloatingButton {
     switch mode {
       case .default:
         return .gray100
-      case .pressed:
-        return .gray200
-      case.disabled:
+      case .pressed, .disabled:
         return .gray200
     }
   }
@@ -161,15 +152,11 @@ private extension FloatingButton {
   
   func imageSize(for size: ButtonSize) -> CGSize {
     switch size {
-      case .xLarge:
-        return CGSize(width: 24, height: 24)
-      case .large:
+      case .xLarge, .large:
         return CGSize(width: 24, height: 24)
       case .medium:
         return CGSize(width: 20, height: 20)
-      case .small:
-        return CGSize(width: 16, height: 16)
-      case .xSmall:
+      case .small, .xSmall:
         return CGSize(width: 16, height: 16)
     }
   }
