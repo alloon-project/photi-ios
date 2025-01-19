@@ -72,7 +72,6 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
     text: "변경하기"
   )
   
-  // TODO: - DS 적용후 이미지 수정
   private let wrongPasswordCommentView = CommentView(
     .warning,
     text: "기존 비밀번호가  일치하지 않아요",

@@ -16,15 +16,7 @@ import Core
 final class ListBottomSheetCell: UITableViewCell {
   // MARK: - UI Components
   let label = UILabel()
-  let iconView: UIImageView = {
-    // TODO: DS Icon작업 후 변경 예정
-    let icon = UIImage(systemName: "chevron.right")!
-    let insetIcon = icon.withAlignmentRectInsets(.init(top: -6, left: -6, bottom: -5, right: -5))
-    let iconView = UIImageView(image: insetIcon)
-    iconView.tintColor = .gray400
-    
-    return iconView
-  }()
+  let iconView = UIImageView(image: .chevronForwardGray400)
   
   // MARK: - Initializers
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -64,8 +56,8 @@ private extension ListBottomSheetCell {
     }
     
     iconView.snp.makeConstraints {
-      $0.width.height.equalTo(24)
-      $0.top.trailing.bottom.equalToSuperview()
+      $0.width.height.equalTo(20)
+      $0.centerY.trailing.equalToSuperview()
     }
   }
 }
