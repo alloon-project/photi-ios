@@ -33,7 +33,6 @@ final class FindIdViewController: UIViewController, ViewControllerable {
     return label
   }()
   
-  // TODO: - icon 변경
   private let emailTextField: LineTextField = {
     let textField = LineTextField(placeholder: "이메일", type: .helper)
     textField.setKeyboardType(.emailAddress)
@@ -41,14 +40,10 @@ final class FindIdViewController: UIViewController, ViewControllerable {
   }()
   
   private let invalidEmail = CommentView(
-    .warning,
-    text: "이메일 형태가 올바르지 않아요",
-    icon: .closeRed
+    .warning, text: "이메일 형태가 올바르지 않아요", icon: .closeRed
   )
   private let isWrongEmail = CommentView(
-    .warning,
-    text: "가입되지 않은 이메일이에요",
-    icon: .closeRed
+    .warning, text: "가입되지 않은 이메일이에요", icon: .closeRed
   )
   
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
@@ -174,7 +169,7 @@ private extension FindIdViewController {
       .disposed(by: disposeBag)
     
     alertVC.rx.isDismissing
-      .bind(with: self) { owner, isDismissed in
+      .bind(with: self) { owner, _ in
         owner.alertRelay.accept(())
       }.disposed(by: disposeBag)
   }
