@@ -85,19 +85,15 @@ private extension PhotiSearchBar {
   }
   
   func setClearButton() {
-    let image = UIImage(systemName: "xmark.circle.fill")!
-    let resizeImage = image.resize(CGSize(width: 24, height: 24)).withTintColor(.gray400)
-    setImage(resizeImage, for: .clear, state: .normal)
+    let image = UIImage.closeGray400.resize(.init(width: 24, height: 24))
+    setImage(image, for: .clear, state: .normal)
   }
   
   func setBookmarkButton() {
     self.showsBookmarkButton = true
-    let imageColor = UIColor(red: 0.56, green: 0.56, blue: 0.56, alpha: 1)
-    
-    let image = UIImage(systemName: "magnifyingglass")!
-    let resizeImage = image.resize(CGSize(width: 24, height: 24)).withTintColor(imageColor)
+    let image = UIImage.searchGray400.resize(CGSize(width: 24, height: 24))
 
-    setImage(resizeImage, for: .bookmark, state: .normal)
+    setImage(image, for: .bookmark, state: .normal)
   }
   
   func setText(_ text: String?) {
