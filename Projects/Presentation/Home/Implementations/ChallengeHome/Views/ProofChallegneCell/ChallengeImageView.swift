@@ -64,7 +64,7 @@ private extension ChallengeImageView {
       case let .proof(image):
         setupDidProofUI(image: image)
       case .didNotProof:
-        setupNotProofUI(image: .cameraPlusBlue)
+        setupNotProofUI(image: .cameraPlusLightBlue)
     }
     bringSubviewToFront(cornerView)
   }
