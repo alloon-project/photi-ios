@@ -16,12 +16,8 @@ class ReportReasonTableViewCell: UITableViewCell {
     isSelected ? .photiBlack : .gray600
   }
   
-  private var iconImage: UIImage? {
-    isSelected ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "checkmark.circle")
-  }
-  
-  private var imageTintColor: UIColor {
-    isSelected ? .blue400 : .gray300
+  private var iconImage: UIImage {
+    isSelected ? .checkmarkSelectedBlue : .checkmarkGray400
   }
 
   override var isSelected: Bool {
@@ -84,8 +80,7 @@ private extension ReportReasonTableViewCell {
 // MARK: - Private methods
 private extension ReportReasonTableViewCell {
   func setCheckImage(isSelected: Bool) {
-    iconImageView.image = iconImage?
-      .withTintColor(imageTintColor, renderingMode: .alwaysOriginal)
+    iconImageView.image = iconImage
   }
   
   func setLabelTextColor(isSelected: Bool) {
