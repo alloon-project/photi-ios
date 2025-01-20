@@ -14,16 +14,22 @@ public final class AvatarImageView: UIImageView {
   public override var intrinsicContentSize: CGSize { return cgSize(for: size) }
   
   public let size: AvatarSize
-  
+  private var defaultImage: UIImage
+
   // MARK: - Initializers
-  public init(size: AvatarSize, image: UIImage) {
+  public init(size: AvatarSize, image: UIImage?) {
     self.size = size
-    
-    super.init(image: image)
+    self.defaultImage = .personLight
+    super.init(frame: .zero)
+    self.clipsToBounds = true
+    contentMode = .center
+    self.backgroundColor = .gray400
+    self.defaultImage = .personLight.resize(defaultImageSize(for: size))
+    configureImage(image)
   }
   
   public convenience init(size: AvatarSize) {
-    self.init(size: size, image: .personLight)
+    self.init(size: size, image: nil)
   }
   
   @available(*, unavailable)
@@ -39,6 +45,15 @@ public final class AvatarImageView: UIImageView {
   }
 }
 
+// MARK: - Public Methods
+public extension AvatarImageView {
+  func configureImage(_ image: UIImage?) {
+    let image = image ?? defaultImage
+    
+    self.image = image
+  }
+}
+
 // MARK: - Private Methods
 private extension AvatarImageView {
   func cgSize(for size: AvatarSize) -> CGSize {
@@ -47,6 +62,15 @@ private extension AvatarImageView {
       case .medium: return CGSize(width: 48, height: 48)
       case .small: return CGSize(width: 30, height: 30)
       case .xSmall: return CGSize(width: 24, height: 24)
+    }
+  }
+  
+  func defaultImageSize(for size: AvatarSize) -> CGSize {
+    switch size {
+      case .large: return CGSize(width: 40, height: 40)
+      case .medium: return CGSize(width: 24, height: 24)
+      case .small: return CGSize(width: 16, height: 16)
+      case .xSmall: return CGSize(width: 12, height: 12)
     }
   }
 }
