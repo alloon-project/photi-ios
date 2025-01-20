@@ -14,17 +14,23 @@ public protocol ChallengeDependency: Dependency { }
 public final class ChallengeContainer:
   Container<ChallengeDependency>,
   ChallengeContainable,
-  FeedDependency {
+  FeedDependency,
+  DescriptionDependency,
+  ParticipantDependency {
   public func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating {
     let viewModel = ChallengeViewModel(challengeId: challengeId)
     let viewControllerable = ChallengeViewController(viewModel: viewModel)
     
     let feedContainer = FeedContainer(dependency: self)
+    let descriptionContainer = DescriptionContainer(dependency: self)
+    let participantContainer = ParticipantContainer(dependency: self)
     
     let coordinator = ChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      feedContainer: feedContainer
+      feedContainer: feedContainer,
+      descriptionContainer: descriptionContainer,
+      participantContainer: participantContainer
     )
     coordinator.listener = listener
     return coordinator
