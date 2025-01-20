@@ -41,7 +41,10 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
   }
   
   func attachCoordinators() {
-    let homeCoordinator = homeContainable.coordinator(navigationControllerable: homeNavigationControllerable, listener: self)
+    let homeCoordinator = homeContainable.coordinator(
+      navigationControllerable: homeNavigationControllerable,
+      listener: self
+    )
     let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
     let myPageCoordinator = myPageContainable.coordinator(listener: self)
     
