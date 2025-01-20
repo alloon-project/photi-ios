@@ -25,7 +25,6 @@ public final class ChallengeContainer:
     let descriptionContainer = DescriptionContainer(dependency: self)
     let participantContainer = ParticipantContainer(dependency: self)
     
-    
     let coordinator = ChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
