@@ -22,13 +22,23 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let feedContainer: FeedContainable
   private var feedCoordinator: ViewableCoordinating?
   
+  private let participantContainer: ParticipantContainable
+  private var participantCoordinator: ViewableCoordinating?
+  
+  private let descriptionContainer: DescriptionContainable
+  private var descriptionCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
-    feedContainer: FeedContainable
+    feedContainer: FeedContainable,
+    descriptionContainer: DescriptionContainable,
+    participantContainer: ParticipantContainable
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
+    self.descriptionContainer = descriptionContainer
+    self.participantContainer = participantContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -37,13 +47,22 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     attachSegments()
   }
   
-  // MARK: - Feed
   func attachSegments() {
     let feedCoordinator = feedContainer.coordinator(listener: self)
+    let descriptionCoordinator = descriptionContainer.coordinator(listener: self)
+    let participantCoordinator = participantContainer.coordinator(listener: self)
     
-    presenter.attachViewControllerables(feedCoordinator.viewControllerable)
+    presenter.attachViewControllerables(
+      feedCoordinator.viewControllerable,
+      descriptionCoordinator.viewControllerable,
+      participantCoordinator.viewControllerable
+    )
     addChild(feedCoordinator)
+    addChild(descriptionCoordinator)
+    addChild(participantCoordinator)
     self.feedCoordinator = feedCoordinator
+    self.descriptionCoordinator = descriptionCoordinator
+    self.participantCoordinator = participantCoordinator
   }
 }
 
@@ -56,3 +75,9 @@ extension ChallengeCoordinator: FeedListener {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
 }
+
+// MARK: - DescriptionListener
+extension ChallengeCoordinator: DescriptionListener { }
+
+// MARK: - ParticipantListener
+extension ChallengeCoordinator: ParticipantListener { }

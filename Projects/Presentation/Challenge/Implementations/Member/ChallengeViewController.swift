@@ -103,7 +103,13 @@ private extension ChallengeViewController {
 
 // MARK: - Bind
 private extension ChallengeViewController {
-  func bind() { }
+  func bind() {
+    segmentControl.rx.selectedSegment
+      .bind(with: self) { owner, index in
+        owner.updateSegmentViewController(to: index)
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengePresentable
