@@ -8,7 +8,9 @@
 
 import Core
 
-protocol ParticipantListener: AnyObject { }
+protocol ParticipantListener: AnyObject {
+  func didChangeContentOffsetAtParticipant(_ offset: Double)
+}
 
 protocol ParticipantPresentable { }
 
@@ -28,4 +30,8 @@ final class ParticipantCoordinator: ViewableCoordinator<ParticipantPresentable> 
 }
 
 // MARK: - ParticipantCoordinatable
-extension ParticipantCoordinator: ParticipantCoordinatable { }
+extension ParticipantCoordinator: ParticipantCoordinatable {
+  func didChangeContentOffset(_ offset: Double) {
+    listener?.didChangeContentOffsetAtParticipant(offset)
+  }
+}

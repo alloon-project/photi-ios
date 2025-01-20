@@ -6,9 +6,12 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
-protocol ParticipantCoordinatable: AnyObject { }
+protocol ParticipantCoordinatable: AnyObject {
+  func didChangeContentOffset(_ offset: Double)
+}
 
 protocol ParticipantViewModelType: AnyObject {
   associatedtype Input
@@ -22,7 +25,9 @@ final class ParticipantViewModel: ParticipantViewModelType {
   private let disposeBag = DisposeBag()
 
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let contentOffset: Signal<Double>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -31,6 +36,12 @@ final class ParticipantViewModel: ParticipantViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.contentOffset
+      .emit(with: self) { owner, offSet in
+        owner.coordinator?.didChangeContentOffset(offSet)
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }

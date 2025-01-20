@@ -80,4 +80,8 @@ extension ChallengeCoordinator: FeedListener {
 extension ChallengeCoordinator: DescriptionListener { }
 
 // MARK: - ParticipantListener
-extension ChallengeCoordinator: ParticipantListener { }
+extension ChallengeCoordinator: ParticipantListener {
+  func didChangeContentOffsetAtParticipant(_ offset: Double) {
+    presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+}

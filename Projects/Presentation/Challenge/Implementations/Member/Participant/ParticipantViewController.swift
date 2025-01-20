@@ -24,6 +24,8 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     }
   }
   
+  private let contentOffset = PublishRelay<Double>()
+
   // MARK: - UI Components
   private let participantCountLabel = UILabel()
   private let participantTableView: UITableView = {
@@ -52,7 +54,10 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     
     participantTableView.dataSource = self
+    participantTableView.delegate = self
     setupUI()
+    bind()
+  }
   }
 }
 
@@ -84,7 +89,7 @@ private extension ParticipantViewController {
 // MARK: - Bind Methods
 private extension ParticipantViewController {
   func bind() {
-    let input = ParticipantViewModel.Input()
+    let input = ParticipantViewModel.Input(contentOffset: contentOffset.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -113,7 +118,12 @@ extension ParticipantViewController: UITableViewDataSource {
 }
 
 // MARK: - UITableViewDelegate
-extension ParticipantViewController: UITableViewDelegate { }
+extension ParticipantViewController: UITableViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let offSet = scrollView.contentOffset.y
+    contentOffset.accept(offSet)
+  }
+}
 
 // MARK: - Private Methods
 private extension ParticipantViewController {
