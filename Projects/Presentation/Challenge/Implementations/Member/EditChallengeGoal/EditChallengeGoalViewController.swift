@@ -65,6 +65,7 @@ final class EditChallengeGoalViewController: UIViewController, ViewControllerabl
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
 }
 
@@ -124,7 +125,10 @@ private extension EditChallengeGoalViewController {
 // MARK: - Bind Methods
 private extension EditChallengeGoalViewController {
   func bind() {
-    let input = EditChallengeGoalViewModel.Input()
+    let input = EditChallengeGoalViewModel.Input(
+      goalText: textField.rx.text,
+      didTapSaveButton: saveButton.rx.tap
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -133,7 +137,11 @@ private extension EditChallengeGoalViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: EditChallengeGoalViewModel.Output) { }
+  func viewModelBind(for output: EditChallengeGoalViewModel.Output) {
+    output.saveButtonisEnabled
+      .drive(saveButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - EditChallengeGoalPresentable
