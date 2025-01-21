@@ -28,17 +28,22 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
+  private let editChallengeGoalContainer: EditChallengeGoalContainable
+  private var editChallengeGoalCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
-    participantContainer: ParticipantContainable
+    participantContainer: ParticipantContainable,
+    editChallengeGoalContainer: EditChallengeGoalContainer
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
+    self.editChallengeGoalContainer = editChallengeGoalContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -69,6 +74,29 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 // MARK: - ChallengeCoordinatable
 extension ChallengeCoordinator: ChallengeCoordinatable { }
 
+// MARK: - EditChallengeGoal
+extension ChallengeCoordinator {
+  func attachEditChallengeGoal(userID: Int, challengeID: Int) {
+    guard editChallengeGoalCoordinator == nil else { return }
+    
+    let coordinator = editChallengeGoalContainer.coordinator(
+      userID: userID,
+      challengeID: challengeID,
+      listener: self
+    )
+    
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+  }
+  
+  func detachEditChallengeGoal() {
+    guard let coordinator = editChallengeGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
 // MARK: - FeedListener
 extension ChallengeCoordinator: FeedListener {  
   func didChangeContentOffsetAtFeed(_ offset: Double) {
@@ -84,4 +112,11 @@ extension ChallengeCoordinator: ParticipantListener {
   func didChangeContentOffsetAtParticipant(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
+  
+  func didTapEditButton(userID: Int, challengeID: Int) {
+    attachEditChallengeGoal(userID: userID, challengeID: challengeID)
+  }
 }
+
+// MARK: - EditChallengeGoalListener
+extension ChallengeCoordinator: EditChallengeGoalListener { }

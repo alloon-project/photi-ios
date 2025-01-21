@@ -11,11 +11,19 @@ import Core
 protocol EditChallengeGoalDependency: Dependency { }
 
 protocol EditChallengeGoalContainable: Containable {
-  func coordinator(listener: EditChallengeGoalListener) -> ViewableCoordinating
+  func coordinator(
+    userID: Int,
+    challengeID: Int,
+    listener: EditChallengeGoalListener
+  ) -> ViewableCoordinating
 }
 
 final class EditChallengeGoalContainer: Container<EditChallengeGoalDependency>, EditChallengeGoalContainable {
-  func coordinator(listener: EditChallengeGoalListener) -> ViewableCoordinating {
+  func coordinator(
+    userID: Int,
+    challengeID: Int,
+    listener: EditChallengeGoalListener
+  ) -> ViewableCoordinating {
     let viewModel = EditChallengeGoalViewModel()
     let viewControllerable = EditChallengeGoalViewController(viewModel: viewModel)
     

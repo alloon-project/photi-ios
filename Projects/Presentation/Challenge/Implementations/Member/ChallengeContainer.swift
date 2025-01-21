@@ -16,7 +16,8 @@ public final class ChallengeContainer:
   ChallengeContainable,
   FeedDependency,
   DescriptionDependency,
-  ParticipantDependency {
+  ParticipantDependency,
+  EditChallengeGoalDependency {
   public func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating {
     let viewModel = ChallengeViewModel(challengeId: challengeId)
     let viewControllerable = ChallengeViewController(viewModel: viewModel)
@@ -24,13 +25,15 @@ public final class ChallengeContainer:
     let feedContainer = FeedContainer(dependency: self)
     let descriptionContainer = DescriptionContainer(dependency: self)
     let participantContainer = ParticipantContainer(dependency: self)
+    let editChallengeGoalContainer = EditChallengeGoalContainer(dependency: self)
     
     let coordinator = ChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       feedContainer: feedContainer,
       descriptionContainer: descriptionContainer,
-      participantContainer: participantContainer
+      participantContainer: participantContainer,
+      editChallengeGoalContainer: editChallengeGoalContainer
     )
     coordinator.listener = listener
     return coordinator
