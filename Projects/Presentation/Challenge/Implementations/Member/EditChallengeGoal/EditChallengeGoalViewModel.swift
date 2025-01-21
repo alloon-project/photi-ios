@@ -9,7 +9,9 @@
 import RxCocoa
 import RxSwift
 
-protocol EditChallengeGoalCoordinatable: AnyObject { }
+protocol EditChallengeGoalCoordinatable: AnyObject {
+  func didChangeChallengeGoal(_ goal: String)
+}
 
 protocol EditChallengeGoalViewModelType: AnyObject {
   associatedtype Input
@@ -37,6 +39,13 @@ final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapSaveButton
+      .withLatestFrom(input.goalText)
+      .bind(with: self) { owner, text in
+        owner.coordinator?.didChangeChallengeGoal(text)
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       saveButtonisEnabled: input.goalText.map { !$0.isEmpty }.asDriver(onErrorJustReturn: false)
     )

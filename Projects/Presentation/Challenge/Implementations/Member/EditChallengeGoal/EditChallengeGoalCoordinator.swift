@@ -8,7 +8,9 @@
 
 import Core
 
-protocol EditChallengeGoalListener: AnyObject { }
+protocol EditChallengeGoalListener: AnyObject {
+  func didChangeChallengeGoal(_ goal: String)
+}
 
 protocol EditChallengeGoalPresentable { }
 
@@ -28,4 +30,8 @@ final class EditChallengeGoalCoordinator: ViewableCoordinator<EditChallengeGoalP
 }
 
 // MARK: - EditChallengeGoalCoordinatable
-extension EditChallengeGoalCoordinator: EditChallengeGoalCoordinatable { }
+extension EditChallengeGoalCoordinator: EditChallengeGoalCoordinatable {
+  func didChangeChallengeGoal(_ goal: String) {
+    listener?.didChangeChallengeGoal(goal)
+  }
+}

@@ -119,4 +119,9 @@ extension ChallengeCoordinator: ParticipantListener {
 }
 
 // MARK: - EditChallengeGoalListener
-extension ChallengeCoordinator: EditChallengeGoalListener { }
+extension ChallengeCoordinator: EditChallengeGoalListener {
+  func didChangeChallengeGoal(_ goal: String) {
+    // TODO: API 연결 이후 수정 예정
+    detachEditChallengeGoal()
+  }
+}
