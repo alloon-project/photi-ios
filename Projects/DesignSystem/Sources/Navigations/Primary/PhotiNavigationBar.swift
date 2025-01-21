@@ -33,7 +33,11 @@ open class PhotiNavigationBar: UIView {
     }
   }
   public let leftViewType: LeftViewType
-  public var title: String
+  public var title: String {
+    didSet {
+      configureTitle(title)
+    }
+  }
   public var rightItems: [PhotiNavigationButton] {
     didSet {
       oldValue.forEach { rightStackView.removeArrangedSubview($0) }
