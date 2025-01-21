@@ -10,6 +10,7 @@ import RxCocoa
 import RxSwift
 
 protocol EditChallengeGoalCoordinatable: AnyObject {
+  func didTapBackButton()
   func didChangeChallengeGoal(_ goal: String)
 }
 
@@ -26,6 +27,7 @@ final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
 
   // MARK: - Input
   struct Input {
+    let didTapBackButton: ControlEvent<Void>
     let goalText: ControlProperty<String>
     let didTapSaveButton: ControlEvent<Void>
   }
@@ -39,6 +41,12 @@ final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapSaveButton
       .withLatestFrom(input.goalText)
       .bind(with: self) { owner, text in

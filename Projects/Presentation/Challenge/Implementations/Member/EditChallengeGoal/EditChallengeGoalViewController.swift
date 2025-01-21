@@ -126,6 +126,7 @@ private extension EditChallengeGoalViewController {
 private extension EditChallengeGoalViewController {
   func bind() {
     let input = EditChallengeGoalViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton,
       goalText: textField.rx.text,
       didTapSaveButton: saveButton.rx.tap
     )

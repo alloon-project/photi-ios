@@ -86,6 +86,7 @@ extension ChallengeCoordinator {
     )
     
     addChild(coordinator)
+    self.editChallengeGoalCoordinator = coordinator
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
   }
   
@@ -93,6 +94,7 @@ extension ChallengeCoordinator {
     guard let coordinator = editChallengeGoalCoordinator else { return }
     
     removeChild(coordinator)
+    self.editChallengeGoalCoordinator = nil
     viewControllerable.popViewController(animated: true)
   }
 }
@@ -120,6 +122,10 @@ extension ChallengeCoordinator: ParticipantListener {
 
 // MARK: - EditChallengeGoalListener
 extension ChallengeCoordinator: EditChallengeGoalListener {
+  func didTapBackButtonAtEditChallengeGoal() {
+    detachEditChallengeGoal()
+  }
+  
   func didChangeChallengeGoal(_ goal: String) {
     // TODO: API 연결 이후 수정 예정
     detachEditChallengeGoal()

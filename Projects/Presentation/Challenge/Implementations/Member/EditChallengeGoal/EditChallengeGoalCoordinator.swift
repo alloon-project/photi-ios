@@ -9,6 +9,7 @@
 import Core
 
 protocol EditChallengeGoalListener: AnyObject {
+  func didTapBackButtonAtEditChallengeGoal()
   func didChangeChallengeGoal(_ goal: String)
 }
 
@@ -31,6 +32,10 @@ final class EditChallengeGoalCoordinator: ViewableCoordinator<EditChallengeGoalP
 
 // MARK: - EditChallengeGoalCoordinatable
 extension EditChallengeGoalCoordinator: EditChallengeGoalCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtEditChallengeGoal()
+  }
+  
   func didChangeChallengeGoal(_ goal: String) {
     listener?.didChangeChallengeGoal(goal)
   }
