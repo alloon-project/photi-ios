@@ -69,6 +69,13 @@ public extension ViewControllerable {
     }
   }
   
+  func popViewController(animated: Bool, completion: @escaping () -> Void) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    popViewController(animated: animated)
+    CATransaction.commit()
+  }
+  
   func popToRoot(animated: Bool) {
     if let nav = self.uiviewController as? UINavigationController {
       nav.popToRootViewController(animated: animated)
