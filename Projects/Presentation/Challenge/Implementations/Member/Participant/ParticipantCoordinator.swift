@@ -10,6 +10,7 @@ import Core
 
 protocol ParticipantListener: AnyObject {
   func didChangeContentOffsetAtParticipant(_ offset: Double)
+  func didTapEditButton(userID: Int, challengeID: Int)
 }
 
 protocol ParticipantPresentable { }
@@ -33,5 +34,9 @@ final class ParticipantCoordinator: ViewableCoordinator<ParticipantPresentable> 
 extension ParticipantCoordinator: ParticipantCoordinatable {
   func didChangeContentOffset(_ offset: Double) {
     listener?.didChangeContentOffsetAtParticipant(offset)
+  }
+  
+  func didTapEditButton(userID: Int, challengeID: Int) {
+    listener?.didTapEditButton(userID: userID, challengeID: challengeID)
   }
 }

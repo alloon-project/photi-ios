@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import Core
 import DesignSystem
 
@@ -28,7 +30,7 @@ final class ParticipantCell: UITableViewCell {
   }()
   
   private let ownerBadge = Badge(mode: .line, size: .medium, text: "파티장")
-  private let editButton = {
+  fileprivate let editButton = {
     let button = UIButton()
     button.setImage(.pencilGray700, for: .normal)
     return button
@@ -122,5 +124,11 @@ private extension ParticipantCell {
       $0.height.equalTo(54)
       $0.top.equalTo(participantStackView.snp.bottom).offset(8)
     }
+  }
+}
+
+extension Reactive where Base: ParticipantCell {
+  var didTapEditButton: ControlEvent<Void> {
+    base.editButton.rx.tap
   }
 }

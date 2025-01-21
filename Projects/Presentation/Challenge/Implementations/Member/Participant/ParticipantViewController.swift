@@ -25,6 +25,7 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
   }
   
   private let contentOffset = PublishRelay<Double>()
+  private let didTapEditButtonRelay = PublishRelay<(Int, Int)>()
 
   // MARK: - UI Components
   private let participantCountLabel = UILabel()
@@ -89,7 +90,10 @@ private extension ParticipantViewController {
 // MARK: - Bind Methods
 private extension ParticipantViewController {
   func bind() {
-    let input = ParticipantViewModel.Input(contentOffset: contentOffset.asSignal())
+    let input = ParticipantViewModel.Input(
+      contentOffset: contentOffset.asSignal(),
+      didTapEditButton: didTapEditButtonRelay.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -113,6 +117,13 @@ extension ParticipantViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ParticipantCell.self, for: indexPath)
     cell.configure(with: dataSource[indexPath.row])
+    
+    // TODO: - API 연동 후 수정 예정
+    cell.rx.didTapEditButton
+      .map { _ in (0, indexPath.row) }
+      .bind(to: didTapEditButtonRelay)
+      .disposed(by: disposeBag)
+    
     return cell
   }
 }
