@@ -12,6 +12,7 @@ import Challenge
 protocol ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
+  func presentDidChangeGoalToastView()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -90,12 +91,14 @@ extension ChallengeCoordinator {
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
   }
   
-  func detachEditChallengeGoal() {
+  func detachEditChallengeGoal(completion: (() -> Void)? = nil) {
     guard let coordinator = editChallengeGoalCoordinator else { return }
     
     removeChild(coordinator)
     self.editChallengeGoalCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+    viewControllerable.popViewController(animated: true) {
+      completion?()
+    }
   }
 }
 
@@ -128,6 +131,8 @@ extension ChallengeCoordinator: EditChallengeGoalListener {
   
   func didChangeChallengeGoal(_ goal: String) {
     // TODO: API 연결 이후 수정 예정
-    detachEditChallengeGoal()
+    detachEditChallengeGoal { [weak self] in
+      self?.presenter.presentDidChangeGoalToastView()
+    }
   }
 }
