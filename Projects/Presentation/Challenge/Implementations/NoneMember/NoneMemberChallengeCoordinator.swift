@@ -6,9 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
-
-protocol NoneMemberChallengeListener: AnyObject { }
 
 protocol NoneMemberChallengePresentable { }
 
