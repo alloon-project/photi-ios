@@ -19,6 +19,22 @@ final class DescriptionViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   
   // MARK: - UI Components
+  private let mainContainerView = UIView()
+  private let ruleDescriptionView = RuleDescriptionView()
+  private let goalDescriptionView = DescriptionView(type: .goal)
+  private let durationDescriptionView = DescriptionView(type: .duration)
+  private let seperatorViewBetweenRuleAndGoal: UIView = {
+    let view = UIView()
+    view.backgroundColor = .gray100
+    
+    return view
+  }()
+  private let seperatorViewBetweenGoalAndDuration: UIView = {
+    let view = UIView()
+    view.backgroundColor = .gray100
+    
+    return view
+  }()
   
   // MARK: - Initializers
   init(viewModel: DescriptionViewModel) {
@@ -46,9 +62,50 @@ private extension DescriptionViewController {
     setConstraints()
   }
   
-  func setViewHierarchy() { }
+  func setViewHierarchy() {
+    view.addSubviews(mainContainerView)
+    mainContainerView.addSubviews(
+      ruleDescriptionView,
+      goalDescriptionView,
+      durationDescriptionView,
+      seperatorViewBetweenRuleAndGoal,
+      seperatorViewBetweenGoalAndDuration
+    )
+  }
   
-  func setConstraints() { }
+  func setConstraints() {
+    mainContainerView.snp.makeConstraints {
+      $0.top.equalToSuperview().offset(32)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview()
+    }
+    
+    ruleDescriptionView.snp.makeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+    }
+    
+    seperatorViewBetweenRuleAndGoal.snp.makeConstraints {
+      $0.height.equalTo(1)
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(ruleDescriptionView.snp.bottom).offset(24)
+    }
+    
+    goalDescriptionView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(seperatorViewBetweenRuleAndGoal.snp.bottom).offset(32)
+    }
+    
+    seperatorViewBetweenGoalAndDuration.snp.makeConstraints {
+      $0.height.equalTo(1)
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(goalDescriptionView.snp.bottom).offset(24)
+    }
+    
+    durationDescriptionView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(seperatorViewBetweenGoalAndDuration.snp.bottom).offset(32)
+    }
+  }
 }
 
 // MARK: - Bind Methods

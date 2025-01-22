@@ -136,6 +136,21 @@ extension ChallengeViewController: ChallengePresentable {
       $0.top.equalToSuperview().offset(mainContainerOffset)
     }
   }
+  
+  func presentDidChangeGoalToastView() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "수정 완료! 새로운 목표까지 화이팅이에요!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
+  }
 }
 
 // MARK: - Private Methods
