@@ -61,6 +61,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
     super.viewDidLoad()
     
     setupUI()
+    bind()
   }
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
@@ -174,23 +175,19 @@ private extension NoneMemberChallengeViewController {
     viewModelBind(for: output)
   }
   
-  func viewBind() { }
+  func viewBind() {
+    ruleView.rx.didTapViewAllRulesButton
+      .bind(with: self) { owner, rules in
+        owner.displayRuleDetailViewController(rules)
+      }
+      .disposed(by: disposeBag)
+  }
   
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) { }
 }
 
 // MARK: - NoneMemberChallengePresentable
 extension NoneMemberChallengeViewController: NoneMemberChallengePresentable { }
-
-// MARK: - Private Methods
-private extension NoneMemberChallengeViewController {
-  func configureTitleLabel(_ title: String) {
-    challengeTitleLabel.attributedText = title.attributedString(
-      font: .heading2,
-      color: .gray900
-    )
-  }
-}
 
 // MARK: - UICollectionViewDataSource
 extension NoneMemberChallengeViewController: UICollectionViewDataSource {
