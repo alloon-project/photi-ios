@@ -76,6 +76,7 @@ final class RuleDetailViewController: UIViewController {
     ruleTableView.dataSource = self
     ruleTableView.delegate = self
     setupUI()
+    configureCloseButtonAction()
   }
   
   override func viewIsAppearing(_ animated: Bool) {
@@ -152,5 +153,17 @@ extension RuleDetailViewController: UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
     return section == 0 ? 0 : 12
+  }
+}
+
+// MARK: - Private Methods
+private extension RuleDetailViewController {
+  func configureCloseButtonAction() {
+    closeButton.addAction(
+      .init { [weak self] _ in
+        self?.dismiss(animated: false)
+      },
+      for: .touchUpInside
+    )
   }
 }
