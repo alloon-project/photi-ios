@@ -17,6 +17,7 @@ public final class IconRoundButton: RoundButton {
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let stackView = UIStackView()
+    stackView.isUserInteractionEnabled = false
     stackView.axis = .horizontal
     stackView.spacing = 8
     stackView.alignment = .center
@@ -66,7 +67,6 @@ private extension IconRoundButton {
     // UI Components
     let resizeIcon = icon
       .resize(CGSize(width: height, height: height))
-      .withTintColor(textColor)
     let imageView = UIImageView(image: resizeIcon)
     let label = UILabel()
     

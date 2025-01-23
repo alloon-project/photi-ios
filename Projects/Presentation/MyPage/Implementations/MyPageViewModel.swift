@@ -20,7 +20,7 @@ protocol MyPageCoordinatable: AnyObject {
   func detachProofChallenge()
 }
 
-protocol MyPageViewModelType: AnyObject, MyPageViewModelable {
+protocol MyPageViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

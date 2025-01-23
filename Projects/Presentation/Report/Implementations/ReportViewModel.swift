@@ -18,7 +18,7 @@ protocol ReportCoordinatable: AnyObject {
   func didFinishReport()
 }
 
-protocol ReportViewModelType: ReportViewModelable {
+protocol ReportViewModelType {
   associatedtype Input
   associatedtype Output
   

@@ -14,7 +14,7 @@ import Core
 import DesignSystem
 import Report
 
-final class ReportViewController: UIViewController {
+final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Variables
@@ -38,9 +38,7 @@ final class ReportViewController: UIViewController {
   }()
   
   private let detailLabel = UILabel()
-  
   private let detailContentTextView: LineTextView
-  
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers

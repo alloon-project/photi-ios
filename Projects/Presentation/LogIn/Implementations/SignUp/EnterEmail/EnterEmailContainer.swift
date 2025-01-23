@@ -14,7 +14,7 @@ protocol EnterEmailDependency: Dependency {
 }
 
 protocol EnterEmailContainable: Containable {
-  func coordinator(listener: EnterEmailListener) -> Coordinating
+  func coordinator(listener: EnterEmailListener) -> ViewableCoordinating
 }
 
 final class EnterEmailContainer:
@@ -23,11 +23,13 @@ final class EnterEmailContainer:
   VerifyEmailDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
   
-  func coordinator(listener: EnterEmailListener) -> Coordinating {
+  func coordinator(listener: EnterEmailListener) -> ViewableCoordinating {
     let viewModel = EnterEmailViewModel(useCase: signUpUseCase)
+    let viewControllerable = EnterEmailViewController(viewModel: viewModel)
     let verifyEmailContainable = VerifyEmailContainer(dependency: self)
     
     let coordinator = EnterEmailCoordinator(
+      viewControllerable: viewControllerable,
       viewModel: viewModel,
       verifyEmailContainable: verifyEmailContainable
     )

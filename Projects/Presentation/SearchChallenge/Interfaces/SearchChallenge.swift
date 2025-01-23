@@ -9,7 +9,7 @@
 import Core
 
 public protocol SearchChallengeContainable: Containable {
-  func coordinator(listener: SearchChallengeListener) -> Coordinating
+  func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating
 }
 
 public protocol SearchChallengeListener: AnyObject { }

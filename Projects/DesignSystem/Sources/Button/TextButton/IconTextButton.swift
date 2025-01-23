@@ -32,6 +32,7 @@ public final class IconTextButton: UIButton {
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let stackView = UIStackView()
+    stackView.isUserInteractionEnabled = false
     stackView.axis = .horizontal
     stackView.spacing = 6
     stackView.alignment = .center
@@ -90,7 +91,7 @@ private extension IconTextButton {
   }
   
   func setIconView(_ icon: UIImage) {
-    let resizeIcon = icon.resize(iconSize(for: size)).withTintColor(.gray600)
+    let resizeIcon = icon.resize(iconSize(for: size))
     iconView.image = resizeIcon
   }
   

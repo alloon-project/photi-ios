@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterPasswordViewController: UIViewController {
+final class EnterPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterPasswordViewModel
   
@@ -52,22 +52,21 @@ final class EnterPasswordViewController: UIViewController {
   
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   
-  // TODO: - DS 적용후 이미지 수정
   private let containAlphabetCommentView = CommentView(
-    .condition, text: "영문 포함", icon: UIImage(systemName: "checkmark")!
+    .condition, text: "영문 포함", icon: .checkGray400
   )
   private let containNumberCommentView = CommentView(
-    .condition, text: "숫자 포함", icon: UIImage(systemName: "checkmark")!
+    .condition, text: "숫자 포함", icon: .checkGray400
   )
   private let containSpecialCommentView = CommentView(
-    .condition, text: "특수문자 포함", icon: UIImage(systemName: "checkmark")!
+    .condition, text: "특수문자 포함", icon: .checkGray400
   )
   private let validRangeCommentView = CommentView(
-    .condition, text: "8~30자", icon: UIImage(systemName: "checkmark")!
+    .condition, text: "8~30자", icon: .checkGray400
   )
   
   private let correnspondPasswordCommentView = CommentView(
-    .condition, text: "비밀번호 일치", icon: UIImage(systemName: "checkmark")!
+    .condition, text: "비밀번호 일치", icon: .checkGray400
   )
   
   // MARK: - Initializers
@@ -227,6 +226,9 @@ private extension EnterPasswordViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EnterPasswordPresentable
+extension EnterPasswordViewController: EnterPasswordPresentable { }
 
 // MARK: - Private Methods
 private extension EnterPasswordViewController {

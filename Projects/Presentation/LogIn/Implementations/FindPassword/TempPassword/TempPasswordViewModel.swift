@@ -8,17 +8,15 @@
 
 import RxCocoa
 import RxSwift
-import DesignSystem
 import Entity
 import UseCase
 
 protocol TempPasswordCoordinatable: AnyObject {
-  // viewModel에서 coordinator로 전달할 이벤트들을 정의합니다.
   func didTapBackButton()
   func attachNewPassword()
 }
 
-protocol TempPasswordViewModelType: TempPasswordViewModelable {
+protocol TempPasswordViewModelType {
   associatedtype Input
   associatedtype Output
   

@@ -66,8 +66,8 @@ public final class IconButton: UIButton {
   
   public convenience init(size: ButtonSize) {
     self.init(
-      selectedIcon: UIImage(systemName: "heart.fill")!,
-      unSelectedIcon: UIImage(systemName: "heart")!,
+      selectedIcon: .heartFilledWhite,
+      unSelectedIcon: .heartWhite,
       size: size
     )
   }

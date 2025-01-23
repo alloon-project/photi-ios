@@ -6,61 +6,60 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import UIKit
 import Core
 import Home
 import SearchChallenge
 import MyPage
 
-final class AppCoordinator: Coordinator {
-  private let viewController: AppViewController
-  
-  private let homeNavigationController = UINavigationController()
-  private let searchChallengeNavigationController = UINavigationController()
-  private let myPageNavigationController = UINavigationController()
+protocol AppPresentable {
+  func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
+}
+
+final class AppCoordinator: ViewableCoordinator<AppPresentable> {
+  private let homeNavigationControllerable = NavigationControllerable()
+  private let searchChallengeNavigationControllerable = NavigationControllerable()
+  private let myPageNavigationControllerable = NavigationControllerable()
   
   private let homeContainable: HomeContainable
-  private var homeCoordinator: Coordinating?
-
   private let searchChallengeContainable: SearchChallengeContainable
-  private var searchChallengeCoordinator: Coordinating?
-
   private let myPageContainable: MyPageContainable
-  private var myPageCoordinator: Coordinating?
   
- init(
+  init(
+    viewControllerable: ViewControllerable,
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
-    myPageContainable: MyPageContainable
+    myPageContainable: MyPageContainable,
   ) {
     self.homeContainable = homeContainable
     self.searchChallengeContainable = searchChallengeContainable
     self.myPageContainable = myPageContainable
-    self.viewController = AppViewController()
-    super.init()
+    super.init(viewControllerable)
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.setNavigationBarHidden(true, animated: false)
-    navigationController?.pushViewController(viewController, animated: false)
+  override func start() {
     attachCoordinators()
   }
   
   func attachCoordinators() {
-    self.homeCoordinator = homeContainable.coordinator(listener: self)
-    self.searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
-    self.myPageCoordinator = myPageContainable.coordinator(listener: self)
-    
-    homeCoordinator?.start(at: homeNavigationController)
-    searchChallengeCoordinator?.start(at: searchChallengeNavigationController)
-    myPageCoordinator?.start(at: myPageNavigationController)
-    
-    viewController.attachNavigationControllers(
-      homeNavigationController,
-      searchChallengeNavigationController,
-      myPageNavigationController
+    let homeCoordinator = homeContainable.coordinator(
+      navigationControllerable: homeNavigationControllerable,
+      listener: self
     )
+    let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
+    let myPageCoordinator = myPageContainable.coordinator(listener: self)
+    
+    searchChallengeNavigationControllerable.setViewControllers([searchChallengeCoordinator.viewControllerable])
+    myPageNavigationControllerable.setViewControllers([myPageCoordinator.viewControllerable])
+        
+    presenter.attachNavigationControllers(
+      homeNavigationControllerable,
+      searchChallengeNavigationControllerable,
+      myPageNavigationControllerable
+    )
+    
+    addChild(homeCoordinator)
+    addChild(searchChallengeCoordinator)
+    addChild(myPageCoordinator)
   }
 }
 

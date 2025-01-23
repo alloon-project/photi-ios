@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ChangePasswordViewController: UIViewController {
+final class ChangePasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ChangePasswordViewModel
   private let alertRelay = PublishRelay<Void>()
@@ -72,7 +72,6 @@ final class ChangePasswordViewController: UIViewController {
     text: "변경하기"
   )
   
-  // TODO: - DS 적용후 이미지 수정
   private let wrongPasswordCommentView = CommentView(
     .warning,
     text: "기존 비밀번호가  일치하지 않아요",
@@ -206,50 +205,41 @@ private extension ChangePasswordViewController {
       $0.top.equalTo(view.safeAreaLayoutGuide)
       $0.height.equalTo(56)
     }
-    
     currentPasswordTitleLabel.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(24)
       $0.leading.equalToSuperview().offset(24)
     }
-    
     currentPasswordTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(currentPasswordTitleLabel.snp.bottom).offset(24)
     }
-    
     newPasswordTitleLabel.snp.makeConstraints {
       $0.top.equalTo(currentPasswordTextField.snp.bottom).offset(48)
       $0.leading.equalToSuperview().offset(24)
     }
-    
     newPasswordTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(newPasswordTitleLabel.snp.bottom).offset(24)
     }
-    
     newPasswordCheckTitleLabel.snp.makeConstraints {
       $0.top.equalTo(newPasswordTextField.snp.bottom).offset(48)
       $0.leading.equalToSuperview().offset(24)
     }
-    
     newPasswordCheckTextField.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
       $0.top.equalTo(newPasswordCheckTitleLabel.snp.bottom).offset(24)
     }
-    
     changePasswordButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
     }
-    
     forgotPasswordButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalTo(changePasswordButton.snp.top).offset(-14)
     }
-    
     warningToastView.setConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-64)
@@ -302,7 +292,6 @@ private extension ChangePasswordViewController {
     
     output.isValidPassword
       .filter { $0 == false }
-      .map { _ in "" }
       .drive(with: self) { owner, _ in
         owner.newPasswordCheckTextField.text = ""
         owner.correnspondPasswordCommentView.isActivate = false
@@ -333,6 +322,9 @@ private extension ChangePasswordViewController {
       }.disposed(by: disposeBag)
   }
 }
+
+// MARK: - ChangePasswordPresentable
+extension ChangePasswordViewController: ChangePasswordPresentable { }
 
 // MARK: - Private Methods
 private extension ChangePasswordViewController {
@@ -387,7 +379,7 @@ extension ChangePasswordViewController: UITextFieldDelegate {
   func textFieldDidEndEditing(_ textField: UITextField) {
     if textField == currentPasswordTextField.textField || textField == newPasswordTextField.textField {
       let isDifferentPassword = currentPasswordTextField.text != newPasswordTextField.text
-      if !isDifferentPassword && newPasswordTextField.text != "" {
+      if !isDifferentPassword && newPasswordTextField.text?.isEmpty == false {
         newPasswordTextField.commentViews = [isDifferentPasswordCommentView]
       } else {
         newPasswordTextField.commentViews = [

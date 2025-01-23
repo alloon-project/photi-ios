@@ -14,10 +14,14 @@ public protocol SearchChallengeDependency: Dependency { }
 public final class SearchChallengeContainer:
   Container<SearchChallengeDependency>,
   SearchChallengeContainable {
-  public func coordinator(listener: SearchChallengeListener) -> Coordinating {
+  public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
     let viewModel = SearchChallengeViewModel()
+    let viewControllerable = SearchChallengeViewController(viewModel: viewModel)
     
-    let coordinator = SearchChallengeCoordinator(viewModel: viewModel)
+    let coordinator = SearchChallengeCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     return coordinator
   }
