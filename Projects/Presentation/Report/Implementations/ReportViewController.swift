@@ -179,6 +179,10 @@ private extension ReportViewController {
     alertVC.present(to: self, animted: false)
   }
 }
+
+// MARK: - ReportPresentable
+extension ReportViewController: ReportPresentable { }
+
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   func numberOfSections(in tableView: UITableView) -> Int {
