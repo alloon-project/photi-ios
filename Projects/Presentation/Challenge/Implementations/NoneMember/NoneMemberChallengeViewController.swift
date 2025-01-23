@@ -14,11 +14,36 @@ import Core
 import DesignSystem
 
 final class NoneMemberChallengeViewController: UIViewController, ViewControllerable {
+  enum Constants {
+    static let navigationHeight: CGFloat = 56
+  }
+  
   // MARK: - Properties
   private let viewModel: NoneMemberChallengeViewModel
   private let disposeBag = DisposeBag()
+  private var hashTags = [String]() {
+    didSet { hashTagCollectionView.reloadData() }
+  }
   
   // MARK: - UI Components
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
+  private let mainContainerView = UIView()
+  private let leftView = UIView()
+  private let rightView = UIView()
+  private let challengeTitleLabel: UILabel = {
+    let label = UILabel()
+    label.numberOfLines = 2
+    
+    return label
+  }()
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .leading)
+  private let verificationTimeView = ChallengeVerificationTimeView()
+  private let goalView = ChallengeGoalView()
+  private let thumbnailView = ChallengeThumbnailView()
+  private let ruleView = ChallengeRuleView()
+  private let deadLineView = ChallengeDeadLineView()
+  
+  private let joinButton = FilledRoundButton(type: .primary, size: .xLarge, text: "함께하기")
   
   // MARK: - Initializers
   init(viewModel: NoneMemberChallengeViewModel) {
@@ -37,6 +62,10 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
     
     setupUI()
   }
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    hideTabBar(animated: true)
+  }
 }
 
 // MARK: - UI Methods
@@ -46,9 +75,93 @@ private extension NoneMemberChallengeViewController {
     setConstraints()
   }
   
-  func setViewHierarchy() { }
+  func setViewHierarchy() {
+    view.addSubviews(navigationBar, mainContainerView, joinButton)
+    mainContainerView.addSubviews(leftView, rightView)
+    leftView.addSubviews(
+      challengeTitleLabel,
+      hashTagCollectionView,
+      verificationTimeView,
+      goalView
+    )
+    
+    rightView.addSubviews(thumbnailView, ruleView, deadLineView)
+  }
   
-  func setConstraints() { }
+  func setConstraints() {
+    navigationBar.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(view.safeAreaLayoutGuide)
+      $0.height.equalTo(Constants.navigationHeight)
+    }
+    
+    mainContainerView.snp.makeConstraints {
+      $0.top.equalTo(navigationBar.snp.bottom).offset(13)
+      $0.centerX.equalToSuperview()
+    }
+    
+    leftView.snp.makeConstraints {
+      $0.leading.equalToSuperview()
+      $0.top.bottom.equalTo(rightView)
+      $0.width.equalTo(175)
+    }
+    
+    rightView.snp.makeConstraints {
+      $0.leading.equalTo(leftView.snp.trailing).offset(16)
+      $0.trailing.top.bottom.equalToSuperview()
+      $0.width.equalTo(136)
+    }
+    
+    setLeftViewsConstraints()
+    setRightViewsConstraints()
+    
+    joinButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(48)
+    }
+  }
+  
+  func setLeftViewsConstraints() {
+    challengeTitleLabel.snp.makeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+    }
+    
+    hashTagCollectionView.snp.makeConstraints {
+      $0.top.equalTo(challengeTitleLabel.snp.bottom)
+      $0.leading.trailing.equalTo(challengeTitleLabel)
+      $0.height.equalTo(50)
+    }
+
+    verificationTimeView.snp.makeConstraints {
+      $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(18)
+      $0.height.equalTo(71)
+      $0.leading.trailing.equalToSuperview()
+    }
+    
+    goalView.snp.makeConstraints {
+      $0.top.equalTo(verificationTimeView.snp.bottom).offset(18)
+      $0.leading.trailing.bottom.equalToSuperview()
+    }
+  }
+  
+  func setRightViewsConstraints() {
+    thumbnailView.snp.makeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+      $0.height.equalTo(194)
+    }
+    
+    ruleView.snp.makeConstraints {
+      $0.top.equalTo(thumbnailView.snp.bottom).offset(16)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(268)
+    }
+    
+    deadLineView.snp.makeConstraints {
+      $0.top.equalTo(ruleView.snp.bottom).offset(16)
+      $0.leading.trailing.bottom.equalToSuperview()
+      $0.height.equalTo(71)
+    }
+  }
 }
 
 // MARK: - Bind Methods
@@ -68,3 +181,28 @@ private extension NoneMemberChallengeViewController {
 
 // MARK: - NoneMemberChallengePresentable
 extension NoneMemberChallengeViewController: NoneMemberChallengePresentable { }
+
+// MARK: - Private Methods
+private extension NoneMemberChallengeViewController {
+  func configureTitleLabel(_ title: String) {
+    challengeTitleLabel.attributedText = title.attributedString(
+      font: .heading2,
+      color: .gray900
+    )
+  }
+}
+
+// MARK: - UICollectionViewDataSource
+extension NoneMemberChallengeViewController: UICollectionViewDataSource {
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return hashTags.count
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
+    let text = hashTags[indexPath.row]
+    cell.configure(type: .text(size: .medium, type: .gray), text: text)
+    
+    return cell
+  }
+}
