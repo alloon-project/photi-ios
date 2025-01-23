@@ -13,12 +13,12 @@ import SnapKit
 import Core
 import DesignSystem
 import Report
-// 카테고리, 리즌, 콘텐츠
-// 타입, 콘텐츠
+
 final class ReportViewController: UIViewController {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  // MARK: - Refactoring
+  // MARK: - Variables
+  private var targetId: Int?
   private var reportType: ReportType
   private var selectedSection: Int?
   private let selectedRowRelay = PublishRelay<String>()
@@ -152,25 +152,41 @@ private extension ReportViewController {
     let input = ReportViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapReportButton: reportButton.rx.tap,
-      category: <#Observable<String>#>,
-      content: detailContentTextView.rx.text
+      reportType: reportType,
+      category: reportType.category ?? "CHALLENGE",
+      reasonAndType: selectedRowRelay.asObservable(),
+      content: detailContentTextView.rx.text,
+      targetId: targetId
     )
     
     let output = viewModel.transform(input: input)
     bind(output: output)
   }
   
-  func bind(output: ReportViewModel.Output) { }
+  func bind(output: ReportViewModel.Output) {
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayAlertPopUp()
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
+// MARK: - Private Methods
+private extension ReportViewController {
+  func displayAlertPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
+  }
+}
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   func numberOfSections(in tableView: UITableView) -> Int {
-    return reportType.contents.count
+    return 1
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return 1
+    return reportType.contents.count
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -274,5 +290,12 @@ private extension ReportViewController {
     if view.frame.origin.y != 0 {
       view.frame.origin.y = 0
     }
+  }
+}
+
+// MARK: - Internal Methods
+extension ReportViewController {
+  func setTargetId(_ id: Int) {
+    self.targetId = id
   }
 }
