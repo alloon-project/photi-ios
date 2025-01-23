@@ -39,7 +39,7 @@ public final class LineRoundButton: RoundButton {
   public override func setupUI() {
     super.setupUI()
     
-    self.backgroundColor = .clear
+    self.backgroundColor = .white
     self.layer.borderWidth = 1
     self.layer.borderColor = lineColor(for: type).cgColor
   }

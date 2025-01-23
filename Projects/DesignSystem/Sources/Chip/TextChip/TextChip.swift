@@ -12,6 +12,15 @@ import Core
 
 /// Text의 길이에 따라 유동적이로 길이가 변하는 View입니다.
 public final class TextChip: UIView {
+  public override var intrinsicContentSize: CGSize {
+    let labelSize = label.intrinsicContentSize
+    
+    return .init(
+      width: labelSize.width + 2 * sideInset(for: size),
+      height: height(for: size)
+    )
+  }
+  
   /// Text Chip의 size입니다.
   public let size: ChipSize
   
@@ -83,12 +92,13 @@ private extension TextChip {
     switch size {
       case .large:
         label.snp.makeConstraints {
-          $0.top.bottom.equalToSuperview().inset(10)
+          $0.centerY.equalToSuperview()
           $0.leading.trailing.equalToSuperview().inset(12)
         }
       case .medium, .small:
         label.snp.makeConstraints {
-          $0.edges.equalToSuperview().inset(8)
+          $0.centerY.equalToSuperview()
+          $0.leading.trailing.equalToSuperview().inset(8)
         }
     }
   }
@@ -152,6 +162,21 @@ private extension TextChip {
         return .caption1
       case .small:
         return .caption2
+    }
+  }
+  
+  func sideInset(for size: ChipSize) -> CGFloat {
+    switch size {
+      case .large: return 12
+      case .medium, .small: return 8
+    }
+  }
+  
+  func height(for size: ChipSize) -> CGFloat {
+    switch size {
+      case .large: return 30
+      case .medium: return 25
+      case .small: return 23
     }
   }
 }
