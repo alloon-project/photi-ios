@@ -9,9 +9,13 @@
 import RxCocoa
 import RxSwift
 import DesignSystem
+import Entity
+import UseCase
+import Report
 
 protocol ReportCoordinatable: AnyObject {
   func didTapBackButtonAtReport()
+  func didFinishReport()
 }
 
 protocol ReportViewModelType: ReportViewModelable {
@@ -29,19 +33,31 @@ final class ReportViewModel: ReportViewModelType {
   
   weak var coordinator: ReportCoordinatable?
   
+  private let reportUseCase: ReportUseCase
+  private let inquiryUseCase: InquiryUseCase
+  private let requestFailedRelay = PublishRelay<Void>()
+
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let didTapReportButton: ControlEvent<Void>
-    let category: Observable<String>
-    let content: ControlProperty<String>
+    let reportType: ReportType
+    let category: String // 신고 카테고리
+    let reasonAndType: Observable<String> // 신고 이유 및 문의 내용 타입
+    let content: ControlProperty<String> // 신고 및 문의 상세내용
+    let targetId: Int? // 신고 상세아이디
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    var requestFailed: Signal<Void>
+  }
   
   // MARK: - Initializers
-  init() { }
+  init(reportUseCase: ReportUseCase, inquiryUseCase: InquiryUseCase) {
+    self.reportUseCase = reportUseCase
+    self.inquiryUseCase = inquiryUseCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -51,18 +67,44 @@ final class ReportViewModel: ReportViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapReportButton
-      .bind(with: self) { onwer, _ in
-        
+      .withLatestFrom(Observable.combineLatest(input.reasonAndType, input.content))
+      .bind(with: self) { owner, reasonWithContent in
+        switch input.reportType {
+        case .challenge, .member, .feed:
+          guard
+            let targetId = input.targetId
+          else { return }
+          owner.requestReport(
+            category: input.category,
+            reason: reasonWithContent.0,
+            content: reasonWithContent.1,
+            targetId: targetId
+          )
+        case .inquiry:
+          owner.requestInquiry(
+            type: reasonWithContent.0,
+            content: reasonWithContent.1
+          )
+        }
       }
       .disposed(by: disposeBag)
-    return Output()
+    return Output(
+      requestFailed: requestFailedRelay.asSignal()
+    )
   }
 }
 
 // MARK: - Private Methods
 private extension ReportViewModel {
   func requestInquiry(type: String, content: String) {
-    
+    inquiryUseCase.inquiry(type: type, content: content)
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self,
+                 onSuccess: { owner, _ in
+        owner.coordinator?.didFinishReport()
+      }, onFailure: { owner, error in
+        owner.requestFailed(with: error)
+      }).disposed(by: disposeBag)
   }
   
   func requestReport(
@@ -71,6 +113,23 @@ private extension ReportViewModel {
     content: String,
     targetId: Int
   ) {
-    
+    reportUseCase.report(
+      category: category,
+      reason: reason,
+      content: content,
+      targetId: targetId)
+    .observe(on: MainScheduler.instance)
+    .subscribe(with: self,
+               onSuccess: { onwer, _ in
+      onwer.coordinator?.didFinishReport()
+    }, onFailure: { owner, error in
+      owner.requestFailed(with: error)
+    }).disposed(by: disposeBag)
+  }
+  
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError {
+      requestFailedRelay.accept(())
+    }
   }
 }
