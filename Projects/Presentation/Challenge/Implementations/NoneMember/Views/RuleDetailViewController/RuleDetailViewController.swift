@@ -11,6 +11,10 @@ import Core
 import DesignSystem
 
 final class RuleDetailViewController: UIViewController {
+  enum Constants {
+    static let mainContentViewHeight: CGFloat = 456
+  }
+  
   // MARK: - Properties
   private var rules = [String]() {
     didSet { ruleTableView.reloadData() }
@@ -27,6 +31,7 @@ final class RuleDetailViewController: UIViewController {
   
   private let mainContentView: UIView = {
     let view = UIView()
+    view.layer.cornerRadius = 12
     view.backgroundColor = .green0
     
     return view
@@ -83,6 +88,11 @@ final class RuleDetailViewController: UIViewController {
     super.viewIsAppearing(animated)
     dimmedLayer.frame = view.bounds
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    presentWithAnimation()
+  }
 }
 
 // MARK: - UI Methods
@@ -101,8 +111,8 @@ private extension RuleDetailViewController {
   func setConstraints() {
     mainContentView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
-      $0.centerY.equalToSuperview()
-      $0.height.equalTo(456)
+      $0.top.equalToSuperview().offset(-1000)
+      $0.height.equalTo(Constants.mainContentViewHeight)
     }
     
     titleLabel.snp.makeConstraints {
@@ -161,9 +171,26 @@ private extension RuleDetailViewController {
   func configureCloseButtonAction() {
     closeButton.addAction(
       .init { [weak self] _ in
-        self?.dismiss(animated: false)
+        self?.dismissWithAnimation()
       },
       for: .touchUpInside
     )
+  }
+  
+  func presentWithAnimation() {
+    mainContentView.frame.origin.y = view.frame.height
+    UIView.animate(withDuration: 0.4) {
+      self.mainContentView.center.y = self.view.center.y
+      self.mainContentView.layoutIfNeeded()
+    }
+  }
+  
+  func dismissWithAnimation() {
+    UIView.animate(withDuration: 0.4) {
+      self.mainContentView.frame.origin.y = self.view.frame.height
+      self.mainContentView.layoutIfNeeded()
+    } completion: { _ in
+      self.dismiss(animated: false)
+    }
   }
 }
