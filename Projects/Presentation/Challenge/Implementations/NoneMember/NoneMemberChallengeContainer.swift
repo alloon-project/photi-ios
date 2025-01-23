@@ -14,7 +14,7 @@ public protocol NoneMemberChallengeDependency: Dependency { }
 public final class NoneMemberChallengeContainer:
   Container<NoneMemberChallengeDependency>,
   NoneMemberChallengeContainable {
-  public func coordinator(listener: NoneMemberChallengeListener) -> ViewableCoordinating {
+  public func coordinator(listener: NoneMemberChallengeListener, challengeId: Int) -> ViewableCoordinating {
     let viewModel = NoneMemberChallengeViewModel()
     let viewControllerable = NoneMemberChallengeViewController(viewModel: viewModel)
     

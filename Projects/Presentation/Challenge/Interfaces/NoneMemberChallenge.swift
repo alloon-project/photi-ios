@@ -8,8 +8,8 @@
 
 import Core
 
-public protocol NoneMemberChallengeListener: AnyObject { }
-
 public protocol NoneMemberChallengeContainable: Containable {
-  func coordinator(listener: NoneMemberChallengeListener) -> ViewableCoordinating
+  func coordinator(listener: NoneMemberChallengeListener, challengeId: Int) -> ViewableCoordinating
 }
+
+public protocol NoneMemberChallengeListener: AnyObject { }
