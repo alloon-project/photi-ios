@@ -33,6 +33,10 @@ final class ReportCoordinator: Coordinator {
 }
 
 extension ReportCoordinator: ReportCoordinatable {
+  func didFinishReport() {
+    listener?.detachReport()
+  }
+  
   func didTapBackButtonAtReport() {
     listener?.detachReport()
   }
