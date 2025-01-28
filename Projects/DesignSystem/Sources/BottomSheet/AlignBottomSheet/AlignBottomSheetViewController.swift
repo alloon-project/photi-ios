@@ -94,7 +94,7 @@ private extension AlignBottomSheetViewController {
     setConstraints()
     
     if case let .button(title) = type {
-      button.setText(title, for: .normal)
+      button.title = title
     }
   }
   
