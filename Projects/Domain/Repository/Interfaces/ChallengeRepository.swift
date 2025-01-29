@@ -7,11 +7,9 @@
 //
 
 import RxSwift
-import DataMapper
 import Entity
 
 public protocol ChallengeRepository {
-  init(dataMapper: ChallengeDataMapper)
-    
-  func fetchPopularChallenges() -> Single<[Challenge]>
+  func fetchPopularChallenges() -> Single<[ChallengeDetail]>
+  func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
 }
