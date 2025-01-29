@@ -8,10 +8,7 @@
 
 import RxSwift
 import Entity
-import Repository
 
 public protocol HomeUseCase {
-  init(repository: ChallengeRepository)
-
-  func fetchPopularChallenge() -> Single<[Challenge]>
+  func fetchPopularChallenge() -> Single<[ChallengeDetail]>
 }

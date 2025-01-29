@@ -18,7 +18,7 @@ public struct HomeUseCaseImpl: HomeUseCase {
     self.repository = repository
   }
   
-  public func fetchPopularChallenge() -> Single<[Challenge]> {
+  public func fetchPopularChallenge() -> Single<[ChallengeDetail]> {
     return repository.fetchPopularChallenges()
   }
 }
