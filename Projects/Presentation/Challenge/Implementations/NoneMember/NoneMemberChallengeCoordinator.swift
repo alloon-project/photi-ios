@@ -65,6 +65,7 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   
   func didChangeChallengeGoal() {
     detachEnterChallengeGoal()
+    listener?.didJoinChallenge()
   }
 }
 

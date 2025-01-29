@@ -83,14 +83,15 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
 private extension EnterChallengeGoalViewController {
   func setupUI() {
     navigationBar.title = challengeName
+    
+    setViewHierarchy()
+    setConstraints()
+    
     if case let .edit(goal) = mode {
       textField.text = goal
     } else {
       setupAddGoalUI()
     }
-    
-    setViewHierarchy()
-    setConstraints()
   }
   
   func setViewHierarchy() {
@@ -140,7 +141,7 @@ private extension EnterChallengeGoalViewController {
   
   func setupAddGoalUI() {
     view.addSubview(skipButton)
-    
+
     skipButton.snp.makeConstraints {
       $0.edges.equalTo(saveButton)
     }
@@ -172,8 +173,8 @@ private extension EnterChallengeGoalViewController {
     textField.rx.text
       .map { $0.isEmpty }
       .bind(with: self) { owner, isEmpty in
-        owner.skipButton.isHidden = isEmpty
-        owner.saveButton.isHidden = !isEmpty
+        owner.skipButton.isHidden = !isEmpty
+        owner.saveButton.isHidden = isEmpty
       }
       .disposed(by: disposeBag)
     
