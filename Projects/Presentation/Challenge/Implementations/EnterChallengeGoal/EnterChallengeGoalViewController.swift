@@ -1,5 +1,5 @@
 //
-//  EditChallengeGoalViewController.swift
+//  EnterChallengeGoalViewController.swift
 //  ChallengeImpl
 //
 //  Created by jung on 1/21/25.
@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EditChallengeGoalViewController: UIViewController, ViewControllerable {
+final class EnterChallengeGoalViewController: UIViewController, ViewControllerable {
   enum Constants {
     static let navigationBarHeight = 56
     static let mainTitleLabelText = "이 챌린지에서 이루고 싶은\n회원님만의 목표를 알려주세요"
@@ -21,8 +21,12 @@ final class EditChallengeGoalViewController: UIViewController, ViewControllerabl
   }
   
   // MARK: - Properties
-  private let viewModel: EditChallengeGoalViewModel
+  private let viewModel: EnterChallengeGoalViewModel
   private let disposeBag = DisposeBag()
+  private let mode: ChallengeGoalMode
+  private let challengeName: String
+
+  private let didTapSkipButtonRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -47,10 +51,17 @@ final class EditChallengeGoalViewController: UIViewController, ViewControllerabl
   
   private let textField = LineTextField(placeholder: "예) 잊지못할 추억 남기기", type: .count(16))
   
+  private lazy var skipButton = FilledRoundButton(type: .quaternary, size: .xLarge, text: "건너뛰기")
   private let saveButton = FilledRoundButton(type: .primary, size: .xLarge, text: "내 목표 저장하기")
   
   // MARK: - Initializers
-  init(viewModel: EditChallengeGoalViewModel) {
+  init(
+    mode: ChallengeGoalMode,
+    challengeName: String,
+    viewModel: EnterChallengeGoalViewModel
+  ) {
+    self.mode = mode
+    self.challengeName = challengeName
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -63,15 +74,21 @@ final class EditChallengeGoalViewController: UIViewController, ViewControllerabl
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
   }
 }
 
 // MARK: - UI Methods
-private extension EditChallengeGoalViewController {
+private extension EnterChallengeGoalViewController {
   func setupUI() {
+    navigationBar.title = challengeName
+    if case let .edit(goal) = mode {
+      textField.text = goal
+    } else {
+      setupAddGoalUI()
+    }
+    
     setViewHierarchy()
     setConstraints()
   }
@@ -120,15 +137,24 @@ private extension EditChallengeGoalViewController {
       $0.bottom.equalToSuperview().inset(48)
     }
   }
+  
+  func setupAddGoalUI() {
+    view.addSubview(skipButton)
+    
+    skipButton.snp.makeConstraints {
+      $0.edges.equalTo(saveButton)
+    }
+  }
 }
 
 // MARK: - Bind Methods
-private extension EditChallengeGoalViewController {
+private extension EnterChallengeGoalViewController {
   func bind() {
-    let input = EditChallengeGoalViewModel.Input(
+    let input = EnterChallengeGoalViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       goalText: textField.rx.text,
-      didTapSaveButton: saveButton.rx.tap
+      didTapSaveButton: saveButton.rx.tap,
+      didTapSkipButton: didTapSkipButtonRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -136,9 +162,29 @@ private extension EditChallengeGoalViewController {
     viewModelBind(for: output)
   }
   
-  func viewBind() { }
+  func viewBind() {
+    if case .add = mode {
+      addGoalModeViewBind()
+    }
+  }
   
-  func viewModelBind(for output: EditChallengeGoalViewModel.Output) {
+  func addGoalModeViewBind() {
+    textField.rx.text
+      .map { $0.isEmpty }
+      .bind(with: self) { owner, isEmpty in
+        owner.skipButton.isHidden = isEmpty
+        owner.saveButton.isHidden = !isEmpty
+      }
+      .disposed(by: disposeBag)
+    
+    skipButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.didTapSkipButtonRelay.accept(())
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func viewModelBind(for output: EnterChallengeGoalViewModel.Output) {
     output.saveButtonisEnabled
       .drive(saveButton.rx.isEnabled)
       .disposed(by: disposeBag)
@@ -146,4 +192,4 @@ private extension EditChallengeGoalViewController {
 }
 
 // MARK: - EditChallengeGoalPresentable
-extension EditChallengeGoalViewController: EditChallengeGoalPresentable { }
+extension EnterChallengeGoalViewController: EnterChallengeGoalPresentable { }
