@@ -10,7 +10,7 @@ import RxSwift
 import RxCocoa
 
 protocol NoneMemberChallengeCoordinatable: AnyObject {
-  func didJoinChallenge()
+  func didJoinChallenge(challengeName: String, challengeID: Int)
   func didTapBackButton()
 }
 
@@ -24,6 +24,8 @@ protocol NoneMemberChallengeViewModelType: AnyObject {
 final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
   weak var coordinator: NoneMemberChallengeCoordinatable?
   private let disposeBag = DisposeBag()
+  private var challengeName = ""
+  private var challengeID = 0
   
   private let isLockChallengeRelay = BehaviorRelay<Bool>(value: true)
   private let displayUnlockViewRelay = PublishRelay<Void>()
@@ -60,8 +62,14 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
         if isLock {
           owner.displayUnlockViewRelay.accept(())
         } else {
-          owner.coordinator?.didJoinChallenge()
+          owner.coordinator?.didJoinChallenge(challengeName: owner.challengeName, challengeID: owner.challengeID)
         }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didFinishVerify
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didJoinChallenge(challengeName: owner.challengeName, challengeID: owner.challengeID)
       }
       .disposed(by: disposeBag)
     

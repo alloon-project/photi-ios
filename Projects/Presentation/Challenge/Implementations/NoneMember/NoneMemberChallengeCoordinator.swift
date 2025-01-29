@@ -16,15 +16,65 @@ final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChalle
 
   private let viewModel: NoneMemberChallengeViewModel
   
+  private let enterChallengeGoalContainer: EnterChallengeGoalContainable
+  private var enterChallengeGoalCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: NoneMemberChallengeViewModel
+    viewModel: NoneMemberChallengeViewModel,
+    enterChallengeGoalContainer: EnterChallengeGoalContainable
   ) {
+    self.enterChallengeGoalContainer = enterChallengeGoalContainer
     self.viewModel = viewModel
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
 }
 
+// MARK: - EnterChallengeGoal
+private extension NoneMemberChallengeCoordinator {
+  func attachEnterChallengeGoal(challengeName: String, challengeID: Int) {
+    guard enterChallengeGoalCoordinator == nil else { return }
+    
+    let coordinator = enterChallengeGoalContainer.coordinator(
+      mode: .add,
+      challengeID: challengeID,
+      challengeName: challengeName,
+      listener: self
+    )
+    
+    addChild(coordinator)
+    self.enterChallengeGoalCoordinator = coordinator
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+  }
+  
+  func detachEnterChallengeGoal() {
+    guard let coordinator = enterChallengeGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.enterChallengeGoalCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: -
+extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
+  func didTapBackButtonAtEnterChallengeGoal() {
+    detachEnterChallengeGoal()
+  }
+  
+  func didChangeChallengeGoal() {
+    detachEnterChallengeGoal()
+  }
+}
+
 // MARK: - NoneMemberChallengeCoordinatable
-extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable { }
+extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtNoneMemberChallenge()
+  }
+  
+  func didJoinChallenge(challengeName: String, challengeID: Int) {
+    attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeID)
+  }
+}

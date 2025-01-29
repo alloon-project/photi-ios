@@ -13,14 +13,18 @@ public protocol NoneMemberChallengeDependency: Dependency { }
 
 public final class NoneMemberChallengeContainer:
   Container<NoneMemberChallengeDependency>,
-  NoneMemberChallengeContainable {
+  NoneMemberChallengeContainable,
+  EnterChallengeGoalDependency {
   public func coordinator(listener: NoneMemberChallengeListener, challengeId: Int) -> ViewableCoordinating {
     let viewModel = NoneMemberChallengeViewModel()
     let viewControllerable = NoneMemberChallengeViewController(viewModel: viewModel)
     
+    let enterChallengeGoalContainer = EnterChallengeGoalContainer(dependency: self)
+    
     let coordinator = NoneMemberChallengeCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      enterChallengeGoalContainer: enterChallengeGoalContainer
     )
     coordinator.listener = listener
     return coordinator

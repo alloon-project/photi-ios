@@ -87,11 +87,6 @@ final class InvitationCodeViewController: UIViewController {
     super.viewDidDisappear(animated)
     removeKeyboardNotification(keyboardShowNotification, keyboardHideNotification)
   }
-  
-  // MARK: - UIResponder
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-//     dismissWithAnimation()
-  }
 }
 
 // MARK: - UI Methods
@@ -177,6 +172,9 @@ private extension InvitationCodeViewController {
 extension InvitationCodeViewController {
   func convertToUnlock() {
     confirmButton.isLocked = false
+    dismiss(animated: false) {
+      self.delegate?.didDismiss()
+    }
   }
   
   func displayToastView() {
@@ -225,8 +223,9 @@ private extension InvitationCodeViewController {
       self.mainContentView.frame.origin.y = self.view.frame.height
       self.mainContentView.layoutIfNeeded()
     } completion: { _ in
-      self.dismiss(animated: false)
-      self.delegate?.didDismiss()
+      self.dismiss(animated: false) {
+        self.delegate?.didDismiss()
+      }
     }
   }
   

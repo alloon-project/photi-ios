@@ -25,6 +25,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
     didSet { hashTagCollectionView.reloadData() }
   }
   private var invitationCodeViewController: InvitationCodeViewController?
+  private var isUnlocked: Bool = false
   
   private let codeRelay = BehaviorRelay<String>(value: "")
   private let didFinishVerifyRelay = PublishRelay<Void>()
@@ -210,7 +211,7 @@ private extension NoneMemberChallengeViewController {
       .emit(with: self) { owner, result in
         guard let viewController = owner.invitationCodeViewController else { return }
         result ? viewController.convertToUnlock() : viewController.displayToastView()
-        owner.didFinishVerifyRelay.accept(())
+        owner.isUnlocked = result
       }
       .disposed(by: disposeBag)
   }
@@ -242,6 +243,8 @@ extension NoneMemberChallengeViewController: InvitationCodeViewControllerDelegat
   
   func didDismiss() {
     invitationCodeViewController = nil
+    
+    if isUnlocked { didFinishVerifyRelay.accept(()) }
   }
 }
 
