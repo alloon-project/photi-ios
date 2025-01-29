@@ -27,6 +27,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private var invitationCodeViewController: InvitationCodeViewController?
   
   private let codeRelay = BehaviorRelay<String>(value: "")
+  private let didFinishVerifyRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -171,7 +172,12 @@ private extension NoneMemberChallengeViewController {
 // MARK: - Bind Methods
 private extension NoneMemberChallengeViewController {
   func bind() {
-    let input = NoneMemberChallengeViewModel.Input()
+    let input = NoneMemberChallengeViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapJoinButton: joinButton.rx.tap,
+      invitationCode: codeRelay.asDriver(),
+      didFinishVerify: didFinishVerifyRelay.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -186,7 +192,28 @@ private extension NoneMemberChallengeViewController {
       .disposed(by: disposeBag)
   }
   
-  func viewModelBind(for output: NoneMemberChallengeViewModel.Output) { }
+  func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {
+    output.isLockChallenge
+      .drive(with: self) { owner, isLock in
+        guard isLock else { return }
+        owner.joinButton.icon = .lockClosedWhite
+      }
+      .disposed(by: disposeBag)
+    
+    output.displayUnlockView
+      .emit(with: self) { owner, _ in
+        owner.displayInvitationCodeViewController()
+      }
+      .disposed(by: disposeBag)
+    
+    output.verifyCodeResult
+      .emit(with: self) { owner, result in
+        guard let viewController = owner.invitationCodeViewController else { return }
+        result ? viewController.convertToUnlock() : viewController.displayToastView()
+        owner.didFinishVerifyRelay.accept(())
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - NoneMemberChallengePresentable
