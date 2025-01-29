@@ -14,7 +14,7 @@ public struct EndedChallengeCardCellPresentationModel {
   let endedDate: String
   let challengeId: Int
   let currentMemberCnt: Int
-  let challengeParticipantImageUrls: [URL?]
+  let challengeParticipantImageUrls: [URL]
   
   public init(
     challengeImageUrl: URL?,
@@ -22,7 +22,7 @@ public struct EndedChallengeCardCellPresentationModel {
     endedDate: String,
     challengeId: Int,
     currentMemberCnt: Int,
-    challengeParticipantImageUrls: [URL?]
+    challengeParticipantImageUrls: [URL]
   ) {
     self.challengeImageUrl = challengeImageUrl
     self.challengeTitle = challengeTitle
