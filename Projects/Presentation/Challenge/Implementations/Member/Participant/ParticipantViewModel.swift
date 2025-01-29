@@ -11,7 +11,11 @@ import RxSwift
 
 protocol ParticipantCoordinatable: AnyObject {
   func didChangeContentOffset(_ offset: Double)
-  func didTapEditButton(userID: Int, challengeID: Int)
+  func didTapEditButton(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  )
 }
 
 protocol ParticipantViewModelType: AnyObject {
@@ -28,7 +32,7 @@ final class ParticipantViewModel: ParticipantViewModelType {
   // MARK: - Input
   struct Input {
     let contentOffset: Signal<Double>
-    let didTapEditButton: Signal<(Int, Int)>
+    let didTapEditButton: Signal<(String, Int)>
   }
   
   // MARK: - Output
@@ -45,8 +49,12 @@ final class ParticipantViewModel: ParticipantViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapEditButton
-      .emit(with: self) { owner, ids in
-        owner.coordinator?.didTapEditButton(userID: ids.0, challengeID: ids.1)
+      .emit(with: self) { owner, info in
+        owner.coordinator?.didTapEditButton(
+          challengeID: info.1,
+          goal: info.0,
+          challengeName: "러닝하기"
+        )
       }
       .disposed(by: disposeBag)
     
