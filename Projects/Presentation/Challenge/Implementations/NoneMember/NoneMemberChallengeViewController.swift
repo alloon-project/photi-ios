@@ -24,6 +24,9 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
+  private var invitationCodeViewController: InvitationCodeViewController?
+  
+  private let codeRelay = BehaviorRelay<String>(value: "")
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -201,5 +204,41 @@ extension NoneMemberChallengeViewController: UICollectionViewDataSource {
     cell.configure(type: .text(size: .medium, type: .gray), text: text)
     
     return cell
+  }
+}
+
+// MARK: -
+extension NoneMemberChallengeViewController: InvitationCodeViewControllerDelegate {
+  func didTapUnlockButton(_ viewController: InvitationCodeViewController, code: String) {
+    codeRelay.accept(code)
+  }
+  
+  func didDismiss() {
+    invitationCodeViewController = nil
+  }
+}
+
+// MARK: - Private Methods
+private extension NoneMemberChallengeViewController {
+  func configureTitleLabel(_ title: String) {
+    challengeTitleLabel.attributedText = title.attributedString(
+      font: .heading2,
+      color: .gray900
+    )
+  }
+  
+  func displayRuleDetailViewController(_ rules: [String]) {
+    let viewController = RuleDetailViewController(rules: rules)
+    viewController.modalPresentationStyle = .overFullScreen
+    present(viewController, animated: false)
+  }
+  
+  func displayInvitationCodeViewController() {
+    guard invitationCodeViewController == nil else { return }
+    let viewController = InvitationCodeViewController()
+    viewController.modalPresentationStyle = .overFullScreen
+    self.invitationCodeViewController = viewController
+    viewController.delegate = self
+    present(viewController, animated: false)
   }
 }
