@@ -7,17 +7,28 @@
 //
 
 import UIKit
+import SnapKit
 import Core
 
 /// 내부가 색으로 채워진 Round Button입니다.
 public final class FilledRoundButton: RoundButton {
+  // MARK: - Properties
   /// Round Button의 type입니다.
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
   public var mode: ButtonMode {
+    didSet { setupUI(type: type, mode: mode) }
+  }
+  
+  public var title: String {
+    didSet { setText(title) }
+  }
+  
+  public var icon: UIImage? {
     didSet {
-      setupUI(type: type, mode: mode)
+      iconView.isHidden = icon == nil
+      setIcon(icon)
     }
   }
   
@@ -33,49 +44,105 @@ public final class FilledRoundButton: RoundButton {
     }
   }
   
+  // MARK: - UI Components
+  private let stackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.spacing = 8
+    stackView.alignment = .center
+    stackView.distribution = .fill
+    
+    return stackView
+  }()
+  
+  private let iconView = UIImageView()
+  private let label = UILabel()
+  
   // MARK: - Initalizers
   public init(
     type: RoundButtonType,
     size: ButtonSize,
-    text: String = "",
+    text: String,
+    icon: UIImage?,
     mode: ButtonMode = .default
   ) {
     self.type = type
     self.mode = mode
+    self.title = text
+    self.icon = icon
     super.init(size: size)
     
     setupUI()
-    self.setText(text, for: .normal)
+    setText(text)
+    setIcon(icon)
+  }
+  
+  public convenience init(
+    type: RoundButtonType,
+    size: ButtonSize,
+    text: String,
+    mode: ButtonMode = .default
+  ) {
+    self.init(type: type, size: size, text: text, icon: nil)
+  }
+  
+  public convenience init(
+    type: RoundButtonType,
+    size: ButtonSize,
+    mode: ButtonMode = .default
+  ) {
+    self.init(type: type, size: size, text: "", icon: nil)
   }
   
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  // MARK: - Setup UI
-  public override func setupUI() {
-    super.setupUI()
-    
+}
+
+// MARK: - UI Methods
+private extension FilledRoundButton {
+  func setupUI() {
+    setViewHierarchy()
+    setConstraints()
+    iconView.isHidden = icon == nil
     self.setupUI(type: type, mode: mode)
+  }
+  
+  func setViewHierarchy() {
+    addSubviews(stackView)
+    stackView.addArrangedSubviews(iconView, label)
+  }
+  
+  func setConstraints() {
+    stackView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+    }
     
-    if case .quaternary = type {
-      quaternarySetupUI()
+    iconView.snp.makeConstraints {
+      $0.width.height.equalTo(iconViewSize(for: size))
     }
   }
 }
 
 // MARK: - Public Methods
 public extension FilledRoundButton {
-  func setText(_ text: String, for state: UIControl.State) {
-    self.setAttributedTitle(
-      text.attributedString(font: font(for: size), color: .photiWhite),
-      for: state
+  func setText(_ text: String) {
+    label.attributedText = text.attributedString(
+      font: font(for: size),
+      color: .photiWhite
     )
-    
-    if case .quaternary = type {
-      quaternarySetupUI()
+
+    if type == .quaternary {
+      quatenaryConvertTextColor(mode: mode)
     }
+  }
+  
+  func setIcon(_ icon: UIImage?) {
+    guard let icon else { return }
+    let color: UIColor =  type == .quaternary ? .gray600 : .photiWhite
+    
+    iconView.image = icon.color(color)
   }
 }
 
@@ -83,14 +150,40 @@ public extension FilledRoundButton {
 private extension FilledRoundButton {
   func setupUI(type: RoundButtonType, mode: ButtonMode) {
     self.backgroundColor = backGroundColor(type: self.type, mode: mode)
+    
+    if type == .quaternary {
+      quatenaryConvertIconColor(mode: mode)
+      quatenaryConvertTextColor(mode: mode)
+    }
   }
   
-  func quaternarySetupUI() {
-    guard let attributedTitle = self.attributedTitle(for: .normal) else { return }
+  func iconViewSize(for size: ButtonSize) -> CGFloat {
+    switch size {
+      case .xLarge, .large, .medium:
+        return 18
+      case .small, .xSmall:
+        return 16
+    }
+  }
+  
+  func quatenaryConvertIconColor(mode: ButtonMode) {
+    guard let icon = iconView.image else { return }
     
-    setAttributedTitle(attributedTitle.setColor(.gray600), for: .normal)
-    setAttributedTitle(attributedTitle.setColor(.gray800), for: .highlighted)
-    setAttributedTitle(attributedTitle.setColor(.gray500), for: .disabled)
+    switch mode {
+      case .default: iconView.image = icon.color(.gray600)
+      case .disabled: iconView.image = icon.color(.gray800)
+      case .pressed: iconView.image = icon.color(.gray500)
+    }
+  }
+  
+  func quatenaryConvertTextColor(mode: ButtonMode) {
+    guard let text = label.attributedText else { return }
+    
+    switch mode {
+      case .default: label.attributedText = text.setColor(.gray600)
+      case .disabled: label.attributedText = text.setColor(.gray800)
+      case .pressed: label.attributedText = text.setColor(.gray500)
+    }
   }
   
   func backGroundColor(type: RoundButtonType, mode: ButtonMode) -> UIColor {

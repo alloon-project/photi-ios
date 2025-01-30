@@ -29,7 +29,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
-  private let editChallengeGoalContainer: EditChallengeGoalContainable
+  private let editChallengeGoalContainer: EnterChallengeGoalContainable
   private var editChallengeGoalCoordinator: ViewableCoordinating?
   
   init(
@@ -38,7 +38,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
-    editChallengeGoalContainer: EditChallengeGoalContainer
+    editChallengeGoalContainer: EnterChallengeGoalContainer
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
@@ -77,12 +77,17 @@ extension ChallengeCoordinator: ChallengeCoordinatable { }
 
 // MARK: - EditChallengeGoal
 extension ChallengeCoordinator {
-  func attachEditChallengeGoal(userID: Int, challengeID: Int) {
+  func attachEditChallengeGoal(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  ) {
     guard editChallengeGoalCoordinator == nil else { return }
     
     let coordinator = editChallengeGoalContainer.coordinator(
-      userID: userID,
+      mode: .edit(goal: goal),
       challengeID: challengeID,
+      challengeName: challengeName,
       listener: self
     )
     
@@ -118,18 +123,26 @@ extension ChallengeCoordinator: ParticipantListener {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
   
-  func didTapEditButton(userID: Int, challengeID: Int) {
-    attachEditChallengeGoal(userID: userID, challengeID: challengeID)
+  func didTapEditButton(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  ) {
+    attachEditChallengeGoal(
+      challengeID: challengeID,
+      goal: goal,
+      challengeName: challengeName
+    )
   }
 }
 
 // MARK: - EditChallengeGoalListener
-extension ChallengeCoordinator: EditChallengeGoalListener {
-  func didTapBackButtonAtEditChallengeGoal() {
+extension ChallengeCoordinator: EnterChallengeGoalListener {
+  func didTapBackButtonAtEnterChallengeGoal() {
     detachEditChallengeGoal()
   }
   
-  func didChangeChallengeGoal(_ goal: String) {
+  func didChangeChallengeGoal() {
     // TODO: API 연결 이후 수정 예정
     detachEditChallengeGoal { [weak self] in
       self?.presenter.presentDidChangeGoalToastView()

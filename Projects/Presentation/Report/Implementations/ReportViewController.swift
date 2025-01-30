@@ -47,7 +47,7 @@ final class ReportViewController: UIViewController, ViewControllerable {
     reasonLabel.attributedText = reportType.title.attributedString(font: .heading4, color: .gray900)
     detailLabel.attributedText = reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
     detailContentTextView = LineTextView(placeholder: reportType.textViewPlaceholder, type: .count(120))
-    reportButton.setText(reportType.buttonTitle, for: .normal)
+    reportButton.setText(reportType.buttonTitle)
     
     super.init(nibName: nil, bundle: nil)
   }

@@ -180,7 +180,7 @@ extension LineTextView: UITextViewDelegate {
     self.textView.text = textView.text
     
     if case let .count(max) = type {
-      textView.text = (textView.text ?? "").trimmingSuffix(count: max)
+      textView.text = (textView.text ?? "").trimmingPrefix(count: max)
       setCountLabel(max: max)
     }
   }

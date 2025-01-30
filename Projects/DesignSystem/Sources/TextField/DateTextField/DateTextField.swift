@@ -25,9 +25,7 @@ public final class DateTextField: UIView {
   
   /// rightView에 위치한 버튼의 text를 설정할 수 있씁니다.
   public var buttonText: String = "달력보기" {
-    didSet {
-      button.setText(buttonText, for: .normal)
-    }
+    didSet { button.title = buttonText }
   }
   
   private var text: String? {
@@ -129,7 +127,7 @@ private extension DateTextField {
       font: .body2,
       color: .gray400
     )
-    button.setText(buttonText, for: .normal)
+    button.title = buttonText
   }
   
   func setViewHierarchy(for type: DateTextFieldType) {

@@ -153,7 +153,7 @@ private extension LineTextField {
   
   @objc func textDidChange() {
     if case let .count(max) = type {
-      textField.text = (text ?? "").trimmingSuffix(count: max)
+      textField.text = (text ?? "").trimmingPrefix(count: max)
       setCountLabel(max: max)
     }
   }

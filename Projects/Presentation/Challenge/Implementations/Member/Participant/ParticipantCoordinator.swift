@@ -10,7 +10,11 @@ import Core
 
 protocol ParticipantListener: AnyObject {
   func didChangeContentOffsetAtParticipant(_ offset: Double)
-  func didTapEditButton(userID: Int, challengeID: Int)
+  func didTapEditButton(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  )
 }
 
 protocol ParticipantPresentable { }
@@ -36,7 +40,15 @@ extension ParticipantCoordinator: ParticipantCoordinatable {
     listener?.didChangeContentOffsetAtParticipant(offset)
   }
   
-  func didTapEditButton(userID: Int, challengeID: Int) {
-    listener?.didTapEditButton(userID: userID, challengeID: challengeID)
+  func didTapEditButton(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  ) {
+    listener?.didTapEditButton(
+      challengeID: challengeID,
+      goal: goal,
+      challengeName: challengeName
+    )
   }
 }

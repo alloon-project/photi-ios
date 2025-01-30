@@ -25,7 +25,7 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
   }
   
   private let contentOffset = PublishRelay<Double>()
-  private let didTapEditButtonRelay = PublishRelay<(Int, Int)>()
+  private let didTapEditButtonRelay = PublishRelay<(String, Int)>()
 
   // MARK: - UI Components
   private let participantCountLabel = UILabel()
@@ -120,7 +120,8 @@ extension ParticipantViewController: UITableViewDataSource {
     
     // TODO: - API 연동 후 수정 예정
     cell.rx.didTapEditButton
-      .map { _ in (0, indexPath.row) }
+      .withUnretained(self)
+      .map { ($0.0.dataSource[indexPath.row].goal, indexPath.row) }
       .bind(to: didTapEditButtonRelay)
       .disposed(by: disposeBag)
     

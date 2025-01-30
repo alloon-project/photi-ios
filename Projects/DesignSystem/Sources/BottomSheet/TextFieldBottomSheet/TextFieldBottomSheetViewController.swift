@@ -29,9 +29,7 @@ public final class TextFieldBottomSheetViewController: BottomSheetViewController
   }
   
   public var buttonText: String {
-    didSet {
-      self.button.setText(buttonText, for: .normal)
-    }
+    didSet { button.title = buttonText }
   }
   
   public var buttonMode: ButtonMode {
@@ -124,7 +122,7 @@ private extension TextFieldBottomSheetViewController {
     setConstraints()
     
     setTitleLabel(titleText)
-    button.setText(buttonText, for: .normal)
+    button.title = buttonText
   }
   
   func setViewHierarchy() {

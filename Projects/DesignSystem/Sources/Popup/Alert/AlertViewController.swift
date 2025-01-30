@@ -182,14 +182,14 @@ public extension AlertViewController {
     viewController.present(self, animated: true, completion: completion)
   }
   
-  func setConfirmButtonText(_ text: String, for state: UIControl.State) {
-    confirmButton.setText(text, for: state)
+  func setConfirmButtonText(_ text: String) {
+    confirmButton.setText(text)
   }
   
-  func setCancelButtonText(_ text: String, for state: UIControl.State) {
+  func setCancelButtonText(_ text: String) {
     guard case .canCancel = type else { return }
     
-    cancelButton.setText(text, for: state)
+    cancelButton.setText(text)
   }
 }
 
