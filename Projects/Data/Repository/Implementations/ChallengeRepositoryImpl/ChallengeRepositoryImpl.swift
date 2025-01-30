@@ -21,16 +21,43 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
   }
   
   public func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
-    Single.create { single in
+    return requestUnAuthorizableAPI(
+      api: ChallengeAPI.popularChallenges,
+      responseType: [PopularChallengeResponseDTO].self
+    )
+      .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
+  }
+  
+  public func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
+    let api = ChallengeAPI.endedChallenges(page: page, size: size)
+    return requestAuthorizableAPI(
+      api: api,
+      responseType: EndedChallengeResponseDTO.self
+    )
+    .map { dataMapper.mapToChallengeSummary(dto: $0) }
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeRepositoryImpl {
+  func requestAuthorizableAPI<T: Decodable>(
+    api: ChallengeAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .immediate
+  ) -> Single<T> {
+    return Single.create { single in
       Task {
         do {
-          let provider = Provider<ChallengeAPI>(stubBehavior: .immediate)
+          let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
           let result = try await provider
-            .request(ChallengeAPI.popularChallenges, type: [PopularChallengeResponseDTO].self).value
+            .request(api, type: responseType.self).value
           
           if result.statusCode == 200, let data = result.data {
-            let challenges = data.map { dataMapper.mapToChallengeDetail(dto: $0) }
-            single(.success(challenges))
+            single(.success(data))
+          } else if result.statusCode == 401 {
+            single(.failure(APIError.tokenUnauthenticated))
+          } else if result.statusCode == 403 {
+            single(.failure(APIError.tokenUnauthorized))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -38,27 +65,24 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
           single(.failure(error))
         }
       }
-      
       return Disposables.create()
     }
   }
   
-  public func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
+  func requestUnAuthorizableAPI<T: Decodable>(
+    api: ChallengeAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .immediate
+  ) -> Single<T> {
     Single.create { single in
       Task {
         do {
-          let provider = Provider<ChallengeAPI>(stubBehavior: .immediate)
-          let api = ChallengeAPI.endedChallenges(page: page, size: size)
+          let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
           let result = try await provider
-            .request(api, type: EndedChallengeResponseDTO.self).value
+            .request(api, type: responseType.self).value
           
           if result.statusCode == 200, let data = result.data {
-            let challenges = dataMapper.mapToChallengeSummary(dto: data)
-            single(.success(challenges))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.tokenUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+            single(.success(data))
           } else {
             single(.failure(APIError.serverError))
           }
