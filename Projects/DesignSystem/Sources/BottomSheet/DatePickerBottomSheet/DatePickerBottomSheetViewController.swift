@@ -27,9 +27,7 @@ public final class DatePickerBottomSheetViewController: BottomSheetViewControlle
   }
   
   public var buttonText: String = "버튼" {
-    didSet {
-      button.setText(buttonText, for: .normal)
-    }
+    didSet { button.title = buttonText }
   }
   
   public var selecedDate: Date? {
@@ -78,8 +76,7 @@ private extension DatePickerBottomSheetViewController {
   func setupUI() {
     setViewHierarchy()
     setConstraints()
-    
-    button.setText(buttonText, for: .normal)
+    button.title = buttonText
   }
   
   func setViewHierarchy() {

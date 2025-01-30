@@ -40,7 +40,7 @@ public final class UploadPhotoPopOverViewController: PopOverViewController {
     return stackView
   }()
   
-  private let uploadButton: IconRoundButton
+  private let uploadButton: FilledRoundButton
   private lazy var cancelButton = FilledRoundButton(type: .quaternary, size: .small, text: "취소하기")
   
   // MARK: - Initializers
@@ -48,11 +48,11 @@ public final class UploadPhotoPopOverViewController: PopOverViewController {
     self.type = type
     self.image = image
     let buttonSize: ButtonSize = type == .one ? .medium : .small
-    self.uploadButton = IconRoundButton(
-      text: "올리기",
-      icon: UIImage(resource: .rocketWhite),
+    self.uploadButton = FilledRoundButton(
       type: .primary,
-      size: buttonSize
+      size: buttonSize,
+      text: "올리기",
+      icon: .rocketWhite
     )
     
     super.init(nibName: nil, bundle: nil)

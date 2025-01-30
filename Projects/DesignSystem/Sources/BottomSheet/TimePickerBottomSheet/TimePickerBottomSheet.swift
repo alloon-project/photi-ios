@@ -43,12 +43,13 @@ public final class TimePickerBottomSheet: BottomSheetViewController {
     minimumHour: Int = 0,
     maximumHour: Int = 24,
     selectedHour: Int? = nil,
-    buttonText: String) {
+    buttonText: String
+  ) {
       self.minimumHour = minimumHour
       self.maximumHour = maximumHour
       self.selectedHour = selectedHour ?? minimumHour
       super.init(nibName: nil, bundle: nil)
-      button.setText(buttonText, for: .normal)
+      button.title = buttonText
       setDataSource(minimumHour: minimumHour, maximumHour: maximumHour)
     }
   

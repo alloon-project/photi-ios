@@ -12,4 +12,7 @@ public protocol NoneMemberChallengeContainable: Containable {
   func coordinator(listener: NoneMemberChallengeListener, challengeId: Int) -> ViewableCoordinating
 }
 
-public protocol NoneMemberChallengeListener: AnyObject { }
+public protocol NoneMemberChallengeListener: AnyObject {
+  func didTapBackButtonAtNoneMemberChallenge()
+  func didJoinChallenge()
+}
