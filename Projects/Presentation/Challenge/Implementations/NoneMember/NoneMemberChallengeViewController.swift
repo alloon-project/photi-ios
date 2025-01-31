@@ -27,6 +27,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private var invitationCodeViewController: InvitationCodeViewController?
   private var isUnlocked: Bool = false
   
+  private let viewDidLoadRelay = PublishRelay<Void>()
   private let codeRelay = BehaviorRelay<String>(value: "")
   private let didFinishVerifyRelay = PublishRelay<Void>()
   
@@ -64,10 +65,12 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    hashTagCollectionView.dataSource = self
     setupUI()
     bind()
+    viewDidLoadRelay.accept(())
   }
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
@@ -174,6 +177,7 @@ private extension NoneMemberChallengeViewController {
 private extension NoneMemberChallengeViewController {
   func bind() {
     let input = NoneMemberChallengeViewModel.Input(
+      viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapJoinButton: joinButton.rx.tap,
       invitationCode: codeRelay.asDriver(),
@@ -194,6 +198,40 @@ private extension NoneMemberChallengeViewController {
   }
   
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {
+    output.challengeTitle
+      .drive(with: self) { owner, title in
+        owner.configureTitleLabel(title)
+      }
+      .disposed(by: disposeBag)
+    
+    output.hashTags
+      .drive(with: self) { owner, hashTags in
+        owner.hashTags = hashTags
+      }
+      .disposed(by: disposeBag)
+    
+    output.verificationTime
+      .drive(verificationTimeView.rx.verificationTime)
+      .disposed(by: disposeBag)
+    
+    output.goal
+      .drive(goalView.rx.goal)
+      .disposed(by: disposeBag)
+    
+    Driver.zip(output.memberCount, output.challengeImageURL, output.memberThumbnailURLs)
+      .drive(with: self) { owner, result in
+        owner.thumbnailView.configure(count: result.0, thumbnailImageURL: result.1, avartarImageURLs: result.2)
+      }
+      .disposed(by: disposeBag)
+      
+    output.rules
+      .drive(ruleView.rx.rules)
+      .disposed(by: disposeBag)
+    
+    output.deadLine
+      .drive(deadLineView.rx.deadLine)
+      .disposed(by: disposeBag)
+    
     output.isLockChallenge
       .drive(with: self) { owner, isLock in
         guard isLock else { return }
