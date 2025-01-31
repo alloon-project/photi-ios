@@ -8,15 +8,18 @@
 
 import Challenge
 import Core
+import UseCase
 
-public protocol NoneMemberChallengeDependency: Dependency { }
+public protocol NoneMemberChallengeDependency: Dependency {
+  var challengeUseCase: ChallengeUseCase { get }
+}
 
 public final class NoneMemberChallengeContainer:
   Container<NoneMemberChallengeDependency>,
   NoneMemberChallengeContainable,
   EnterChallengeGoalDependency {
   public func coordinator(listener: NoneMemberChallengeListener, challengeId: Int) -> ViewableCoordinating {
-    let viewModel = NoneMemberChallengeViewModel()
+    let viewModel = NoneMemberChallengeViewModel(challengeId: challengeId, useCase: dependency.challengeUseCase)
     let viewControllerable = NoneMemberChallengeViewController(viewModel: viewModel)
     
     let enterChallengeGoalContainer = EnterChallengeGoalContainer(dependency: self)

@@ -24,8 +24,11 @@ protocol NoneMemberChallengeViewModelType: AnyObject {
 final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
   weak var coordinator: NoneMemberChallengeCoordinatable?
   private let disposeBag = DisposeBag()
+
+  private let challengeId: Int
+  private let useCase: ChallengeUseCase
+
   private var challengeName = ""
-  private var challengeID = 0
   
   private let isLockChallengeRelay = BehaviorRelay<Bool>(value: true)
   private let displayUnlockViewRelay = PublishRelay<Void>()
@@ -47,7 +50,10 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeId: Int, useCase: ChallengeUseCase) {
+    self.challengeId = challengeId
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
