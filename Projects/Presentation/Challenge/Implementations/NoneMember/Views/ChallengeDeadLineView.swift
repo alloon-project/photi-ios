@@ -20,6 +20,10 @@ final class ChallengeDeadLineView: UIView, ChallengeInformationPresentable {
     return label
   }()
   private let deadLineLabel = UILabel()
+  
+  var deadLine: String = "" {
+    didSet { confiure(deadLine: deadLine) }
+  }
 
   // MARK: - Initializers
   init() {

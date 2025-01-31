@@ -13,7 +13,9 @@ import DesignSystem
 
 final class ChallengeRuleView: UIView, ChallengeInformationPresentable {
   // MARK: - Properties
-  fileprivate var rules: [String] = []
+  var rules: [String] = [] {
+    didSet { configure(rules) }
+  }
   
   // MARK: UI Components
   private let seperatorLayer: CAShapeLayer = {
