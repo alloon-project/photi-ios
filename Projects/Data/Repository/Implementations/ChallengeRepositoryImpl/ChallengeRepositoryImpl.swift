@@ -29,12 +29,20 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
   }
   
   public func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
-    let api = ChallengeAPI.endedChallenges(page: page, size: size)
     return requestAuthorizableAPI(
-      api: api,
+      api: ChallengeAPI.endedChallenges(page: page, size: size),
       responseType: EndedChallengeResponseDTO.self
     )
     .map { dataMapper.mapToChallengeSummary(dto: $0) }
+  }
+  
+  public func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
+    return requestUnAuthorizableAPI(
+      api: ChallengeAPI.challengeDetail(id: id),
+      responseType: ChallengeDetailResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
 }
 
@@ -58,6 +66,8 @@ private extension ChallengeRepositoryImpl {
             single(.failure(APIError.tokenUnauthenticated))
           } else if result.statusCode == 403 {
             single(.failure(APIError.tokenUnauthorized))
+          } else if result.statusCode == 404 {
+            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -83,6 +93,8 @@ private extension ChallengeRepositoryImpl {
           
           if result.statusCode == 200, let data = result.data {
             single(.success(data))
+          } else if result.statusCode == 404 {
+            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
           } else {
             single(.failure(APIError.serverError))
           }
