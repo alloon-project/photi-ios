@@ -13,6 +13,7 @@ import Entity
 
 public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: PopularChallengeResponseDTO) -> ChallengeDetail
+  func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
   func mapToChallengeSummary(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
 }
 
@@ -35,6 +36,28 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       goal: dto.goal,
       memberCount: dto.currentMemberCnt,
       memberImages: memberImages
+    )
+  }
+  
+  public func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail {
+    let endDate = dto.endDate.toDate() ?? Date()
+    let hasTags = dto.hashtags.map { $0.hashtag }
+    let proveTime = dto.proveTime.toDate("HH:mm") ?? Date()
+    let memberImages = dto.memberImages.map { $0.memberImage }
+    let rules = dto.rules.map { $0.rule }
+    
+    return .init(
+      id: id,
+      name: dto.name,
+      imageUrl: dto.imageUrl,
+      endDate: endDate,
+      hashTags: hasTags,
+      proveTime: proveTime,
+      goal: dto.goal,
+      memberCount: dto.currentMemberCnt,
+      memberImages: memberImages,
+      isPublic: dto.isPublic,
+      rules: rules
     )
   }
   
