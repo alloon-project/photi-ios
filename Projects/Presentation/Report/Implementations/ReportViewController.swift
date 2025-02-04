@@ -12,14 +12,12 @@ import RxSwift
 import SnapKit
 import Core
 import DesignSystem
-import Report
 
 final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Variables
   private var targetId: Int?
-  private var reportType: ReportType
   private var selectedSection: Int?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
@@ -38,18 +36,12 @@ final class ReportViewController: UIViewController, ViewControllerable {
   }()
   
   private let detailLabel = UILabel()
-  private let detailContentTextView: LineTextView
+  private let detailContentTextView: LineTextView = LineTextView(type: .count(120))
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(viewModel: ReportViewModel) {
     self.viewModel = viewModel
-    self.reportType = reportType
-    
-    reasonLabel.attributedText = reportType.title.attributedString(font: .heading4, color: .gray900)
-    detailLabel.attributedText = reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
-    detailContentTextView = LineTextView(placeholder: reportType.textViewPlaceholder, type: .count(120))
-    reportButton.setText(reportType.buttonTitle, for: .normal)
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -90,6 +82,7 @@ private extension ReportViewController {
     
     setViewHierarchy()
     setConstraints()
+    setReportType()
   }
   
   func setViewHierarchy() {
@@ -126,6 +119,13 @@ private extension ReportViewController {
     }
   }
   
+  func setReportType() {
+    reasonLabel.attributedText = viewModel.reportType.title.attributedString(font: .heading4, color: .gray900)
+    detailLabel.attributedText = viewModel.reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
+    detailContentTextView.placeholder = viewModel.reportType.textViewPlaceholder
+    reportButton.setText(viewModel.reportType.buttonTitle, for: .normal)
+  }
+  
   func setupDetailContentUI() {
     guard !isDisplayDetailContent else { return }
     isDisplayDetailContent = true
@@ -150,8 +150,6 @@ private extension ReportViewController {
     let input = ReportViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapReportButton: reportButton.rx.tap,
-      reportType: reportType,
-      category: reportType.category ?? "CHALLENGE",
       reasonAndType: selectedRowRelay.asObservable(),
       content: detailContentTextView.rx.text,
       targetId: targetId
@@ -188,7 +186,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return reportType.contents.count
+    return viewModel.reportType.contents.count
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -197,7 +195,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: reportType.contents[indexPath.section])
+    cell.configure(with: viewModel.reportType.contents[indexPath.section])
     return cell
   }
   
@@ -206,12 +204,12 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
     
     self.setupDetailContentUI()
     selectedSection = indexPath.section
-    selectedRowRelay.accept(reportType.reason[indexPath.row])
+    selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
     selectRow(at: indexPath)
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    if section == reportType.contents.count - 1 {
+    if section == viewModel.reportType.contents.count - 1 {
       return 0
     } else {
       return 10

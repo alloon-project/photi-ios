@@ -19,14 +19,16 @@ public final class ReportContainer: Container<ReportDependency>, ReportContainab
   public func coordinator(listener: ReportListener, reportType: ReportType) -> ViewableCoordinating {
     let viewModel = ReportViewModel(
       reportUseCase: dependency.reportUseCase,
-      inquiryUseCase: dependency.inquiryUseCase
+      inquiryUseCase: dependency.inquiryUseCase,
+      reportType: reportType
     )
-    let viewControllerable = ReportViewController(viewModel: viewModel, reportType: reportType)
+    let viewControllerable = ReportViewController(viewModel: viewModel)
     
     let coordinator = ReportCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel
     )
+    
     coordinator.listener = listener
     return coordinator
   }

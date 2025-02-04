@@ -36,13 +36,12 @@ final class ReportViewModel: ReportViewModelType {
   private let reportUseCase: ReportUseCase
   private let inquiryUseCase: InquiryUseCase
   private let requestFailedRelay = PublishRelay<Void>()
-
+  let reportType: ReportType
+  
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let didTapReportButton: ControlEvent<Void>
-    let reportType: ReportType
-    let category: String // 신고 카테고리
     let reasonAndType: Observable<String> // 신고 이유 및 문의 내용 타입
     let content: ControlProperty<String> // 신고 및 문의 상세내용
     let targetId: Int? // 신고 상세아이디
@@ -54,9 +53,14 @@ final class ReportViewModel: ReportViewModelType {
   }
   
   // MARK: - Initializers
-  init(reportUseCase: ReportUseCase, inquiryUseCase: InquiryUseCase) {
+  init(
+    reportUseCase: ReportUseCase,
+    inquiryUseCase: InquiryUseCase,
+    reportType: ReportType
+  ) {
     self.reportUseCase = reportUseCase
     self.inquiryUseCase = inquiryUseCase
+    self.reportType = reportType
   }
   
   func transform(input: Input) -> Output {
@@ -69,13 +73,13 @@ final class ReportViewModel: ReportViewModelType {
     input.didTapReportButton
       .withLatestFrom(Observable.combineLatest(input.reasonAndType, input.content))
       .bind(with: self) { owner, reasonWithContent in
-        switch input.reportType {
+        switch owner.reportType {
         case .challenge, .member, .feed:
           guard
             let targetId = input.targetId
           else { return }
           owner.requestReport(
-            category: input.category,
+            category: owner.reportType.category ?? "CHALLENGE",
             reason: reasonWithContent.0,
             content: reasonWithContent.1,
             targetId: targetId
