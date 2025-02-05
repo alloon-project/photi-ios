@@ -1,5 +1,5 @@
 //
-//  EditChallengeGoalViewModel.swift
+//  EnterChallengeGoalViewModel.swift
 //  ChallengeImpl
 //
 //  Created by jung on 1/21/25.
@@ -9,27 +9,29 @@
 import RxCocoa
 import RxSwift
 
-protocol EditChallengeGoalCoordinatable: AnyObject {
+protocol EnterChallengeGoalCoordinatable: AnyObject {
   func didTapBackButton()
-  func didChangeChallengeGoal(_ goal: String)
+  func didChangeChallengeGoal()
 }
 
-protocol EditChallengeGoalViewModelType: AnyObject {
+protocol EnterChallengeGoalViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var coordinator: EditChallengeGoalCoordinatable? { get set }
+  var coordinator: EnterChallengeGoalCoordinatable? { get set }
 }
 
-final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
-  weak var coordinator: EditChallengeGoalCoordinatable?
+final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
+  weak var coordinator: EnterChallengeGoalCoordinatable?
   private let disposeBag = DisposeBag()
+  private let challengeID: Int
 
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let goalText: ControlProperty<String>
     let didTapSaveButton: ControlEvent<Void>
+    let didTapSkipButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -38,7 +40,9 @@ final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeID: Int) {
+    self.challengeID = challengeID
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -47,10 +51,12 @@ final class EditChallengeGoalViewModel: EditChallengeGoalViewModelType {
       }
       .disposed(by: disposeBag)
     
-    input.didTapSaveButton
-      .withLatestFrom(input.goalText)
-      .bind(with: self) { owner, text in
-        owner.coordinator?.didChangeChallengeGoal(text)
+    Observable.merge(
+      input.didTapSaveButton.asObservable(),
+      input.didTapSkipButton.asObservable()
+    )
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didChangeChallengeGoal()
       }
       .disposed(by: disposeBag)
     

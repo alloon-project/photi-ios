@@ -72,7 +72,7 @@ private extension FeedCommentTextField {
 // MARK: - Private Methods
 private extension FeedCommentTextField {
   @objc func textDidChange() {
-    textField.text = text.trimmingSuffix(count: Constants.maxTextCount)
+    textField.text = text.trimmingPrefix(count: Constants.maxTextCount)
     setTextCountLabel(text.count)
   }
   

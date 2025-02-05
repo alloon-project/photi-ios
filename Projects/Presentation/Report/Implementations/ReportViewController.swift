@@ -42,7 +42,6 @@ final class ReportViewController: UIViewController, ViewControllerable {
   // MARK: - Initializers
   init(viewModel: ReportViewModel) {
     self.viewModel = viewModel
-    
     super.init(nibName: nil, bundle: nil)
   }
   
