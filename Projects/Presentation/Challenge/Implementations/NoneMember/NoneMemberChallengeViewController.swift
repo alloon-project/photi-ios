@@ -28,7 +28,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private var isUnlocked: Bool = false
   
   private let viewDidLoadRelay = PublishRelay<Void>()
-  private let codeRelay = BehaviorRelay<String>(value: "")
+  private let codeRelay = PublishRelay<String>()
   private let didFinishVerifyRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
@@ -180,7 +180,7 @@ private extension NoneMemberChallengeViewController {
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapJoinButton: joinButton.rx.tap,
-      invitationCode: codeRelay.asDriver(),
+      requestVerifyInvitationCode: codeRelay.asSignal(),
       didFinishVerify: didFinishVerifyRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
@@ -232,15 +232,16 @@ private extension NoneMemberChallengeViewController {
       .drive(deadLineView.rx.deadLine)
       .disposed(by: disposeBag)
     
-    output.isLockChallenge
-      .drive(with: self) { owner, isLock in
-        guard isLock else { return }
+    output.isPrivateChallenge
+      .drive(with: self) { owner, isPrivate in
+        guard isPrivate else { return }
         owner.joinButton.icon = .lockClosedWhite
       }
       .disposed(by: disposeBag)
     
     output.displayUnlockView
       .emit(with: self) { owner, _ in
+        owner.isUnlocked = false
         owner.displayInvitationCodeViewController()
       }
       .disposed(by: disposeBag)
@@ -250,6 +251,18 @@ private extension NoneMemberChallengeViewController {
         guard let viewController = owner.invitationCodeViewController else { return }
         result ? viewController.convertToUnlock() : viewController.displayToastView()
         owner.isUnlocked = result
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
+    
+    output.alreadyJoined
+      .emit(with: self) { owner, _ in
+        owner.displayAlreadyJoinPopUp()
       }
       .disposed(by: disposeBag)
   }
@@ -308,5 +321,10 @@ private extension NoneMemberChallengeViewController {
     self.invitationCodeViewController = viewController
     viewController.delegate = self
     present(viewController, animated: false)
+  }
+  
+  func displayAlreadyJoinPopUp() {
+    let popUp = AlertViewController(alertType: .confirm, title: "오류", subTitle: "이미 참여한 챌린지입니다.")
+    popUp.present(to: self, animted: false)
   }
 }

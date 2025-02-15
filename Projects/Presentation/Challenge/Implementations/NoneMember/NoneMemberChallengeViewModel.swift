@@ -33,12 +33,13 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   private let useCase: ChallengeUseCase
 
   private var challengeName = ""
+  private var isPrivateChallenge: Bool = true
   
-  private let isLockChallengeRelay = BehaviorRelay<Bool>(value: true)
   private let displayUnlockViewRelay = PublishRelay<Void>()
   private let verifyCodeResultRelay = PublishRelay<Bool>()
   private let requestFailedRelay = PublishRelay<Void>()
   private let challengeNotFoundRelay = PublishRelay<Void>()
+  private let alreadyJoinedRelay = PublishRelay<Void>()
   
   private let challengeRelay = BehaviorRelay<ChallengeDetail?>(value: nil)
   private let challengeObservable: Observable<ChallengeDetail>
@@ -48,13 +49,13 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let viewDidLoad: Signal<Void>
     let didTapBackButton: ControlEvent<Void>
     let didTapJoinButton: ControlEvent<Void>
-    let invitationCode: Driver<String>
+    let requestVerifyInvitationCode: Signal<String>
     let didFinishVerify: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    let isLockChallenge: Driver<Bool>
+    let isPrivateChallenge: Driver<Bool>
     let displayUnlockView: Signal<Void>
     let verifyCodeResult: Signal<Bool>
     let challengeTitle: Driver<String>
@@ -68,6 +69,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let memberThumbnailURLs: Driver<[URL]>
     let challengeNotFound: Signal<Void>
     let requestFailed: Signal<Void>
+    let alreadyJoined: Signal<Void>
   }
 
   // MARK: - Initializers
@@ -91,9 +93,8 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
       .disposed(by: disposeBag)
     
     input.didTapJoinButton
-      .withLatestFrom(isLockChallengeRelay)
-      .bind(with: self) { owner, isLock in
-        owner.didTapJoinButton(isLock: isLock) 
+      .bind(with: self) { owner, _ in
+        owner.didTapJoinButton()
       }
       .disposed(by: disposeBag)
     
@@ -103,9 +104,9 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
       }
       .disposed(by: disposeBag)
     
-    input.invitationCode
-      .drive(with: self) { owner, code in
-        owner.requestVerify(invitationCode: code)
+    input.requestVerifyInvitationCode
+      .emit(with: self) { owner, code in
+        Task { await owner.requestVerify(invitationCode: code) }
       }
       .disposed(by: disposeBag)
     
@@ -113,7 +114,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let deadLineObservable = challengeObservable.map { $0.endDate.toString("yyyy.MM.dd") }
     
     return Output(
-      isLockChallenge: isLockChallengeRelay.asDriver(),
+      isPrivateChallenge: challengeObservable.map { !($0.isPublic ?? false) }.asDriver(onErrorJustReturn: false),
       displayUnlockView: displayUnlockViewRelay.asSignal(),
       verifyCodeResult: verifyCodeResultRelay.asSignal(),
       challengeTitle: challengeObservable.map(\.name).asDriver(onErrorJustReturn: ""),
@@ -126,7 +127,8 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
       deadLine: deadLineObservable.asDriver(onErrorJustReturn: ""),
       memberThumbnailURLs: challengeObservable.map(\.memberImages).asDriver(onErrorJustReturn: []),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      requestFailed: requestFailedRelay.asSignal(),
+      alreadyJoined: alreadyJoinedRelay.asSignal()
     )
   }
 }
@@ -139,6 +141,8 @@ private extension NoneMemberChallengeViewModel {
       .subscribe(
         with: self,
         onSuccess: { owner, challenge in
+          owner.challengeName = challenge.name
+          owner.isPrivateChallenge = !(challenge.isPublic ?? false)
           owner.challengeRelay.accept(challenge)
         },
         onFailure: { owner, error in
@@ -146,6 +150,39 @@ private extension NoneMemberChallengeViewModel {
         }
       )
       .disposed(by: disposeBag)
+  }
+  
+  func didTapJoinButton() {
+    Task {
+      let isLogin = await useCase.isLogIn()
+      
+      DispatchQueue.main.async { [weak self] in
+        if isLogin {
+          self?.joinChallenge()
+        } else {
+          self?.coordinator?.attachLogInGuide()
+        }
+      }
+    }
+  }
+  
+  func joinChallenge() {
+    if isPrivateChallenge {
+      displayUnlockViewRelay.accept(())
+    } else {
+      coordinator?.attachEnterChallengeGoal(
+        challengeName: challengeName, challengeID: challengeId
+      )
+    }
+  }
+  
+  func requestVerify(invitationCode: String) async {
+    do {
+      try await useCase.joinPrivateChallnege(id: challengeId, code: invitationCode)
+      verifyCodeResultRelay.accept(true)
+    } catch {
+      requestJoinChallengeFailed(with: error)
+    }
   }
   
   func fetchChallengeFailed(with error: Error) {
@@ -159,32 +196,20 @@ private extension NoneMemberChallengeViewModel {
     }
   }
   
-  func didTapJoinButton(isLock: Bool) {
-    Task {
-      let isLogin = await useCase.isLogIn()
-      
-      DispatchQueue.main.async { [weak self] in
-        if isLogin {
-          self?.joinChallenge(isLock: isLock)
-        } else {
-          self?.coordinator?.attachLogInGuide()
-        }
-      }
+  func requestJoinChallengeFailed(with error: Error) {
+    guard let error = error as? APIError else { return }
+    
+    switch error {
+      case let .challengeFailed(reason) where reason == .invalidInvitationCode:
+        verifyCodeResultRelay.accept(false)
+      case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
+        alreadyJoinedRelay.accept(())
+      case let .challengeFailed(reason) where reason == .challengeNotFound:
+        coordinator?.attachLogInGuide()
+      case .authenticationFailed:
+        coordinator?.attachLogInGuide()
+      default:
+        requestFailedRelay.accept(())
     }
-  }
-  
-  func joinChallenge(isLock: Bool) {
-    if isLock {
-      displayUnlockViewRelay.accept(())
-    } else {
-      coordinator?.attachEnterChallengeGoal(
-        challengeName: challengeName, challengeID: challengeId
-      )
-    }
-  }
-  
-  func requestVerify(invitationCode: String) {
-    // TODO: - API 연동 후 수정 예정
-    verifyCodeResultRelay.accept(true)
   }
 }
