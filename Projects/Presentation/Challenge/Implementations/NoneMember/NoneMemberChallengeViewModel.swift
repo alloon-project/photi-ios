@@ -13,8 +13,9 @@ import Entity
 import UseCase
 
 protocol NoneMemberChallengeCoordinatable: AnyObject {
-  func didJoinChallenge(challengeName: String, challengeID: Int)
+  func attachEnterChallengeGoal(challengeName: String, challengeID: Int)
   func didTapBackButton()
+  func attachLogInGuide()
 }
 
 protocol NoneMemberChallengeViewModelType: AnyObject {
@@ -24,11 +25,11 @@ protocol NoneMemberChallengeViewModelType: AnyObject {
   var coordinator: NoneMemberChallengeCoordinatable? { get set }
 }
 
-final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
+final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unchecked Sendable {
   weak var coordinator: NoneMemberChallengeCoordinatable?
   private let disposeBag = DisposeBag()
 
-  private let challengeId: Int
+  let challengeId: Int
   private let useCase: ChallengeUseCase
 
   private var challengeName = ""
@@ -92,17 +93,13 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType {
     input.didTapJoinButton
       .withLatestFrom(isLockChallengeRelay)
       .bind(with: self) { owner, isLock in
-        if isLock {
-          owner.displayUnlockViewRelay.accept(())
-        } else {
-          owner.coordinator?.didJoinChallenge(challengeName: owner.challengeName, challengeID: owner.challengeId)
-        }
+        owner.didTapJoinButton(isLock: isLock) 
       }
       .disposed(by: disposeBag)
     
     input.didFinishVerify
       .emit(with: self) { owner, _ in
-        owner.coordinator?.didJoinChallenge(challengeName: owner.challengeName, challengeID: owner.challengeId)
+        owner.coordinator?.attachEnterChallengeGoal(challengeName: owner.challengeName, challengeID: owner.challengeId)
       }
       .disposed(by: disposeBag)
     
@@ -159,6 +156,30 @@ private extension NoneMemberChallengeViewModel {
         challengeNotFoundRelay.accept(())
       default:
         requestFailedRelay.accept(())
+    }
+  }
+  
+  func didTapJoinButton(isLock: Bool) {
+    Task {
+      let isLogin = await useCase.isLogIn()
+      
+      DispatchQueue.main.async { [weak self] in
+        if isLogin {
+          self?.joinChallenge(isLock: isLock)
+        } else {
+          self?.coordinator?.attachLogInGuide()
+        }
+      }
+    }
+  }
+  
+  func joinChallenge(isLock: Bool) {
+    if isLock {
+      displayUnlockViewRelay.accept(())
+    } else {
+      coordinator?.attachEnterChallengeGoal(
+        challengeName: challengeName, challengeID: challengeId
+      )
     }
   }
   
