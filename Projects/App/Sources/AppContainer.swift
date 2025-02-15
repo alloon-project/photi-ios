@@ -102,7 +102,15 @@ final class AppContainer:
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
   
+  lazy var challengeUseCase: ChallengeUseCase = {
+    return ChallengeUseCaseImpl(repository: challengeRepository, authRepository: authRepository)
+  }()
+  
   // MARK: - Repository
+  lazy var authRepository: AuthRepository = {
+    return AuthRepositoryImpl()
+  }()
+  
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
   }()
