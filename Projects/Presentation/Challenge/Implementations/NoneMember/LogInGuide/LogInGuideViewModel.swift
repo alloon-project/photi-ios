@@ -9,7 +9,10 @@
 import RxCocoa
 import RxSwift
 
-protocol LogInGuideCoordinatable: AnyObject { }
+protocol LogInGuideCoordinatable: AnyObject {
+  func didTapBackButton()
+  func didTapLogInButton()
+}
 
 protocol LogInGuideViewModelType: AnyObject {
   associatedtype Input
@@ -35,6 +38,18 @@ final class LogInGuideViewModel: LogInGuideViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapLogInButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapLogInButton()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }

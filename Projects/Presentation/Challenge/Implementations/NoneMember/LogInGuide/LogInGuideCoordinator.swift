@@ -31,4 +31,12 @@ final class LogInGuideCoordinator: ViewableCoordinator<LogInGuidePresentable> {
 }
 
 // MARK: - LogInGuideCoordinatable
-extension LogInGuideCoordinator: LogInGuideCoordinatable { }
+extension LogInGuideCoordinator: LogInGuideCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtLogInGuide()
+  }
+  
+  func didTapLogInButton() {
+    listener?.didTapLogInButtonAtLogInGuide()
+  }
+}
