@@ -15,6 +15,8 @@ public enum ChallengeAPI {
   case popularChallenges
   case challengeDetail(id: Int)
   case endedChallenges(page: Int, size: Int)
+  case joinChallenge(id: Int)
+  case joinPrivateChallenge(id: Int, code: String)
 }
 
 extension ChallengeAPI: TargetType {
@@ -28,6 +30,8 @@ extension ChallengeAPI: TargetType {
       case .popularChallenges: return "challenges/popular"
       case let .challengeDetail(id): return "challenges/\(id)"
       case .endedChallenges: return "users/ended-challenges"
+      case let .joinChallenge(id): return "challenges/\(id)/join/public"
+      case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
     }
   }
   
@@ -36,6 +40,8 @@ extension ChallengeAPI: TargetType {
       case .popularChallenges: return .get
       case .challengeDetail: return .get
       case .endedChallenges: return .get
+      case .joinChallenge: return .post
+      case .joinPrivateChallenge: return .post
     }
   }
   
@@ -48,6 +54,14 @@ extension ChallengeAPI: TargetType {
       case let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding(destination: .queryString))
+      case let .joinChallenge(id):
+        return .requestPlain
+      case let .joinPrivateChallenge(_, code):
+        let parameters = ["invitationCode": code]
+        return .requestParameters(
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
     }
   }
   
@@ -67,6 +81,20 @@ extension ChallengeAPI: TargetType {
         
       case .endedChallenges:
         let data = EndedChallengeResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .joinChallenge, .joinPrivateChallenge:
+        let data = """
+          {
+            "code": "200 OK",
+            "message": "성공",
+            "data": {
+              "successMessage": "string"
+            }
+          }
+        """
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
