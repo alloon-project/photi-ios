@@ -10,5 +10,6 @@ import RxSwift
 import Entity
 
 public protocol ChallengeUseCase {
+  func isLogIn() async -> Bool
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
 }

@@ -13,12 +13,18 @@ import Repository
 
 public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let repository: ChallengeRepository
+  private let authRepository: AuthRepository
   
-  public init(repository: ChallengeRepository) {
+  public init(repository: ChallengeRepository, authRepository: AuthRepository) {
     self.repository = repository
+    self.authRepository = authRepository
   }
   
   public func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
     return repository.fetchChallengeDetail(id: id)
+  }
+  
+  public func isLogIn() async -> Bool {
+    return await authRepository.isLogIn()
   }
 }
