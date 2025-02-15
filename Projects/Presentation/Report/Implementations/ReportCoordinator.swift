@@ -29,6 +29,10 @@ final class ReportCoordinator: ViewableCoordinator<ReportPresentable> {
 
 // MARK: - ReportCoordinatable
 extension ReportCoordinator: ReportCoordinatable {
+  func didFinishReport() {
+    listener?.detachReport()
+  }
+  
   func didTapBackButtonAtReport() {
     listener?.detachReport()
   }

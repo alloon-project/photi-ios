@@ -1,8 +1,8 @@
 //
-//  FindPasswordAPI.swift
+//  ReportAPI.swift
 //  Data
 //
-//  Created by wooseob on 11/14/24.
+//  Created by wooseob on 12/23/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
@@ -11,11 +11,11 @@ import Core
 import DTO
 import PhotiNetwork
 
-public enum FindPasswordAPI {
-  case findPassword(dto: FindPasswordRequestDTO)
+public enum ReportAPI {
+  case report(dto: ReportRequestDTO, targetId: Int)
 }
 
-extension FindPasswordAPI: TargetType {
+extension ReportAPI: TargetType {
   public var baseURL: URL {
     //    return ServiceConfiguration.baseUrl
     return URL(string: "http://localhost:8080")!
@@ -23,21 +23,23 @@ extension FindPasswordAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .findPassword:
-        return "api/users/find-password"
+      case .report:
+        return "api/reports"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .findPassword: return .post
+      case .report: return .post
     }
   }
   
   public var task: TaskType {
     switch self {
-      case let .findPassword(dto):
-        return .requestJSONEncodable(dto)
+      case let .report(dto, targetId):
+      return .requestCompositeParameters(
+        bodyParameters: dto.toDictionary,
+        urlParameters: ["targetId": targetId])
     }
   }
 }

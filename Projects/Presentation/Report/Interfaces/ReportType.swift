@@ -62,13 +62,21 @@ public enum ReportType {
   }
   
   public var reason: [String] {
-    ["REDUNDANT",
-     "OBSCENITY",
-     "ABUSIVE",
-     "DANGEROUS",
-     "PROMOTION",
-     "SLANDER",
-     "ETC"]
+    switch self {
+    case .challenge, .member, .feed:
+      ["REDUNDANT",
+       "OBSCENITY",
+       "ABUSIVE",
+       "DANGEROUS",
+       "PROMOTION",
+       "SLANDER",
+       "ETC"]
+    case .inquiry:
+      ["SERVICE_USE",
+       "SUGGESTION",
+       "ERROR",
+       "ETC"]
+    }
   }
   
   public var textViewTitle: String {
@@ -95,6 +103,19 @@ public enum ReportType {
       "신고하기"
     case .inquiry:
       "제출하기"
+    }
+  }
+  
+  public var category: String? {
+    switch self {
+    case .challenge:
+      "CHALLANGE"
+    case .member:
+      "CHALLENGE_MEMBER"
+    case .feed:
+      "FEED"
+    case .inquiry:
+      nil
     }
   }
 }
