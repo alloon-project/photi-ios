@@ -77,7 +77,6 @@ final class ChallengeRuleView: UIView, ChallengeInformationPresentable {
   
   // MARK: - Configure
   func configure(_ rules: [String]) {
-    self.rules = rules
     configureRuleViews(rules)
     
     if rules.count > 2 { configureButton() }
