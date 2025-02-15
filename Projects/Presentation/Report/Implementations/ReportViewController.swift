@@ -12,14 +12,14 @@ import RxSwift
 import SnapKit
 import Core
 import DesignSystem
-import Report
 
 final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  // MARK: - Refactoring
-  private var reportType: ReportType
-  private var selectedRow: Int?
+  // MARK: - Variables
+  private var targetId: Int?
+  private var selectedSection: Int?
+  private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
@@ -36,18 +36,12 @@ final class ReportViewController: UIViewController, ViewControllerable {
   }()
   
   private let detailLabel = UILabel()
-  private let detailContentTextView: LineTextView
+  private let detailContentTextView: LineTextView = LineTextView(type: .count(120))
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers
-  init(viewModel: ReportViewModel, reportType: ReportType) {
+  init(viewModel: ReportViewModel) {
     self.viewModel = viewModel
-    self.reportType = reportType
-    
-    reasonLabel.attributedText = reportType.title.attributedString(font: .heading4, color: .gray900)
-    detailLabel.attributedText = reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
-    detailContentTextView = LineTextView(placeholder: reportType.textViewPlaceholder, type: .count(120))
-    reportButton.setText(reportType.buttonTitle)
     
     super.init(nibName: nil, bundle: nil)
   }
@@ -88,10 +82,16 @@ private extension ReportViewController {
     
     setViewHierarchy()
     setConstraints()
+    setReportType()
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, reasonLabel, reasonTableView, reportButton)
+    self.view.addSubviews(
+      navigationBar,
+      reasonLabel,
+      reasonTableView,
+      reportButton
+    )
   }
   
   func setConstraints() {
@@ -119,6 +119,13 @@ private extension ReportViewController {
     }
   }
   
+  func setReportType() {
+    reasonLabel.attributedText = viewModel.reportType.title.attributedString(font: .heading4, color: .gray900)
+    detailLabel.attributedText = viewModel.reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
+    detailContentTextView.placeholder = viewModel.reportType.textViewPlaceholder
+    reportButton.setText(viewModel.reportType.buttonTitle, for: .normal)
+  }
+  
   func setupDetailContentUI() {
     guard !isDisplayDetailContent else { return }
     isDisplayDetailContent = true
@@ -141,14 +148,32 @@ private extension ReportViewController {
 private extension ReportViewController {
   func bind() {
     let input = ReportViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapReportButton: reportButton.rx.tap,
+      reasonAndType: selectedRowRelay.asObservable(),
+      content: detailContentTextView.rx.text,
+      targetId: targetId
     )
     
     let output = viewModel.transform(input: input)
     bind(output: output)
   }
   
-  func bind(output: ReportViewModel.Output) { }
+  func bind(output: ReportViewModel.Output) {
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.displayAlertPopUp()
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - Private Methods
+private extension ReportViewController {
+  func displayAlertPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
+    alertVC.present(to: self, animted: false)
+  }
 }
 
 // MARK: - ReportPresentable
@@ -157,11 +182,11 @@ extension ReportViewController: ReportPresentable { }
 // MARK: - UITableView DataSource, Delegate
 extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   func numberOfSections(in tableView: UITableView) -> Int {
-    return reportType.contents.count
+    return 1
   }
   
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return 1
+    return viewModel.reportType.contents.count
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -170,20 +195,21 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: reportType.contents[indexPath.section])
+    cell.configure(with: viewModel.reportType.contents[indexPath.section])
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard selectedRow != indexPath.section else { return }
+    guard selectedSection != indexPath.section else { return }
     
     self.setupDetailContentUI()
-    selectedRow = indexPath.section
+    selectedSection = indexPath.section
+    selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
     selectRow(at: indexPath)
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-    if section == reportType.contents.count - 1 {
+    if section == viewModel.reportType.contents.count - 1 {
       return 0
     } else {
       return 10
@@ -256,7 +282,7 @@ private extension ReportViewController {
     let totalPadding = keyboardHeight - bottomPadding
     
     if view.frame.origin.y == 0 {
-      view.frame.origin.y -= totalPadding
+      view.frame.origin.y += totalPadding
     }
   }
   
@@ -264,5 +290,12 @@ private extension ReportViewController {
     if view.frame.origin.y != 0 {
       view.frame.origin.y = 0
     }
+  }
+}
+
+// MARK: - Internal Methods
+extension ReportViewController {
+  func setTargetId(_ id: Int) {
+    self.targetId = id
   }
 }
