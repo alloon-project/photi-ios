@@ -31,9 +31,7 @@ public final class ListBottomSheetViewController: BottomSheetViewController {
   
   /// Button의 text를 정의합니다.
   public var buttonText: String {
-    didSet {
-      button.setText(buttonText, for: .normal)
-    }
+    didSet { button.title = buttonText }
   }
   
   /// 보여질 List의 Text입니다.
@@ -107,7 +105,7 @@ private extension ListBottomSheetViewController {
     setConstraints()
     
     setTitleLabel(titleText)
-    button.setText(buttonText, for: .normal)
+    button.title = buttonText
   }
   
   func setViewHierarchy() {

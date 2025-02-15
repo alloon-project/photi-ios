@@ -93,48 +93,6 @@ private extension PhotiTextField {
 
 // MARK: - Internel Extensions
 extension PhotiTextField {
-  func setRightView(
-    _ rightView: UIView,
-    size: CGSize,
-    leftPdding: CGFloat,
-    rightPadding: CGFloat,
-    viewMode: UITextField.ViewMode = .always
-  ) {
-    let totalViewSize = CGSize(
-      width: size.width + leftPdding + rightPadding,
-      height: size.height
-    )
-    let rightViewOrigin = CGPoint(x: leftPdding, y: 0)
-    
-    let totalView = UIView(frame: .init(origin: .zero, size: totalViewSize))
-    totalView.addSubview(rightView)
-    rightView.frame = .init(origin: rightViewOrigin, size: size)
-    
-    self.rightView = totalView
-    rightViewMode = viewMode
-  }
-  
-  func setLeftView(
-    _ leftView: UIView,
-    size: CGSize,
-    leftPdding: CGFloat,
-    rightPadding: CGFloat,
-    viewMode: UITextField.ViewMode = .always
-  ) {
-    let totalViewSize = CGSize(
-      width: size.width + leftPdding + rightPadding,
-      height: size.height
-    )
-    let leftViewOrigin = CGPoint(x: leftPdding, y: 0)
-    
-    let totalView = UIView(frame: .init(origin: .zero, size: totalViewSize))
-    totalView.addSubview(leftView)
-    leftView.frame = .init(origin: leftViewOrigin, size: size)
-    
-    self.leftView = totalView
-    leftViewMode = viewMode
-  }
-  
   func setLineColor(_ color: UIColor) {
     self.layer.borderColor = color.cgColor
   }

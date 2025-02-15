@@ -17,7 +17,7 @@ protocol EndedChallengeCoordinatable: AnyObject {
   func detachChallengeDetail()
 }
 
-protocol EndedChallengeViewModelType: AnyObject, EndedChallengeViewModelable {
+protocol EndedChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

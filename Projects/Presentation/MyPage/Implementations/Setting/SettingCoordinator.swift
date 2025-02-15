@@ -6,29 +6,28 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 import Report
 
-protocol SettingViewModelable { }
-
-public protocol SettingListener: AnyObject {
+protocol SettingListener: AnyObject {
   func didTapBackButtonAtSetting()
 }
 
-final class SettingCoordinator: Coordinator {
+protocol SettingPresentable { }
+
+final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   weak var listener: SettingListener?
-  
-  private let viewController: SettingViewController
+
   private let viewModel: SettingViewModel
   
   private let profileEditContainable: ProfileEditContainable
-  private var profileEditCoordinator: Coordinating?
+  private var profileEditCoordinator: ViewableCoordinating?
   
   private let reportContainable: ReportContainable
-  private var reportCoordinator: Coordinating?
+  private var reportCoordinator: ViewableCoordinating?
   
   init(
+    viewControllerable: ViewControllerable,
     viewModel: SettingViewModel,
     profileEditContainable: ProfileEditContainable,
     reportContainable: ReportContainable
@@ -38,14 +37,8 @@ final class SettingCoordinator: Coordinator {
     self.profileEditContainable = profileEditContainable
     self.reportContainable = reportContainable
     
-    self.viewController = SettingViewController(viewModel: viewModel)
-    super.init()
+    super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(viewController, animated: true)
   }
   
   // MARK: - Profile Edit
@@ -54,17 +47,16 @@ final class SettingCoordinator: Coordinator {
     
     let coordinater = profileEditContainable.coordinator(listener: self)
     addChild(coordinater)
-    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.profileEditCoordinator = coordinater
-    coordinater.start(at: self.navigationController)
   }
   
   func detachProfileEdit() {
     guard let coordinator = profileEditCoordinator else { return }
     
     removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.profileEditCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   // MARK: - Inquiry
@@ -73,17 +65,16 @@ final class SettingCoordinator: Coordinator {
     
     let coordinator = reportContainable.coordinator(listener: self, reportType: .inquiry)
     addChild(coordinator)
-    
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.reportCoordinator = coordinator
-    coordinator.start(at: self.navigationController)
   }
   
   func detachInquiry() {
     guard let coordinator = reportCoordinator else { return }
     
     removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
     self.reportCoordinator = nil
-    navigationController?.popViewController(animated: true)
   }
   
   // MARK: - Service Term

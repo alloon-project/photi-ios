@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ReportViewController: UIViewController {
+final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Variables

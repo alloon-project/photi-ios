@@ -6,13 +6,12 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
 
 protocol SearchChallengeCoordinatable: AnyObject { }
 
-protocol SearchChallengeViewModelType: AnyObject, SearchChallengeViewModelable {
+protocol SearchChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

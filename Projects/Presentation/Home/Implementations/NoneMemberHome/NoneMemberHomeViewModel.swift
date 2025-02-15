@@ -22,7 +22,7 @@ protocol NoneMemberHomeViewModelType: AnyObject {
   var coordinator: NoneMemberHomeCoordinatable? { get set }
 }
 
-final class NoneMemberHomeViewModel: NoneMemberHomeViewModelType, NoneMemberHomeViewModelable {
+final class NoneMemberHomeViewModel: NoneMemberHomeViewModelType {
   let disposeBag = DisposeBag()
   
   weak var coordinator: NoneMemberHomeCoordinatable?

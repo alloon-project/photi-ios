@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EndedChallengeViewController: UIViewController {
+final class EndedChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: EndedChallengeViewModel
   
   // MARK: - Variables
@@ -51,8 +51,8 @@ final class EndedChallengeViewController: UIViewController {
   /// 하단 톱니모양뷰
   private let grayBottomImageView = {
     let pinkingView = UIImageView()
-    pinkingView.image = .pinkingGray
-    pinkingView.clipsToBounds = true
+    pinkingView.image = .pinkingGrayDown
+    pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()
@@ -175,6 +175,9 @@ private extension EndedChallengeViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EndedChallangePresentable
+extension EndedChallengeViewController: EndedChallangePresentable { }
   
 // MARK: - UICollectionViewDataSource
 extension EndedChallengeViewController: UICollectionViewDataSource {

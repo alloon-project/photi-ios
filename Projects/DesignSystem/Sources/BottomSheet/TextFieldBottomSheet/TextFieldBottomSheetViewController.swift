@@ -29,9 +29,7 @@ public final class TextFieldBottomSheetViewController: BottomSheetViewController
   }
   
   public var buttonText: String {
-    didSet {
-      self.button.setText(buttonText, for: .normal)
-    }
+    didSet { button.title = buttonText }
   }
   
   public var buttonMode: ButtonMode {
@@ -58,13 +56,9 @@ public final class TextFieldBottomSheetViewController: BottomSheetViewController
   private let headerView = UIView()
   private let titleLabel = UILabel()
   
-  // TODO: Icon DS작업 후 변경 예정
   private let closeButton: UIButton = {
     let button = UIButton()
-    let image = UIImage(systemName: "xmark.circle.fill")!
-    let resizeImage = image.resize(CGSize(width: 24, height: 24)).withTintColor(.gray200)
-    
-    button.setImage(resizeImage, for: .normal)
+    button.setImage(.closeCircleLight, for: .normal)
     button.layer.cornerRadius = 12
     
     return button
@@ -128,7 +122,7 @@ private extension TextFieldBottomSheetViewController {
     setConstraints()
     
     setTitleLabel(titleText)
-    button.setText(buttonText, for: .normal)
+    button.title = buttonText
   }
   
   func setViewHierarchy() {

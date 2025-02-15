@@ -6,53 +6,146 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 import Challenge
 
-protocol ChallengeViewModelable { }
-
 protocol ChallengePresentable {
-  func attachViewControllers(_ viewControllers: UIViewController...)
+  func attachViewControllerables(_ viewControllerables: ViewControllerable...)
+  func didChangeContentOffsetAtMainContainer(_ offset: Double)
+  func presentDidChangeGoalToastView()
 }
 
-final class ChallengeCoordinator: Coordinator, ChallengeCoordinatable {
+final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   weak var listener: ChallengeListener?
-  
-  private let viewController: ChallengeViewController
+
   private let viewModel: ChallengeViewModel
   
   private let feedContainer: FeedContainable
-  private var feedCoordinator: FeedCoordinator?
+  private var feedCoordinator: ViewableCoordinating?
+  
+  private let participantContainer: ParticipantContainable
+  private var participantCoordinator: ViewableCoordinating?
+  
+  private let descriptionContainer: DescriptionContainable
+  private var descriptionCoordinator: ViewableCoordinating?
+  
+  private let editChallengeGoalContainer: EnterChallengeGoalContainable
+  private var editChallengeGoalCoordinator: ViewableCoordinating?
   
   init(
-    viewController: ChallengeViewController,
+    viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
-    feedContainer: FeedContainable
+    feedContainer: FeedContainable,
+    descriptionContainer: DescriptionContainable,
+    participantContainer: ParticipantContainable,
+    editChallengeGoalContainer: EnterChallengeGoalContainer
   ) {
-    self.viewController = viewController
     self.viewModel = viewModel
     self.feedContainer = feedContainer
-    super.init()
+    self.descriptionContainer = descriptionContainer
+    self.participantContainer = participantContainer
+    self.editChallengeGoalContainer = editChallengeGoalContainer
+    super.init(viewControllerable)
     viewModel.coordinator = self
   }
   
-  override func start(at navigationController: UINavigationController?) {
-    super.start(at: navigationController)
-    navigationController?.pushViewController(self.viewController, animated: true)
+  override func start() {
     attachSegments()
   }
   
-  // MARK: - Feed
   func attachSegments() {
     let feedCoordinator = feedContainer.coordinator(listener: self)
+    let descriptionCoordinator = descriptionContainer.coordinator(listener: self)
+    let participantCoordinator = participantContainer.coordinator(listener: self)
     
-    // 해당 코드는 Coordinator 이후에 수정 예정입니다.
-    guard let feedCoordinator = feedCoordinator as? FeedCoordinator else { return }
+    presenter.attachViewControllerables(
+      feedCoordinator.viewControllerable,
+      descriptionCoordinator.viewControllerable,
+      participantCoordinator.viewControllerable
+    )
+    addChild(feedCoordinator)
+    addChild(descriptionCoordinator)
+    addChild(participantCoordinator)
     self.feedCoordinator = feedCoordinator
-    viewController.attachViewControllers(feedCoordinator.viewController)
+    self.descriptionCoordinator = descriptionCoordinator
+    self.participantCoordinator = participantCoordinator
+  }
+}
+
+// MARK: - ChallengeCoordinatable
+extension ChallengeCoordinator: ChallengeCoordinatable { }
+
+// MARK: - EditChallengeGoal
+extension ChallengeCoordinator {
+  func attachEditChallengeGoal(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  ) {
+    guard editChallengeGoalCoordinator == nil else { return }
+    
+    let coordinator = editChallengeGoalContainer.coordinator(
+      mode: .edit(goal: goal),
+      challengeID: challengeID,
+      challengeName: challengeName,
+      listener: self
+    )
+    
+    addChild(coordinator)
+    self.editChallengeGoalCoordinator = coordinator
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+  }
+  
+  func detachEditChallengeGoal(completion: (() -> Void)? = nil) {
+    guard let coordinator = editChallengeGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.editChallengeGoalCoordinator = nil
+    viewControllerable.popViewController(animated: true) {
+      completion?()
+    }
   }
 }
 
 // MARK: - FeedListener
-extension ChallengeCoordinator: FeedListener { }
+extension ChallengeCoordinator: FeedListener {  
+  func didChangeContentOffsetAtFeed(_ offset: Double) {
+    presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+}
+
+// MARK: - DescriptionListener
+extension ChallengeCoordinator: DescriptionListener { }
+
+// MARK: - ParticipantListener
+extension ChallengeCoordinator: ParticipantListener {
+  func didChangeContentOffsetAtParticipant(_ offset: Double) {
+    presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+  
+  func didTapEditButton(
+    challengeID: Int,
+    goal: String,
+    challengeName: String
+  ) {
+    attachEditChallengeGoal(
+      challengeID: challengeID,
+      goal: goal,
+      challengeName: challengeName
+    )
+  }
+}
+
+// MARK: - EditChallengeGoalListener
+extension ChallengeCoordinator: EnterChallengeGoalListener {
+  func didTapBackButtonAtEnterChallengeGoal() {
+    detachEditChallengeGoal()
+  }
+  
+  func didChangeChallengeGoal() {
+    // TODO: API 연결 이후 수정 예정
+    detachEditChallengeGoal { [weak self] in
+      self?.presenter.presentDidChangeGoalToastView()
+    }
+  }
+}

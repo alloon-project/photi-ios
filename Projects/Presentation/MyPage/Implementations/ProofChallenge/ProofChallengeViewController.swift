@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ProofChallengeViewController: UIViewController {
+final class ProofChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: ProofChallengeViewModel
   
   // MARK: - Variables
@@ -28,7 +28,7 @@ final class ProofChallengeViewController: UIViewController {
   }()
   
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-
+  
   private let titleLabel = {
     let label = UILabel()
     label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
@@ -43,8 +43,8 @@ final class ProofChallengeViewController: UIViewController {
   /// 하단 톱니모양뷰
   private let grayBottomImageView = {
     let pinkingView = UIImageView()
-    pinkingView.image = .pinkingGray
-    pinkingView.clipsToBounds = true
+    pinkingView.image = .pinkingGrayDown
+    pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()
@@ -147,9 +147,13 @@ private extension ProofChallengeViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton
     )
     
-    let output = viewModel.transform(input: input)
+    let _ = viewModel.transform(input: input)
   }
 }
+
+// MARK: - ProofChallengePresentable
+extension ProofChallengeViewController: ProofChallengePresentable { }
+
 // MARK: - UICollectionViewDataSource
 extension ProofChallengeViewController: UICollectionViewDataSource {
   func collectionView(
@@ -172,8 +176,8 @@ extension ProofChallengeViewController: UICollectionViewDataSource {
 extension ProofChallengeViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
     _ collectionView: UICollectionView,
-                      layout collectionViewLayout: UICollectionViewLayout,
-                      sizeForItemAt indexPath: IndexPath
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
     let widthOfCells = collectionView.bounds.width -
     (collectionView.contentInset.left + collectionView.contentInset.right)

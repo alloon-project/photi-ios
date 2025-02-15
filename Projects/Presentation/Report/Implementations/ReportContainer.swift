@@ -23,12 +23,12 @@ public final class ReportContainer: Container<ReportDependency>, ReportContainab
       reportType: reportType
     )
     let viewControllerable = ReportViewController(viewModel: viewModel)
+
     
     let coordinator = ReportCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel
     )
-    
     coordinator.listener = listener
     return coordinator
   }

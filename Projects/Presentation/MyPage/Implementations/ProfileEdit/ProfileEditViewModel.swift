@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxCocoa
 import RxSwift
 import Entity
@@ -18,7 +17,7 @@ protocol ProfileEditCoordinatable: AnyObject {
   func attachResign()
 }
 
-protocol ProfileEditViewModelType: AnyObject, ProfileEditViewModelable {
+protocol ProfileEditViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
@@ -42,7 +41,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
-    let didTapCell: ControlEvent<IndexPath>
+    let didTapCell: Driver<Int>
     let didTapResignButton: ControlEvent<Void>
     let isVisible: Observable<Bool>
   }
@@ -65,8 +64,8 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapCell
-      .bind(with: self) { onwer, index in
-        switch index.row {
+      .drive(with: self) { onwer, index in
+        switch index {
         case 0, 1:
           break
         case 2:

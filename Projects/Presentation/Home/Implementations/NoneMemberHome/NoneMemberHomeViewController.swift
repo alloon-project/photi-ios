@@ -12,7 +12,7 @@ import SnapKit
 import DesignSystem
 import Core
 
-final class NoneMemberHomeViewController: UIViewController {
+final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
   private let viewModel: NoneMemberHomeViewModel
@@ -57,6 +57,7 @@ final class NoneMemberHomeViewController: UIViewController {
 // MARK: - UI Methods
 private extension NoneMemberHomeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
@@ -98,3 +99,6 @@ private extension NoneMemberHomeViewController {
     viewModel.transform(input: input)
   }
 }
+
+// MARK: - NoneMemberHomePresentable
+extension NoneMemberHomeViewController: NoneMemberHomePresentable { }

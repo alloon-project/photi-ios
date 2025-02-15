@@ -19,19 +19,20 @@ public protocol HomeDependency: Dependency {
 public final class HomeContainer:
   Container<HomeDependency>,
   HomeContainable,
+  ChallengeHomeDependency,
   NoneMemberHomeDependency,
   NoneChallengeHomeDependency {
   var homeUseCase: HomeUseCase { dependency.homeUseCae }
   
-  public func coordinator(listener: HomeListener) -> Coordinating {
-    let viewModel = HomeViewModel(useCase: dependency.homeUseCae)
-    
+  public func coordinator(navigationControllerable: NavigationControllerable, listener: HomeListener) -> Coordinating {
+    let challengeHome = ChallengeHomeContainer(dependency: self)
     let noneMemberHome = NoneMemberHomeContainer(dependency: self)
     let noneChallengeHome = NoneChallengeHomeContainer(dependency: self)
     
     let coordinator = HomeCoordinator(
-      viewModel: viewModel,
+      navigationControllerable: navigationControllerable,
       loginContainer: dependency.loginContainable,
+      challengeHomeContainer: challengeHome,
       noneMemberHomeContainer: noneMemberHome,
       noneChallengeHomeContainer: noneChallengeHome
     )
