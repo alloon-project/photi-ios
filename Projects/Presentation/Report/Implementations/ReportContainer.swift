@@ -28,7 +28,6 @@ public final class ReportContainer: Container<ReportDependency>, ReportContainab
       viewControllerable: viewControllerable,
       viewModel: viewModel
     )
-    
     coordinator.listener = listener
     return coordinator
   }

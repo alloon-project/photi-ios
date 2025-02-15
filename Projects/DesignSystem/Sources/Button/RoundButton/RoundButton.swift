@@ -19,14 +19,18 @@ open class RoundButton: UIButton {
   public init(size: ButtonSize) {
     self.size = size
     super.init(frame: .zero)
+    setupUI()
   }
   
   @available(*, unavailable)
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  public func setupUI() {
+}
+
+// MARK: - UI Methods
+private extension RoundButton {
+  func setupUI() {
     layer.cornerRadius = cornerRadius(for: size)
     titleLabel?.font = font(for: size)
   }

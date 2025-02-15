@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ReportViewController: UIViewController {
+final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Variables
@@ -37,12 +37,12 @@ final class ReportViewController: UIViewController {
   
   private let detailLabel = UILabel()
   private let detailContentTextView: LineTextView = LineTextView(type: .count(120))
+
   private let reportButton = FilledRoundButton(type: .primary, size: .xLarge)
   
   // MARK: - Initializers
   init(viewModel: ReportViewModel) {
-    self.viewModel = viewModel
-    
+    self.viewModel = viewModel  
     super.init(nibName: nil, bundle: nil)
   }
   

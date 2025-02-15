@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class VerifyEmailViewController: UIViewController {
+final class VerifyEmailViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: VerifyEmailViewModel
   
@@ -47,9 +47,8 @@ final class VerifyEmailViewController: UIViewController {
   private let lineTextField = LineTextField(placeholder: "숫자 4자리", type: .helper)
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   
-  // TODO: - DS 적용후 이미지 변경
   private let veriftCodeErrorCommentView = CommentView(
-    .warning, text: "인증코드가 일치하지 않아요", icon: UIImage(systemName: "xmark")!
+    .warning, text: "인증코드가 일치하지 않아요", icon: .closeRed
   )
   
   // MARK: - Initalizers
@@ -178,8 +177,8 @@ private extension VerifyEmailViewController {
   }
 }
 
-// MARK: - Internal Methods
-extension VerifyEmailViewController {
+// MARK: - VerifyEmailPresentable
+extension VerifyEmailViewController: VerifyEmailPresentable {
   func setUserEmail(_ email: String) {
     userEmailLabel.attributedText = email.attributedString(
       font: .caption1,

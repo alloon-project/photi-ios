@@ -10,6 +10,7 @@ import UIKit
 import SnapKit
 import Core
 
+@MainActor
 public protocol UploadPhotoPopOverDelegate: AnyObject {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage)
 }
@@ -39,20 +40,19 @@ public final class UploadPhotoPopOverViewController: PopOverViewController {
     return stackView
   }()
   
-  private let uploadButton: IconRoundButton
+  private let uploadButton: FilledRoundButton
   private lazy var cancelButton = FilledRoundButton(type: .quaternary, size: .small, text: "취소하기")
   
   // MARK: - Initializers
   public init(type: ButtonType, image: UIImage) {
     self.type = type
     self.image = image
-    var buttonSize: ButtonSize = .small
-    if case .one = type { buttonSize = .medium }
-    self.uploadButton = IconRoundButton(
-      text: "올리기",
-      icon: UIImage(resource: .rocketWhite),
+    let buttonSize: ButtonSize = type == .one ? .medium : .small
+    self.uploadButton = FilledRoundButton(
       type: .primary,
-      size: buttonSize
+      size: buttonSize,
+      text: "올리기",
+      icon: .rocketWhite
     )
     
     super.init(nibName: nil, bundle: nil)
@@ -108,6 +108,7 @@ private extension UploadPhotoPopOverViewController {
     uploadButton.addAction(
       UIAction { [weak self] _ in
         guard let self else { return }
+        self.dismissPopOver()
         self.delegate?.upload(self, image: self.image)
       },
       for: .touchUpInside

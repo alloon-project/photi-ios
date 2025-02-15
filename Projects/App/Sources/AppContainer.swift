@@ -26,7 +26,7 @@ import UseCaseImpl
 final class AppDependency: Dependency { }
 
 protocol AppContainable: Containable {
-  func coordinator() -> Coordinating
+  func coordinator() -> ViewableCoordinating
 }
 
 final class AppContainer:
@@ -38,12 +38,15 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency {
-  func coordinator() -> Coordinating {
+  func coordinator() -> ViewableCoordinating {
+    let viewControllerable = AppViewController()
+    
     let home = HomeContainer(dependency: self)
     let searchChallenge = SearchChallengeContainer(dependency: self)
     let myPage = MyPageContainer(dependency: self)
     
     return AppCoordinator(
+      viewControllerable: viewControllerable,
       homeContainable: home,
       searchChallengeContainable: searchChallenge,
       myPageContainable: myPage
@@ -66,6 +69,10 @@ final class AppContainer:
   // MARK: - UseCase
   lazy var logInUseCase: LogInUseCase = {
     return LogInUseCaseImpl(repository: logInRepository)
+  }()
+  
+  lazy var findIdUseCase: FindIdUseCase = {
+    return FindIdUseCaseImpl(repository: findIdRepository)
   }()
   
   lazy var findPasswordUseCase: FindPasswordUseCase = {
@@ -107,6 +114,10 @@ final class AppContainer:
   // MARK: - Repository
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
+  }()
+  
+  lazy var findIdRepository: FindIdRepository = {
+    return FindIdRepositoryImpl(dataMapper: FindIdDataMapperImpl())
   }()
   
   lazy var findPasswordRepository: FindPasswordRepository = {

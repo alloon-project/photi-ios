@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterIdViewController: UIViewController {
+final class EnterIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterIdViewModel
   
@@ -43,15 +43,15 @@ final class EnterIdViewController: UIViewController {
   
   private let idTextField = ButtonTextField(buttonText: "중복검사", placeholder: "아이디", type: .helper)
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
-  // TODO: - DS 적용 후 이미지 변경
+
   private let idFormWarningView = CommentView(
-    .warning, text: "알파벳 소문자, 숫자, 특수문자만 사용 가능해요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "알파벳 소문자, 숫자, 특수문자만 사용 가능해요", icon: .closeRed, isActivate: true
   )
   private let duplicateIdWardningView = CommentView(
-    .warning, text: "이미 사용중인 아이디예요", icon: UIImage(systemName: "exclamationmark")!, isActivate: true
+    .warning, text: "이미 사용중인 아이디예요", icon: .closeRed, isActivate: true
   )
   private let validIdCommentView = CommentView(
-    .condition, text: "사용할 수 있는 아이디예요", icon: UIImage(systemName: "checkmark")!, isActivate: true
+    .condition, text: "사용할 수 있는 아이디예요", icon: .checkBlue, isActivate: true
   )
   
   // MARK: - Initializers
@@ -200,3 +200,6 @@ private extension EnterIdViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EnterIdPresentable
+extension EnterIdViewController: EnterIdPresentable { }

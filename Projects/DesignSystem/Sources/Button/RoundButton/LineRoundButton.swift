@@ -34,12 +34,12 @@ public final class LineRoundButton: RoundButton {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  // MARK: - Setup UI
-  public override func setupUI() {
-    super.setupUI()
-    
-    self.backgroundColor = .clear
+}
+
+// MARK: - UI Methods
+private extension LineRoundButton {
+  func setupUI() {
+    self.backgroundColor = .white
     self.layer.borderWidth = 1
     self.layer.borderColor = lineColor(for: type).cgColor
   }

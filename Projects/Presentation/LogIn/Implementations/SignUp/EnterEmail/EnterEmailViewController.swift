@@ -13,7 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EnterEmailViewController: UIViewController {
+final class EnterEmailViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterEmailViewModel
   
@@ -34,15 +34,15 @@ final class EnterEmailViewController: UIViewController {
   // TODO: - emailTextField
   private let lineTextField = LineTextField(placeholder: "이메일", type: .helper)
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
-  // TODO: - DS 적용 후 이미지 변경
+
   private let emailFormWarningView = CommentView(
-    .warning, text: "이메일 형태가 올바르지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "이메일 형태가 올바르지 않아요", icon: .closeRed, isActivate: true
   )
   private let emailTextCountWarningView = CommentView(
-    .warning, text: "100자 이하의 이메일을 사용해주세요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "100자 이하의 이메일을 사용해주세요", icon: .closeRed, isActivate: true
   )
   private let duplicateEmailWarningView = CommentView(
-    .warning, text: "이미 가입된 이메일이예요", icon: UIImage(systemName: "xmark")!, isActivate: true
+    .warning, text: "이미 가입된 이메일이예요", icon: .closeRed, isActivate: true
   )
   
   // MARK: - Initialziers
@@ -168,6 +168,9 @@ private extension EnterEmailViewController {
       .disposed(by: disposeBag)
   }
 }
+
+// MARK: - EnterEmailPresentable
+extension EnterEmailViewController: EnterEmailPresentable { }
 
 // MARK: - Private Methods
 private extension EnterEmailViewController {

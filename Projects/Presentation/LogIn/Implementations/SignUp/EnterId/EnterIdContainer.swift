@@ -14,14 +14,17 @@ protocol EnterIdDependency: Dependency {
 }
 
 protocol EnterIdContainable: Containable {
-  func coordinator(listener: EnterIdListener) -> Coordinating
+  func coordinator(listener: EnterIdListener) -> ViewableCoordinating
 }
 
 final class EnterIdContainer: Container<EnterIdDependency>, EnterIdContainable {
-  func coordinator(listener: EnterIdListener) -> Coordinating {
+  func coordinator(listener: EnterIdListener) -> ViewableCoordinating {
     let viewModel = EnterIdViewModel(useCase: dependency.signUpUseCase)
-    
-    let coordinator = EnterIdCoordinator(viewModel: viewModel)
+    let viewControllerable = EnterIdViewController(viewModel: viewModel)
+    let coordinator = EnterIdCoordinator(
+      viewControllerable: viewControllerable,
+      viewModel: viewModel
+    )
     coordinator.listener = listener
     return coordinator
   }

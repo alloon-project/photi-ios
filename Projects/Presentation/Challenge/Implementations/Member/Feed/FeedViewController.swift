@@ -13,12 +13,7 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class FeedViewController: UIViewController {
-  enum ContentOrderType: String {
-    case recent = "최신순"
-    case popular = "인기순"
-  }
-  
+final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
   // MARK: - Properties
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {
@@ -26,15 +21,20 @@ final class FeedViewController: UIViewController {
       updateTagViewContraints(percent: currentPercent)
     }
   }
+  private var feedAlign: FeedAlignMode = .recent
+  private var isProof: Bool = false
   private let viewModel: FeedViewModel
   private let disposeBag = DisposeBag()
-  private var contentOrderType: ContentOrderType = .recent
+  private var didProof: Bool = false
   private var feeds = [[FeedPresentationModel]]() {
     didSet {
       feedCollectionView.reloadData()
     }
   }
-
+  private let didTapFeedCell = PublishRelay<String>()
+  private let contentOffset = PublishRelay<Double>()
+  private let uploadImageRelay = PublishRelay<Data>()
+  
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
@@ -52,9 +52,14 @@ final class FeedViewController: UIViewController {
     collectionView.registerHeader(FeedCollectionHeaderView.self)
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-    collectionView.isScrollEnabled = false
 
     return collectionView
+  }()
+  private let cameraShutterButton: UIButton = {
+    let button = UIButton()
+    button.setImage(.shutterWhite, for: .normal)
+    
+    return button
   }()
   
   // MARK: - Initializers
@@ -72,8 +77,25 @@ final class FeedViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+    bind()
     feedCollectionView.dataSource = self
     feedCollectionView.delegate = self
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    
+    cameraShutterButton.isHidden = isProof
+    guard !isProof else { return }
+    presentPoofTipView()
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+      self.currentPercent = .percent40
+    }
   }
 }
 
@@ -89,7 +111,8 @@ private extension FeedViewController {
       progressBar,
       orderButton,
       feedCollectionView,
-      tagView
+      tagView,
+      cameraShutterButton
     )
   }
   
@@ -117,8 +140,59 @@ private extension FeedViewController {
       $0.width.equalTo(327)
       $0.bottom.equalToSuperview()
     }
+    
+    cameraShutterButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.width.height.equalTo(64)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(22)
+    }
   }
 }
+
+// MARK: - Bind
+private extension FeedViewController {
+  func bind() {
+    let input = FeedViewModel.Input(
+      didTapOrderButton: orderButton.rx.tap
+        .asSignal()
+        .map { .popular },
+      didTapFeed: didTapFeedCell.asSignal(),
+      contentOffset: contentOffset.asSignal(),
+      uploadImage: uploadImageRelay.asSignal()
+    )
+    
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+    viewBind()
+  }
+  
+  func bind(for output: FeedViewModel.Output) {
+    output.isUploadSuccess
+      .emit(with: self) { owner, _ in
+        LoadingAnimation.default.stop()
+        owner.isProof = true
+        owner.cameraShutterButton.isHidden = true
+      }
+      .disposed(by: disposeBag)
+  }
+
+  func viewBind() {
+    orderButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.presentBottomSheet()
+      }
+      .disposed(by: disposeBag)
+    
+    cameraShutterButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.requestOpenCamera(delegate: owner)
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - FeedPresentable
+extension FeedViewController: FeedPresentable { }
 
 // MARK: - UICollectionViewDataSource
 extension FeedViewController: UICollectionViewDataSource {
@@ -159,6 +233,19 @@ extension FeedViewController: UICollectionViewDataSource {
   }
 }
 
+// MARK: - UICollectionViewDelegate
+extension FeedViewController: UICollectionViewDelegate {
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    // TODO: API 연결 후 수정
+    didTapFeedCell.accept("0")
+  }
+  
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let offSet = scrollView.contentOffset.y
+    contentOffset.accept(offSet)
+  }
+}
+
 // MARK: - UICollectionViewDelegateFlowLayout
 extension FeedViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
@@ -178,17 +265,50 @@ extension FeedViewController: UICollectionViewDelegateFlowLayout {
   }
 }
 
+// MARK: - UIImagePickerControllerDelegate, UINavigationControllerDelegate
+extension FeedViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+  func imagePickerController(
+    _ picker: UIImagePickerController,
+    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+  ) {
+    guard let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage else {
+      picker.dismiss(animated: true)
+      return
+    }
+    picker.dismiss(animated: true)
+    
+    let popOver = UploadPhotoPopOverViewController(type: .two, image: image)
+    popOver.present(to: self, animated: true)
+    popOver.delegate = self
+  }
+}
+
+// MARK: - UploadPhotoPopOverDelegate
+extension FeedViewController: UploadPhotoPopOverDelegate {
+  func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
+    uploadImageRelay.accept(image.pngData() ?? Data())
+    LoadingAnimation.default.start()
+  }
+}
+
+// MARK: - AlignBottomSheetDelegate
+extension FeedViewController: AlignBottomSheetDelegate {
+  func didSelected(at index: Int, data: String) {
+    self.feedAlign = .init(rawValue: data) ?? feedAlign
+    orderButton.text = feedAlign.rawValue
+  }
+}
+
 // MARK: - Private Methods
 private extension FeedViewController {
   func updateTagViewContraints(percent: PhotiProgressPercent) {
     let tagViewLeading = tagViewLeading(for: percent.rawValue)
     
-    UIView.animate(withDuration: 0.4) { [weak self] in
-      guard let self else { return }
-      tagView.snp.updateConstraints {
+    UIView.animate(withDuration: 0.4) {
+      self.tagView.snp.updateConstraints {
         $0.leading.equalToSuperview().offset(tagViewLeading)
       }
-      view.layoutIfNeeded()
+      self.view.layoutIfNeeded()
     }
   }
   
@@ -197,5 +317,34 @@ private extension FeedViewController {
     let leading: Double = centerX - tagView.frame.width / 2.0
 
     return leading.bound(lower: 24, upper: progressBar.bounds.width - tagView.frame.width)
+  }
+  
+  func presentPoofTipView() {
+    let tipView = ToastView(
+      tipPosition: .centerBottom,
+      text: "오늘의 인증이 완료되지 않았어요!",
+      icon: .bulbWhite
+    )
+    
+    tipView.setConstraints { [weak self] make in
+      guard let self else { return }
+      make.bottom.equalTo(cameraShutterButton.snp.top).offset(-6)
+      make.centerX.equalToSuperview()
+    }
+    
+    tipView.present(to: self)
+  }
+  
+  func presentBottomSheet() {
+    let dataSource = FeedAlignMode.allCases.map { $0.rawValue }
+    let selectedRow = dataSource.firstIndex(of: feedAlign.rawValue)
+    
+    let bottomSheet = AlignBottomSheetViewController(
+      type: .default,
+      selectedRow: selectedRow ?? 0,
+      dataSource: dataSource
+    )
+    bottomSheet.delegate = self
+    bottomSheet.present(to: self, animated: true)
   }
 }

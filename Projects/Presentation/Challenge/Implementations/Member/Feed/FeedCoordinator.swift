@@ -6,24 +6,67 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
 import Core
 
-protocol FeedListener: AnyObject { }
+protocol FeedListener: AnyObject {
+  func didChangeContentOffsetAtFeed(_ offset: Double)
+}
 
-final class FeedCoordinator: Coordinator {
+protocol FeedPresentable { }
+
+final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
-  
-  let viewController: FeedViewController
+
   private let viewModel: FeedViewModel
   
-  init(viewModel: FeedViewModel) {
+  private let feedCommentContainer: FeedCommentContainable
+  private var feedCommentCoordinator: ViewableCoordinating?
+  
+  init(
+    viewControllerable: ViewControllerable,
+    viewModel: FeedViewModel,
+    feedCommentContainer: FeedCommentContainable
+  ) {
     self.viewModel = viewModel
-    self.viewController = FeedViewController(viewModel: viewModel)
-    super.init()
+    self.feedCommentContainer = feedCommentContainer
+    super.init(viewControllerable)
     viewModel.coordinator = self
+    print(viewModel.coordinator == nil)
   }
 }
 
-// MARK: - Coordinatable
-extension FeedCoordinator: FeedCoordinatable { }
+// MARK: - FeedCoordinatable
+extension FeedCoordinator: FeedCoordinatable {
+  func attachFeedDetail(for feedID: String) {
+    guard feedCommentCoordinator == nil else { return }
+    let coordinator = feedCommentContainer.coordinator(listener: self, feedID: feedID)
+    self.feedCommentCoordinator = coordinator
+    addChild(coordinator)
+    
+    viewControllerable.present(
+      coordinator.viewControllerable,
+      animated: true,
+      modalPresentationStyle: .overFullScreen
+    )
+  }
+  
+  // MARK: - Detach
+  func detachFeedDetail() {
+    guard let coordinator = feedCommentCoordinator else { return }
+    
+    removeChild(coordinator)
+    coordinator.viewControllerable.dismiss(animated: false)
+    self.feedCommentCoordinator = nil
+  }
+  
+  func didChangeContentOffset(_ offset: Double) {
+    listener?.didChangeContentOffsetAtFeed(offset)
+  }
+}
+
+// MARK: - Listener
+extension FeedCoordinator: FeedCommentListener {
+  func requestDismissAtFeedComment() {
+    detachFeedDetail()
+  }
+}

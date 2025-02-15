@@ -15,7 +15,7 @@ protocol ResignCoordinatable: AnyObject {
   func didTapCancelButton()
 }
 
-protocol ResignViewModelType: AnyObject, ResignViewModelable {
+protocol ResignViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   

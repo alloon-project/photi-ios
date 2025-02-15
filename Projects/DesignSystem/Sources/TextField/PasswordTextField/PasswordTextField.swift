@@ -16,14 +16,14 @@ public final class PasswordTextField: LineTextField {
     iconButton.selectedTintColor = .gray500
     iconButton.unSelectedTintColor = .gray500
     
-    iconButton.unSelectedIcon = UIImage(systemName: "eye.slash.fill")!
-    iconButton.selectedIcon = UIImage(systemName: "eye.fill")!
+    iconButton.unSelectedIcon = .eyeOffGray400
+    iconButton.selectedIcon = .eyeOnGray700
     iconButton.invalidateIntrinsicContentSize()
     
     return iconButton
   }()
   
-  var isSecureTextEntry: Bool {
+  public private(set) var isSecureTextEntry: Bool {
     get {
       return textField.isSecureTextEntry
     }

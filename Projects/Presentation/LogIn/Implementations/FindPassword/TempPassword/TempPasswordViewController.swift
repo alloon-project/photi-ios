@@ -10,9 +10,10 @@ import UIKit
 import RxSwift
 import RxCocoa
 import SnapKit
+import Core
 import DesignSystem
 
-final class TempPasswordViewController: UIViewController {
+final class TempPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: TempPasswordViewModel
   
@@ -29,8 +30,9 @@ final class TempPasswordViewController: UIViewController {
     label.numberOfLines = 2
     return label
   }()
+
   private let tempPasswordWarningView = CommentView(
-    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: UIImage(systemName: "xmark")!, isActivate: false
+    .warning, text: "임시 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: false
   )
   private let userEmailLabel: UILabel = {
     let label = UILabel()
@@ -173,15 +175,19 @@ extension TempPasswordViewController {
       .disposed(by: disposeBag)
   }
 }
-// MARK: - Internal Methods
-extension TempPasswordViewController {
+
+// MARK: - Presenterable
+extension TempPasswordViewController: TempPasswordPresentable {
   func setUserEmail(_ email: String) {
     userEmailLabel.attributedText = "이메일 : \(email)".attributedString(
       font: .caption1,
       color: .gray700
     )
   }
-  
+}
+
+// MARK: - Private Methods
+private extension TempPasswordViewController {
   func displayToastView() {
     resentEmailToastView.present(to: self)
   }
