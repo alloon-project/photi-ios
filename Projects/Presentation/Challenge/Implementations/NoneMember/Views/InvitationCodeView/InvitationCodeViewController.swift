@@ -22,7 +22,7 @@ protocol InvitationCodeViewControllerDelegate: AnyObject {
 final class InvitationCodeViewController: UIViewController {
   private let disposeBag = DisposeBag()
   weak var delegate: InvitationCodeViewControllerDelegate?
-  var keyboardShowNotification:NSObjectProtocol?
+  var keyboardShowNotification: NSObjectProtocol?
   var keyboardHideNotification: NSObjectProtocol?
   
   // MARK: - UI Components

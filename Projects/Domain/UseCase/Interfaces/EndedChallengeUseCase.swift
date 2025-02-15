@@ -8,10 +8,7 @@
 
 import RxSwift
 import Entity
-import Repository
 
-public protocol EndedChallengeUseCase {
-  init(repository: EndedChallengeRepository)
-  
-  func endedChallenges(page: Int, size: Int) -> Single<[EndedChallenge]>
+public protocol EndedChallengeUseCase {  
+  func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
 }

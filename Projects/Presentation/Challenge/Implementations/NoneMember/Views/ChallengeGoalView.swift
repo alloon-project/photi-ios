@@ -15,6 +15,10 @@ final class ChallengeGoalView: UIView, ChallengeInformationPresentable {
     static let rotateFlashIconSize: CGFloat = 40
   }
   
+  var goal: String = "" {
+    didSet { configure(goal: goal) }
+  }
+  
   // MARK: UI Components
   private let titleLabel: UILabel = {
     let label = UILabel()

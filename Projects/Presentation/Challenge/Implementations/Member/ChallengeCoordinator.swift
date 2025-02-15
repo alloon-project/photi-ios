@@ -142,7 +142,7 @@ extension ChallengeCoordinator: EnterChallengeGoalListener {
     detachEditChallengeGoal()
   }
   
-  func didChangeChallengeGoal() {
+  func didEnterChallengeGoal() {
     // TODO: API 연결 이후 수정 예정
     detachEditChallengeGoal { [weak self] in
       self?.presenter.presentDidChangeGoalToastView()

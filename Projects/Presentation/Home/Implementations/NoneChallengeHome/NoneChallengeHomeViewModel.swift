@@ -79,13 +79,13 @@ private extension NoneChallengeHomeViewModel {
       .disposed(by: disposeBag)
   }
   
-  func mapToChallengePresentationModel(_ challenge: Challenge) -> ChallengePresentationModel {
+  func mapToChallengePresentationModel(_ challenge: ChallengeDetail) -> ChallengePresentationModel {
     let proveTime = challenge.proveTime.toString("HH:mm")
     let endDate = challenge.endDate.toString("yyyy.MM.dd")
     
     return .init(
       name: challenge.name,
-      imageURL: challenge.imageURL,
+      imageURL: challenge.imageUrl,
       goal: challenge.goal,
       proveTime: proveTime,
       endDate: endDate,

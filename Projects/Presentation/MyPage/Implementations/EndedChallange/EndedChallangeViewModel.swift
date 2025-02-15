@@ -76,7 +76,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
 // MARK: - Private
 private extension EndedChallengeViewModel {
   func fetchEndedChallenges(page: Int, size: Int) {
-    useCase.endedChallenges(page: page, size: size)
+    useCase.fetchEndedChallenges(page: page, size: size)
       .observe(on: MainScheduler.instance)
       .subscribe(
         with: self,
@@ -93,7 +93,7 @@ private extension EndedChallengeViewModel {
       .disposed(by: disposeBag)
   }
   
-  func mapToEndedPresentationModel(_ challenge: EndedChallenge) -> EndedChallengeCardCellPresentationModel {
+  func mapToEndedPresentationModel(_ challenge: ChallengeSummary) -> EndedChallengeCardCellPresentationModel {
     let endDate = challenge.endDate.toString("yyyy.MM.dd")
     
     return .init(
@@ -101,8 +101,8 @@ private extension EndedChallengeViewModel {
       challengeTitle: challenge.name,
       endedDate: endDate,
       challengeId: challenge.id,
-      currentMemberCnt: challenge.currentMemberCnt,
-      challengeParticipantImageUrls: challenge.memberImages
+      currentMemberCnt: challenge.memberCount ?? 0,
+      challengeParticipantImageUrls: challenge.memberImages ?? []
     )
   }
 }

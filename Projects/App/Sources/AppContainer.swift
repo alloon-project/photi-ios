@@ -96,13 +96,17 @@ final class AppContainer:
   }()
   
   lazy var endedChallengeUseCase: EndedChallengeUseCase = {
-    return EndedChallengeUseCaseImpl(repository: endedChallengeRepository)
+    return EndedChallengeUseCaseImpl(repository: challengeRepository)
   }()
   
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
   
+  lazy var challengeUseCase: ChallengeUseCase = {
+    return ChallengeUseCaseImpl(repository: challengeRepository, authRepository: authRepository)
+  }()
+
   lazy var reportUseCase: ReportUseCase = {
     return ReportUseCaseImpl(repository: reportRepository)
   }()
@@ -112,6 +116,10 @@ final class AppContainer:
   }()
   
   // MARK: - Repository
+  lazy var authRepository: AuthRepository = {
+    return AuthRepositoryImpl()
+  }()
+  
   lazy var logInRepository: LogInRepository = {
     return LogInRepositoryImpl(dataMapper: LogInDataMapperImpl())
   }()
@@ -139,7 +147,7 @@ final class AppContainer:
   lazy var changePasswordRepository: ChangePasswordRepository = {
     return ChangePasswordRepositoryImpl(dataMapper: ChangePasswordDataMapperImpl())
   }()
-  
+
   lazy var endedChallengeRepository: EndedChallengeRepository = {
     return EndedChallengeRepositoryImpl(dataMapper: EndedChallengeDataMapperImpl())
   }()

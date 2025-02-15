@@ -50,7 +50,13 @@ final class ChallengeThumbnailView: UIView, ChallengeInformationPresentable {
     configureCountLabel(count)
     // TODO: - 이미지 다운 샘플링 예정
     if let thumbnailImageURL {
-      thumbnailImageView.kf.setImage(with: thumbnailImageURL)
+      thumbnailImageView.kf.setImage(with: thumbnailImageURL) { [weak self] result in
+        switch result {
+          case .failure:
+            self?.thumbnailImageView.image = .challengeNonMemberDefaultCard
+          default: break
+        }
+      }
     }
     
     Task { [weak self] in

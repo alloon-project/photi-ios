@@ -26,7 +26,7 @@ public struct BaseResponse<ResponseType: Decodable> {
     statusCode: Int,
     response: HTTPURLResponse? = nil
   ) {
-    self.code = "\(dto.code)"/*dto.code*/
+    self.code = "\(dto.code)"
     self.message = dto.message
     self.data = dto.data
     self.statusCode = statusCode
