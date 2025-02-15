@@ -27,4 +27,8 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   public func isLogIn() async -> Bool {
     return await authRepository.isLogIn()
   }
+  
+  public func joinPrivateChallnege(id: Int, code: String) async throws {
+    try await repository.joinPrivateChallnege(id: id, code: code).value
+  }
 }

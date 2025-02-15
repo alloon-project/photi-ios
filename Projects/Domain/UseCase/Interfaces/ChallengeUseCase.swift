@@ -12,4 +12,5 @@ import Entity
 public protocol ChallengeUseCase {
   func isLogIn() async -> Bool
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
+  func joinPrivateChallnege(id: Int, code: String) async throws
 }
