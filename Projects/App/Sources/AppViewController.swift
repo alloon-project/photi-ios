@@ -16,7 +16,6 @@ final class AppViewController: UITabBarController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
-    
   }
   
   override func viewDidLayoutSubviews() {
@@ -39,20 +38,24 @@ extension AppViewController: AppPresentable {
       $0.interactivePopGestureRecognizer?.isEnabled = false
       $0.isNavigationBarHidden = true
     }
-  
+    
     setViewControllers(navigations, animated: false)
     setTapBarItems()
   }
   
   func changeNavigationControllerToHome() {
-      selectedIndex = 0 // 첫 번째 탭으로 전환
+    guard let viewControllers else { return }
+    selectedIndex = 0 // 첫 번째 탭으로 전환
   }
   
   func changeNavigationControllerToChallenge() {
-      selectedIndex = 1 // 두 번째 탭으로 전환
+    guard let viewControllers, viewControllers.count > 1 else { return }
+    
+    selectedIndex = 1 // 두 번째 탭으로 전환
   }
   
   func changeNavigationControllerToMyPage() {
+    guard let viewControllers, viewControllers.count > 2 else { return }
     selectedIndex = 2 // 세 번째 탭으로 전환
   }
 }
