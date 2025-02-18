@@ -83,7 +83,7 @@ import UIKit
 {% endif %}
 
 {% if resourceCount.data > 0 %}
-{{accessModifier}} struct {{dataType}} {
+{{accessModifier}} struct CustomColor {
 	{{accessModifier}} fileprivate(set) var name: String
 	
 #if os(iOS) || os(tvOS) || os(macOS)
@@ -100,7 +100,7 @@ import UIKit
 #if os(iOS) || os(tvOS) || os(macOS)
 @available(iOS 9.0, macOS 10.11, *)
 {{accessModifier}} extension NSDataAsset {
-	convenience init?(asset: {{dataType}}) {
+	convenience init?(asset: CustomColor) {
 		let bundle = {{bundleToken}}.bundle
 		self.init(name: asset.name, bundle: bundle)
 	}
