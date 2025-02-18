@@ -16,6 +16,7 @@ final class AppViewController: UITabBarController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+    
   }
   
   override func viewDidLayoutSubviews() {
@@ -41,6 +42,18 @@ extension AppViewController: AppPresentable {
   
     setViewControllers(navigations, animated: false)
     setTapBarItems()
+  }
+  
+  func changeNavigationControllerToHome() {
+      selectedIndex = 0 // 첫 번째 탭으로 전환
+  }
+  
+  func changeNavigationControllerToChallenge() {
+      selectedIndex = 1 // 두 번째 탭으로 전환
+  }
+  
+  func changeNavigationControllerToMyPage() {
+    selectedIndex = 2 // 세 번째 탭으로 전환
   }
 }
 

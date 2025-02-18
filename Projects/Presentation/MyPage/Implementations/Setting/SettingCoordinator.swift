@@ -10,6 +10,7 @@ import Core
 import Report
 
 protocol SettingListener: AnyObject {
+  func isUserResigned()
   func didTapBackButtonAtSetting()
 }
 
@@ -96,6 +97,10 @@ extension SettingCoordinator: SettingCoordinatable {
 }
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {
+  func isUserResigned() {
+    listener?.isUserResigned()
+  }
+  
   func didTapBackButtonAtProfileEdit() {
     detachProfileEdit()
   }
