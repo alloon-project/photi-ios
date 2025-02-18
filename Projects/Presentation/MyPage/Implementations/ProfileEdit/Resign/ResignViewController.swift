@@ -29,7 +29,7 @@ final class ResignViewController: UIViewController, ViewControllerable {
     return label
   }()
   private let resignButton = LineRoundButton(
-    text: "탈퇴하기",
+    text: "탈퇴 계속하기",
     type: .primary,
     size: .xLarge
   )
@@ -106,7 +106,7 @@ private extension ResignViewController {
   func bind() {
     let input = ResignViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapResginButton: resignButton.rx.tap,
+      didTapResignButton: resignButton.rx.tap,
       didTapCancelButton: cancelButton.rx.tap
     )
     

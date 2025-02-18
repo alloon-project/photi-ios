@@ -9,7 +9,9 @@
 import Core
 
 public protocol MyPageContainable: Containable {
-  func coordinator(listener: MyPageListener) -> ViewableCoordinating
+  func coordinator(navigationControllerable: NavigationControllerable, listener: MyPageListener) -> ViewableCoordinating
 }
 
-public protocol MyPageListener: AnyObject { }
+public protocol MyPageListener: AnyObject {
+  func isUserResigned()
+}

@@ -10,6 +10,7 @@ import Core
 
 protocol ProfileEditListener: AnyObject {
   func didTapBackButtonAtProfileEdit()
+  func isUserResigned()
 }
 
 protocol ProfileEditPresentable {
@@ -98,6 +99,10 @@ extension ProfileEditCoordinator: ChangePasswordListener {
 
 // MARK: - ResignLisenter
 extension ProfileEditCoordinator: ResignListener {
+  func didFisishedResign() {
+    listener?.isUserResigned()
+  }
+  
   func didTapBackButtonAtResign() {
     detachResign()
   }

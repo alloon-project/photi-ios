@@ -13,6 +13,9 @@ import MyPage
 
 protocol AppPresentable {
   func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
+  func changeNavigationControllerToHome()
+  func changeNavigationControllerToChallenge()
+  func changeNavigationControllerToMyPage()
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -28,7 +31,7 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
     viewControllerable: ViewControllerable,
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
-    myPageContainable: MyPageContainable,
+    myPageContainable: MyPageContainable
   ) {
     self.homeContainable = homeContainable
     self.searchChallengeContainable = searchChallengeContainable
@@ -46,7 +49,10 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
       listener: self
     )
     let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
-    let myPageCoordinator = myPageContainable.coordinator(listener: self)
+    let myPageCoordinator = myPageContainable.coordinator(
+      navigationControllerable: myPageNavigationControllerable,
+      listener: self
+    )
     
     searchChallengeNavigationControllerable.setViewControllers([searchChallengeCoordinator.viewControllerable])
     myPageNavigationControllerable.setViewControllers([myPageCoordinator.viewControllerable])
@@ -70,4 +76,8 @@ extension AppCoordinator: HomeListener { }
 extension AppCoordinator: SearchChallengeListener { }
 
 // MARK: - MyPageListener
-extension AppCoordinator: MyPageListener { }
+extension AppCoordinator: MyPageListener {
+  func isUserResigned() {
+    presenter.changeNavigationControllerToHome()
+  }
+}
