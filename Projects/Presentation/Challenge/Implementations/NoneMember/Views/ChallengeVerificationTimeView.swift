@@ -12,6 +12,10 @@ import Core
 import DesignSystem
 
 final class ChallengeVerificationTimeView: UIView, ChallengeInformationPresentable {
+  var verificationTime: String = "" {
+    didSet { configure(time: verificationTime) }
+  }
+  
   // MARK: UI Components
   private let titleLabel: UILabel = {
     let label = UILabel()

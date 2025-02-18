@@ -19,20 +19,48 @@ final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChalle
   private let enterChallengeGoalContainer: EnterChallengeGoalContainable
   private var enterChallengeGoalCoordinator: ViewableCoordinating?
   
+  private let logInGuideContainer: LogInGuideContainable
+  private var logInGuideCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: NoneMemberChallengeViewModel,
-    enterChallengeGoalContainer: EnterChallengeGoalContainable
+    enterChallengeGoalContainer: EnterChallengeGoalContainable,
+    logInGuideContainer: LogInGuideContainable
   ) {
     self.enterChallengeGoalContainer = enterChallengeGoalContainer
+    self.logInGuideContainer = logInGuideContainer
     self.viewModel = viewModel
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
 }
 
-// MARK: - EnterChallengeGoal
+// MARK: - Detach
 private extension NoneMemberChallengeCoordinator {
+  func detachEnterChallengeGoal() {
+    guard let coordinator = enterChallengeGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.enterChallengeGoalCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+  
+  func detachLogInGuide() {
+    guard let coordinator = logInGuideCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.logInGuideCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: - NoneMemberChallengeCoordinatable
+extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtNoneMemberChallenge()
+  }
+  
   func attachEnterChallengeGoal(challengeName: String, challengeID: Int) {
     guard enterChallengeGoalCoordinator == nil else { return }
     
@@ -48,34 +76,35 @@ private extension NoneMemberChallengeCoordinator {
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
   }
   
-  func detachEnterChallengeGoal() {
-    guard let coordinator = enterChallengeGoalCoordinator else { return }
+  func attachLogInGuide() {
+    guard logInGuideCoordinator == nil else { return }
     
-    removeChild(coordinator)
-    self.enterChallengeGoalCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+    let coordinator = logInGuideContainer.coordinator(listener: self)
+    addChild(coordinator)
+    self.logInGuideCoordinator = coordinator
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
   }
 }
 
-// MARK: -
+// MARK: - EnterChallengeGoalListener
 extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   func didTapBackButtonAtEnterChallengeGoal() {
     detachEnterChallengeGoal()
   }
   
-  func didChangeChallengeGoal() {
+  func didEnterChallengeGoal() {
     detachEnterChallengeGoal()
     listener?.didJoinChallenge()
   }
 }
 
-// MARK: - NoneMemberChallengeCoordinatable
-extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable {
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtNoneMemberChallenge()
+// MARK: - LogInGuideListener
+extension NoneMemberChallengeCoordinator: LogInGuideListener {
+  func didTapBackButtonAtLogInGuide() {
+    detachLogInGuide()
   }
   
-  func didJoinChallenge(challengeName: String, challengeID: Int) {
-    attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeID)
+  func didTapLogInButtonAtLogInGuide() {
+    listener?.requestLogIn(for: viewModel.challengeId)
   }
 }

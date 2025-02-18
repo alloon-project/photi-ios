@@ -27,7 +27,8 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private var invitationCodeViewController: InvitationCodeViewController?
   private var isUnlocked: Bool = false
   
-  private let codeRelay = BehaviorRelay<String>(value: "")
+  private let viewDidLoadRelay = PublishRelay<Void>()
+  private let codeRelay = PublishRelay<String>()
   private let didFinishVerifyRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
@@ -64,10 +65,12 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    hashTagCollectionView.dataSource = self
     setupUI()
     bind()
+    viewDidLoadRelay.accept(())
   }
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
@@ -174,9 +177,10 @@ private extension NoneMemberChallengeViewController {
 private extension NoneMemberChallengeViewController {
   func bind() {
     let input = NoneMemberChallengeViewModel.Input(
+      viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapJoinButton: joinButton.rx.tap,
-      invitationCode: codeRelay.asDriver(),
+      requestVerifyInvitationCode: codeRelay.asSignal(),
       didFinishVerify: didFinishVerifyRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
@@ -194,15 +198,50 @@ private extension NoneMemberChallengeViewController {
   }
   
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {
-    output.isLockChallenge
-      .drive(with: self) { owner, isLock in
-        guard isLock else { return }
+    output.challengeTitle
+      .drive(with: self) { owner, title in
+        owner.configureTitleLabel(title)
+      }
+      .disposed(by: disposeBag)
+    
+    output.hashTags
+      .drive(with: self) { owner, hashTags in
+        owner.hashTags = hashTags
+      }
+      .disposed(by: disposeBag)
+    
+    output.verificationTime
+      .drive(verificationTimeView.rx.verificationTime)
+      .disposed(by: disposeBag)
+    
+    output.goal
+      .drive(goalView.rx.goal)
+      .disposed(by: disposeBag)
+    
+    Driver.zip(output.memberCount, output.challengeImageURL, output.memberThumbnailURLs)
+      .drive(with: self) { owner, result in
+        owner.thumbnailView.configure(count: result.0, thumbnailImageURL: result.1, avartarImageURLs: result.2)
+      }
+      .disposed(by: disposeBag)
+      
+    output.rules
+      .drive(ruleView.rx.rules)
+      .disposed(by: disposeBag)
+    
+    output.deadLine
+      .drive(deadLineView.rx.deadLine)
+      .disposed(by: disposeBag)
+    
+    output.isPrivateChallenge
+      .drive(with: self) { owner, isPrivate in
+        guard isPrivate else { return }
         owner.joinButton.icon = .lockClosedWhite
       }
       .disposed(by: disposeBag)
     
     output.displayUnlockView
       .emit(with: self) { owner, _ in
+        owner.isUnlocked = false
         owner.displayInvitationCodeViewController()
       }
       .disposed(by: disposeBag)
@@ -212,6 +251,18 @@ private extension NoneMemberChallengeViewController {
         guard let viewController = owner.invitationCodeViewController else { return }
         result ? viewController.convertToUnlock() : viewController.displayToastView()
         owner.isUnlocked = result
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
+    
+    output.alreadyJoined
+      .emit(with: self) { owner, _ in
+        owner.displayAlreadyJoinPopUp()
       }
       .disposed(by: disposeBag)
   }
@@ -270,5 +321,10 @@ private extension NoneMemberChallengeViewController {
     self.invitationCodeViewController = viewController
     viewController.delegate = self
     present(viewController, animated: false)
+  }
+  
+  func displayAlreadyJoinPopUp() {
+    let popUp = AlertViewController(alertType: .confirm, title: "오류", subTitle: "이미 참여한 챌린지입니다.")
+    popUp.present(to: self, animted: false)
   }
 }
