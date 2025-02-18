@@ -12,13 +12,13 @@ import UseCase
 import Repository
 
 public struct EndedChallengeUseCaseImpl: EndedChallengeUseCase {
-  private let repository: EndedChallengeRepository
+  private let repository: ChallengeRepository
   
-  public init(repository: EndedChallengeRepository) {
+  public init(repository: ChallengeRepository) {
     self.repository = repository
   }
   
-  public func endedChallenges(page: Int, size: Int) -> Single<[EndedChallenge]> {
-    return repository.endedChallenges(page: page, size: size)
+  public func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
+    return repository.fetchEndedChallenges(page: page, size: size)
   }
 }

@@ -1,28 +1,26 @@
 //
-//  ChallengeResponseDTO.swift
+//  PopularChallengeResponseDTO.swift
 //  DTO
 //
-//  Created by jung on 10/15/24.
-//  Copyright © 2024 com.photi. All rights reserved.
+//  Created by jung on 1/29/25.
+//  Copyright © 2025 com.photi. All rights reserved.
 //
 
 import Foundation
 
-public struct ChallengeResponseDTO: Decodable {
+public struct PopularChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
   public let imageUrl: URL?
   public let goal: String
+  public let currentMemberCnt: Int
   public let proveTime: String
   public let endDate: String
   public let hashtags: [HashTagResponseDTO]
+  public let memberImages: [MemberImageResponseDTO]
 }
 
-public struct HashTagResponseDTO: Decodable {
-  public let hashtag: String
-}
-
-public extension ChallengeResponseDTO {
+public extension PopularChallengeResponseDTO {
   static let stubData = """
   {
     "code": "200 OK",
@@ -42,7 +40,18 @@ public extension ChallengeResponseDTO {
           {
             "hashtag": "건강"
           }
-        ]
+        ],
+        "memberImages": [
+          {
+             "memberImage": "https://url.kr/5MhHhD"
+          },
+          {
+             "memberImage": "https://url.kr/5MhHhD"
+          },
+          {
+             "memberImage": "https://url.kr/5MhHhD"
+          }
+         ]
       }
     ]
   }
