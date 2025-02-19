@@ -73,7 +73,11 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 }
 
 // MARK: - ChallengeCoordinatable
-extension ChallengeCoordinator: ChallengeCoordinatable { }
+extension ChallengeCoordinator: ChallengeCoordinatable {
+  func didTapConfirmButtonAtAlert() {
+    listener?.didTapBackButtonAtChallenge()
+  }
+}
 
 // MARK: - EditChallengeGoal
 extension ChallengeCoordinator {

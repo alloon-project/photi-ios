@@ -11,7 +11,9 @@ import RxSwift
 import Entity
 import UseCase
 
-protocol ChallengeCoordinatable: AnyObject { }
+protocol ChallengeCoordinatable: AnyObject {
+  func didTapConfirmButtonAtAlert()
+}
 
 protocol ChallengeViewModelType: AnyObject {
   associatedtype Input
@@ -30,15 +32,20 @@ final class ChallengeViewModel: ChallengeViewModelType {
   weak var coordinator: ChallengeCoordinatable?
   
   private let challengeModelRelay = BehaviorRelay<ChallengeTitlePresentationModel>(value: .default)
+  private let challengeNotFoundRelay = PublishRelay<Void>()
+  private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let viewDidLoad: Signal<Void>
+    let didTapConfirmButtonAtAlert: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let challengeInfo: Driver<ChallengeTitlePresentationModel>
+    let challengeNotFound: Signal<Void>
+    let requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -54,7 +61,17 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output(challengeInfo: challengeModelRelay.asDriver())
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapConfirmButtonAtAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      challengeInfo: challengeModelRelay.asDriver(),
+      challengeNotFound: challengeNotFoundRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
+    )
   }
 }
 

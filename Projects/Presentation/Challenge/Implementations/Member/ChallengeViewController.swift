@@ -26,6 +26,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   private var segmentIndex: Int = 0
   
   private let viewDidLoadRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -113,7 +114,8 @@ private extension ChallengeViewController {
 private extension ChallengeViewController {
   func bind() {
     let input = ChallengeViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal()
+      viewDidLoad: viewDidLoadRelay.asSignal(),
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -133,6 +135,18 @@ private extension ChallengeViewController {
     output.challengeInfo
       .drive(with: self) { owner, model in
         owner.titleView.configure(with: model)
+      }
+      .disposed(by: disposeBag)
+    
+    output.challengeNotFound
+      .emit(with: self) { owner, _ in
+        owner.presentChallengeNotFound()
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkWarning()
       }
       .disposed(by: disposeBag)
   }
@@ -203,5 +217,25 @@ private extension ChallengeViewController {
     viewController.view.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
+  }
+  
+  func presentChallengeNotFound() {
+    let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentNetworkWarning() {
+    let alert = self.presentWarningPopup()
+    
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
   }
 }
