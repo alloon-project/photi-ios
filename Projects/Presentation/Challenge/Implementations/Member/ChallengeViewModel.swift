@@ -29,11 +29,17 @@ final class ChallengeViewModel: ChallengeViewModelType {
   
   weak var coordinator: ChallengeCoordinatable?
   
+  private let challengeModelRelay = BehaviorRelay<ChallengeTitlePresentationModel>(value: .default)
+  
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let viewDidLoad: Signal<Void>
+  }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let challengeInfo: Driver<ChallengeTitlePresentationModel>
+  }
   
   // MARK: - Initializers
   init(useCase: ChallengeUseCase, challengeId: Int) {
@@ -42,6 +48,33 @@ final class ChallengeViewModel: ChallengeViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    return Output()
+    input.viewDidLoad
+      .emit(with: self) { owner, _ in
+        owner.fetchChallenge()
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(challengeInfo: challengeModelRelay.asDriver())
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeViewModel {
+  func fetchChallenge() {
+    useCase.fetchChallengeDetail(id: challengeId)
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self) { owner, challenge in
+        let model = owner.mapToPresentatoinModel(challenge)
+        owner.challengeModelRelay.accept(model)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func mapToPresentatoinModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
+    return .init(
+      title: challenge.name,
+      hashTags: challenge.hashTags,
+      imageURL: challenge.imageUrl
+    )
   }
 }

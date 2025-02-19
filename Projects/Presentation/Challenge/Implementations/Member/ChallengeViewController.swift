@@ -25,6 +25,8 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var segmentIndex: Int = 0
   
+  private let viewDidLoadRelay = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
   private let navigationBar = PhotiNavigationBar(
@@ -57,6 +59,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     setupUI()
     bind()
+    viewDidLoadRelay.accept(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -109,9 +112,27 @@ private extension ChallengeViewController {
 // MARK: - Bind
 private extension ChallengeViewController {
   func bind() {
+    let input = ChallengeViewModel.Input(
+      viewDidLoad: viewDidLoadRelay.asSignal()
+    )
+    
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+    viewBind()
+  }
+  
+  func viewBind() {
     segmentControl.rx.selectedSegment
       .bind(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: ChallengeViewModel.Output) {
+    output.challengeInfo
+      .drive(with: self) { owner, model in
+        owner.titleView.configure(with: model)
       }
       .disposed(by: disposeBag)
   }
