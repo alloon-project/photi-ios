@@ -77,6 +77,10 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   func didTapConfirmButtonAtAlert() {
     listener?.didTapBackButtonAtChallenge()
   }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtChallenge()
+  }
 }
 
 // MARK: - EditChallengeGoal

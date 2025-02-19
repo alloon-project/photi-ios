@@ -115,6 +115,7 @@ private extension ChallengeViewController {
   func bind() {
     let input = ChallengeViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
     )
     

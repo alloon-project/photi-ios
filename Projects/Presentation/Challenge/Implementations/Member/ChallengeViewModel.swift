@@ -12,6 +12,7 @@ import Entity
 import UseCase
 
 protocol ChallengeCoordinatable: AnyObject {
+  func didTapBackButton()
   func didTapConfirmButtonAtAlert()
 }
 
@@ -38,6 +39,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   // MARK: - Input
   struct Input {
     let viewDidLoad: Signal<Void>
+    let didTapBackButton: Signal<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
   }
   
@@ -58,6 +60,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
         owner.fetchChallenge()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapBackButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
