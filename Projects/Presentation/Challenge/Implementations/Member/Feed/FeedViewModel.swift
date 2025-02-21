@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import UseCase
 
 enum FeedAlignMode: String, CaseIterable {
   case recent = "최신순"
@@ -30,6 +31,8 @@ protocol FeedViewModelType: AnyObject {
 final class FeedViewModel: FeedViewModelType {
   weak var coordinator: FeedCoordinatable?
   private let disposeBag = DisposeBag()
+  private let challengeId: Int
+  private let useCase: ChallengeUseCase
   
   private let isUploadSuccessRelay = PublishRelay<Bool>()
   
@@ -47,7 +50,10 @@ final class FeedViewModel: FeedViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeId: Int, useCase: ChallengeUseCase) {
+    self.challengeId = challengeId
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapOrderButton

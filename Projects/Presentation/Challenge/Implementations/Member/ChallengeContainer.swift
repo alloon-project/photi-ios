@@ -41,4 +41,6 @@ public final class ChallengeContainer:
     coordinator.listener = listener
     return coordinator
   }
+  
+  var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
 }

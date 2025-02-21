@@ -54,7 +54,8 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   }
   
   func attachSegments() {
-    let feedCoordinator = feedContainer.coordinator(listener: self)
+    let challengeId = viewModel.challengeId
+    let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
     let descriptionCoordinator = descriptionContainer.coordinator(listener: self)
     let participantCoordinator = participantContainer.coordinator(listener: self)
     
