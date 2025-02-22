@@ -14,6 +14,7 @@ protocol SettingDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
+  var resignUseCase: ResignUseCase { get }
 }
 
 protocol SettingContainable: Containable {
@@ -24,6 +25,8 @@ final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
   ProfileEditDependency {
+  var resignUsecase: ResignUseCase { dependency.resignUseCase }
+  
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }

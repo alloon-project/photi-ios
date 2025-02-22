@@ -13,7 +13,7 @@ protocol MyPagePresentable { }
 
 final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   weak var listener: MyPageListener?
-
+  
   private let viewModel: MyPageViewModel
   
   private let settingContainable: SettingContainable
@@ -50,6 +50,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     let coordinator = settingContainable.coordinator(listener: self)
     addChild(coordinator)
     
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.settingCoordinator = coordinator
   }
@@ -57,8 +58,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
   func detachSetting() {
     guard let coordinator = settingCoordinator else { return }
     
-    removeChild(coordinator)
-    viewControllerable.popViewController(animated: true)
+    viewControllerable.popToRoot(animated: true)
     self.settingCoordinator = nil
   }
   
@@ -67,6 +67,8 @@ extension MyPageCoordinator: MyPageCoordinatable {
     
     let coordinator = proofChallengeContainable.coordinator(listener: self)
     addChild(coordinator)
+    
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
 
     self.proofChallengeCoordinator = coordinator
@@ -76,6 +78,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     guard let coordinator = proofChallengeCoordinator else { return }
     
     removeChild(coordinator)
+    
     viewControllerable.popViewController(animated: true)
     self.proofChallengeCoordinator = nil
   }
@@ -85,6 +88,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     
     let coordinator = endedChallengeContainable.coordinator(listener: self)
     addChild(coordinator)
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.endedChallengeCoordinator = coordinator
   }
@@ -100,6 +104,11 @@ extension MyPageCoordinator: MyPageCoordinatable {
 
 // MARK: - SettingListener
 extension MyPageCoordinator: SettingListener {
+  func isUserResigned() {
+    detachSetting()
+    listener?.isUserResigned()
+  }
+  
   func didTapBackButtonAtSetting() {
     detachSetting()
   }

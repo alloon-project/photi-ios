@@ -123,7 +123,7 @@ private extension ReportViewController {
     reasonLabel.attributedText = viewModel.reportType.title.attributedString(font: .heading4, color: .gray900)
     detailLabel.attributedText = viewModel.reportType.textViewTitle.attributedString(font: .heading4, color: .gray900)
     detailContentTextView.placeholder = viewModel.reportType.textViewPlaceholder
-    reportButton.setText(viewModel.reportType.buttonTitle, for: .normal)
+    reportButton.setText(viewModel.reportType.buttonTitle)
   }
   
   func setupDetailContentUI() {
