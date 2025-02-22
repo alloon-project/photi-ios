@@ -24,7 +24,6 @@ public final class ReportContainer: Container<ReportDependency>, ReportContainab
     )
     let viewControllerable = ReportViewController(viewModel: viewModel)
 
-    
     let coordinator = ReportCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel

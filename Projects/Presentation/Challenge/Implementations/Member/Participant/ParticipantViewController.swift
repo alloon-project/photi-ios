@@ -59,7 +59,6 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
-  }
 }
 
 // MARK: - UI Methods

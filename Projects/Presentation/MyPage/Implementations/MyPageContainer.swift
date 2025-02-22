@@ -17,6 +17,7 @@ public protocol MyPageDependency: Dependency {
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
   var endedChallengeUseCase: EndedChallengeUseCase { get }
+  var resignUsecase: ResignUseCase { get }
 }
 
 public final class MyPageContainer:
@@ -30,8 +31,11 @@ public final class MyPageContainer:
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase}
-  
-  public func coordinator(listener: MyPageListener) -> ViewableCoordinating {
+  var resignUseCase: ResignUseCase { dependency.resignUsecase }
+
+  public func coordinator(
+    listener: MyPageListener
+  ) -> ViewableCoordinating {
     let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
     let viewControllerable = MyPageViewController(viewModel: viewModel)
     

@@ -31,7 +31,7 @@ final class ResignViewModel: ResignViewModelType {
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
-    let didTapResginButton: ControlEvent<Void>
+    let didTapResignButton: ControlEvent<Void>
     let didTapCancelButton: ControlEvent<Void>
   }
   
@@ -47,7 +47,7 @@ final class ResignViewModel: ResignViewModelType {
         onwer.coodinator?.didTapBackButton()
       }.disposed(by: disposeBag)
     
-    input.didTapResginButton
+    input.didTapResignButton
       .bind(with: self) { onwer, _ in
         onwer.coodinator?.attachPasswordAuth()
       }.disposed(by: disposeBag)

@@ -12,4 +12,6 @@ public protocol MyPageContainable: Containable {
   func coordinator(listener: MyPageListener) -> ViewableCoordinating
 }
 
-public protocol MyPageListener: AnyObject { }
+public protocol MyPageListener: AnyObject {
+  func isUserResigned()
+}

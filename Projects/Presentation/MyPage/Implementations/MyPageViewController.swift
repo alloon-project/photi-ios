@@ -127,8 +127,7 @@ final class MyPageViewController: UIViewController, ViewControllerable {
     calendarView.delegate = self
     
     setupUI()
-    bind(
-    )
+    bind()
   }
 }
 
@@ -237,6 +236,13 @@ private extension MyPageViewController {
 // MARK: - Bind Methods
 private extension MyPageViewController {
   func bind() {
+    self.rx.isVisible
+      .bind(with: self) { owner, isVisible in
+        if isVisible {
+          owner.navigationController?.showTabBar(animted: true)
+        }
+      }.disposed(by: disposeBag)
+    
     let input = MyPageViewModel.Input(
       didTapSettingButton: settingButton.rx.tap,
       didTapAuthCountBox: authCountBox.rx.didTapBox,
