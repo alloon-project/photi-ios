@@ -119,8 +119,6 @@ private extension ResignAuthViewController {
     let input = ResignAuthViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       password: passwordTextField.rx.text,
-      endEditingUserPassword: passwordTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserPassword: passwordTextField.textField.rx.controlEvent(.editingChanged),
       didTapNextButton: resignButton.rx.tap
     )
     
@@ -132,8 +130,14 @@ private extension ResignAuthViewController {
       }
       .disposed(by: disposeBag)
     
-    output.isPasswordEntered
-      .emit(with: self) { owner, isEntered in
+    output.wrongPassword
+      .emit(with: self) { owner, _ in
+        owner.displayInvalidPasswordPopUp()
+      }.disposed(by: disposeBag)
+    
+    passwordTextField.rx.text
+      .map { !$0.isEmpty }
+      .bind(with: self) { owner, isEntered in
         owner.resignButton.isEnabled = isEntered
       }.disposed(by: disposeBag)
   }
@@ -141,3 +145,11 @@ private extension ResignAuthViewController {
 
 // MARK: - ResignAuthPresentable
 extension ResignAuthViewController: ResignAuthPresentable { }
+
+// MARK: - Private Methods
+private extension ResignAuthViewController {
+  func displayInvalidPasswordPopUp() {
+    let alertVC = AlertViewController(alertType: .confirm, title: "비밀번호가 일치하지 않아요.", subTitle: "다시 입력해 주세요.")
+    alertVC.present(to: self, animted: false)
+  }
+}

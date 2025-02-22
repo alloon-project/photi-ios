@@ -34,7 +34,6 @@ public final class MyPageContainer:
   var resignUseCase: ResignUseCase { dependency.resignUsecase }
 
   public func coordinator(
-    navigationControllerable: NavigationControllerable,
     listener: MyPageListener
   ) -> ViewableCoordinating {
     let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
@@ -45,7 +44,6 @@ public final class MyPageContainer:
     let proofChallengeContainable = ProofChallengeContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
-      navigationControllerable: navigationControllerable,
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       settingContainable: settingContainable,

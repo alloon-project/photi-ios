@@ -49,10 +49,7 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
       listener: self
     )
     let searchChallengeCoordinator = searchChallengeContainable.coordinator(listener: self)
-    let myPageCoordinator = myPageContainable.coordinator(
-      navigationControllerable: myPageNavigationControllerable,
-      listener: self
-    )
+    let myPageCoordinator = myPageContainable.coordinator(listener: self)
     
     searchChallengeNavigationControllerable.setViewControllers([searchChallengeCoordinator.viewControllerable])
     myPageNavigationControllerable.setViewControllers([myPageCoordinator.viewControllerable])

@@ -13,7 +13,6 @@ protocol MyPagePresentable { }
 
 final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   weak var listener: MyPageListener?
-  private let navigationControllerable: NavigationControllerable
   
   private let viewModel: MyPageViewModel
   
@@ -27,14 +26,12 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   private var proofChallengeCoordinator: ViewableCoordinating?
   
   init(
-    navigationControllerable: NavigationControllerable,
     viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,
     proofChallengeContainable: ProofChallengeContainable
   ) {
-    self.navigationControllerable = navigationControllerable
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
@@ -53,7 +50,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     let coordinator = settingContainable.coordinator(listener: self)
     addChild(coordinator)
     
-    navigationControllerable.navigationController.hideTabBar(animated: true)
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.settingCoordinator = coordinator
   }
@@ -61,7 +58,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
   func detachSetting() {
     guard let coordinator = settingCoordinator else { return }
     
-    navigationControllerable.navigationController.showTabBar(animted: true)
     viewControllerable.popToRoot(animated: true)
     self.settingCoordinator = nil
   }
@@ -72,7 +68,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     let coordinator = proofChallengeContainable.coordinator(listener: self)
     addChild(coordinator)
     
-    navigationControllerable.navigationController.hideTabBar(animated: true)
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
 
     self.proofChallengeCoordinator = coordinator
@@ -83,7 +79,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
     
     removeChild(coordinator)
     
-    navigationControllerable.navigationController.showTabBar(animted: true)
     viewControllerable.popViewController(animated: true)
     self.proofChallengeCoordinator = nil
   }
@@ -93,7 +88,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
     
     let coordinator = endedChallengeContainable.coordinator(listener: self)
     addChild(coordinator)
-    navigationControllerable.navigationController.hideTabBar(animated: true)
+    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.endedChallengeCoordinator = coordinator
   }
@@ -102,7 +97,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
     guard let coordinator = endedChallengeCoordinator else { return }
     
     removeChild(coordinator)
-    navigationControllerable.navigationController.showTabBar(animted: true)
     viewControllerable.popViewController(animated: true)
     self.endedChallengeCoordinator = nil
   }

@@ -9,7 +9,7 @@
 import Core
 
 public protocol MyPageContainable: Containable {
-  func coordinator(navigationControllerable: NavigationControllerable, listener: MyPageListener) -> ViewableCoordinating
+  func coordinator(listener: MyPageListener) -> ViewableCoordinating
 }
 
 public protocol MyPageListener: AnyObject {

@@ -37,14 +37,11 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let password: ControlProperty<String>
-    let endEditingUserPassword: ControlEvent<Void>
-    let editingUserPassword: ControlEvent<Void>
     let didTapNextButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var isPasswordEntered: Signal<Bool>
     var wrongPassword: Signal<Void>
     var requestFailed: Signal<Void>
   }
@@ -67,14 +64,8 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
         owner.requestCheckPassword(password: password)
       }.disposed(by: disposeBag)
     
-    let isPasswordEntered = input.editingUserPassword
-      .withLatestFrom(input.password)
-      .map { !$0.isEmpty }
-      .asSignal(onErrorJustReturn: false)
-    
     // Output 반환
     return Output(
-      isPasswordEntered: isPasswordEntered,
       wrongPassword: wrongPasswordRelay.asSignal(),
       requestFailed: requestFailedRelay.asSignal()
     )
@@ -92,7 +83,6 @@ private extension ResignAuthViewModel {
           owner.coordinator?.isRequestSucceed()
         },
         onFailure: { owner, error in
-          print(error)
           owner.requestFailed(error: error)
         }
       )
