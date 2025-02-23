@@ -151,10 +151,6 @@ final class AppContainer:
   lazy var changePasswordRepository: ChangePasswordRepository = {
     return ChangePasswordRepositoryImpl(dataMapper: ChangePasswordDataMapperImpl())
   }()
-
-  lazy var endedChallengeRepository: EndedChallengeRepository = {
-    return EndedChallengeRepositoryImpl(dataMapper: EndedChallengeDataMapperImpl())
-  }()
   
   lazy var challengeRepository: ChallengeRepository = {
     return ChallengeRepositoryImpl(dataMapper: ChallengeDataMapperImpl())

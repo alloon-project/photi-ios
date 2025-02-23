@@ -195,7 +195,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: viewModel.reportType.contents[indexPath.section])
+    cell.configure(with: viewModel.reportType.contents[indexPath.row])
     return cell
   }
   
