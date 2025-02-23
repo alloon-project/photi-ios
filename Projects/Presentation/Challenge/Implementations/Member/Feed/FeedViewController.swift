@@ -183,10 +183,24 @@ private extension FeedViewController {
   }
   
   func bind(for output: FeedViewModel.Output) {
+    output.proveMemberCount
+      .map { "오늘 \($0)명 인증!" }
+      .drive(tagView.rx.title)
+      .disposed(by: disposeBag)
+    
+    output.provePercent
+      .map { PhotiProgressPercent($0) }
+      .drive(rx.currentPercent)
+      .disposed(by: disposeBag)
+    
+    output.proofRelay
+      .distinctUntilChanged { $0 == $1 }
+      .drive(rx.isProof)
+      .disposed(by: disposeBag)
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
         LoadingAnimation.default.stop()
-        owner.isProof = true
+        owner.isProof = .didProof
         owner.cameraShutterButton.isHidden = true
       }
       .disposed(by: disposeBag)
