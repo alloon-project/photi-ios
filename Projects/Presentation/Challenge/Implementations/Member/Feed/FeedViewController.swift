@@ -14,6 +14,9 @@ import Core
 import DesignSystem
 
 final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
+  typealias DataSourceType = UICollectionViewDiffableDataSource<String, FeedPresentationModel>
+  typealias SnapShot = NSDiffableDataSourceSnapshot<String, FeedPresentationModel>
+
   // MARK: - Properties
   private let viewModel: FeedViewModel
   private let disposeBag = DisposeBag()
@@ -95,12 +98,18 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     super.viewDidLoad()
     setupUI()
     bind()
-    feedCollectionView.dataSource = self
+    let dataSource = diffableDataSource()
+    self.dataSource = dataSource
+    feedCollectionView.dataSource = dataSource
+    dataSource.supplementaryViewProvider = supplementaryHeaderView()
     feedCollectionView.delegate = self
+    
+    viewDidLoadRelay.accept(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
+    guard viewWillAppear else { return }
     self.viewWillAppear = true
     configureTodayHeaderView(for: isProof)
     cameraShutterButton.isHidden = (isProof == .didProof)
@@ -109,6 +118,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    guard viewDidAppear else { return }
     self.viewDidAppear = true
     progressBar.percent = currentPercent
     updateTagViewContraints(percent: currentPercent)
@@ -197,6 +207,21 @@ private extension FeedViewController {
       .distinctUntilChanged { $0 == $1 }
       .drive(rx.isProof)
       .disposed(by: disposeBag)
+    
+    output.feeds
+      .drive(with: self) { owner, feeds in
+        switch feeds {
+          case let .initialPage(models):
+            owner.initialize(models: models)
+          case let .default(models):
+            owner.append(models: models)
+          case let .lastPage(models):
+            owner.append(models: models)
+            owner.isLastPage = true
+        }
+      }
+      .disposed(by: disposeBag)
+    
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
         LoadingAnimation.default.stop()
@@ -224,42 +249,63 @@ private extension FeedViewController {
 // MARK: - FeedPresentable
 extension FeedViewController: FeedPresentable { }
 
-// MARK: - UICollectionViewDataSource
-extension FeedViewController: UICollectionViewDataSource {
-  func numberOfSections(in collectionView: UICollectionView) -> Int {
-    return feeds.count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return feeds[section].count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
-    cell.configure(with: feeds[indexPath.section][indexPath.row])
-    
-    return cell
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    viewForSupplementaryElementOfKind kind: String,
-    at indexPath: IndexPath
-  ) -> UICollectionReusableView {
-    guard  kind == UICollectionView.elementKindSectionHeader else {
-      return UICollectionReusableView()
+// MARK: - UICollectionViewDiffableDataSource
+extension FeedViewController {
+  func diffableDataSource() -> DataSourceType {
+    return .init(collectionView: feedCollectionView) { collectionView, indexPath, model in
+      let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
+      cell.configure(with: model)
+      return cell
     }
+  }
+  
+  func supplementaryHeaderView() -> DataSourceType.SupplementaryViewProvider? {
+    return .init { [weak self] collectionView, kind, indexPath in
+      guard kind == UICollectionView.elementKindSectionHeader else { return nil }
       
-    let header = collectionView.dequeueHeader(FeedCollectionHeaderView.self, for: indexPath)
+      let headerView = collectionView.dequeueHeader(FeedsHeaderView.self, for: indexPath)
+      guard let sectionData = self?.dataSource?.sectionIdentifier(for: indexPath.section) else {
+        return headerView
+      }
+      headerView.configure(date: sectionData)
+      
+      return headerView
+    }
+  }
+  
+  func configureTodayHeaderView(for type: ProveType) {
+    let indexPath = IndexPath(row: 0, section: 0)
+    guard let headerView = feedCollectionView.headerView(FeedsHeaderView.self, at: indexPath) else { return }
     
-    /// 테스트용 코드입니다.
-    if indexPath.section == 0 {
-      header.configure(date: "오늘", type: .didNotProof(deadLine: "18:00까지"))
-    } else {
-      header.configure(date: "1일 전", type: .none)
+    switch type {
+      case let .didNotProof(proveTime):
+        headerView.configure(type: .didNotProof(proveTime))
+      case .didProof:
+        headerView.configure(type: .didProof)
+    }
+  }
+  
+  func initialize(models: [FeedPresentationModel]) {
+    let snapshot = append(models: models, to: SnapShot())
+    dataSource?.apply(snapshot)
+  }
+  
+  func append(models: [FeedPresentationModel]) {
+    guard let dataSource else { return }
+    let snapshot = append(models: models, to: dataSource.snapshot())
+    dataSource.apply(snapshot)
+  }
+  
+  func append(models: [FeedPresentationModel], to snapshot: SnapShot) -> SnapShot {
+    var snapshot = snapshot
+    models.forEach {
+      if !snapshot.sectionIdentifiers.contains($0.updateTime) {
+        snapshot.appendSections([$0.updateTime])
+      }
+      snapshot.appendItems([$0], toSection: $0.updateTime)
     }
     
-    return header
+    return snapshot
   }
 }
 
