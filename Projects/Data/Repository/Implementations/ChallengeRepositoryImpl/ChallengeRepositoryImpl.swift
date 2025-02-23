@@ -53,6 +53,36 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     )
     .map { _ in () }
   }
+  
+  public func fetchFeeds(
+    id: Int,
+    page: Int,
+    size: Int,
+    orderType: ChallengeFeedsOrderType
+  ) async throws -> FeedReturnType {
+    let api = ChallengeAPI.feeds(
+      id: id,
+      page: page,
+      size: size,
+      sortOrder: orderType.rawValue
+    )
+    
+    let value = try await requestAuthorizableAPI(
+      api: api,
+      responseType: FeedsResponseDTO.self,
+      behavior: .immediate
+    ).value
+    
+    let feeds = value.content.map { data in
+      data.feeds.map { dataMapper.mapToFeed(dto: $0) }
+    }
+    
+    return .init(
+      feeds: feeds,
+      isLast: value.last,
+      memberCount: value.content.first?.feedMemberCnt ?? 0
+    )
+  }
 }
 
 // MARK: - Private Methods
