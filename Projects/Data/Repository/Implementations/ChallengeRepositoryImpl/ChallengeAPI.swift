@@ -17,6 +17,7 @@ public enum ChallengeAPI {
   case endedChallenges(page: Int, size: Int)
   case joinChallenge(id: Int)
   case joinPrivateChallenge(id: Int, code: String)
+  case feeds(id: Int, page: Int, size: Int, sortOrder: String)
 }
 
 extension ChallengeAPI: TargetType {
@@ -32,6 +33,7 @@ extension ChallengeAPI: TargetType {
       case .endedChallenges: return "users/ended-challenges"
       case let .joinChallenge(id): return "challenges/\(id)/join/public"
       case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
+      case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
     }
   }
   
@@ -42,22 +44,27 @@ extension ChallengeAPI: TargetType {
       case .endedChallenges: return .get
       case .joinChallenge: return .post
       case .joinPrivateChallenge: return .post
+      case .feeds: return .get
     }
   }
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges:
-        return .requestPlain
-      case .challengeDetail:
+      case .popularChallenges, .challengeDetail:
         return .requestPlain
       case let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding(destination: .queryString))
-      case let .joinChallenge(id):
+      case .joinChallenge:
         return .requestPlain
       case let .joinPrivateChallenge(_, code):
         let parameters = ["invitationCode": code]
+        return .requestParameters(
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
+      case let .feeds(_, page, size, ordered):
+        let parameters = ["page": "\(page)", "size": "\(size)", "sort": ordered]
         return .requestParameters(
           parameters: parameters,
           encoding: JSONEncoding.default
@@ -95,6 +102,12 @@ extension ChallengeAPI: TargetType {
             }
           }
         """
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .feeds:
+        let data = FeedsResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
