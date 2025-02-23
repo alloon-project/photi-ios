@@ -57,12 +57,16 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     layout.scrollDirection = .vertical
     layout.minimumLineSpacing = 10
     layout.minimumInteritemSpacing = 7
+    layout.headerReferenceSize = .init(width: 0, height: 44)
+    layout.sectionInset = .init(top: 8, left: 0, bottom: 18, right: 0)
     layout.itemSize = .init(width: 160, height: 160)
     layout.sectionHeadersPinToVisibleBounds = true
     
     let collectionView = SelfVerticalSizingCollectionView(layout: layout)
     collectionView.registerCell(FeedCell.self)
-    collectionView.registerHeader(FeedCollectionHeaderView.self)
+    collectionView.registerHeader(FeedsHeaderView.self)
+    collectionView.contentInsetAdjustmentBehavior = .never
+    collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
 
@@ -148,15 +152,14 @@ private extension FeedViewController {
     
     feedCollectionView.snp.makeConstraints {
       $0.top.equalTo(orderButton.snp.bottom).offset(30)
-      $0.centerX.equalToSuperview()
+      $0.centerX.bottom.equalToSuperview()
       $0.width.equalTo(327)
-      $0.bottom.equalToSuperview()
     }
-    
+
     cameraShutterButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.width.height.equalTo(64)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(22)
+      $0.bottom.equalToSuperview().inset(22)
     }
   }
 }
@@ -256,25 +259,6 @@ extension FeedViewController: UICollectionViewDelegate {
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     let offSet = scrollView.contentOffset.y
     contentOffset.accept(offSet)
-  }
-}
-
-// MARK: - UICollectionViewDelegateFlowLayout
-extension FeedViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    referenceSizeForHeaderInSection section: Int
-  ) -> CGSize {
-    return CGSize(width: collectionView.bounds.width, height: 44)
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    insetForSectionAt section: Int
-  ) -> UIEdgeInsets {
-    return .init(top: 8, left: 0, bottom: 18, right: 0)
   }
 }
 
