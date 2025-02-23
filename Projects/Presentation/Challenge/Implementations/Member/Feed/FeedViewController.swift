@@ -15,22 +15,35 @@ import DesignSystem
 
 final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
   // MARK: - Properties
+  private let viewModel: FeedViewModel
+  private let disposeBag = DisposeBag()
+
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {
+      guard viewDidAppear else { return }
       progressBar.percent = currentPercent
       updateTagViewContraints(percent: currentPercent)
     }
   }
+  private var isProof: ProveType = .didNotProof("") {
+    didSet {
+      guard viewWillAppear else { return }
+      configureTodayHeaderView(for: isProof)
+      cameraShutterButton.isHidden = (isProof != .didProof)
+    }
+  }
   private var feedAlign: FeedAlignMode = .recent
-  private var isProof: Bool = false
-  private let viewModel: FeedViewModel
-  private let disposeBag = DisposeBag()
-  private var didProof: Bool = false
+  private var dataSource: DataSourceType?
   private var feeds = [[FeedPresentationModel]]() {
     didSet {
       feedCollectionView.reloadData()
     }
   }
+  private var viewWillAppear: Bool = false
+  private var viewDidAppear: Bool = false
+  private var isLastPage: Bool = false
+
+  private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapFeedCell = PublishRelay<String>()
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<Data>()
@@ -84,18 +97,17 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    
-    cameraShutterButton.isHidden = isProof
-    guard !isProof else { return }
-    presentPoofTipView()
+    self.viewWillAppear = true
+    configureTodayHeaderView(for: isProof)
+    cameraShutterButton.isHidden = (isProof == .didProof)
+    if isProof != .didProof { presentPoofTipView() }
   }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-      self.currentPercent = .percent40
-    }
+    self.viewDidAppear = true
+    progressBar.percent = currentPercent
+    updateTagViewContraints(percent: currentPercent)
   }
 }
 
@@ -153,6 +165,7 @@ private extension FeedViewController {
 private extension FeedViewController {
   func bind() {
     let input = FeedViewModel.Input(
+      viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapOrderButton: orderButton.rx.tap
         .asSignal()
         .map { .popular },
