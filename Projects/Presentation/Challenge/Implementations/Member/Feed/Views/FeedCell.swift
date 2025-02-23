@@ -14,6 +14,13 @@ import DesignSystem
 
 final class FeedCell: UICollectionViewCell {
   // MARK: - UI Components
+  private let dimmedLayer: CALayer = {
+    let layer = CALayer()
+    layer.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.4).cgColor
+    
+    return layer
+  }()
+  
   private let imageView = UIImageView()
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
@@ -30,14 +37,18 @@ final class FeedCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - LayoutSubviews
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    dimmedLayer.frame = .init(origin: .zero, size: bounds.size)
+  }
+  
   // MARK: - Configure
   func configure(with model: FeedPresentationModel) {
     userNameLabel.attributedText = model.userName.attributedString(font: .body2Bold, color: .white)
     updateTimeLabel.attributedText = model.updateTime.attributedString(font: .caption1, color: .white)
-    
-    if let url = URL(string: model.imageURL) {
-      imageView.kf.setImage(with: url)
-    }
+    imageView.kf.setImage(with: model.imageURL)
+    likeButton.isSelected = model.isLike
   }
 }
 
@@ -62,7 +73,9 @@ private extension FeedCell {
   }
   
   func setViewHierarchy() {
-    contentView.addSubviews(imageView, userNameLabel, updateTimeLabel, likeButton)
+    contentView.addSubview(imageView)
+    contentView.layer.addSublayer(dimmedLayer)
+    contentView.addSubviews(userNameLabel, updateTimeLabel, likeButton)
   }
   
   func setConstraints() {
