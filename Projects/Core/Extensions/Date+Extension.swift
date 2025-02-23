@@ -23,8 +23,20 @@ public extension Date {
   
   var day: Int {
     let component = Calendar.current.dateComponents([.day], from: self)
-    
+
     return component.day ?? 0
+  }
+  
+  var hour: Int {
+    let component = Calendar.current.dateComponents([.hour], from: self)
+    
+    return component.hour ?? 0
+  }
+  
+  var minute: Int {
+    let component = Calendar.current.dateComponents([.minute], from: self)
+    
+    return component.minute ?? 0
   }
   
   func toString(_ format: String) -> String {
