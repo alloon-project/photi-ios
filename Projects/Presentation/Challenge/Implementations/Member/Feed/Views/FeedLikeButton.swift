@@ -27,6 +27,11 @@ final class FeedLikeButton: UIButton {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
+  
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    super.touchesEnded(touches, with: event)
+    isSelected.toggle()
+  }
 }
 
 // MARK: - UI Methods
@@ -36,7 +41,8 @@ private extension FeedLikeButton {
     backgroundColor = .gray200
     var configuration = UIButton.Configuration.plain()
     configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 13, trailing: 13)
-    
+    configuration.baseBackgroundColor = .clear
+
     self.configuration = configuration
     self.configurationUpdateHandler = configurationUpdate
   }
