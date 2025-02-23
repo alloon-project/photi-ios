@@ -9,12 +9,8 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Entity
 import UseCase
-
-enum FeedAlignMode: String, CaseIterable {
-  case recent = "최신순"
-  case popular = "인기순"
-}
 
 protocol FeedCoordinatable: AnyObject {
   func attachFeedDetail(for feedID: String)
@@ -34,10 +30,20 @@ final class FeedViewModel: FeedViewModelType {
   private let challengeId: Int
   private let useCase: ChallengeUseCase
   
+  private var currentPage = 0
+  private var totalMemberCount = 0
+  private var isProof: Bool = false
+  
   private let isUploadSuccessRelay = PublishRelay<Bool>()
+  private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProof(""))
+  private let proveTimeRelay = BehaviorRelay<String>(value: "")
+  private let proveMemberCountRelay = BehaviorRelay<Int>(value: 0)
+  private let provePercentRelay = BehaviorRelay<Double>(value: 0)
+  private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
   
   // MARK: - Input
   struct Input {
+    let viewDidLoad: Signal<Void>
     let didTapOrderButton: Signal<FeedAlignMode>
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
@@ -47,6 +53,10 @@ final class FeedViewModel: FeedViewModelType {
   // MARK: - Output
   struct Output {
     let isUploadSuccess: Signal<Bool>
+    let proveMemberCount: Driver<Int>
+    let provePercent: Driver<Double>
+    let proofRelay: Driver<ProveType>
+    let feeds: Driver<FeedsType>
   }
   
   // MARK: - Initializers
@@ -54,15 +64,25 @@ final class FeedViewModel: FeedViewModelType {
     self.challengeId = challengeId
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
-    input.didTapOrderButton
-      .emit(with: self) { owner, align in
-        // TODO: 서버 연동 후, 구현 예정
-        print("didTapOrderButton")
+    input.viewDidLoad
+      .emit(with: self) { owner, _ in
+        owner.fetchChallengeInfo()
+        Task { await owner.fetchFeeds(page: 0, orderType: .recent) }
+        owner.bindMemberCount()
+        owner.fetchIsProof()
       }
       .disposed(by: disposeBag)
     
+    proveTimeRelay
+      .skip(1)
+      .subscribe(with: self) { owner, time in
+        guard !owner.isProof else { return }
+        owner.proofRelay.accept(.didNotProof(time))
+      }
+      .disposed(by: disposeBag)
+            
     input.didTapFeed
       .emit(with: self) {owner, _ in
         owner.coordinator?.attachFeedDetail(for: "0")
@@ -89,6 +109,115 @@ final class FeedViewModel: FeedViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output(isUploadSuccess: isUploadSuccessRelay.asSignal())
+    return Output(
+      isUploadSuccess: isUploadSuccessRelay.asSignal(),
+      proveMemberCount: proveMemberCountRelay.asDriver(),
+      provePercent: provePercentRelay.asDriver(),
+      proofRelay: proofRelay.asDriver(),
+      feeds: feedsRelay.asDriver()
+    )
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedViewModel {
+  func fetchChallengeInfo() {
+    useCase.fetchChallengeDetail(id: challengeId)
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self) { owner, challenge in
+        owner.totalMemberCount = challenge.memberCount
+        let proveTime = challenge.proveTime.toString("HH:mm")
+        owner.proveTimeRelay.accept(proveTime)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func fetchIsProof() {
+    Task {
+      isProof = await useCase.isProof()
+      if isProof { proofRelay.accept(.didProof) }
+    }
+  }
+  
+  func bindMemberCount() {
+    useCase.challengeProveMemberCount
+      .subscribe(with: self) { owner, count in
+        owner.proveMemberCountRelay.accept(count)
+        
+        guard owner.totalMemberCount != 0 else {
+          return owner.provePercentRelay.accept(0)
+        }
+        
+        let percent = Double(count / owner.totalMemberCount)
+        owner.provePercentRelay.accept(percent)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func fetchFeeds(page: Int, orderType: ChallengeFeedsOrderType) async {
+    do {
+      let result = try await useCase.fetchFeeds(
+        id: challengeId,
+        page: page,
+        size: 30,
+        orderType: orderType
+      )
+      
+      switch result {
+        case let .defaults(feeds):
+          let models = feeds.flatMap { mapToPresentationModels($0) }
+          let feedsType: FeedsType = page == 0 ? .initialPage(models) : .default(models)
+          feedsRelay.accept(feedsType)
+
+        case let .lastPage(feeds):
+          let models = feeds.flatMap { mapToPresentationModels($0) }
+          feedsRelay.accept(.lastPage(models))
+      }
+    } catch {
+      // TODO: 에러 연결
+      print(error)
+    }
+  }
+  
+  func mapToPresentationModels(_ feeds: [Feed]) -> [FeedPresentationModel] {
+    return feeds.map { feed in
+      return .init(
+        id: feed.id,
+        imageURL: feed.imageURL,
+        userName: feed.author,
+        updateTime: mapToUpdateTimeString(feed.updateTime),
+        isLike: feed.isLike
+      )
+    }
+  }
+  
+  func mapToUpdateTimeString(_ date: Date) -> String {
+    let current = Date()
+
+    guard current.year == date.year else {
+      return "\(abs(current.year - date.year))년 전"
+    }
+    
+    guard current.month == date.month else {
+      return "\(abs(current.month - date.month))년 전"
+    }
+    
+    guard current.day == date.day else {
+      return "\(abs(current.day - date.day))일 전"
+    }
+    
+    guard current.hour == date.hour else {
+      return "\(abs(current.hour - date.hour))시간 전"
+    }
+    
+    guard current.minute != date.minute else {
+      return "방금"
+    }
+    
+    let temp = abs(current.minute - date.minute)
+    switch temp {
+      case 0...10: return "\(temp)분 전"
+      default: return "\(temp / 10)분 전"
+    }
   }
 }
