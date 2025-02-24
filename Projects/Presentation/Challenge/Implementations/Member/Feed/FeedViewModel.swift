@@ -35,7 +35,12 @@ final class FeedViewModel: FeedViewModelType {
   private var totalMemberCount = 0
   private var isProof: Bool = false
   private var isLastFeedPage: Bool = false
-  private var isFetching: Bool = false
+  private var isFetching: Bool = false {
+    didSet {
+      guard currentPage != 0 else { return }
+      isFetching ? startFetchingRelay.accept(()) : stopFetchingRelay.accept(())
+    }
+  }
   
   private let isUploadSuccessRelay = PublishRelay<Bool>()
   private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProof(""))
@@ -43,6 +48,8 @@ final class FeedViewModel: FeedViewModelType {
   private let proveMemberCountRelay = BehaviorRelay<Int>(value: 0)
   private let provePercentRelay = BehaviorRelay<Double>(value: 0)
   private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
+  private let startFetchingRelay = PublishRelay<Void>()
+  private let stopFetchingRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -61,43 +68,14 @@ final class FeedViewModel: FeedViewModelType {
     let provePercent: Driver<Double>
     let proofRelay: Driver<ProveType>
     let feeds: Driver<FeedsType>
+    let startFetching: Signal<Void>
+    let stopFetching: Signal<Void>
   }
   
   // MARK: - Initializers
   init(challengeId: Int, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.useCase = useCase
-  }
-
-  func transform(input: Input) -> Output {
-    input.viewDidLoad
-      .emit(with: self) { owner, _ in
-        Task { await owner.fetchFeeds() }
-        owner.fetchChallengeInfo()
-        owner.bindMemberCount()
-        owner.fetchIsProof()
-      }
-      .disposed(by: disposeBag)
-    
-    input.requestFeeds
-      .emit(with: self) { owner, _ in
-        guard !owner.isLastFeedPage else { return }
-        
-        Task { await owner.fetchFeeds() }
-      }
-      .disposed(by: disposeBag)
-    
-    input.feedsAlign
-      .drive(with: self) { owner, align in
-        guard align != owner.alignMode else { return }
-        owner.alignMode = align
-
-        owner.currentPage = 0
-        owner.isLastFeedPage = false
-        Task { await owner.fetchFeeds() }
-      }
-      .disposed(by: disposeBag)
-    
     proveTimeRelay
       .skip(1)
       .subscribe(with: self) { owner, time in
@@ -105,7 +83,11 @@ final class FeedViewModel: FeedViewModelType {
         owner.proofRelay.accept(.didNotProof(time))
       }
       .disposed(by: disposeBag)
-            
+  }
+
+  func transform(input: Input) -> Output {
+    fetchBind(input: input)
+   
     input.didTapFeed
       .emit(with: self) {owner, _ in
         owner.coordinator?.attachFeedDetail(for: "0")
@@ -136,8 +118,39 @@ final class FeedViewModel: FeedViewModelType {
       proveMemberCount: proveMemberCountRelay.asDriver(),
       provePercent: provePercentRelay.asDriver(),
       proofRelay: proofRelay.asDriver(),
-      feeds: feedsRelay.asDriver()
+      feeds: feedsRelay.asDriver(),
+      startFetching: startFetchingRelay.asSignal(),
+      stopFetching: stopFetchingRelay.asSignal()
     )
+  }
+  
+  func fetchBind(input: Input) {
+    input.viewDidLoad
+      .emit(with: self) { owner, _ in
+        Task { await owner.fetchFeeds() }
+        owner.fetchChallengeInfo()
+        owner.bindMemberCount()
+        owner.fetchIsProof()
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestFeeds
+      .emit(with: self) { owner, _ in
+        guard !owner.isLastFeedPage else { return }
+        
+        Task { await owner.fetchFeeds() }
+      }
+      .disposed(by: disposeBag)
+    
+    input.feedsAlign
+      .drive(with: self) { owner, align in
+        guard align != owner.alignMode else { return }
+        owner.alignMode = align
+        owner.currentPage = 0
+        owner.isLastFeedPage = false
+        Task { await owner.fetchFeeds() }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -180,8 +193,8 @@ private extension FeedViewModel {
     guard !isFetching else { return }
     isFetching = true
     defer {
-      currentPage += 1
       isFetching = false
+      currentPage += 1
     }
     
     do {

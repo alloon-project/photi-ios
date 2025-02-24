@@ -59,6 +59,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     layout.minimumLineSpacing = 10
     layout.minimumInteritemSpacing = 7
     layout.headerReferenceSize = .init(width: 0, height: 44)
+    layout.footerReferenceSize = .init(width: 0, height: 6)
     layout.sectionInset = .init(top: 8, left: 0, bottom: 18, right: 0)
     layout.itemSize = .init(width: 160, height: 160)
     layout.sectionHeadersPinToVisibleBounds = true
@@ -66,11 +67,12 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     let collectionView = SelfVerticalSizingCollectionView(layout: layout)
     collectionView.registerCell(FeedCell.self)
     collectionView.registerHeader(FeedsHeaderView.self)
+    collectionView.registerFooter(FeedsLoadingFooterView.self)
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-
+    
     return collectionView
   }()
   private let cameraShutterButton: UIButton = {
@@ -99,7 +101,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     let dataSource = diffableDataSource()
     self.dataSource = dataSource
     feedCollectionView.dataSource = dataSource
-    dataSource.supplementaryViewProvider = supplementaryHeaderView()
+    dataSource.supplementaryViewProvider = supplementaryViewProvider()
     feedCollectionView.delegate = self
     
     viewDidLoadRelay.accept(())
@@ -223,6 +225,18 @@ private extension FeedViewController {
         owner.cameraShutterButton.isHidden = true
       }
       .disposed(by: disposeBag)
+    
+    output.startFetching
+      .emit(with: self) { owner, _ in
+        owner.updateFeedsFooterLoadingState(isFetching: true)
+      }
+      .disposed(by: disposeBag)
+    
+    output.stopFetching
+      .emit(with: self) { owner, _ in
+        owner.updateFeedsFooterLoadingState(isFetching: false)
+      }
+      .disposed(by: disposeBag)
   }
 
   func viewBind() {
@@ -253,18 +267,33 @@ extension FeedViewController {
     }
   }
   
-  func supplementaryHeaderView() -> DataSourceType.SupplementaryViewProvider? {
+  func supplementaryViewProvider() -> DataSourceType.SupplementaryViewProvider? {
     return .init { [weak self] collectionView, kind, indexPath in
-      guard kind == UICollectionView.elementKindSectionHeader else { return nil }
-      
-      let headerView = collectionView.dequeueHeader(FeedsHeaderView.self, for: indexPath)
-      guard let sectionData = self?.dataSource?.sectionIdentifier(for: indexPath.section) else {
-        return headerView
+      if kind == UICollectionView.elementKindSectionHeader {
+        return self?.supplementaryHeaderView(collectionView, at: indexPath)
+      } else if kind == UICollectionView.elementKindSectionFooter {
+        return self?.supplementaryFooterView(collectionView, at: indexPath)
+      } else {
+        return nil
       }
-      headerView.configure(date: sectionData)
-      
+    }
+  }
+  
+  func supplementaryHeaderView(_ collectionView: UICollectionView, at indexPath: IndexPath) -> FeedsHeaderView? {
+    let headerView = collectionView.dequeueHeader(FeedsHeaderView.self, for: indexPath)
+    guard let sectionData = dataSource?.sectionIdentifier(for: indexPath.section) else {
       return headerView
     }
+    headerView.configure(date: sectionData)
+    
+    return headerView
+  }
+  
+  func supplementaryFooterView(_ collectionView: UICollectionView, at indexPath: IndexPath) -> FeedsLoadingFooterView? {
+    let footerView = collectionView.dequeueFooter(FeedsLoadingFooterView.self, for: indexPath)
+    footerView.isHidden = true
+    
+    return footerView
   }
   
   func configureTodayHeaderView(for type: ProveType) {
@@ -410,5 +439,24 @@ private extension FeedViewController {
     )
     bottomSheet.delegate = self
     bottomSheet.present(to: self, animated: true)
+  }
+  
+  func updateFeedsFooterLoadingState(isFetching: Bool) {
+    guard let dataSource else { return }
+    
+    let lastSection = dataSource.numberOfSections(in: feedCollectionView) - 1
+    let lastIndexPath = IndexPath(row: 0, section: lastSection)
+    let loadingView = feedCollectionView.footerView(FeedsLoadingFooterView.self, at: lastIndexPath)
+    print(lastSection)
+    loadingView?.isHidden = !isFetching
+    isFetching ? loadingView?.startLoading() : loadingView?.stopLoading()
+    
+    if !isFetching, lastSection > 0 {
+      (0..<lastSection).map { IndexPath(row: 0, section: $0) }.forEach {
+        let loadingView = feedCollectionView.footerView(FeedsLoadingFooterView.self, at: $0)
+        loadingView?.isHidden = true
+        loadingView?.stopLoading()
+      }
+    }
   }
 }
