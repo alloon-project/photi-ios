@@ -152,6 +152,80 @@ public extension FeedsResponseDTO {
     "page": 0,
     "size": 0,
     "first": true,
+    "last": false
+  }
+}
+"""
+  
+  static let stubData2 = """
+{
+  "code": "200 OK",
+  "message": "성공",
+  "data": {
+    "content": [
+      {
+        "createdDate": "2023-02-23",
+        "feedMemberCnt": 5,
+        "feeds": [
+          {
+            "id": 10,
+            "username": "photi",
+            "imageUrl": "https://url.kr/5MhHhD",
+            "createdDateTime": "2023-02-23T11:16:40.778Z",
+            "proveTime": "13:00",
+            "isLike": true
+          },
+          {
+            "id": 11,
+            "username": "photi",
+            "imageUrl": "https://url.kr/5MhHhD",
+            "createdDateTime": "2023-02-23T11:16:40.778Z",
+            "proveTime": "13:00",
+            "isLike": true
+          }
+        ]
+      }       
+    ],
+    "page": 0,
+    "size": 0,
+    "first": false,
+    "last": false
+  }
+}
+"""
+  
+  static let stubData3 = """
+{
+  "code": "200 OK",
+  "message": "성공",
+  "data": {
+    "content": [
+      {
+        "createdDate": "2022-02-23",
+        "feedMemberCnt": 5,
+        "feeds": [
+          {
+            "id": 10,
+            "username": "photi",
+            "imageUrl": "https://url.kr/5MhHhD",
+            "createdDateTime": "2022-02-23T11:16:40.778Z",
+            "proveTime": "13:00",
+            "isLike": true
+          },
+          {
+            "id": 11,
+            "username": "photi",
+            "imageUrl": "https://url.kr/5MhHhD",
+            "createdDateTime": "2022-02-23T11:16:40.778Z",
+            "proveTime": "13:00",
+            "isLike": true
+          }
+        ]
+      }       
+    ],
+    "page": 0,
+    "size": 0,
+    "first": false,
     "last": true
   }
 }

@@ -106,8 +106,9 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      case .feeds:
-        let data = FeedsResponseDTO.stubData
+      case let .feeds(_, page, _, _):
+        let feedsData = [FeedsResponseDTO.stubData, FeedsResponseDTO.stubData2, FeedsResponseDTO.stubData3]
+        let data = feedsData[page]
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
