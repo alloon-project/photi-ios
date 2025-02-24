@@ -35,13 +35,10 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
       cameraShutterButton.isHidden = (isProof != .didProof)
     }
   }
-  private var feedAlign: FeedAlignMode = .recent
-  private var dataSource: DataSourceType?
-  private var feeds = [[FeedPresentationModel]]() {
-    didSet {
-      feedCollectionView.reloadData()
-    }
+  private var feedsAlign: FeedsAlignMode = .recent {
+    didSet { orderButton.text = feedsAlign.rawValue }
   }
+  private var dataSource: DataSourceType?
   private var viewWillAppear: Bool = false
   private var viewDidAppear: Bool = false
 
@@ -50,6 +47,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<Data>()
   private let requestFeeds = PublishRelay<Void>()
+  private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -179,13 +177,11 @@ private extension FeedViewController {
   func bind() {
     let input = FeedViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapOrderButton: orderButton.rx.tap
-        .asSignal()
-        .map { .popular },
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
       uploadImage: uploadImageRelay.asSignal(),
-      requestFeeds: requestFeeds.asSignal()
+      requestFeeds: requestFeeds.asSignal(),
+      feedsAlign: feedsAlignRelay.asDriver()
     )
     
     let output = viewModel.transform(input: input)
@@ -305,6 +301,14 @@ extension FeedViewController {
     
     return snapshot
   }
+  
+  func deleteAllFeeds() {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    snapshot.deleteAllItems()
+    dataSource.apply(snapshot)
+  }
 }
 
 // MARK: - UICollectionViewDelegate
@@ -353,8 +357,9 @@ extension FeedViewController: UploadPhotoPopOverDelegate {
 // MARK: - AlignBottomSheetDelegate
 extension FeedViewController: AlignBottomSheetDelegate {
   func didSelected(at index: Int, data: String) {
-    self.feedAlign = .init(rawValue: data) ?? feedAlign
-    orderButton.text = feedAlign.rawValue
+    self.feedsAlign = .init(rawValue: data) ?? feedsAlign
+    feedsAlignRelay.accept(feedsAlign)
+    deleteAllFeeds()
   }
 }
 
@@ -395,8 +400,8 @@ private extension FeedViewController {
   }
   
   func presentBottomSheet() {
-    let dataSource = FeedAlignMode.allCases.map { $0.rawValue }
-    let selectedRow = dataSource.firstIndex(of: feedAlign.rawValue)
+    let dataSource = FeedsAlignMode.allCases.map { $0.rawValue }
+    let selectedRow = dataSource.firstIndex(of: feedsAlign.rawValue)
     
     let bottomSheet = AlignBottomSheetViewController(
       type: .default,

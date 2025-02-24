@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Entity
 
 struct FeedPresentationModel: Hashable {
   let id: Int
@@ -16,9 +17,16 @@ struct FeedPresentationModel: Hashable {
   let isLike: Bool
 }
 
-enum FeedAlignMode: String, CaseIterable {
+enum FeedsAlignMode: String, CaseIterable {
   case recent = "최신순"
   case popular = "인기순"
+  
+  var toOrderType: ChallengeFeedsOrderType {
+    switch self {
+      case .recent: return .recent
+      case .popular: return .popular
+    }
+  }
 }
 
 enum ProveType: Equatable {

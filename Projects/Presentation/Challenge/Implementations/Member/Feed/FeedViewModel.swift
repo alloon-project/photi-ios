@@ -30,6 +30,7 @@ final class FeedViewModel: FeedViewModelType {
   private let challengeId: Int
   private let useCase: ChallengeUseCase
   
+  private var alignMode: FeedsAlignMode = .recent
   private var currentPage = 0
   private var totalMemberCount = 0
   private var isProof: Bool = false
@@ -46,11 +47,11 @@ final class FeedViewModel: FeedViewModelType {
   // MARK: - Input
   struct Input {
     let viewDidLoad: Signal<Void>
-    let didTapOrderButton: Signal<FeedAlignMode>
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
     let uploadImage: Signal<Data>
     let requestFeeds: Signal<Void>
+    let feedsAlign: Driver<FeedsAlignMode>
   }
   
   // MARK: - Output
@@ -71,7 +72,7 @@ final class FeedViewModel: FeedViewModelType {
   func transform(input: Input) -> Output {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
-        Task { await owner.fetchFeeds(orderType: .recent) }
+        Task { await owner.fetchFeeds() }
         owner.fetchChallengeInfo()
         owner.bindMemberCount()
         owner.fetchIsProof()
@@ -82,7 +83,18 @@ final class FeedViewModel: FeedViewModelType {
       .emit(with: self) { owner, _ in
         guard !owner.isLastFeedPage else { return }
         
-        Task { await owner.fetchFeeds(orderType: .recent) }
+        Task { await owner.fetchFeeds() }
+      }
+      .disposed(by: disposeBag)
+    
+    input.feedsAlign
+      .drive(with: self) { owner, align in
+        guard align != owner.alignMode else { return }
+        owner.alignMode = align
+
+        owner.currentPage = 0
+        owner.isLastFeedPage = false
+        Task { await owner.fetchFeeds() }
       }
       .disposed(by: disposeBag)
     
@@ -109,7 +121,6 @@ final class FeedViewModel: FeedViewModelType {
     input.uploadImage
       .emit(with: self) { owner, imageData in
         // TODO: - 서버로 전송
-        /// 로딩화면을 테스트해보기 위한 테스트 코드입니다.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
           if imageData.count % 2 == 0 {
             owner.isUploadSuccessRelay.accept(true)
@@ -165,7 +176,7 @@ private extension FeedViewModel {
       .disposed(by: disposeBag)
   }
   
-  func fetchFeeds(orderType: ChallengeFeedsOrderType) async {
+  func fetchFeeds() async {
     guard !isFetching else { return }
     isFetching = true
     defer {
@@ -178,7 +189,7 @@ private extension FeedViewModel {
         id: challengeId,
         page: currentPage,
         size: 15,
-        orderType: orderType
+        orderType: alignMode.toOrderType
       )
       
       switch result {
