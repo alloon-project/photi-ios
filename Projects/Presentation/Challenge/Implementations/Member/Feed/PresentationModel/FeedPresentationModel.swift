@@ -38,5 +38,4 @@ enum ProveType: Equatable {
 enum FeedsType {
   case initialPage([FeedPresentationModel])
   case `default`([FeedPresentationModel])
-  case lastPage([FeedPresentationModel])
 }

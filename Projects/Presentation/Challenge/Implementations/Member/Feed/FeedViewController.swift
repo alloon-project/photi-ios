@@ -44,12 +44,12 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   }
   private var viewWillAppear: Bool = false
   private var viewDidAppear: Bool = false
-  private var isLastPage: Bool = false
 
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapFeedCell = PublishRelay<String>()
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<Data>()
+  private let requestFeeds = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -109,7 +109,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    guard viewWillAppear else { return }
+    guard !viewWillAppear else { return }
     self.viewWillAppear = true
     configureTodayHeaderView(for: isProof)
     cameraShutterButton.isHidden = (isProof == .didProof)
@@ -118,7 +118,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    guard viewDidAppear else { return }
+    guard !viewDidAppear else { return }
     self.viewDidAppear = true
     progressBar.percent = currentPercent
     updateTagViewContraints(percent: currentPercent)
@@ -184,7 +184,8 @@ private extension FeedViewController {
         .map { .popular },
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
-      uploadImage: uploadImageRelay.asSignal()
+      uploadImage: uploadImageRelay.asSignal(),
+      requestFeeds: requestFeeds.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -215,9 +216,6 @@ private extension FeedViewController {
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
-          case let .lastPage(models):
-            owner.append(models: models)
-            owner.isLastPage = true
         }
       }
       .disposed(by: disposeBag)
@@ -317,8 +315,12 @@ extension FeedViewController: UICollectionViewDelegate {
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    let offSet = scrollView.contentOffset.y
-    contentOffset.accept(offSet)
+    let yOffset = scrollView.contentOffset.y
+    contentOffset.accept(yOffset)
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+   
+    requestFeeds.accept(())
   }
 }
 

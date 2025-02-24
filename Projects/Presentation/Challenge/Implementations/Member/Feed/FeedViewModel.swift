@@ -33,6 +33,8 @@ final class FeedViewModel: FeedViewModelType {
   private var currentPage = 0
   private var totalMemberCount = 0
   private var isProof: Bool = false
+  private var isLastFeedPage: Bool = false
+  private var isFetching: Bool = false
   
   private let isUploadSuccessRelay = PublishRelay<Bool>()
   private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProof(""))
@@ -48,6 +50,7 @@ final class FeedViewModel: FeedViewModelType {
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
     let uploadImage: Signal<Data>
+    let requestFeeds: Signal<Void>
   }
   
   // MARK: - Output
@@ -68,10 +71,18 @@ final class FeedViewModel: FeedViewModelType {
   func transform(input: Input) -> Output {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
+        Task { await owner.fetchFeeds(orderType: .recent) }
         owner.fetchChallengeInfo()
-        Task { await owner.fetchFeeds(page: 0, orderType: .recent) }
         owner.bindMemberCount()
         owner.fetchIsProof()
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestFeeds
+      .emit(with: self) { owner, _ in
+        guard !owner.isLastFeedPage else { return }
+        
+        Task { await owner.fetchFeeds(orderType: .recent) }
       }
       .disposed(by: disposeBag)
     
@@ -154,24 +165,32 @@ private extension FeedViewModel {
       .disposed(by: disposeBag)
   }
   
-  func fetchFeeds(page: Int, orderType: ChallengeFeedsOrderType) async {
+  func fetchFeeds(orderType: ChallengeFeedsOrderType) async {
+    guard !isFetching else { return }
+    isFetching = true
+    defer {
+      currentPage += 1
+      isFetching = false
+    }
+    
     do {
       let result = try await useCase.fetchFeeds(
         id: challengeId,
-        page: page,
-        size: 30,
+        page: currentPage,
+        size: 15,
         orderType: orderType
       )
       
       switch result {
         case let .defaults(feeds):
           let models = feeds.flatMap { mapToPresentationModels($0) }
-          let feedsType: FeedsType = page == 0 ? .initialPage(models) : .default(models)
+          let feedsType: FeedsType = currentPage == 0 ? .initialPage(models) : .default(models)
           feedsRelay.accept(feedsType)
 
         case let .lastPage(feeds):
           let models = feeds.flatMap { mapToPresentationModels($0) }
-          feedsRelay.accept(.lastPage(models))
+          isLastFeedPage = true
+          feedsRelay.accept(.default(models))
       }
     } catch {
       // TODO: 에러 연결
