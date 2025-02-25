@@ -49,5 +49,6 @@ extension APIError {
     case alreadyJoinedChallenge
     case invalidInvitationCode
     case alreadyUploadFeed
+    case unsupportedFileType
   }
 }

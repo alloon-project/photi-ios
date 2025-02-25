@@ -42,10 +42,10 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private var viewWillAppear: Bool = false
   private var viewDidAppear: Bool = false
 
-  private let viewDidLoadRelay = PublishRelay<Void>()
+  private let requestData = PublishRelay<Void>()
   private let didTapFeedCell = PublishRelay<String>()
   private let contentOffset = PublishRelay<Double>()
-  private let uploadImageRelay = PublishRelay<Data>()
+  private let uploadImageRelay = PublishRelay<UIImageWrapper>()
   private let requestFeeds = PublishRelay<Void>()
   private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
   private let didTapLikeButtonRelay = PublishRelay<(Bool, Int)>()
@@ -107,7 +107,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     dataSource.supplementaryViewProvider = supplementaryViewProvider()
     feedCollectionView.delegate = self
     
-    viewDidLoadRelay.accept(())
+    requestData.accept(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -182,7 +182,7 @@ private extension FeedViewController {
     let input = FeedViewModel.Input(
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
       didTapLoginButton: didTapLoginButton.asSignal(),
-      viewDidLoad: viewDidLoadRelay.asSignal(),
+      requestData: requestData.asSignal(),
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
       uploadImage: uploadImageRelay.asSignal(),
@@ -266,6 +266,12 @@ private extension FeedViewController {
     output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.fileTooLarge
+      .emit(with: self) { owner, _ in
+        owner.presentFileTooLargeAlert()
       }
       .disposed(by: disposeBag)
   }
@@ -428,7 +434,7 @@ extension FeedViewController: UIImagePickerControllerDelegate, UINavigationContr
 // MARK: - UploadPhotoPopOverDelegate
 extension FeedViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
-    uploadImageRelay.accept(image.pngData() ?? Data())
+    uploadImageRelay.accept(.init(image: image))
     LoadingAnimation.default.start()
   }
 }
@@ -519,6 +525,16 @@ private extension FeedViewController {
   
   func presentAlreadyVerifyFeedAlert() {
     let alert = AlertViewController(alertType: .confirm, title: "이미 인증한 챌린지입니다.")
+    
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentFileTooLargeAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "파일 용량이 너무 큽니다.",
+      subTitle: "파일 용량은 8MB이하여야 합니다."
+    )
     
     alert.present(to: self, animted: true)
   }

@@ -48,8 +48,13 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
   }
   
-  public func uploadChallengeFeedProof(id: Int, image: Data) async throws {
-    return try await repository.uploadChallengeFeedProof(id: id, image: image)
+  public func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
+    let type = imageType.lowercased()
+    
+    guard type == "jpeg" || type == "jpg" || type == "png" else {
+      throw APIError.challengeFailed(reason: .unsupportedFileType)
+    }
+    return try await repository.uploadChallengeFeedProof(id: id, image: image, imageType: type)
   }
   
   public func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {

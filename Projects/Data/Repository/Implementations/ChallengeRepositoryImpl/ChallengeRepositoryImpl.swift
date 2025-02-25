@@ -85,8 +85,8 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     )
   }
   
-  public func uploadChallengeFeedProof(id: Int, image: Data) async throws {
-    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image)
+  public func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
+    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
     let provider = Provider<ChallengeAPI>(
       stubBehavior: .immediate,
       session: .init(interceptor: AuthenticationInterceptor())

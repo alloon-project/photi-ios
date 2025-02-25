@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Core
 import Entity
 import UseCase
 
@@ -56,15 +57,16 @@ final class FeedViewModel: FeedViewModelType {
   private let alreadyVerifyFeedRelay = PublishRelay<Void>()
   private let challengeNotFoundRelay = PublishRelay<Void>()
   private let networkUnstableRelay = PublishRelay<Void>()
+  private let fileTooLargeRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapConfirmButtonAtAlert: Signal<Void>
     let didTapLoginButton: Signal<Void>
-    let viewDidLoad: Signal<Void>
+    let requestData: Signal<Void>
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
-    let uploadImage: Signal<Data>
+    let uploadImage: Signal<UIImageWrapper>
     let requestFeeds: Signal<Void>
     let feedsAlign: Driver<FeedsAlignMode>
     let didTapIsLikeButton: Signal<(Bool, Int)>
@@ -83,6 +85,7 @@ final class FeedViewModel: FeedViewModelType {
     let alreadyVerifyFeed: Signal<Void>
     let challengeNotFound: Signal<Void>
     let networkUnstable: Signal<Void>
+    let fileTooLarge: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -120,8 +123,8 @@ final class FeedViewModel: FeedViewModelType {
       .disposed(by: disposeBag)
     
     input.uploadImage
-      .emit(with: self) { owner, imageData in
-        owner.upload(image: imageData)
+      .emit(with: self) { owner, image in
+        owner.upload(image: image)
       }
       .disposed(by: disposeBag)
     
@@ -136,12 +139,13 @@ final class FeedViewModel: FeedViewModelType {
       loginTrigger: loginTriggerRelay.asSignal(),
       alreadyVerifyFeed: alreadyVerifyFeedRelay.asSignal(),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal(),
+      fileTooLarge: fileTooLargeRelay.asSignal()
     )
   }
   
   func fetchBind(input: Input) {
-    input.viewDidLoad
+    input.requestData
       .emit(with: self) { owner, _ in
         Task { await owner.fetchFeeds() }
         owner.fetchChallengeInfo()
@@ -178,7 +182,6 @@ final class FeedViewModel: FeedViewModelType {
 // MARK: - Fetch Methods
 private extension FeedViewModel {
   func fetchChallengeInfo() {
-    // TODO: 에러 발생 가능.
     useCase.fetchChallengeDetail(id: challengeId)
       .observe(on: MainScheduler.instance)
       .subscribe(
@@ -215,11 +218,13 @@ private extension FeedViewModel {
         case let .defaults(feeds):
           let models = feeds.flatMap { mapToPresentationModels($0) }
           let feedsType: FeedsType = currentPage == 0 ? .initialPage(models) : .default(models)
+          sleep(2)
           feedsRelay.accept(feedsType)
 
         case let .lastPage(feeds):
           let models = feeds.flatMap { mapToPresentationModels($0) }
           isLastFeedPage = true
+          sleep(2)
           feedsRelay.accept(.default(models))
       }
     } catch {
@@ -234,14 +239,29 @@ private extension FeedViewModel {
     }
   }
 
-  func upload(image: Data) {
+  func upload(image: UIImageWrapper) {
+    var dataType: String
+    var imageData: Data
+    let maxSizeBytes = 8 * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      imageData = data
+      dataType = "png"
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      imageData = data
+      dataType = "jpeg"
+    } else {
+      fileTooLargeRelay.accept(())
+      return isUploadSuccessRelay.accept(false)
+    }
+      
     Task {
       do {
-        try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
+        try await useCase.uploadChallengeFeedProof(id: challengeId, image: imageData, imageType: dataType)
         isUploadSuccessRelay.accept(true)
       } catch {
-        // TODO: 에러 처리 구현 예정
         isUploadSuccessRelay.accept(false)
+        requestFailed(with: error)
       }
     }
   }

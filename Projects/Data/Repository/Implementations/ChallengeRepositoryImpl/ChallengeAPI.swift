@@ -18,7 +18,7 @@ public enum ChallengeAPI {
   case joinChallenge(id: Int)
   case joinPrivateChallenge(id: Int, code: String)
   case feeds(id: Int, page: Int, size: Int, sortOrder: String)
-  case uploadChallengeProof(id: Int, image: Data)
+  case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case isProve(challengeId: Int)
 }
@@ -37,7 +37,7 @@ extension ChallengeAPI: TargetType {
       case let .joinChallenge(id): return "challenges/\(id)/join/public"
       case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
       case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
-      case let .uploadChallengeProof(id: id, _): return "challenges/\(id)/feeds"
+      case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
       case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
       case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
     }
@@ -79,8 +79,12 @@ extension ChallengeAPI: TargetType {
           encoding: JSONEncoding.default
         )
         
-      case let .uploadChallengeProof(_, image):
-        let multiPartBody = MultipartFormDataBodyPart(.data(["imageFile": image]))
+      case let .uploadChallengeProof(_, image, imageType):
+        let multiPartBody = MultipartFormDataBodyPart(
+          .data(["imageFile": image]),
+          fileExtension: imageType,
+          mimeType: "image/\(imageType)"
+        )
         return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
         
       case let .updateLikeState(challengeId, feedId, _):
