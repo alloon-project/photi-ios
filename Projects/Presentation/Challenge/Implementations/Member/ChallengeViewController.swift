@@ -231,7 +231,7 @@ private extension ChallengeViewController {
   }
   
   func presentNetworkWarning() {
-    let alert = self.presentWarningPopup()
+    let alert = self.presentNetworkUnstableAlert()
     
     alert.rx.didTapConfirmButton
       .bind(with: self) { owner, _ in
