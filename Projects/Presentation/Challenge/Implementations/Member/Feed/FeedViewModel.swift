@@ -246,12 +246,13 @@ private extension FeedViewModel {
   
   func mapToPresentationModels(_ feeds: [Feed]) -> [FeedPresentationModel] {
     return feeds.map { feed in
+      let convertDate = feed.updateTime.convertTimezone(from: .kst)
       return .init(
         id: feed.id,
         imageURL: feed.imageURL,
         userName: feed.author,
-        updateTime: mapToUpdateTimeString(feed.updateTime),
-        updateGroup: mapToUpdateGroup(feed.updateTime),
+        updateTime: mapToUpdateTimeString(convertDate),
+        updateGroup: mapToUpdateGroup(convertDate),
         isLike: feed.isLike
       )
     }

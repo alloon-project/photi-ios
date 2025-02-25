@@ -45,4 +45,16 @@ public extension Date {
     
     return formatter.string(from: self)
   }
+  
+  func convertTimezone(from fromTimeZone: TimeZone, to toTimeZone: TimeZone? = nil) -> Date {
+    let fromOffset = fromTimeZone.secondsFromGMT(for: self)
+    let toOffset = toTimeZone?.secondsFromGMT(for: self) ?? 0
+    let timeInterval = TimeInterval(toOffset - fromOffset)
+    
+    return self.addingTimeInterval(timeInterval)
+  }
+}
+
+public extension TimeZone {
+  static let kst = TimeZone(identifier: "Asia/Seoul") ?? .current
 }
