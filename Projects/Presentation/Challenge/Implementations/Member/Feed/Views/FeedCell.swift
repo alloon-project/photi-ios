@@ -8,11 +8,15 @@
 
 import UIKit
 import Kingfisher
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class FeedCell: UICollectionViewCell {
+  fileprivate var feedId: Int = 0
+  
   // MARK: - UI Components
   private let dimmedLayer: CALayer = {
     let layer = CALayer()
@@ -24,7 +28,7 @@ final class FeedCell: UICollectionViewCell {
   private let imageView = UIImageView()
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
-  private let likeButton = FeedLikeButton()
+  fileprivate let likeButton = FeedLikeButton()
   
   // MARK: - Initializers
   override init(frame: CGRect) {
@@ -45,6 +49,7 @@ final class FeedCell: UICollectionViewCell {
   
   // MARK: - Configure
   func configure(with model: FeedPresentationModel) {
+    feedId = model.id
     userNameLabel.attributedText = model.userName.attributedString(font: .body2Bold, color: .white)
     updateTimeLabel.attributedText = model.updateTime.attributedString(font: .caption1, color: .white)
     imageView.kf.setImage(with: model.imageURL)
@@ -97,5 +102,15 @@ private extension FeedCell {
       $0.trailing.bottom.equalToSuperview()
       $0.height.width.equalTo(32)
     }
+  }
+}
+
+extension Reactive where Base: FeedCell {
+  var didTapLikeButton: ControlEvent<(Bool, Int)> {
+    let source = base.likeButton.rx.tap.map { _ in
+      (base.likeButton.isSelected, base.feedId)
+    }
+    
+    return .init(events: source)
   }
 }

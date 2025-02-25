@@ -48,6 +48,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let uploadImageRelay = PublishRelay<Data>()
   private let requestFeeds = PublishRelay<Void>()
   private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
+  private let didTapLikeButtonRelay = PublishRelay<(Bool, Int)>()
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -183,7 +184,8 @@ private extension FeedViewController {
       contentOffset: contentOffset.asSignal(),
       uploadImage: uploadImageRelay.asSignal(),
       requestFeeds: requestFeeds.asSignal(),
-      feedsAlign: feedsAlignRelay.asDriver()
+      feedsAlign: feedsAlignRelay.asDriver(),
+      didTapIsLikeButton: didTapLikeButtonRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -252,6 +254,15 @@ private extension FeedViewController {
       }
       .disposed(by: disposeBag)
   }
+  
+  func bind(cell: FeedCell) {
+    cell.rx.didTapLikeButton
+      .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
+      .bind(with: self) { owner, result in
+        owner.didTapLikeButtonRelay.accept(result)
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - FeedPresentable
@@ -260,9 +271,10 @@ extension FeedViewController: FeedPresentable { }
 // MARK: - UICollectionViewDiffableDataSource
 extension FeedViewController {
   func diffableDataSource() -> DataSourceType {
-    return .init(collectionView: feedCollectionView) { collectionView, indexPath, model in
+    return .init(collectionView: feedCollectionView) { [weak self] collectionView, indexPath, model in
       let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
       cell.configure(with: model)
+      self?.bind(cell: cell)
       return cell
     }
   }
@@ -447,7 +459,7 @@ private extension FeedViewController {
     let lastSection = dataSource.numberOfSections(in: feedCollectionView) - 1
     let lastIndexPath = IndexPath(row: 0, section: lastSection)
     let loadingView = feedCollectionView.footerView(FeedsLoadingFooterView.self, at: lastIndexPath)
-    print(lastSection)
+
     loadingView?.isHidden = !isFetching
     isFetching ? loadingView?.startLoading() : loadingView?.stopLoading()
     

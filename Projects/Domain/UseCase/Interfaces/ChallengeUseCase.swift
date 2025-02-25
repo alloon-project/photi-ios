@@ -24,6 +24,7 @@ public protocol ChallengeUseCase {
   func joinPrivateChallnege(id: Int, code: String) async throws
   func isProof() async -> Bool
   func uploadChallengeFeedProof(id: Int, image: Data) async throws
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(
     id: Int,
     page: Int,

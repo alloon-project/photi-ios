@@ -28,6 +28,7 @@ public protocol ChallengeRepository {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
   func joinPrivateChallnege(id: Int, code: String) -> Single<Void>
   func uploadChallengeFeedProof(id: Int, image: Data) async throws
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(
     id: Int,
     page: Int,

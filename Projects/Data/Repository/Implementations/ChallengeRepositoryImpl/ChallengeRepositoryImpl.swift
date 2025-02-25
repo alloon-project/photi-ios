@@ -106,6 +106,26 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       throw APIError.challengeFailed(reason: .alreadyUploadFeed)
     }
   }
+  
+  public func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
+    let api = ChallengeAPI.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 {
+      throw APIError.tokenUnauthenticated
+    } else if result.statusCode == 403 {
+      throw APIError.tokenUnauthorized
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
+    } 
+  }
 }
 
 // MARK: - Private Methods

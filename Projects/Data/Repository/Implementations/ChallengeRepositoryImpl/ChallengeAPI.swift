@@ -19,6 +19,7 @@ public enum ChallengeAPI {
   case joinPrivateChallenge(id: Int, code: String)
   case feeds(id: Int, page: Int, size: Int, sortOrder: String)
   case uploadChallengeProof(id: Int, image: Data)
+  case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
 }
 
 extension ChallengeAPI: TargetType {
@@ -36,6 +37,7 @@ extension ChallengeAPI: TargetType {
       case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
       case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
       case let .uploadChallengeProof(id: id, _): return "challenges/\(id)/feeds"
+      case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
     }
   }
   
@@ -48,6 +50,7 @@ extension ChallengeAPI: TargetType {
       case .joinPrivateChallenge: return .post
       case .feeds: return .get
       case .uploadChallengeProof: return .post
+      case let .updateLikeState(_, _, isLike): return isLike ? .post : .delete
     }
   }
   
@@ -76,6 +79,10 @@ extension ChallengeAPI: TargetType {
       case let .uploadChallengeProof(_, image):
         let multiPartBody = MultipartFormDataBodyPart(.data(["imageFile": image]))
         return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
+        
+      case let .updateLikeState(challengeId, feedId, _):
+        let parameters = ["challengeId": challengeId, "feedId": feedId]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
     }
   }
   
@@ -99,7 +106,7 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof:
+      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState:
         let data = """
           {
             "code": "200 OK",

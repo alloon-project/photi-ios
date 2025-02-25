@@ -52,6 +52,10 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
     return try await repository.uploadChallengeFeedProof(id: id, image: image)
   }
   
+  public func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
+    return try await repository.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+  }
+  
   public func isProof() async -> Bool {
     // TODO: - API 나온 후 적용할 예정
     return false

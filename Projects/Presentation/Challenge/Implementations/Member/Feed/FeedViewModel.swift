@@ -59,6 +59,7 @@ final class FeedViewModel: FeedViewModelType {
     let uploadImage: Signal<Data>
     let requestFeeds: Signal<Void>
     let feedsAlign: Driver<FeedsAlignMode>
+    let didTapIsLikeButton: Signal<(Bool, Int)>
   }
   
   // MARK: - Output
@@ -144,6 +145,12 @@ final class FeedViewModel: FeedViewModelType {
         Task { await owner.fetchFeeds() }
       }
       .disposed(by: disposeBag)
+    
+    input.didTapIsLikeButton
+      .emit(with: self) { owner, result in
+        owner.update(isLike: result.0, feedId: result.1)
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -175,6 +182,16 @@ private extension FeedViewModel {
       } catch {
         // TODO: 에러 처리 구현 예정
         isUploadSuccessRelay.accept(false)
+      }
+    }
+  }
+  
+  func update(isLike: Bool, feedId: Int) {
+    Task {
+      do {
+        try await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+      } catch {
+        // TODO: 에러 처리 구현 예정
       }
     }
   }
