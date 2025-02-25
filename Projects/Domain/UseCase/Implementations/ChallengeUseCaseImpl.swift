@@ -6,8 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxSwift
+import Foundation
 import RxRelay
+import RxSwift
 import Entity
 import UseCase
 import Repository
@@ -45,6 +46,10 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
     }
     
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
+  }
+  
+  public func uploadChallengeFeedProof(id: Int, image: Data) async throws {
+    return try await repository.uploadChallengeFeedProof(id: id, image: image)
   }
   
   public func isProof() async -> Bool {

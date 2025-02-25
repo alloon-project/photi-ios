@@ -102,14 +102,7 @@ final class FeedViewModel: FeedViewModelType {
     
     input.uploadImage
       .emit(with: self) { owner, imageData in
-        // TODO: - 서버로 전송
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-          if imageData.count % 2 == 0 {
-            owner.isUploadSuccessRelay.accept(true)
-          } else {
-            owner.isUploadSuccessRelay.accept(false)
-          }
-        }
+        owner.upload(image: imageData)
       }
       .disposed(by: disposeBag)
     
@@ -171,6 +164,18 @@ private extension FeedViewModel {
     Task {
       isProof = await useCase.isProof()
       if isProof { proofRelay.accept(.didProof) }
+    }
+  }
+  
+  func upload(image: Data) {
+    Task {
+      do {
+        try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
+        isUploadSuccessRelay.accept(true)
+      } catch {
+        // TODO: 에러 처리 구현 예정
+        isUploadSuccessRelay.accept(false)
+      }
     }
   }
   

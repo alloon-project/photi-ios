@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import Entity
 
@@ -26,6 +27,7 @@ public protocol ChallengeRepository {
   func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
   func joinPrivateChallnege(id: Int, code: String) -> Single<Void>
+  func uploadChallengeFeedProof(id: Int, image: Data) async throws
   func fetchFeeds(
     id: Int,
     page: Int,

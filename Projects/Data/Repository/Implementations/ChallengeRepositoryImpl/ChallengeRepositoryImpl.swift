@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import DataMapper
 import DTO
@@ -83,6 +84,28 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       memberCount: value.content.first?.feedMemberCnt ?? 0
     )
   }
+  
+  public func uploadChallengeFeedProof(id: Int, image: Data) async throws {
+    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 {
+      throw APIError.tokenUnauthenticated
+    } else if result.statusCode == 403 {
+      throw APIError.tokenUnauthorized
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
+    } else if result.statusCode == 409 {
+      throw APIError.challengeFailed(reason: .alreadyUploadFeed)
+    }
+  }
 }
 
 // MARK: - Private Methods
@@ -95,12 +118,15 @@ private extension ChallengeRepositoryImpl {
     return Single.create { single in
       Task {
         do {
-          let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
+          let provider = Provider<ChallengeAPI>(
+            stubBehavior: behavior,
+            session: .init(interceptor: AuthenticationInterceptor())
+          )
           
           let result = try await provider
             .request(api, type: responseType.self).value
           
-          if result.statusCode == 200, let data = result.data {
+          if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
           } else if result.statusCode == 400 {
             single(.failure(APIError.challengeFailed(reason: .invalidInvitationCode)))
@@ -135,7 +161,7 @@ private extension ChallengeRepositoryImpl {
           let result = try await provider
             .request(api, type: responseType.self).value
           
-          if result.statusCode == 200, let data = result.data {
+          if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
           } else if result.statusCode == 404 {
             single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))

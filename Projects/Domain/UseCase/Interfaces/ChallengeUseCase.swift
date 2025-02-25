@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxRelay
 import RxSwift
 import Entity
@@ -22,6 +23,7 @@ public protocol ChallengeUseCase {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
   func joinPrivateChallnege(id: Int, code: String) async throws
   func isProof() async -> Bool
+  func uploadChallengeFeedProof(id: Int, image: Data) async throws
   func fetchFeeds(
     id: Int,
     page: Int,
