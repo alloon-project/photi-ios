@@ -49,6 +49,8 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let requestFeeds = PublishRelay<Void>()
   private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
   private let didTapLikeButtonRelay = PublishRelay<(Bool, Int)>()
+  private let didTapLoginButton = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -178,6 +180,8 @@ private extension FeedViewController {
 private extension FeedViewController {
   func bind() {
     let input = FeedViewModel.Input(
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
+      didTapLoginButton: didTapLoginButton.asSignal(),
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
@@ -236,6 +240,32 @@ private extension FeedViewController {
     output.stopFetching
       .emit(with: self) { owner, _ in
         owner.updateFeedsFooterLoadingState(isFetching: false)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bindFailed(for output: FeedViewModel.Output) {
+    output.challengeNotFound
+      .emit(with: self) { owner, _ in
+        owner.presentChallengeNotFoundAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.loginTrigger
+      .emit(with: self) { owner, _ in
+        owner.presentLoginTriggerAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.alreadyVerifyFeed
+      .emit(with: self) { owner, _ in
+        owner.presentAlreadyVerifyFeedAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }
@@ -459,6 +489,38 @@ private extension FeedViewController {
     )
     bottomSheet.delegate = self
     bottomSheet.present(to: self, animated: true)
+  }
+  
+  func presentChallengeNotFoundAlert() {
+    let alert = AlertViewController(alertType: .confirm, title: "이미 삭제된 페이지입니다.")
+    
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func presentLoginTriggerAlert() {
+    let alert = AlertViewController(
+      alertType: .canCancel,
+      title: "재로그인이 필요해요",
+      subTitle: "보안을 위해 자동 로그아웃 됐어요.\n다시 로그인해주세요."
+    )
+    alert.confirmButtonTitle = "로그인하기"
+    alert.cancelButtonTitle = "나중에 할래요"
+    
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButton.accept(())
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func presentAlreadyVerifyFeedAlert() {
+    let alert = AlertViewController(alertType: .confirm, title: "이미 인증한 챌린지입니다.")
+    
+    alert.present(to: self, animted: true)
   }
   
   func updateFeedsFooterLoadingState(isFetching: Bool) {

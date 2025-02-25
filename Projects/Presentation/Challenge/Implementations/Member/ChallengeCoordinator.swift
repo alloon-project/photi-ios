@@ -117,9 +117,17 @@ extension ChallengeCoordinator {
 }
 
 // MARK: - FeedListener
-extension ChallengeCoordinator: FeedListener {  
+extension ChallengeCoordinator: FeedListener {
   func didChangeContentOffsetAtFeed(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+  
+  func requestLoginAtChallengeFeed() {
+    listener?.requestLogin()
+  }
+  
+  func shouldDismissChallenge() {
+    listener?.shouldDismissChallenge()
   }
 }
 

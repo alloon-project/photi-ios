@@ -96,10 +96,8 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       throw APIError.serverError
     }
     
-    if result.statusCode == 401 {
-      throw APIError.tokenUnauthenticated
-    } else if result.statusCode == 403 {
-      throw APIError.tokenUnauthorized
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
     } else if result.statusCode == 404 {
       throw APIError.userNotFound
     } else if result.statusCode == 409 {
@@ -118,10 +116,8 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       throw APIError.serverError
     }
     
-    if result.statusCode == 401 {
-      throw APIError.tokenUnauthenticated
-    } else if result.statusCode == 403 {
-      throw APIError.tokenUnauthorized
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
     } else if result.statusCode == 404 {
       throw APIError.userNotFound
     }
@@ -161,10 +157,8 @@ private extension ChallengeRepositoryImpl {
             single(.success(data))
           } else if result.statusCode == 400 {
             single(.failure(APIError.challengeFailed(reason: .invalidInvitationCode)))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.tokenUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
             single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
           } else if result.statusCode == 409 {

@@ -15,6 +15,8 @@ import UseCase
 protocol FeedCoordinatable: AnyObject {
   func attachFeedDetail(for feedID: String)
   func didChangeContentOffset(_ offset: Double)
+  func requestLogin()
+  func didTapConfirmButtonAtAlert()
 }
 
 protocol FeedViewModelType: AnyObject {
@@ -50,9 +52,15 @@ final class FeedViewModel: FeedViewModelType {
   private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
   private let startFetchingRelay = PublishRelay<Void>()
   private let stopFetchingRelay = PublishRelay<Void>()
+  private let loginTriggerRelay = PublishRelay<Void>()
+  private let alreadyVerifyFeedRelay = PublishRelay<Void>()
+  private let challengeNotFoundRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
+    let didTapConfirmButtonAtAlert: Signal<Void>
+    let didTapLoginButton: Signal<Void>
     let viewDidLoad: Signal<Void>
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
@@ -71,32 +79,42 @@ final class FeedViewModel: FeedViewModelType {
     let feeds: Driver<FeedsType>
     let startFetching: Signal<Void>
     let stopFetching: Signal<Void>
+    let loginTrigger: Signal<Void>
+    let alreadyVerifyFeed: Signal<Void>
+    let challengeNotFound: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
   init(challengeId: Int, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.useCase = useCase
-    proveTimeRelay
-      .skip(1)
-      .subscribe(with: self) { owner, time in
-        guard !owner.isProve else { return }
-        owner.proofRelay.accept(.didNotProve(time))
-      }
-      .disposed(by: disposeBag)
+    bind()
   }
 
   func transform(input: Input) -> Output {
     fetchBind(input: input)
+    
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapConfirmButtonAtAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapLoginButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestLogin()
+      }
+      .disposed(by: disposeBag)
    
     input.didTapFeed
-      .emit(with: self) {owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachFeedDetail(for: "0")
       }
       .disposed(by: disposeBag)
     
     input.contentOffset
-      .emit(with: self) {owner, offset in
+      .emit(with: self) { owner, offset in
         owner.coordinator?.didChangeContentOffset(offset)
       }
       .disposed(by: disposeBag)
@@ -114,7 +132,11 @@ final class FeedViewModel: FeedViewModelType {
       proofRelay: proofRelay.asDriver(),
       feeds: feedsRelay.asDriver(),
       startFetching: startFetchingRelay.asSignal(),
-      stopFetching: stopFetchingRelay.asSignal()
+      stopFetching: stopFetchingRelay.asSignal(),
+      loginTrigger: loginTriggerRelay.asSignal(),
+      alreadyVerifyFeed: alreadyVerifyFeedRelay.asSignal(),
+      challengeNotFound: challengeNotFoundRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
   
@@ -123,7 +145,6 @@ final class FeedViewModel: FeedViewModelType {
       .emit(with: self) { owner, _ in
         Task { await owner.fetchFeeds() }
         owner.fetchChallengeInfo()
-        owner.bindMemberCount()
         owner.fetchIsProof()
       }
       .disposed(by: disposeBag)
@@ -154,63 +175,26 @@ final class FeedViewModel: FeedViewModelType {
   }
 }
 
-// MARK: - Private Methods
+// MARK: - Fetch Methods
 private extension FeedViewModel {
   func fetchChallengeInfo() {
+    // TODO: 에러 발생 가능.
     useCase.fetchChallengeDetail(id: challengeId)
       .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, challenge in
-        owner.totalMemberCount = challenge.memberCount
-        let proveTime = challenge.proveTime.toString("HH:mm")
-        owner.proveTimeRelay.accept(proveTime)
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func fetchIsProof() {
-    Task {
-      isProve = (try? await useCase.isProve(challengeId: challengeId)) ?? false
-      if isProve { proofRelay.accept(.didProve) }
-    }
-  }
-  
-  func upload(image: Data) {
-    Task {
-      do {
-        try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
-        isUploadSuccessRelay.accept(true)
-      } catch {
-        // TODO: 에러 처리 구현 예정
-        isUploadSuccessRelay.accept(false)
-      }
-    }
-  }
-  
-  func update(isLike: Bool, feedId: Int) {
-    Task {
-      do {
-        try await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-      } catch {
-        // TODO: 에러 처리 구현 예정
-      }
-    }
-  }
-  
-  func bindMemberCount() {
-    useCase.challengeProveMemberCount
-      .subscribe(with: self) { owner, count in
-        owner.proveMemberCountRelay.accept(count)
-        
-        guard owner.totalMemberCount != 0 else {
-          return owner.provePercentRelay.accept(0)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, challenge in
+          owner.totalMemberCount = challenge.memberCount
+          let proveTime = challenge.proveTime.toString("HH:mm")
+          owner.proveTimeRelay.accept(proveTime)
+        },
+        onFailure: { owner, error in
+          owner.requestFailed(with: error)
         }
-        
-        let percent = Double(count / owner.totalMemberCount)
-        owner.provePercentRelay.accept(percent)
-      }
+      )
       .disposed(by: disposeBag)
   }
-  
+    
   func fetchFeeds() async {
     guard !isFetching else { return }
     isFetching = true
@@ -239,9 +223,76 @@ private extension FeedViewModel {
           feedsRelay.accept(.default(models))
       }
     } catch {
-      // TODO: 에러 연결
-      print(error)
+      requestFailed(with: error)
     }
+  }
+  
+  func fetchIsProof() {
+    Task {
+      isProve = (try? await useCase.isProve(challengeId: challengeId)) ?? false
+      if isProve { proofRelay.accept(.didProve) }
+    }
+  }
+
+  func upload(image: Data) {
+    Task {
+      do {
+        try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
+        isUploadSuccessRelay.accept(true)
+      } catch {
+        // TODO: 에러 처리 구현 예정
+        isUploadSuccessRelay.accept(false)
+      }
+    }
+  }
+  
+  func update(isLike: Bool, feedId: Int) {
+    Task {
+      try? await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(())
+    }
+    
+    switch error {
+      case .authenticationFailed:
+        loginTriggerRelay.accept(())
+      case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
+        alreadyVerifyFeedRelay.accept(())
+      case let .challengeFailed(reason) where reason == .challengeNotFound:
+        challengeNotFoundRelay.accept(())
+      default:
+        networkUnstableRelay.accept(())
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedViewModel {
+  func bind() {
+    useCase.challengeProveMemberCount
+      .subscribe(with: self) { owner, count in
+        owner.proveMemberCountRelay.accept(count)
+        
+        guard owner.totalMemberCount != 0 else {
+          return owner.provePercentRelay.accept(0)
+        }
+        
+        let percent = Double(count / owner.totalMemberCount)
+        owner.provePercentRelay.accept(percent)
+      }
+      .disposed(by: disposeBag)
+    
+    proveTimeRelay
+      .skip(1)
+      .subscribe(with: self) { owner, time in
+        guard !owner.isProve else { return }
+        owner.proofRelay.accept(.didNotProve(time))
+      }
+      .disposed(by: disposeBag)
   }
   
   func mapToPresentationModels(_ feeds: [Feed]) -> [FeedPresentationModel] {
