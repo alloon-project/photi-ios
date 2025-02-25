@@ -14,8 +14,8 @@ import DesignSystem
 final class FeedsHeaderView: UICollectionReusableView {
   enum HeaderType {
     case none
-    case didNotProof(String)
-    case didProof
+    case didNotProve(String)
+    case didProve
   }
 
   private var headerType: HeaderType = .none
@@ -88,12 +88,12 @@ private extension FeedsHeaderView {
     switch type {
       case .none:
         proveTimeView.isHidden = true
-      case .didProof:
+      case .didProve:
         proveTimeView.isHidden = false
         setProveTimeText("인증완료", color: .green500)
         setProveTimeImage(.timeGreen)
 
-      case let .didNotProof(proveTime):
+      case let .didNotProve(proveTime):
         proveTimeView.isHidden = false
         setProveTimeText(proveTime, color: .blue500)
         setProveTimeImage(.timeBlue)

@@ -124,7 +124,18 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       throw APIError.tokenUnauthorized
     } else if result.statusCode == 404 {
       throw APIError.userNotFound
-    } 
+    }
+  }
+  
+  public func isProve(challengeId: Int) async throws -> Bool {
+    let api = ChallengeAPI.isProve(challengeId: challengeId)
+    let result = try await requestAuthorizableAPI(
+      api: api,
+      responseType: ChallengeProveResponseDTO.self,
+      behavior: .immediate
+    ).value
+    
+    return result.isProve
   }
 }
 

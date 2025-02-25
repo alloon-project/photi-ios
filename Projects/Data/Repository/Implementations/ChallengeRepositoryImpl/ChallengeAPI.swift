@@ -20,6 +20,7 @@ public enum ChallengeAPI {
   case feeds(id: Int, page: Int, size: Int, sortOrder: String)
   case uploadChallengeProof(id: Int, image: Data)
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
+  case isProve(challengeId: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -38,6 +39,7 @@ extension ChallengeAPI: TargetType {
       case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
       case let .uploadChallengeProof(id: id, _): return "challenges/\(id)/feeds"
       case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
+      case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
     }
   }
   
@@ -51,6 +53,7 @@ extension ChallengeAPI: TargetType {
       case .feeds: return .get
       case .uploadChallengeProof: return .post
       case let .updateLikeState(_, _, isLike): return isLike ? .post : .delete
+      case .isProve: return .get
     }
   }
   
@@ -60,7 +63,7 @@ extension ChallengeAPI: TargetType {
         return .requestPlain
       case let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding(destination: .queryString))
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
       case .joinChallenge:
         return .requestPlain
       case let .joinPrivateChallenge(_, code):
@@ -82,7 +85,11 @@ extension ChallengeAPI: TargetType {
         
       case let .updateLikeState(challengeId, feedId, _):
         let parameters = ["challengeId": challengeId, "feedId": feedId]
-        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .isProve(challengeId):
+        let parameters = ["challengeId": challengeId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
   
@@ -123,6 +130,12 @@ extension ChallengeAPI: TargetType {
       case let .feeds(_, page, _, _):
         let feedsData = [FeedsResponseDTO.stubData, FeedsResponseDTO.stubData2, FeedsResponseDTO.stubData3]
         let data = feedsData[page]
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .isProve:
+        let data = ChallengeProveResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

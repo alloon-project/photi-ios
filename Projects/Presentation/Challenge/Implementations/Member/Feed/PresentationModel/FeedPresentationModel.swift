@@ -13,7 +13,8 @@ struct FeedPresentationModel: Hashable {
   let id: Int
   let imageURL: URL
   let userName: String
-  let updateTime: String 
+  let updateTime: String
+  let updateGroup: String
   let isLike: Bool
 }
 
@@ -30,14 +31,14 @@ enum FeedsAlignMode: String, CaseIterable {
 }
 
 enum ProveType: Equatable {
-  case didProof
-  case didNotProof(String)
+  case didProve
+  case didNotProve(String)
   
   var toString: String {
     switch self {
-      case .didProof:
+      case .didProve:
         return "인증 완료"
-      case let .didNotProof(time):
+      case let .didNotProve(time):
         return "\(time)까지"
     }
   }

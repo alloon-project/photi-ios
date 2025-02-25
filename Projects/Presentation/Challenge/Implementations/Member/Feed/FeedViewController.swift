@@ -28,11 +28,11 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
       updateTagViewContraints(percent: currentPercent)
     }
   }
-  private var isProof: ProveType = .didNotProof("") {
+  private var isProve: ProveType = .didNotProve("") {
     didSet {
       guard viewWillAppear else { return }
-      configureTodayHeaderView(for: isProof)
-      cameraShutterButton.isHidden = (isProof != .didProof)
+      configureTodayHeaderView(for: isProve)
+      cameraShutterButton.isHidden = (isProve != .didProve)
     }
   }
   private var feedsAlign: FeedsAlignMode = .recent {
@@ -112,9 +112,8 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     super.viewWillAppear(animated)
     guard !viewWillAppear else { return }
     self.viewWillAppear = true
-    configureTodayHeaderView(for: isProof)
-    cameraShutterButton.isHidden = (isProof == .didProof)
-    if isProof != .didProof { presentPoofTipView() }
+    cameraShutterButton.isHidden = (isProve == .didProve)
+    if isProve != .didProve { presentPoofTipView() }
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -206,7 +205,7 @@ private extension FeedViewController {
     
     output.proofRelay
       .distinctUntilChanged { $0 == $1 }
-      .drive(rx.isProof)
+      .drive(rx.isProve)
       .disposed(by: disposeBag)
     
     output.feeds
@@ -223,7 +222,7 @@ private extension FeedViewController {
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
         LoadingAnimation.default.stop()
-        owner.isProof = .didProof
+        owner.isProve = .didProve
         owner.cameraShutterButton.isHidden = true
       }
       .disposed(by: disposeBag)
@@ -296,7 +295,16 @@ extension FeedViewController {
     guard let sectionData = dataSource?.sectionIdentifier(for: indexPath.section) else {
       return headerView
     }
-    headerView.configure(date: sectionData)
+    if indexPath.section == 0 {
+      switch isProve {
+        case let .didNotProve(proveTime):
+          headerView.configure(date: sectionData, type: .didNotProve(proveTime))
+        case .didProve:
+          headerView.configure(date: sectionData, type: .didProve)
+      }
+    } else {
+      headerView.configure(date: sectionData)
+    }
     
     return headerView
   }
@@ -313,10 +321,10 @@ extension FeedViewController {
     guard let headerView = feedCollectionView.headerView(FeedsHeaderView.self, at: indexPath) else { return }
     
     switch type {
-      case let .didNotProof(proveTime):
-        headerView.configure(type: .didNotProof(proveTime))
-      case .didProof:
-        headerView.configure(type: .didProof)
+      case let .didNotProve(proveTime):
+        headerView.configure(type: .didNotProve(proveTime))
+      case .didProve:
+        headerView.configure(type: .didProve)
     }
   }
   
@@ -334,10 +342,10 @@ extension FeedViewController {
   func append(models: [FeedPresentationModel], to snapshot: SnapShot) -> SnapShot {
     var snapshot = snapshot
     models.forEach {
-      if !snapshot.sectionIdentifiers.contains($0.updateTime) {
-        snapshot.appendSections([$0.updateTime])
+      if !snapshot.sectionIdentifiers.contains($0.updateGroup) {
+        snapshot.appendSections([$0.updateGroup])
       }
-      snapshot.appendItems([$0], toSection: $0.updateTime)
+      snapshot.appendItems([$0], toSection: $0.updateGroup)
     }
     
     return snapshot

@@ -33,7 +33,7 @@ final class FeedViewModel: FeedViewModelType {
   private var alignMode: FeedsAlignMode = .recent
   private var currentPage = 0
   private var totalMemberCount = 0
-  private var isProof: Bool = false
+  private var isProve: Bool = false
   private var isLastFeedPage: Bool = false
   private var isFetching: Bool = false {
     didSet {
@@ -43,7 +43,7 @@ final class FeedViewModel: FeedViewModelType {
   }
   
   private let isUploadSuccessRelay = PublishRelay<Bool>()
-  private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProof(""))
+  private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProve(""))
   private let proveTimeRelay = BehaviorRelay<String>(value: "")
   private let proveMemberCountRelay = BehaviorRelay<Int>(value: 0)
   private let provePercentRelay = BehaviorRelay<Double>(value: 0)
@@ -80,8 +80,8 @@ final class FeedViewModel: FeedViewModelType {
     proveTimeRelay
       .skip(1)
       .subscribe(with: self) { owner, time in
-        guard !owner.isProof else { return }
-        owner.proofRelay.accept(.didNotProof(time))
+        guard !owner.isProve else { return }
+        owner.proofRelay.accept(.didNotProve(time))
       }
       .disposed(by: disposeBag)
   }
@@ -169,8 +169,8 @@ private extension FeedViewModel {
   
   func fetchIsProof() {
     Task {
-      isProof = await useCase.isProof()
-      if isProof { proofRelay.accept(.didProof) }
+      isProve = (try? await useCase.isProve(challengeId: challengeId)) ?? false
+      if isProve { proofRelay.accept(.didProve) }
     }
   }
   
@@ -251,6 +251,7 @@ private extension FeedViewModel {
         imageURL: feed.imageURL,
         userName: feed.author,
         updateTime: mapToUpdateTimeString(feed.updateTime),
+        updateGroup: mapToUpdateGroup(feed.updateTime),
         isLike: feed.isLike
       )
     }
@@ -284,5 +285,20 @@ private extension FeedViewModel {
       case 0...10: return "\(temp)분 전"
       default: return "\(temp / 10)분 전"
     }
+  }
+  
+  func mapToUpdateGroup(_ date: Date) -> String {
+    let current = Date()
+
+    guard current.year == date.year else {
+      return "\(abs(current.year - date.year))년 전"
+    }
+    
+    guard current.month == date.month else {
+      return "\(abs(current.month - date.month))년 전"
+    }
+    
+    let temp = abs(current.day - date.day)
+    return temp == 0 ? "오늘" : "\(temp)일 전"
   }
 }
