@@ -9,8 +9,9 @@
 import Foundation
 
 struct ChallengeTitlePresentationModel {
-  let challengeId: String
   let title: String
   let hashTags: [String]
-  let imageURL: String
+  let imageURL: URL?
+  
+  static let `default` = ChallengeTitlePresentationModel(title: "", hashTags: [], imageURL: nil)
 }

@@ -4,23 +4,27 @@ LINT="${PWD}/swiftlint"
 
 echo "🚀  SwiftLint 시작..."
 echo "🔍  lint 적용 경로: $(pwd)"
+# Staging된 모든 파일 가져오기
+stagingFiles=$(git diff --cached --name-only)
 
-normalfiles=$(git diff --stat --cached)
-targets=$(git diff --stat --cached --diff-filter=d --name-only $(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD)) | grep -F ".swift")
+# Staging된 Swift 파일 가져오기
+targets=$(echo "$stagingFiles" | grep -E "\.swift$")
 
-if [ -n "$normalfiles" -a -z "$targets" ]; then
-  printf "✨ 고생하셨습니다👏 👏 👏\n"
-  exit 0
+echo "🔍  Staing 파일 목록:"
+echo $stagingFiles
 
-elif [ -z "${normalfiles}" ]; then
-  printf "🏷️  Staging Area 파일이 없습니다"
-  printf "\n ✔ git add를 먼저 진행해주세요:)"
-  exit 1
+echo "🔍  대상 파일 목록:"
+echo $targets
 
-elif [ -z "$targets" ]; then
+if [ -z "$stagingFiles" ]; then
   printf "🏷️  Staging Area swift 파일이 없습니다"
   printf "\n ✔ git add를 먼저 진행해주세요:)"
   exit 1
+fi
+
+if [ "$RESULT" == '' ]; then 
+  printf "✨  SwiftLint를 돌릴 파일이 없습니다!! 고생하셨습니다:)\n"
+  exit 0
 fi
 
 # lint rule 정의 파일
@@ -39,10 +43,10 @@ else
     DESCRIPTION=$(echo $line | cut -d : -f 6 | cut -c 2-)
     if [ $TYPE == 'warning' ]; then
       printf "\n 🚧  $TYPE\n"
-      # warning 타입은 오류메시지만 표시하고 커밋을 허용하고 싶다면 line 40~42 주석 해제.
-      # printf "    $FILEPATH:$L:$C\n"
-      # printf "    📌  $MESSAGE: - $DESCRIPTION\n"
-      # exit 0
+      warning 타입은 오류메시지만 표시하고 커밋을 허용하고 싶다면 line 40~42 주석 해제.
+      printf "    $FILEPATH:$L:$C\n"
+      printf "    📌  $MESSAGE: - $DESCRIPTION\n"
+      exit 0
     elif [ $TYPE == 'error' ]; then
       printf "\n 🚨  $TYPE\n"
     fi

@@ -54,7 +54,8 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   }
   
   func attachSegments() {
-    let feedCoordinator = feedContainer.coordinator(listener: self)
+    let challengeId = viewModel.challengeId
+    let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
     let descriptionCoordinator = descriptionContainer.coordinator(listener: self)
     let participantCoordinator = participantContainer.coordinator(listener: self)
     
@@ -73,7 +74,15 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 }
 
 // MARK: - ChallengeCoordinatable
-extension ChallengeCoordinator: ChallengeCoordinatable { }
+extension ChallengeCoordinator: ChallengeCoordinatable {
+  func didTapConfirmButtonAtAlert() {
+    listener?.didTapBackButtonAtChallenge()
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtChallenge()
+  }
+}
 
 // MARK: - EditChallengeGoal
 extension ChallengeCoordinator {
@@ -108,9 +117,17 @@ extension ChallengeCoordinator {
 }
 
 // MARK: - FeedListener
-extension ChallengeCoordinator: FeedListener {  
+extension ChallengeCoordinator: FeedListener {
   func didChangeContentOffsetAtFeed(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+  
+  func requestLoginAtChallengeFeed() {
+    listener?.requestLogin()
+  }
+  
+  func shouldDismissChallenge() {
+    listener?.shouldDismissChallenge()
   }
 }
 

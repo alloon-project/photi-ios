@@ -17,8 +17,8 @@ public struct URLEncoding: ParameterEncoding {
     case httpBody
   }
   
-  static var queryString: URLEncoding { URLEncoding() }
-  static var httpBody: URLEncoding { URLEncoding(destination: .httpBody) }
+  public static var queryString: URLEncoding { URLEncoding() }
+  public static var httpBody: URLEncoding { URLEncoding(destination: .httpBody) }
   
   private let destination: Destination
   

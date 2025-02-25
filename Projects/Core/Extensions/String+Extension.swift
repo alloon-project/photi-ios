@@ -43,8 +43,13 @@ public extension String {
   func toDate(_ dateFormat: String = "YYYY.MM.dd") -> Date? {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = dateFormat
-    dateFormatter.timeZone = TimeZone(identifier: "UTC")
     
+    return dateFormatter.date(from: self)
+  }
+  
+  func toDateFromISO8601() -> Date? {
+    let dateFormatter = ISO8601DateFormatter()
+    dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     return dateFormatter.date(from: self)
   }
   

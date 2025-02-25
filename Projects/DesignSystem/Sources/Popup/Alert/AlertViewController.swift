@@ -21,6 +21,14 @@ final public class AlertViewController: UIViewController {
   }
   
   // MARK: - Properties
+  public var confirmButtonTitle: String = "확인" {
+    didSet { confirmButton.setText(confirmButtonTitle) }
+  }
+  
+  public var cancelButtonTitle: String = "취소" {
+    didSet { cancelButton.setText(cancelButtonTitle) }
+  }
+  
   private let disposeBag = DisposeBag()
   private let type: AlertType
   private let mainTitle: String
