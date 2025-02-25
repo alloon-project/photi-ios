@@ -64,6 +64,7 @@ final class FeedViewModel: FeedViewModelType {
     let didTapConfirmButtonAtAlert: Signal<Void>
     let didTapLoginButton: Signal<Void>
     let requestData: Signal<Void>
+    let reloadData: Signal<Void>
     let didTapFeed: Signal<String>
     let contentOffset: Signal<Double>
     let uploadImage: Signal<UIImageWrapper>
@@ -147,9 +148,15 @@ final class FeedViewModel: FeedViewModelType {
   func fetchBind(input: Input) {
     input.requestData
       .emit(with: self) { owner, _ in
-        Task { await owner.fetchFeeds() }
-        owner.fetchChallengeInfo()
-        owner.fetchIsProof()
+        owner.fetchData()
+      }
+      .disposed(by: disposeBag)
+    
+    input.reloadData
+      .emit(with: self) { owner, _ in
+        owner.currentPage = 0
+        owner.isLastFeedPage = false
+        owner.fetchData()
       }
       .disposed(by: disposeBag)
     
@@ -181,6 +188,12 @@ final class FeedViewModel: FeedViewModelType {
 
 // MARK: - Fetch Methods
 private extension FeedViewModel {
+  func fetchData() {
+    Task { await fetchFeeds() }
+    fetchChallengeInfo()
+    fetchIsProof()
+  }
+  
   func fetchChallengeInfo() {
     useCase.fetchChallengeDetail(id: challengeId)
       .observe(on: MainScheduler.instance)

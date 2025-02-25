@@ -43,6 +43,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private var viewDidAppear: Bool = false
 
   private let requestData = PublishRelay<Void>()
+  private let reloadData = PublishRelay<Void>()
   private let didTapFeedCell = PublishRelay<String>()
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<UIImageWrapper>()
@@ -106,7 +107,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     feedCollectionView.dataSource = dataSource
     dataSource.supplementaryViewProvider = supplementaryViewProvider()
     feedCollectionView.delegate = self
-    
+    configureRefreshControl()
     requestData.accept(())
   }
   
@@ -183,6 +184,7 @@ private extension FeedViewController {
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
       didTapLoginButton: didTapLoginButton.asSignal(),
       requestData: requestData.asSignal(),
+      reloadData: reloadData.asSignal(),
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
       uploadImage: uploadImageRelay.asSignal(),
@@ -216,6 +218,8 @@ private extension FeedViewController {
       .drive(with: self) { owner, feeds in
         switch feeds {
           case let .initialPage(models):
+            owner.feedCollectionView.refreshControl?.endRefreshing()
+            owner.deleteAllFeeds()
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
@@ -450,6 +454,15 @@ extension FeedViewController: AlignBottomSheetDelegate {
 
 // MARK: - Private Methods
 private extension FeedViewController {
+  func configureRefreshControl() {
+    feedCollectionView.refreshControl = UIRefreshControl()
+    feedCollectionView.refreshControl?.addTarget(self, action: #selector(refreshStart), for: .valueChanged)
+  }
+  
+  @objc func refreshStart() {
+    reloadData.accept(())
+  }
+  
   func updateTagViewContraints(percent: PhotiProgressPercent) {
     let tagViewLeading = tagViewLeading(for: percent.rawValue)
     
