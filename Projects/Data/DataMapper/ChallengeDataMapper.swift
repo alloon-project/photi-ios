@@ -16,6 +16,7 @@ public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
   func mapToChallengeSummary(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
   func mapToFeed(dto: FeedResponseDTO) -> Feed
+  func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -87,6 +88,18 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       imageURL: dto.imageUrl,
       isLike: dto.isLike,
       updateTime: updateTime
+    )
+  }
+  
+  public func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed {
+    let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    return .init(
+      id: id,
+      author: dto.username,
+      imageURL: dto.feedImageUrl,
+      authorImageURL: dto.userImageUrl,
+      updateTime: updateTime,
+      likeCount: dto.likeCnt
     )
   }
 }
