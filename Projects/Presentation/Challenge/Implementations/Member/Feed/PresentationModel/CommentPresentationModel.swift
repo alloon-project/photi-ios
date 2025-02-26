@@ -9,8 +9,8 @@
 import Foundation
 
 struct CommentPresentationModel: Hashable {
-  let id: String
-  let userName: String
+  let id: Int
+  let author: String
   let content: String
   let isOwner: Bool
   let updatedAt: Date

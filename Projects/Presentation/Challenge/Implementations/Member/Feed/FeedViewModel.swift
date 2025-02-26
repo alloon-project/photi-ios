@@ -32,6 +32,7 @@ final class FeedViewModel: FeedViewModelType {
   private let disposeBag = DisposeBag()
   private let challengeId: Int
   private let useCase: ChallengeUseCase
+  private let modelMapper = FeedPresentatoinModelMapper()
   
   private var alignMode: FeedsAlignMode = .recent
   private var currentPage = 0
@@ -229,13 +230,13 @@ private extension FeedViewModel {
       
       switch result {
         case let .defaults(feeds):
-          let models = feeds.flatMap { mapToPresentationModels($0) }
+          let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
           let feedsType: FeedsType = currentPage == 0 ? .initialPage(models) : .default(models)
           sleep(2)
           feedsRelay.accept(feedsType)
 
         case let .lastPage(feeds):
-          let models = feeds.flatMap { mapToPresentationModels($0) }
+          let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
           isLastFeedPage = true
           sleep(2)
           feedsRelay.accept(.default(models))
@@ -326,64 +327,5 @@ private extension FeedViewModel {
         owner.proofRelay.accept(.didNotProve(time))
       }
       .disposed(by: disposeBag)
-  }
-  
-  func mapToPresentationModels(_ feeds: [Feed]) -> [FeedPresentationModel] {
-    return feeds.map { feed in
-      let convertDate = feed.updateTime.convertTimezone(from: .kst)
-      return .init(
-        id: feed.id,
-        imageURL: feed.imageURL,
-        userName: feed.author,
-        updateTime: mapToUpdateTimeString(convertDate),
-        updateGroup: mapToUpdateGroup(convertDate),
-        isLike: feed.isLike
-      )
-    }
-  }
-  
-  func mapToUpdateTimeString(_ date: Date) -> String {
-    let current = Date()
-
-    guard current.year == date.year else {
-      return "\(abs(current.year - date.year))년 전"
-    }
-    
-    guard current.month == date.month else {
-      return "\(abs(current.month - date.month))년 전"
-    }
-    
-    guard current.day == date.day else {
-      return "\(abs(current.day - date.day))일 전"
-    }
-    
-    guard current.hour == date.hour else {
-      return "\(abs(current.hour - date.hour))시간 전"
-    }
-    
-    guard current.minute != date.minute else {
-      return "방금"
-    }
-    
-    let temp = abs(current.minute - date.minute)
-    switch temp {
-      case 0...10: return "\(temp)분 전"
-      default: return "\(temp / 10)분 전"
-    }
-  }
-  
-  func mapToUpdateGroup(_ date: Date) -> String {
-    let current = Date()
-
-    guard current.year == date.year else {
-      return "\(abs(current.year - date.year))년 전"
-    }
-    
-    guard current.month == date.month else {
-      return "\(abs(current.month - date.month))년 전"
-    }
-    
-    let temp = abs(current.day - date.day)
-    return temp == 0 ? "오늘" : "\(temp)일 전"
   }
 }
