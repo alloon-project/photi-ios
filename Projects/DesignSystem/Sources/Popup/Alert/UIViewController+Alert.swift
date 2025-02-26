@@ -9,8 +9,11 @@
 import UIKit
 
 public extension UIViewController {
-  func presentWarningPopup() {
+  @discardableResult
+  func presentNetworkUnstableAlert() -> AlertViewController {
     let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "서버가 불안정합니다. 잠시 후에 다시 시도해주세요.")
     alertVC.present(to: self, animted: false)
+    
+    return alertVC 
   }
 }

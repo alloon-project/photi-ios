@@ -10,6 +10,8 @@ import Core
 
 protocol FeedListener: AnyObject {
   func didChangeContentOffsetAtFeed(_ offset: Double)
+  func requestLoginAtChallengeFeed()
+  func shouldDismissChallenge()
 }
 
 protocol FeedPresentable { }
@@ -61,6 +63,14 @@ extension FeedCoordinator: FeedCoordinatable {
   
   func didChangeContentOffset(_ offset: Double) {
     listener?.didChangeContentOffsetAtFeed(offset)
+  }
+  
+  func requestLogin() {
+    listener?.requestLoginAtChallengeFeed()
+  }
+  
+  func didTapConfirmButtonAtAlert() {
+    listener?.shouldDismissChallenge()
   }
 }
 

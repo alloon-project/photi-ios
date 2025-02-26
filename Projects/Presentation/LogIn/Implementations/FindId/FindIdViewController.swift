@@ -46,7 +46,7 @@ final class FindIdViewController: UIViewController, ViewControllerable {
     .warning, text: "가입되지 않은 이메일이에요", icon: .closeRed
   )
   
-  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled)
+  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음", mode: .disabled) 
   
   private let alertVC = AlertViewController(
     alertType: .confirm,
@@ -164,7 +164,7 @@ private extension FindIdViewController {
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.presentWarningPopup()
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     
