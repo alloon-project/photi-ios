@@ -133,6 +133,17 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     
     return result.isProve
   }
+  
+  public func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed {
+    let api = ChallengeAPI.feedDetail(challengeId: challengeId, feedId: feedId)
+    let result = try await requestAuthorizableAPI(
+      api: api,
+      responseType: FeedDetailResponseDTO.self,
+      behavior: .immediate
+    ).value
+    
+    return dataMapper.mapToFeed(dto: result, id: challengeId)
+  }
 }
 
 // MARK: - Private Methods

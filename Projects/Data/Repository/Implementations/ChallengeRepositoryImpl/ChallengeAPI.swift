@@ -21,6 +21,7 @@ public enum ChallengeAPI {
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case isProve(challengeId: Int)
+  case feedDetail(challengeId: Int, feedId: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -40,6 +41,7 @@ extension ChallengeAPI: TargetType {
       case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
       case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
       case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
+      case let .feedDetail(challengeId, feedId): return "/challenges/\(challengeId)/feeds/\(feedId)"
     }
   }
   
@@ -54,40 +56,54 @@ extension ChallengeAPI: TargetType {
       case .uploadChallengeProof: return .post
       case let .updateLikeState(_, _, isLike): return isLike ? .post : .delete
       case .isProve: return .get
+      case .feedDetail: return .get
     }
   }
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges, .challengeDetail:
+      case .popularChallenges:
         return .requestPlain
+        
+      case let .challengeDetail(challengeId):
+        let parameters = ["challengeId": challengeId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
       case let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
       case .joinChallenge:
         return .requestPlain
+        
       case let .joinPrivateChallenge(_, code):
         let parameters = ["invitationCode": code]
         return .requestParameters(
           parameters: parameters,
           encoding: JSONEncoding.default
         )
-      case let .feeds(_, page, size, ordered):
-        let parameters = ["page": "\(page)", "size": "\(size)", "sort": ordered]
+      case let .feeds(challengeId, page, size, ordered):
+        let parameters = ["challengeId": "\(challengeId)", "page": "\(page)", "size": "\(size)", "sort": ordered]
         return .requestParameters(
           parameters: parameters,
-          encoding: JSONEncoding.default
+          encoding: URLEncoding.queryString
         )
         
-      case let .uploadChallengeProof(_, image, imageType):
+      case let .uploadChallengeProof(challengeId, image, imageType):
+        let parameters = ["challengeId": challengeId]
+
         let multiPartBody = MultipartFormDataBodyPart(
           .data(["imageFile": image]),
           fileExtension: imageType,
           mimeType: "image/\(imageType)"
         )
-        return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
         
-      case let .updateLikeState(challengeId, feedId, _):
+        return .uploadCompositeMultipart(
+          multipart: .init(bodyParts: [multiPartBody]),
+          urlParameters: parameters
+        )
+        
+      case let .updateLikeState(challengeId, feedId, _), let .feedDetail(challengeId, feedId):
         let parameters = ["challengeId": challengeId, "feedId": feedId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
@@ -140,6 +156,12 @@ extension ChallengeAPI: TargetType {
         
       case .isProve:
         let data = ChallengeProveResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .feedDetail:
+        let data = FeedDetailResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
