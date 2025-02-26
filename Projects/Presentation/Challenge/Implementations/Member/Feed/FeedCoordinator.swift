@@ -51,7 +51,7 @@ extension FeedCoordinator: FeedCoordinatable {
     
     viewControllerable.present(
       coordinator.viewControllerable,
-      animated: true,
+      animated: false,
       modalPresentationStyle: .overFullScreen
     )
   }
@@ -61,7 +61,7 @@ extension FeedCoordinator: FeedCoordinatable {
     guard let coordinator = feedCommentCoordinator else { return }
     
     removeChild(coordinator)
-    coordinator.viewControllerable.dismiss(animated: false)
+    coordinator.viewControllerable.dismiss(animated: true)
     self.feedCommentCoordinator = nil
   }
   

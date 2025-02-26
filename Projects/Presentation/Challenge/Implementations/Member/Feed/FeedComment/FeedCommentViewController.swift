@@ -94,8 +94,9 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     mainContainerView.layoutIfNeeded()
-    
     bottomGradientLayer.frame = bottomView.bounds
+    
+    presentWithAnimation()
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -103,9 +104,15 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     scrollToBottom()
   }
   
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     removeKeyboardNotification(keyboardShowNotification, keyboardHideNotification)
+    
+    guard let coordinator = transitionCoordinator else { return }
+    keepAliveBlurView()
+    coordinator.animateAlongsideTransition(in: self.view, animation: nil) { _ in
+      self.blurView.removeFromSuperview()
+    }
   }
   
   // MARK: - UIResponder
@@ -408,5 +415,22 @@ private extension FeedCommentViewController {
     } completion: { _ in
       completion?()
     }
+  }
+  
+  func presentWithAnimation() {
+    let origin = mainContainerView.frame.origin
+    mainContainerView.frame.origin = .init(x: origin.x, y: view.frame.maxY)
+    
+    UIView.animate(withDuration: 0.3) {
+      self.mainContainerView.frame.origin = origin
+      self.mainContainerView.layoutIfNeeded()
+    }
+  }
+  
+  func keepAliveBlurView() {
+    guard let window = UIWindow.key else { return }
+    
+    blurView.frame = window.frame
+    window.addSubview(blurView)
   }
 }
