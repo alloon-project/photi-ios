@@ -36,4 +36,5 @@ public protocol ChallengeRepository {
     size: Int,
     orderType: ChallengeFeedsOrderType
   ) async throws -> FeedReturnType
+  func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
 }
