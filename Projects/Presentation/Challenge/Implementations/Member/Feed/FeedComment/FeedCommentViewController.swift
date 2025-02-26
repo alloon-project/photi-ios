@@ -27,6 +27,8 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
   
+  private let requestDataRelay = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let blurView: UIView = {
     let view = UIView()
@@ -80,6 +82,8 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     tableView.delegate = self
     setupUI()
     bind()
+    
+    requestDataRelay.accept(())
   }
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -174,7 +178,8 @@ private extension FeedCommentViewController {
       .asSignal(onErrorJustReturn: ())
     
     let input = FeedCommentViewModel.Input(
-      didTapBackground: didTapBackground
+      didTapBackground: didTapBackground,
+      requestData: requestDataRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
     bind(for: output)
@@ -195,7 +200,30 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
   }
   
-  func bind(for output: FeedCommentViewModel.Output) { }
+  func bind(for output: FeedCommentViewModel.Output) {
+    output.feedImageURL
+      .compactMap { $0 }
+      .drive(with: self) { owner, url in
+        owner.imageView.kf.setImage(with: url)
+      }
+      .disposed(by: disposeBag)
+    
+    output.author
+      .drive(topView.rx.author)
+      .disposed(by: disposeBag)
+    
+    output.updateTime
+      .drive(topView.rx.updateTime)
+      .disposed(by: disposeBag)
+    
+    output.likeCount
+      .drive(topView.rx.likeCount)
+      .disposed(by: disposeBag)
+    
+    output.isLike
+      .drive(topView.rx.isLike)
+      .disposed(by: disposeBag)
+  }
   
   func bind(for cell: FeedCommentCell, model: CommentPresentationModel) {
     cell.rx.longPressGesture()
