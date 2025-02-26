@@ -81,4 +81,22 @@ public extension UICollectionView {
       completion()
     }
   }
+  
+  func headerView<T: UICollectionReusableView>(_ type: T.Type, at indexPath: IndexPath) -> T? {
+    guard let headerView = supplementaryView(
+      forElementKind: UICollectionView.elementKindSectionHeader,
+      at: indexPath
+    ) as? T else { return nil }
+    
+    return headerView
+  }
+
+  func footerView<T: UICollectionReusableView>(_ type: T.Type, at indexPath: IndexPath) -> T? {
+    guard let footerView = supplementaryView(
+      forElementKind: UICollectionView.elementKindSectionFooter,
+      at: indexPath
+    ) as? T else { return nil }
+    
+    return footerView
+  }
 }

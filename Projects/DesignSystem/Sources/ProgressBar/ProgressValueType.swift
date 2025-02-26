@@ -24,7 +24,7 @@ public enum PhotiProgressPercent: Double {
   case percent100 = 1
   
   public init(_ percent: Double) {
-    if percent < 0.1 {
+    if percent == 0 {
       self = .percent0
     } else if percent < 0.3 {
       self = .percent20

@@ -59,7 +59,7 @@ final class ChallengeTitleView: UIView {
 // MARK: - Internal Methods
 extension ChallengeTitleView {
   func configure(with model: ChallengeTitlePresentationModel) {
-    if let url = URL(string: model.imageURL) {
+    if let url = model.imageURL {
       imageView.kf.setImage(with: url)
     }
     setTitle(model.title)
