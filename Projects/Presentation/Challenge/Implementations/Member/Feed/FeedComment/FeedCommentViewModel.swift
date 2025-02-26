@@ -40,6 +40,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   struct Input {
     let didTapBackground: Signal<Void>
     let requestData: Signal<Void>
+    let didTapLikeButton: Signal<Bool>
   }
   
   // MARK: - Output
@@ -75,6 +76,13 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapLikeButton
+      .debounce(.milliseconds(500))
+      .emit(with: self) { owner, isLike in
+        owner.updateLikeState(isLike: isLike)
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       feedImageURL: feedImageURLRelay.asDriver(),
       updateTime: updateTimeRelay.asDriver(),
@@ -101,6 +109,21 @@ private extension FeedCommentViewModel {
     } catch {
       // TODO: 에러 구현 예정
       print(error)
+    }
+  }
+}
+
+// MARK: - Update Methods
+private extension FeedCommentViewModel {
+  func updateLikeState(isLike: Bool) {
+    Task {
+      guard isLikeRelay.value != isLike else { return }
+      let count = likeCountRelay.value
+      let adder = isLike ? 1 : -1
+      isLikeRelay.accept(isLike)
+      likeCountRelay.accept(count + adder)
+      
+      await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
     }
   }
 }

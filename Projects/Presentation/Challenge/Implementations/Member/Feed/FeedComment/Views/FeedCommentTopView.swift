@@ -8,6 +8,8 @@
 
 import UIKit
 import Kingfisher
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
@@ -37,7 +39,7 @@ final class FeedCommentTopView: UIView {
   private let avatarImageView = AvatarImageView(size: .xSmall)
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
-  private let likeButton = IconButton(size: .small)
+  fileprivate let likeButton = IconButton(size: .small)
   private let likeCountLabel = UILabel()
   
   // MARK: - Initializers
@@ -134,5 +136,13 @@ extension FeedCommentTopView {
       font: .caption1Bold,
       color: .white
     )
+  }
+}
+
+extension Reactive where Base: FeedCommentTopView {
+  var didTapLikeButton: ControlEvent<Bool> {
+    let source = base.likeButton.rx.tap.map { _ in base.likeButton.isSelected }
+    
+    return .init(events: source)
   }
 }

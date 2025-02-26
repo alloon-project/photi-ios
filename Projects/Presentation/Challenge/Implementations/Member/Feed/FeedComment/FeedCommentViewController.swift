@@ -179,7 +179,8 @@ private extension FeedCommentViewController {
     
     let input = FeedCommentViewModel.Input(
       didTapBackground: didTapBackground,
-      requestData: requestDataRelay.asSignal()
+      requestData: requestDataRelay.asSignal(),
+      didTapLikeButton: topView.rx.didTapLikeButton.asSignal()
     )
     let output = viewModel.transform(input: input)
     bind(for: output)
