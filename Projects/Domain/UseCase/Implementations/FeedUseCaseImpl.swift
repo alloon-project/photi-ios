@@ -28,4 +28,8 @@ public struct FeedUseCaseImpl: FeedUseCase {
     
     return feed.isLike
   }
+  
+  public func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async {
+    try? await repository.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+  }
 }

@@ -10,5 +10,5 @@ import Entity
 
 public protocol FeedUseCase {
   func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
-  func isLike(challengeId: Int, feedId: Int) async -> Bool
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async 
 }
