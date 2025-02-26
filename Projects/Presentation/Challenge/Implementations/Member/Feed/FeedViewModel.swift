@@ -14,7 +14,7 @@ import Entity
 import UseCase
 
 protocol FeedCoordinatable: AnyObject {
-  func attachFeedDetail(for feedID: String)
+  func attachFeedDetail(challengeId: Int, feedId: Int)
   func didChangeContentOffset(_ offset: Double)
   func requestLogin()
   func didTapConfirmButtonAtAlert()
@@ -65,7 +65,7 @@ final class FeedViewModel: FeedViewModelType {
     let didTapLoginButton: Signal<Void>
     let requestData: Signal<Void>
     let reloadData: Signal<Void>
-    let didTapFeed: Signal<String>
+    let didTapFeed: Signal<Int>
     let contentOffset: Signal<Double>
     let uploadImage: Signal<UIImageWrapper>
     let requestFeeds: Signal<Void>
@@ -112,8 +112,8 @@ final class FeedViewModel: FeedViewModelType {
       .disposed(by: disposeBag)
    
     input.didTapFeed
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.attachFeedDetail(for: "0")
+      .emit(with: self) { owner, feedId in
+        owner.coordinator?.attachFeedDetail(challengeId: owner.challengeId, feedId: feedId)
       }
       .disposed(by: disposeBag)
     

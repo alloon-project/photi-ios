@@ -44,7 +44,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
 
   private let requestData = PublishRelay<Void>()
   private let reloadData = PublishRelay<Void>()
-  private let didTapFeedCell = PublishRelay<String>()
+  private let didTapFeedCell = PublishRelay<Int>()
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<UIImageWrapper>()
   private let requestFeeds = PublishRelay<Void>()
@@ -403,8 +403,8 @@ extension FeedViewController {
 // MARK: - UICollectionViewDelegate
 extension FeedViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    // TODO: API 연결 후 수정
-    didTapFeedCell.accept("0")
+    guard let item = dataSource?.itemIdentifier(for: indexPath) else { return }
+    didTapFeedCell.accept(item.id)
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {

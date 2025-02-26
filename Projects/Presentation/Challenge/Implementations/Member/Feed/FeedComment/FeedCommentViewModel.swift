@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
@@ -23,7 +24,11 @@ protocol FeedCommentViewModelType: AnyObject {
 
 final class FeedCommentViewModel: FeedCommentViewModelType {
   weak var coordinator: FeedCommentCoordinatable?
+  private let modelMapper = FeedPresentatoinModelMapper()
   private let disposeBag = DisposeBag()
+  private let useCase: FeedUseCase
+  private let challengeId: Int
+  private let feedId: Int
 
   // MARK: - Input
   struct Input {
@@ -34,7 +39,15 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init(feedID: String) { }
+  init(
+    useCase: FeedUseCase,
+    challengeId: Int,
+    feedID: Int
+  ) {
+    self.useCase = useCase
+    self.challengeId = challengeId
+    self.feedId = feedID
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackground

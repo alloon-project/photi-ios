@@ -39,9 +39,13 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
 
 // MARK: - FeedCoordinatable
 extension FeedCoordinator: FeedCoordinatable {
-  func attachFeedDetail(for feedID: String) {
+  func attachFeedDetail(challengeId: Int, feedId: Int) {
     guard feedCommentCoordinator == nil else { return }
-    let coordinator = feedCommentContainer.coordinator(listener: self, feedID: feedID)
+    let coordinator = feedCommentContainer.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      feedId: feedId
+    )
     self.feedCommentCoordinator = coordinator
     addChild(coordinator)
     

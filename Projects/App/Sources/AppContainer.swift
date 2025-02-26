@@ -106,6 +106,10 @@ final class AppContainer:
   lazy var challengeUseCase: ChallengeUseCase = {
     return ChallengeUseCaseImpl(repository: challengeRepository, authRepository: authRepository)
   }()
+   
+  lazy var feedUseCase: FeedUseCase = {
+    return FeedUseCaseImpl(repository: challengeRepository)
+  }()
 
   lazy var reportUseCase: ReportUseCase = {
     return ReportUseCaseImpl(repository: reportRepository)

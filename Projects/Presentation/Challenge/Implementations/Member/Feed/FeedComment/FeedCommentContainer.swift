@@ -7,16 +7,31 @@
 //
 
 import Core
+import UseCase
 
-protocol FeedCommentDependency: Dependency { }
+protocol FeedCommentDependency: Dependency {
+  var feedUseCase: FeedUseCase { get }
+}
 
 protocol FeedCommentContainable: Containable {
-  func coordinator(listener: FeedCommentListener, feedID: String) -> ViewableCoordinating
+  func coordinator(
+    listener: FeedCommentListener,
+    challengeId: Int,
+    feedId: Int
+  ) -> ViewableCoordinating
 }
 
 final class FeedCommentContainer: Container<FeedCommentDependency>, FeedCommentContainable {
-  func coordinator(listener: FeedCommentListener, feedID: String) -> ViewableCoordinating {
-    let viewModel = FeedCommentViewModel(feedID: feedID)
+  func coordinator(
+    listener: FeedCommentListener,
+    challengeId: Int,
+    feedId: Int
+  ) -> ViewableCoordinating {
+    let viewModel = FeedCommentViewModel(
+      useCase: dependency.feedUseCase,
+      challengeId: challengeId,
+      feedID: feedId
+    )
     let viewControllerable = FeedCommentViewController(viewModel: viewModel)
     
     let coordinator = FeedCommentCoordinator(
