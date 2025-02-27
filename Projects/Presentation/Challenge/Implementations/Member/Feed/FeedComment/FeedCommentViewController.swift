@@ -16,8 +16,8 @@ import Core
 import DesignSystem
 
 final class FeedCommentViewController: UIViewController, ViewControllerable {
-  typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
+  typealias DataSourceType = UITableViewDiffableDataSource<Int, FeedCommentPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedCommentPresentationModel>
   
   // MARK: - Properties
   var keyboardShowNotification: NSObjectProtocol?
@@ -97,11 +97,6 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     bottomGradientLayer.frame = bottomView.bounds
     
     presentWithAnimation()
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    scrollToBottom()
   }
   
   override func viewWillDisappear(_ animated: Bool) {
@@ -231,9 +226,20 @@ private extension FeedCommentViewController {
     output.isLike
       .drive(topView.rx.isLike)
       .disposed(by: disposeBag)
+    
+    output.comments
+      .drive(with: self) { owner, commentPage in
+        switch commentPage {
+          case let .initialPage(comments):
+            owner.initialize(models: comments)
+          case let .default(comments):
+            owner.append(models: comments)
+        }
+      }
+      .disposed(by: disposeBag)
   }
   
-  func bind(for cell: FeedCommentCell, model: CommentPresentationModel) {
+  func bind(for cell: FeedCommentCell, model: FeedCommentPresentationModel) {
     cell.rx.longPressGesture()
       .map { $0.state }
       .bind(with: self) { owner, state in
@@ -288,7 +294,7 @@ private extension FeedCommentViewController {
   func diffableDataSource() -> DataSourceType {
     return .init(tableView: tableView) { [weak self] tableView, indexPath, model in
       let cell = tableView.dequeueCell(FeedCommentCell.self, for: indexPath)
-      cell.configure(userName: model.userName, comment: model.content)
+      cell.configure(model: model)
       
       self?.bind(for: cell, model: model)
       
@@ -296,40 +302,47 @@ private extension FeedCommentViewController {
     }
   }
   
-  func configureInitialData(models: [CommentPresentationModel]) {
-    var snapshot = Snapshot()
-    let sections = models.map { $0.id }
-    snapshot.appendSections(sections)
-    
-    models.forEach { model in
-      snapshot.appendItems([model], toSection: model.id)
+  func initialize(models:[FeedCommentPresentationModel]) {
+    let snapshot = append(models: models, snapshot: Snapshot())
+    dataSource?.apply(snapshot) { [weak self] in
+      self?.scrollToBottom()
     }
-    
-    dataSource?.apply(snapshot)
   }
   
-  func append(model: CommentPresentationModel) {
+  func append(models: [FeedCommentPresentationModel]) {
     guard let dataSource else { return }
-    var snapshot = dataSource.snapshot()
-    snapshot.appendSections([model.id])
-    snapshot.appendItems([model], toSection: model.id)
+    let snapshot = append(models: models, snapshot: dataSource.snapshot())
     dataSource.apply(snapshot) { [weak self] in
       self?.setupBoundaryCellAlpha()
     }
   }
   
-  func delete(model: CommentPresentationModel) {
+  func append(model: FeedCommentPresentationModel) {
     guard let dataSource else { return }
-    defer {
-      scrollToBottom { [weak self] in
-        self?.setupBoundaryCellAlpha()
-      }
+    let snapshot = append(model: model, snapshot: dataSource.snapshot())
+    dataSource.apply(snapshot) { [weak self] in
+      self?.setupBoundaryCellAlpha()
     }
-    var snapshot = dataSource.snapshot()
+  }
+  
+  func append(model: FeedCommentPresentationModel, snapshot: Snapshot) -> Snapshot {
+    var snapshot = snapshot
+    snapshot.appendSections([model.id])
+    snapshot.appendItems([model], toSection: model.id)
     
-    snapshot.deleteItems([model])
-    snapshot.deleteSections([model.id])
-    dataSource.apply(snapshot)
+    return snapshot
+  }
+  
+  func append(models: [FeedCommentPresentationModel], snapshot: Snapshot) -> Snapshot {
+    var snapshot = snapshot
+    let sections = models.map { $0.id }
+    
+    snapshot.appendSections(sections)
+    models.forEach { model in
+      snapshot.appendItems([model], toSection: model.id)
+    }
+    
+    return snapshot
   }
 }
 
@@ -409,7 +422,7 @@ private extension FeedCommentViewController {
   func scrollToBottom(_ completion: (() -> Void)? = nil) {
     tableView.layoutIfNeeded()
     UIView.animate(withDuration: 0.3) {
-      let scrollDistance = self.tableView.contentSize.height - self.tableView.frame.height + 4
+      let scrollDistance = self.tableView.contentSize.height - self.tableView.frame.height + 8
       self.tableView.setContentOffset(CGPoint(x: 0, y: scrollDistance), animated: false)
       self.view.layoutIfNeeded()
     } completion: { _ in

@@ -30,11 +30,16 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let challengeId: Int
   private let feedId: Int
   
+  private var isFetching: Bool = false
+  private var isLastPage: Bool = false
+  private var currentPage: Int = 0
+  
   private let authorRelay = BehaviorRelay<AuthorPresentationModel>(value: .default)
   private let updateTimeRelay = BehaviorRelay<String>(value: "")
   private let likeCountRelay = BehaviorRelay<Int>(value: 0)
   private let isLikeRelay = BehaviorRelay<Bool>(value: false)
   private let feedImageURLRelay = BehaviorRelay<URL?>(value: nil)
+  private let commentsRelay: BehaviorRelay<FeedCommentType> = .init(value: .default([]))
 
   // MARK: - Input
   struct Input {
