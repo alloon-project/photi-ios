@@ -17,6 +17,7 @@ public protocol ChallengeDataMapper {
   func mapToChallengeSummary(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
   func mapToFeed(dto: FeedResponseDTO) -> Feed
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
+  func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -100,6 +101,14 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       authorImageURL: dto.userImageUrl,
       updateTime: updateTime,
       likeCount: dto.likeCnt
+    )
+  }
+  
+  public func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment {
+    return .init(
+      id: dto.id,
+      author: dto.username,
+      comment: dto.comment
     )
   }
 }
