@@ -144,6 +144,23 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     
     return dataMapper.mapToFeed(dto: result, id: challengeId)
   }
+  
+  public func fetchFeedComments(
+    feedId: Int,
+    page: Int,
+    size: Int
+  ) async throws -> (feeds: [FeedComment], isLast: Bool) {
+    let api = ChallengeAPI.feedComments(feedId: feedId, page: page, size: size)
+    let result = try await requestAuthorizableAPI(
+      api: api,
+      responseType: FeedCommentsResponseDTO.self,
+      behavior: .immediate
+    ).value
+    
+    let feeds = result.content.map { dataMapper.mapToFeedComment(dto: $0) }
+    
+    return (feeds, result.last)
+  }
 }
 
 // MARK: - Private Methods

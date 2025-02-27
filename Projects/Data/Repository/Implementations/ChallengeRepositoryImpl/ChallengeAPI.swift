@@ -22,6 +22,7 @@ public enum ChallengeAPI {
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case isProve(challengeId: Int)
   case feedDetail(challengeId: Int, feedId: Int)
+  case feedComments(feedId: Int, page: Int, size: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -42,6 +43,7 @@ extension ChallengeAPI: TargetType {
       case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
       case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
       case let .feedDetail(challengeId, feedId): return "/challenges/\(challengeId)/feeds/\(feedId)"
+      case let .feedComments(feedId, _, _): return "/challenges/feeds/\(feedId)/comments"
     }
   }
   
@@ -57,6 +59,7 @@ extension ChallengeAPI: TargetType {
       case let .updateLikeState(_, _, isLike): return isLike ? .post : .delete
       case .isProve: return .get
       case .feedDetail: return .get
+      case .feedComments: return .get
     }
   }
   
@@ -109,6 +112,10 @@ extension ChallengeAPI: TargetType {
         
       case let .isProve(challengeId):
         let parameters = ["challengeId": challengeId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .feedComments(feedId, page, size):
+        let parameters = ["feedId": "\(feedId)", "page": "\(page)", "size": "\(size)"]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
@@ -163,6 +170,13 @@ extension ChallengeAPI: TargetType {
       case .feedDetail:
         let data = FeedDetailResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case let .feedComments(_, page, _):
+        let page = min(page, 1)
+        let commentsData = [FeedCommentsResponseDTO.stubData1, FeedCommentsResponseDTO.stubData2]
+        let jsonData = commentsData[page].data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }

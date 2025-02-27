@@ -8,7 +8,13 @@
 
 import Entity
 
+public enum FeedCommentsPage {
+  case `default`([FeedComment])
+  case lastPage([FeedComment])
+}
+
 public protocol FeedUseCase {
   func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
-  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async 
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async
+  func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> FeedCommentsPage
 }
