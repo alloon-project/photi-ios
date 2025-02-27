@@ -27,6 +27,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
   
+  private let requestComments = PublishRelay<Void>()
   private let requestDataRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
@@ -80,10 +81,12 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     self.dataSource = dataSource
     tableView.dataSource = dataSource
     tableView.delegate = self
+    configureRefreshControl()
     setupUI()
     bind()
     
     requestDataRelay.accept(())
+    requestComments.accept(())
   }
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -181,6 +184,7 @@ private extension FeedCommentViewController {
     
     let input = FeedCommentViewModel.Input(
       didTapBackground: didTapBackground,
+      requestComments: requestComments.asSignal(),
       requestData: requestDataRelay.asSignal(),
       didTapLikeButton: topView.rx.didTapLikeButton.asSignal()
     )
@@ -228,13 +232,20 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
     
     output.comments
+      .skip(1)
       .drive(with: self) { owner, commentPage in
         switch commentPage {
           case let .initialPage(comments):
             owner.initialize(models: comments)
           case let .default(comments):
-            owner.append(models: comments)
+            owner.appendToFront(models: comments)
         }
+      }
+      .disposed(by: disposeBag)
+    
+    output.stopLoadingAnimation
+      .emit(with: self) { owner, _ in
+        owner.tableView.refreshControl?.endRefreshing()
       }
       .disposed(by: disposeBag)
   }
@@ -302,7 +313,7 @@ private extension FeedCommentViewController {
     }
   }
   
-  func initialize(models:[FeedCommentPresentationModel]) {
+  func initialize(models: [FeedCommentPresentationModel]) {
     let snapshot = append(models: models, snapshot: Snapshot())
     dataSource?.apply(snapshot) { [weak self] in
       self?.scrollToBottom()
@@ -323,6 +334,22 @@ private extension FeedCommentViewController {
     dataSource.apply(snapshot) { [weak self] in
       self?.setupBoundaryCellAlpha()
     }
+  }
+  
+  func appendToFront(models: [FeedCommentPresentationModel]) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+
+    guard let minSection = snapshot.sectionIdentifiers.min() else { return append(models: models) }
+    
+    let sections = models.map { $0.id }
+    snapshot.insertSections(sections, beforeSection: minSection)
+    
+    models.forEach { model in
+      snapshot.appendItems([model], toSection: model.id)
+    }
+    
+    dataSource.apply(snapshot)
   }
   
   func append(model: FeedCommentPresentationModel, snapshot: Snapshot) -> Snapshot {
@@ -348,6 +375,15 @@ private extension FeedCommentViewController {
 
 // MARK: - Private Methods
 private extension FeedCommentViewController {
+  func configureRefreshControl() {
+    tableView.refreshControl = UIRefreshControl()
+    tableView.refreshControl?.addTarget(self, action: #selector(refreshStart), for: .valueChanged)
+  }
+  
+  @objc func refreshStart() {
+    requestComments.accept(())
+  }
+  
   func setupBoundaryCellAlpha() {
     let minOffsetY = tableView.contentOffset.y
     let maxOffsetY = minOffsetY + tableView.frame.height

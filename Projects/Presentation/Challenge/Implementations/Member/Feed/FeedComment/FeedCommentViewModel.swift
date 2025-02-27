@@ -39,11 +39,13 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let likeCountRelay = BehaviorRelay<Int>(value: 0)
   private let isLikeRelay = BehaviorRelay<Bool>(value: false)
   private let feedImageURLRelay = BehaviorRelay<URL?>(value: nil)
-  private let commentsRelay: BehaviorRelay<FeedCommentType> = .init(value: .default([]))
+  private let commentsRelay = BehaviorRelay<FeedCommentType>(value: .initialPage([]))
+  private let stopLoadingAnimation = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
     let didTapBackground: Signal<Void>
+    let requestComments: Signal<Void>
     let requestData: Signal<Void>
     let didTapLikeButton: Signal<Bool>
   }
@@ -55,6 +57,8 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let author: Driver<AuthorPresentationModel>
     let likeCount: Driver<Int>
     let isLike: Driver<Bool>
+    let comments: Driver<FeedCommentType>
+    let stopLoadingAnimation: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -81,6 +85,15 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.requestComments
+      .emit(with: self) { owner, _ in
+        guard !owner.isLastPage else { return owner.stopLoadingAnimation.accept(()) }
+        Task {
+          await owner.fetchFeedComments()
+          owner.stopLoadingAnimation.accept(())
+        }
+      }
+      .disposed(by: disposeBag)
     input.didTapLikeButton
       .debounce(.milliseconds(500))
       .emit(with: self) { owner, isLike in
@@ -93,7 +106,9 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       updateTime: updateTimeRelay.asDriver(),
       author: authorRelay.asDriver(),
       likeCount: likeCountRelay.asDriver(),
-      isLike: isLikeRelay.asDriver()
+      isLike: isLikeRelay.asDriver(),
+      comments: commentsRelay.asDriver(),
+      stopLoadingAnimation: stopLoadingAnimation.asSignal()
     )
   }
 }
@@ -125,10 +140,41 @@ private extension FeedCommentViewModel {
       guard isLikeRelay.value != isLike else { return }
       let count = likeCountRelay.value
       let adder = isLike ? 1 : -1
-      isLikeRelay.accept(isLike)
       likeCountRelay.accept(count + adder)
+      isLikeRelay.accept(isLike)
       
       await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+    }
+  }
+  
+  func fetchFeedComments() async {
+    guard !isFetching else { return stopLoadingAnimation.accept(()) }
+    isFetching = true
+    defer {
+      isFetching = false
+      currentPage += 1
+    }
+    do {
+      let result = try await useCase.fetchFeedComments(
+        feedId: feedId,
+        page: currentPage,
+        size: 10
+      )
+      
+      switch result {
+        case let .default(comments):
+          let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+          let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+          commentsRelay.accept(page)
+        case let .lastPage(comments):
+          let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+          let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+          isLastPage = true
+          commentsRelay.accept(page)
+      }
+    } catch {
+      stopLoadingAnimation.accept(())
+      print(error) // login이동
     }
   }
 }
