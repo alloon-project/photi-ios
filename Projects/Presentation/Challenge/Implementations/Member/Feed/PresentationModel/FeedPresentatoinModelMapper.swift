@@ -27,6 +27,17 @@ struct FeedPresentatoinModelMapper {
   func mapToAuthorPresentaionModel(author: String, url: URL?) -> AuthorPresentationModel {
     return .init(name: author, imageURL: url)
   }
+  
+  func mapToFeedCommentPresentationModels(_ comments: [FeedComment]) -> [FeedCommentPresentationModel] {
+    return comments.map {
+      .init(
+        id: $0.id,
+        author: $0.author,
+        content: $0.comment,
+        isOwner: true 
+      )
+    }
+  }
 }
 
 extension FeedPresentatoinModelMapper {
