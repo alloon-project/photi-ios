@@ -16,8 +16,8 @@ protocol MyPageCoordinatable: AnyObject {
   func detachSetting()
   func attachEndedChallenge()
   func detachEndedChallenge()
-  func attachProofChallenge()
-  func detachProofChallenge()
+  func attachFeedHistory(count: Int)
+  func detachFeedHistory()
 }
 
 protocol MyPageViewModelType: AnyObject {
@@ -34,7 +34,8 @@ final class MyPageViewModel: MyPageViewModelType {
   let disposeBag = DisposeBag()
   
   weak var coordinator: MyPageCoordinatable?
-  
+  private let FeedHistoryCount = BehaviorRelay(value: 0)
+  private let endedChallengeCount = BehaviorRelay(value: 0)
   private let userChallengeHistoryRelay = PublishRelay<UserChallengeHistory>()
   
   // MARK: - Input
@@ -57,23 +58,25 @@ final class MyPageViewModel: MyPageViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapSettingButton
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachSetting()
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.attachSetting()
       }.disposed(by: disposeBag)
     
     input.didTapAuthCountBox
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachProofChallenge()
+      .withLatestFrom(FeedHistoryCount)
+//      .filter { $0 > 0 } 
+      .bind(with: self) { owner, count in
+        owner.coordinator?.attachFeedHistory(count: count)
       }.disposed(by: disposeBag)
     
     input.didTapEndedChallengeBox
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachEndedChallenge()
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.attachEndedChallenge()
       }.disposed(by: disposeBag)
     
     input.isVisible
-      .bind(with: self) { onwer, _ in
-        onwer.userChallengeHistory()
+      .bind(with: self) { owner, _ in
+        owner.userChallengeHistory()
       }.disposed(by: disposeBag)
     
     return Output(
@@ -89,8 +92,10 @@ private extension MyPageViewModel {
       .observe(on: MainScheduler.instance)
       .subscribe(
         with: self,
-        onSuccess: { onwer, userChallengeHistory in
-          onwer.userChallengeHistoryRelay.accept(userChallengeHistory)
+        onSuccess: { owner, userChallengeHistory in
+          owner.userChallengeHistoryRelay.accept(userChallengeHistory)
+          owner.endedChallengeCount.accept(userChallengeHistory.endedChallengeCnt)
+          owner.FeedHistoryCount.accept(userChallengeHistory.feedCnt)
         }
       )
       .disposed(by: disposeBag)
