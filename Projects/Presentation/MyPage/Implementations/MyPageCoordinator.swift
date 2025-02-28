@@ -22,21 +22,21 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   private let endedChallengeContainable: EndedChallengeContainable
   private var endedChallengeCoordinator: ViewableCoordinating?
   
-  private let proofChallengeContainable: ProofChallengeContainable
-  private var proofChallengeCoordinator: ViewableCoordinating?
+  private let FeedHistoryContainable: FeedHistoryContainable
+  private var FeedHistoryCoordinator: ViewableCoordinating?
   
   init(
     viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,
-    proofChallengeContainable: ProofChallengeContainable
+    FeedHistoryContainable: FeedHistoryContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
     self.endedChallengeContainable = endedChallengeContainable
-    self.proofChallengeContainable = proofChallengeContainable
+    self.FeedHistoryContainable = FeedHistoryContainable
     
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -62,25 +62,25 @@ extension MyPageCoordinator: MyPageCoordinatable {
     self.settingCoordinator = nil
   }
   
-  func attachProofChallenge() {
-    guard proofChallengeCoordinator == nil else { return }
+  func attachFeedHistory(count: Int) {
+    guard FeedHistoryCoordinator == nil else { return }
     
-    let coordinator = proofChallengeContainable.coordinator(listener: self)
+    let coordinator = FeedHistoryContainable.coordinator(listener: self)
     addChild(coordinator)
     
     viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
 
-    self.proofChallengeCoordinator = coordinator
+    self.FeedHistoryCoordinator = coordinator
   }
   
-  func detachProofChallenge() {
-    guard let coordinator = proofChallengeCoordinator else { return }
+  func detachFeedHistory() {
+    guard let coordinator = FeedHistoryCoordinator else { return }
     
     removeChild(coordinator)
     
     viewControllerable.popViewController(animated: true)
-    self.proofChallengeCoordinator = nil
+    self.FeedHistoryCoordinator = nil
   }
   
   func attachEndedChallenge() {
@@ -115,9 +115,9 @@ extension MyPageCoordinator: SettingListener {
 }
 
 // MARK: - ProofListener
-extension MyPageCoordinator: ProofChallengeListener {
-  func didTapBackButtonAtProofChallenge() {
-    detachProofChallenge()
+extension MyPageCoordinator: FeedHistoryListener {
+  func didTapBackButtonAtFeedHistory() {
+    detachFeedHistory()
   }
 }
 
