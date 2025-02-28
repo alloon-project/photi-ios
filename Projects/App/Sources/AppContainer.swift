@@ -99,6 +99,10 @@ final class AppContainer:
     return EndedChallengeUseCaseImpl(repository: challengeRepository)
   }()
   
+  lazy var feedUseCase: FeedUseCase = {
+    return FeedUseCaseImpl(repository: feedRepository)
+  }()
+  
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
@@ -166,5 +170,9 @@ final class AppContainer:
   
   lazy var resignRepository: ResignRepository = {
     return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
+  }()
+  
+  lazy var feedRepository: FeedRepository = {
+    return FeedRepositoryImpl(dataMapper: FeedDataMapperImpl())
   }()
 }
