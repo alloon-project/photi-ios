@@ -1,6 +1,6 @@
 //
-//  ProofChallengeCellModel.swift
-//  DesignSystem
+//  FeedHistoryCellModel.swift
+//  Presentaion
 //
 //  Created by wooseob on 10/29/24.
 //  Copyright © 2024 com.photi. All rights reserved.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-public struct ProofChallengeCellPresentationModel {
-  let challengeImage: URL?
+public struct FeedHistoryCellPresentationModel {
+  let challengeImageUrl: URL?
   let challengeTitle: String
-  let finishedDate: Date
+  let provedDate: String
   let challengeId: String
 }

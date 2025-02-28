@@ -1,6 +1,6 @@
 //
-//  ProofChallengeCell.swift
-//  DesignSystem
+//  FeedHistoryCell.swift
+//  Presentation
 //
 //  Created by wooseob on 10/29/24.
 //  Copyright © 2024 com.photi. All rights reserved.
@@ -10,10 +10,11 @@ import UIKit
 import RxCocoa
 import RxSwift
 import Core
+import DesignSystem
 
-public final class ProofChallengeCell: UICollectionViewCell {
+public final class FeedHistoryCell: UICollectionViewCell {
   // MARK: - Properties
-  private(set) var model: ProofChallengeCellPresentationModel?
+  private(set) var model: FeedHistoryCellPresentationModel?
   
   // MARK: - UI Components
   private let whiteBackGroundView = {
@@ -64,11 +65,18 @@ public final class ProofChallengeCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure() {}
+  func configure(with viewModel: FeedHistoryCellPresentationModel) {
+    if let url = viewModel.challengeImageUrl {
+      challengeImageView.kf.setImage(with: url)
+    }
+    
+    finishedDateLabel.text = viewModel.provedDate
+    challengeTitleChip.text = viewModel.challengeTitle
+  }
 }
 
 // MARK: - UI Methods
-private extension ProofChallengeCell {
+private extension FeedHistoryCell {
   func setupUI() {
     setViewHierarchy()
     setConstraints()

@@ -73,7 +73,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
   }
 }
 
-// MARK: - Private
+// MARK: - Private Methods
 private extension EndedChallengeViewModel {
   func fetchEndedChallenges(page: Int, size: Int) {
     useCase.fetchEndedChallenges(page: page, size: size)
