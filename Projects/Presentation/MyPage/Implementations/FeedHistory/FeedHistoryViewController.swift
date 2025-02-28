@@ -93,6 +93,11 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    hideTabBar(animated: true)
+  }
 }
 
 // MARK: - UI methods
