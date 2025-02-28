@@ -1,5 +1,5 @@
 //
-//  ProofChallengeViewController.swift
+//  FeedHistoryViewController.swift
 //  Presentation
 //
 //  Created by wooseob on 10/29/24.
@@ -13,12 +13,16 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ProofChallengeViewController: UIViewController, ViewControllerable {
-  private let viewModel: ProofChallengeViewModel
+final class FeedHistoryViewController: UIViewController, ViewControllerable {
+  private let viewModel: FeedHistoryViewModel
   
   // MARK: - Variables
   private let disposeBag = DisposeBag()
-  
+  private var dataSource: [FeedHistoryCellPresentationModel] = [] {
+    didSet {
+      feedHistoryCollectionView.reloadData()
+    }
+  }
   // MARK: - UIComponents
   private let grayBackgroundView = {
     let view = UIView()
@@ -31,10 +35,10 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
   
   private let titleLabel = {
     let label = UILabel()
-    label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
+    label.attributedText = "총 0회 인증했어요".attributedString(
       font: .heading3,
       color: .gray900
-    ).setColor(.orange400, for: "0")
+    ).setColor(.green400, for: "0")
     label.textAlignment = .center
     
     return label
@@ -49,7 +53,7 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
     return pinkingView
   }()
   
-  private let proofChallengeCollectionView = {
+  private let feedHistoryCollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.minimumLineSpacing = 16
     layout.minimumInteritemSpacing = 12
@@ -62,7 +66,7 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
       right: 24
     )
     collectionView.backgroundColor = .white
-    collectionView.registerCell(ProofChallengeCell.self)
+    collectionView.registerCell(FeedHistoryCell.self)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
     
@@ -70,7 +74,7 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
   }()
   
   // MARK: - Initializers
-  init(viewModel: ProofChallengeViewModel) {
+  init(viewModel: FeedHistoryViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -84,15 +88,15 @@ final class ProofChallengeViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    proofChallengeCollectionView.delegate = self
-    proofChallengeCollectionView.dataSource = self
+    feedHistoryCollectionView.delegate = self
+    feedHistoryCollectionView.dataSource = self
     setupUI()
     bind()
   }
 }
 
 // MARK: - UI methods
-private extension ProofChallengeViewController {
+private extension FeedHistoryViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     setViewHierarchy()
@@ -102,7 +106,7 @@ private extension ProofChallengeViewController {
   func setViewHierarchy() {
     self.view.addSubviews(
       grayBackgroundView,
-      proofChallengeCollectionView,
+      feedHistoryCollectionView,
       grayBottomImageView
     )
     
@@ -127,7 +131,7 @@ private extension ProofChallengeViewController {
       $0.trailing.equalToSuperview().offset(-24)
     }
     
-    proofChallengeCollectionView.snp.makeConstraints {
+    feedHistoryCollectionView.snp.makeConstraints {
       $0.top.equalTo(grayBackgroundView.snp.bottom)
       $0.leading.trailing.bottom.equalToSuperview()
     }
@@ -141,39 +145,63 @@ private extension ProofChallengeViewController {
 }
 
 // MARK: - Bind Method
-private extension ProofChallengeViewController {
+private extension FeedHistoryViewController {
   func bind() {
-    let input = ProofChallengeViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton
+    let input = FeedHistoryViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      isVisible: self.rx.isVisible
     )
     
-    let _ = viewModel.transform(input: input)
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: FeedHistoryViewModel.Output) {
+    output.feedHistory
+      .drive(with: self) { owner, feeds in
+        owner.dataSource = feeds
+      }
+      .disposed(by: disposeBag)
+    
+    output.requestFailed
+      .emit(with: self) { owner, _ in
+        owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
-// MARK: - ProofChallengePresentable
-extension ProofChallengeViewController: ProofChallengePresentable { }
+// MARK: - FeedHistoryPresentable
+extension FeedHistoryViewController: FeedHistoryPresentable {
+  func setProofCount(_ count: Int) {
+    titleLabel.attributedText = "총 \(count)회 인증했어요".attributedString(
+      font: .heading3,
+      color: .gray900
+    ).setColor(.green400, for: "\(count)")
+  }
+}
 
 // MARK: - UICollectionViewDataSource
-extension ProofChallengeViewController: UICollectionViewDataSource {
+extension FeedHistoryViewController: UICollectionViewDataSource {
   func collectionView(
     _ collectionView: UICollectionView,
     numberOfItemsInSection section: Int
   ) -> Int {
-    10
+    dataSource.count
   }
   
   func collectionView(
     _ collectionView: UICollectionView,
     cellForItemAt indexPath: IndexPath
   ) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
+    let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
     
+    cell.configure(with: dataSource[indexPath.row])
     return cell
   }
 }
 
-extension ProofChallengeViewController: UICollectionViewDelegateFlowLayout {
+extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
     _ collectionView: UICollectionView,
     layout collectionViewLayout: UICollectionViewLayout,
