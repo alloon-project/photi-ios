@@ -64,7 +64,7 @@ final class MyPageViewModel: MyPageViewModelType {
     
     input.didTapAuthCountBox
       .withLatestFrom(FeedHistoryCount)
-//      .filter { $0 > 0 } 
+      .filter { $0 > 0 } 
       .bind(with: self) { owner, count in
         owner.coordinator?.attachFeedHistory(count: count)
       }.disposed(by: disposeBag)

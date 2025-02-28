@@ -50,7 +50,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
     let coordinator = settingContainable.coordinator(listener: self)
     addChild(coordinator)
     
-    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.settingCoordinator = coordinator
   }
@@ -58,6 +57,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
   func detachSetting() {
     guard let coordinator = settingCoordinator else { return }
     
+    removeChild(coordinator)
     viewControllerable.popToRoot(animated: true)
     self.settingCoordinator = nil
   }
@@ -68,7 +68,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
     let coordinator = FeedHistoryContainable.coordinator(listener: self)
     addChild(coordinator)
     
-    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
 
     self.FeedHistoryCoordinator = coordinator
@@ -88,7 +87,6 @@ extension MyPageCoordinator: MyPageCoordinatable {
     
     let coordinator = endedChallengeContainable.coordinator(listener: self)
     addChild(coordinator)
-    viewControllerable.uiviewController.hideTabBar(animated: true)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.endedChallengeCoordinator = coordinator
   }
