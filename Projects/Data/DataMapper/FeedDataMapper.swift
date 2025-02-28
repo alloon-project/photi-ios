@@ -12,13 +12,13 @@ import Core
 import Entity
 
 public protocol FeedDataMapper {
-  func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedSummary]
+  func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory]
 }
 
 public struct FeedDataMapperImpl: FeedDataMapper {
   public init() {}
   
-  public func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedSummary] {
+  public func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory] {
     let contents = dto.content
     
     return dto.content.map {
