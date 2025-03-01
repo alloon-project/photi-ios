@@ -125,7 +125,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   func bindRequest(input: Input) {
     input.requestData
       .emit(with: self) { owner, _ in
-        Task { await owner.fetchFeed() }
+        Task { await owner.fetchData() }
       }
       .disposed(by: disposeBag)
     
@@ -163,49 +163,67 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
 
 // MARK: - Fetch Method
 private extension FeedCommentViewModel {
-  func fetchFeed() async {
+  func fetchData() async {
     do {
-      let result = try await useCase.fetchFeed(challengeId: challengeId, feedId: feedId)
-      let updateTime = modelMapper.mapToUpdateTimeString(result.updateTime)
-      let author = modelMapper.mapToAuthorPresentaionModel(author: result.author, url: result.authorImageURL)
-      
-      feedImageURLRelay.accept(result.imageURL)
-      authorRelay.accept(author)
-      updateTimeRelay.accept(updateTime)
-      likeCountRelay.accept(result.likeCount)
-      isLikeRelay.accept(result.isLike)
+      try await fetchFeedWithThrowing()
+      try await fetchFeedCommentsWithThrowing()
     } catch {
       requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
+  func fetchFeed() async {
+    do {
+      try await fetchFeedWithThrowing()
+    } catch {
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    }
+  }
+  
+  func fetchFeedWithThrowing() async throws {
+    let result = try await useCase.fetchFeed(challengeId: challengeId, feedId: feedId)
+    let updateTime = modelMapper.mapToUpdateTimeString(result.updateTime)
+    let author = modelMapper.mapToAuthorPresentaionModel(author: result.author, url: result.authorImageURL)
+    
+    feedImageURLRelay.accept(result.imageURL)
+    authorRelay.accept(author)
+    updateTimeRelay.accept(updateTime)
+    likeCountRelay.accept(result.likeCount)
+    isLikeRelay.accept(result.isLike)
+  }
+  
   func fetchFeedComments() async {
+    do {
+      try await fetchFeedCommentsWithThrowing()
+    } catch {
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    }
+  }
+  
+  func fetchFeedCommentsWithThrowing() async throws {
     guard !isFetching else { return stopLoadingAnimation.accept(()) }
     isFetching = true
     defer {
       isFetching = false
       currentPage += 1
     }
-    do {
-      let result = try await useCase.fetchFeedComments(
-        feedId: feedId,
-        page: currentPage,
-        size: 10
-      )
-      
-      switch result {
-        case let .default(comments):
-          let models = modelMapper.mapToFeedCommentPresentationModels(comments)
-          let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
-          commentsRelay.accept(page)
-        case let .lastPage(comments):
-          let models = modelMapper.mapToFeedCommentPresentationModels(comments)
-          let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
-          isLastPage = true
-          commentsRelay.accept(page)
-      }
-    } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    
+    let result = try await useCase.fetchFeedComments(
+      feedId: feedId,
+      page: currentPage,
+      size: 10
+    )
+    
+    switch result {
+      case let .default(comments):
+        let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+        let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+        commentsRelay.accept(page)
+      case let .lastPage(comments):
+        let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+        let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+        isLastPage = true
+        commentsRelay.accept(page)
     }
   }
 }

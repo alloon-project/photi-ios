@@ -89,7 +89,6 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     bind()
     
     requestDataRelay.accept(())
-    requestComments.accept(())
   }
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
