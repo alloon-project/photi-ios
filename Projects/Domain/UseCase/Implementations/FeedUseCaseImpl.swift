@@ -42,4 +42,12 @@ public struct FeedUseCaseImpl: FeedUseCase {
     
     return isLast ? .lastPage(feeds) : .default(feeds)
   }
+  
+  public func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
+    return try await repository.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
+  }
+  
+  public func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
+    try await repository.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
+  }
 }

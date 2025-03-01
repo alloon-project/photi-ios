@@ -23,6 +23,8 @@ public enum ChallengeAPI {
   case isProve(challengeId: Int)
   case feedDetail(challengeId: Int, feedId: Int)
   case feedComments(feedId: Int, page: Int, size: Int)
+  case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
+  case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -44,6 +46,10 @@ extension ChallengeAPI: TargetType {
       case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
       case let .feedDetail(challengeId, feedId): return "/challenges/\(challengeId)/feeds/\(feedId)"
       case let .feedComments(feedId, _, _): return "/challenges/feeds/\(feedId)/comments"
+      case let .uploadFeedComment(challengeId, feedId, _): 
+        return "/challenges/\(challengeId)feeds/\(feedId)/comments"
+      case let .deleteFeedComment(challengeId, feedId, commentId): 
+        return "/challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
     }
   }
   
@@ -60,6 +66,8 @@ extension ChallengeAPI: TargetType {
       case .isProve: return .get
       case .feedDetail: return .get
       case .feedComments: return .get
+      case .uploadFeedComment: return .post
+      case .deleteFeedComment: return .delete
     }
   }
   
@@ -117,6 +125,15 @@ extension ChallengeAPI: TargetType {
       case let .feedComments(feedId, page, size):
         let parameters = ["feedId": "\(feedId)", "page": "\(page)", "size": "\(size)"]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .uploadFeedComment(challengeId, feedId, comment):
+        let urlParameters = ["challengeId": challengeId, "feedId": feedId]
+        let bodyParameters = ["comment": comment]
+        return .requestCompositeParameters(bodyParameters: bodyParameters, urlParameters: urlParameters)
+        
+      case let .deleteFeedComment(challengeId, feedId, commentId):
+        let parameters = ["challengeId": challengeId, "feedId": feedId, "commentId": commentId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
   
@@ -140,7 +157,9 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState:
+      // swiftlint:disable line_length
+      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState, .uploadFeedComment, .deleteFeedComment:
+      // swiftlint:enable line_length
         let data = """
           {
             "code": "200 OK",

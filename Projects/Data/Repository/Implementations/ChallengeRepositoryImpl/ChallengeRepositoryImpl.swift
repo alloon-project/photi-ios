@@ -161,6 +161,45 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     
     return (feeds, result.last)
   }
+  
+  public func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
+    let api = ChallengeAPI.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.challengeFailed(reason: .challengeNotFound)
+    }
+      
+    // TODO: 서버 API수정시 Feed CommentID 리턴으로 수정 예정
+    return 100
+  }
+  
+  public func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
+    let api = ChallengeAPI.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.challengeFailed(reason: .challengeNotFound)
+    }
+  }
 }
 
 // MARK: - Private Methods
