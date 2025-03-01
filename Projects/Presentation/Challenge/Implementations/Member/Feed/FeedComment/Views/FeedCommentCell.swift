@@ -52,7 +52,7 @@ final class FeedCommentCell: UITableViewCell {
 // MARK: - Internal Methods
 extension FeedCommentCell {
   func configure(model: FeedCommentPresentationModel) {
-    self.id = model.id
+    self.id = model.commentId
     configureUserName(model.author)
     configureComment(model.content)
   }
