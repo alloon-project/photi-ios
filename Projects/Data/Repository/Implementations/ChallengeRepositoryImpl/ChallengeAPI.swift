@@ -157,7 +157,7 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      // swiftlint:disable line_length
+      // swiftlint:disable line_length 
       case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState, .uploadFeedComment, .deleteFeedComment:
       // swiftlint:enable line_length
         let data = """
