@@ -11,6 +11,8 @@ import Core
 import Entity
 
 struct FeedPresentatoinModelMapper {
+  private let dummyCommentId = -1
+  
   func mapToFeedPresentationModels(_ feeds: [Feed]) -> [FeedPresentationModel] {
     return feeds.map { feed in
       return .init(
@@ -31,12 +33,23 @@ struct FeedPresentatoinModelMapper {
   func mapToFeedCommentPresentationModels(_ comments: [FeedComment]) -> [FeedCommentPresentationModel] {
     return comments.map {
       .init(
-        id: $0.id,
+        id: UUID().uuidString,
+        commentId: $0.id,
         author: $0.author,
         content: $0.comment,
-        isOwner: true 
+        isOwner: isOwner($0.author)
       )
     }
+  }
+  
+  func feedCommentPresentationModel(_ comment: String) -> FeedCommentPresentationModel {
+    return .init(
+      id: UUID().uuidString,
+      commentId: dummyCommentId,
+      author: ServiceConfiguration.shared.userName,
+      content: comment,
+      isOwner: true
+    )
   }
 }
 
@@ -86,5 +99,12 @@ extension FeedPresentatoinModelMapper {
   
     let temp = abs(current.day - date.day)
     return temp == 0 ? "오늘" : "\(temp)일 전"
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedPresentatoinModelMapper {
+  func isOwner(_ name: String) -> Bool {
+    return name == ServiceConfiguration.shared.userName
   }
 }

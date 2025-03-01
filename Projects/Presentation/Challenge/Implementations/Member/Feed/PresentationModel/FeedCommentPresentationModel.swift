@@ -7,10 +7,15 @@
 //
 
 struct FeedCommentPresentationModel: Hashable {
-  let id: Int
+  let id: String
+  var commentId: Int
   let author: String
   let content: String
   let isOwner: Bool
+  
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
 }
 
 enum FeedCommentType {
