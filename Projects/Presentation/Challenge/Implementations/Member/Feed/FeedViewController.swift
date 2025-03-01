@@ -257,7 +257,8 @@ private extension FeedViewController {
     
     output.loginTrigger
       .emit(with: self) { owner, _ in
-        owner.presentLoginTriggerAlert()
+        let alert = owner.presentLoginTriggerAlert()
+        owner.bind(alert: alert)
       }
       .disposed(by: disposeBag)
     
@@ -299,6 +300,14 @@ private extension FeedViewController {
       .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
       .bind(with: self) { owner, result in
         owner.didTapLikeButtonRelay.accept(result)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(alert: AlertViewController) {
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -516,22 +525,6 @@ private extension FeedViewController {
     alert.rx.didTapConfirmButton
       .bind(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func presentLoginTriggerAlert() {
-    let alert = AlertViewController(
-      alertType: .canCancel,
-      title: "재로그인이 필요해요",
-      subTitle: "보안을 위해 자동 로그아웃 됐어요.\n다시 로그인해주세요."
-    )
-    alert.confirmButtonTitle = "로그인하기"
-    alert.cancelButtonTitle = "나중에 할래요"
-    
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }

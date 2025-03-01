@@ -16,4 +16,17 @@ public extension UIViewController {
     
     return alertVC 
   }
+  
+  @discardableResult
+  func presentLoginTriggerAlert() -> AlertViewController {
+    let alertVC = AlertViewController(
+      alertType: .canCancel,
+      title: "재로그인이 필요해요",
+      subTitle: "보안을 위해 자동 로그아웃 됐어요.\n다시 로그인해주세요."
+    )
+    alertVC.confirmButtonTitle = "로그인하기"
+    alertVC.cancelButtonTitle = "나중에 할래요"
+    
+    return alertVC
+  }
 }
