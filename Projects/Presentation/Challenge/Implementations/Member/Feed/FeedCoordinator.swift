@@ -83,4 +83,8 @@ extension FeedCoordinator: FeedCommentListener {
   func requestDismissAtFeedComment() {
     detachFeedDetail()
   }
+  
+  func requestLogInAtFeedComment() {
+    listener?.requestLoginAtChallengeFeed()
+  }
 }

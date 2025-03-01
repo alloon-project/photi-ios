@@ -10,6 +10,7 @@ import Core
 
 protocol FeedCommentListener: AnyObject {
   func requestDismissAtFeedComment()
+  func requestLogInAtFeedComment()
 }
 
 protocol FeedCommentPresentable { }
@@ -33,5 +34,9 @@ final class FeedCommentCoordinator: ViewableCoordinator<FeedCommentPresentable> 
 extension FeedCommentCoordinator: FeedCommentCoordinatable {
   func requestDismiss() {
     listener?.requestDismissAtFeedComment()
+  }
+  
+  func requestLogIn() {
+    listener?.requestLogInAtFeedComment()
   }
 }
