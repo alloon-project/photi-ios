@@ -214,28 +214,8 @@ private extension FeedCommentViewController {
   }
   
   func bind(for output: FeedCommentViewModel.Output) {
-    output.feedImageURL
-      .compactMap { $0 }
-      .drive(with: self) { owner, url in
-        owner.imageView.kf.setImage(with: url)
-      }
-      .disposed(by: disposeBag)
-    
-    output.author
-      .drive(topView.rx.author)
-      .disposed(by: disposeBag)
-    
-    output.updateTime
-      .drive(topView.rx.updateTime)
-      .disposed(by: disposeBag)
-    
-    output.likeCount
-      .drive(topView.rx.likeCount)
-      .disposed(by: disposeBag)
-    
-    output.isLike
-      .drive(topView.rx.isLike)
-      .disposed(by: disposeBag)
+    bindFeedInfo(for: output)
+    bindRequestFailed(for: output)
     
     output.comments
       .skip(1)
@@ -275,6 +255,31 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
   }
   
+  func bindFeedInfo(for output: FeedCommentViewModel.Output) {
+    output.feedImageURL
+      .compactMap { $0 }
+      .drive(with: self) { owner, url in
+        owner.imageView.kf.setImage(with: url)
+      }
+      .disposed(by: disposeBag)
+    
+    output.author
+      .drive(topView.rx.author)
+      .disposed(by: disposeBag)
+    
+    output.updateTime
+      .drive(topView.rx.updateTime)
+      .disposed(by: disposeBag)
+    
+    output.likeCount
+      .drive(topView.rx.likeCount)
+      .disposed(by: disposeBag)
+    
+    output.isLike
+      .drive(topView.rx.isLike)
+      .disposed(by: disposeBag)
+  }
+  
   func bindRequestFailed(for output: FeedCommentViewModel.Output) {
     output.uploadCommentFailed
       .emit(with: self) { owner, id in
@@ -290,8 +295,8 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
-        owner.presentNetworkUnstableAlert()
+      .emit(with: self) { owner, reason in
+        owner.presentNetworkUnstableAlert(reason: reason)
       }
       .disposed(by: disposeBag)
   }

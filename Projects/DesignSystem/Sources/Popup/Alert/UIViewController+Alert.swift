@@ -10,8 +10,12 @@ import UIKit
 
 public extension UIViewController {
   @discardableResult
-  func presentNetworkUnstableAlert() -> AlertViewController {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "서버가 불안정합니다. 잠시 후에 다시 시도해주세요.")
+  func presentNetworkUnstableAlert(reason: String? = nil) -> AlertViewController {
+    let alertVC = AlertViewController(
+      alertType: .confirm,
+      title: "네트워크가 불안정해요",
+      subTitle: reason ?? "네트워크가 불안정합니다\n. 잠시 후에 다시 시도해주세요."
+    )
     alertVC.present(to: self, animted: false)
     
     return alertVC 

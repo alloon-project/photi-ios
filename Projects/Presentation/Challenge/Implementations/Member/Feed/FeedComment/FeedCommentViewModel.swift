@@ -47,7 +47,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
   private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
   private let uploadCommentFailedRelay = PublishRelay<String>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<String?>()
   private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
@@ -74,7 +74,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let comment: Signal<FeedCommentPresentationModel>
     let uploadCommentSuccess: Signal<(String, Int)>
     let uploadCommentFailed: Signal<String>
-    let networkUnstable: Signal<Void>
+    let networkUnstable: Signal<String?>
     let loginTrigger: Signal<Void>
   }
   
@@ -175,9 +175,7 @@ private extension FeedCommentViewModel {
       likeCountRelay.accept(result.likeCount)
       isLikeRelay.accept(result.isLike)
     } catch {
-      // TODO: 에러 구현 예정
-      // 로그 아웃~!
-      print(error)
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -207,8 +205,7 @@ private extension FeedCommentViewModel {
           commentsRelay.accept(page)
       }
     } catch {
-      // 로그인으로 이동
-      print(error) // login이동
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
 }
@@ -233,10 +230,9 @@ private extension FeedCommentViewModel {
       let commentId = try await useCase.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
       uploadCommentSuccessRelay.accept((modelId, commentId))
     } catch {
+      let message = "코멘트 등록에 실패했어요.\n잠시후 다시 시도해주세요."
       uploadCommentFailedRelay.accept(modelId)
-      // TODO: 에러 처리
-      // 로그인으로 이동
-      // 실패시 오류 띄우고 ~ view로 전달
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
     }
   }
   
@@ -246,23 +242,21 @@ private extension FeedCommentViewModel {
       try await useCase.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
       deleteCommentRelay.accept(commentId)
     } catch {
-      // TODO: 에러 처리
-      // 로그인
-      // 삭제 실패
-      // 로그인 / 삭제 실패
+      let message = "코멘트 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
     }
   }
   
-  func requestFailed(with error: Error) {
+  func requestFailed(with error: Error, reasonWhenNetworkUnstable: String?) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableRelay.accept(reasonWhenNetworkUnstable)
     }
     
     switch error {
       case .authenticationFailed:
         loginTriggerRelay.accept(())
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableRelay.accept(reasonWhenNetworkUnstable)
     }
   }
 }
