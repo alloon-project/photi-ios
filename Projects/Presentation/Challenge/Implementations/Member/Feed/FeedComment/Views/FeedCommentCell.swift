@@ -12,6 +12,7 @@ import Core
 import DesignSystem
 
 final class FeedCommentCell: UITableViewCell {
+  private(set) var id: Int = 0
   var isPressed: Bool = false {
     didSet {
       let alphaComponent: CGFloat = isPressed ? 0.5 : 0.1
@@ -50,9 +51,10 @@ final class FeedCommentCell: UITableViewCell {
 
 // MARK: - Internal Methods
 extension FeedCommentCell {
-  func configure(userName: String, comment: String) {
-    setUserName(userName)
-    setComment(comment)
+  func configure(model: FeedCommentPresentationModel) {
+    self.id = model.commentId
+    configureUserName(model.author)
+    configureComment(model.content)
   }
 }
 
@@ -92,14 +94,14 @@ private extension FeedCommentCell {
 
 // MARK: - Private Methods
 private extension FeedCommentCell {
-  func setUserName(_ userName: String) {
+  func configureUserName(_ userName: String) {
     userNameLabel.attributedText = userName.attributedString(
       font: .body2Bold,
       color: .gray400
     )
   }
   
-  func setComment(_ comment: String) {
+  func configureComment(_ comment: String) {
     commentLabel.attributedText = comment.attributedString(
       font: .body2,
       color: .gray200

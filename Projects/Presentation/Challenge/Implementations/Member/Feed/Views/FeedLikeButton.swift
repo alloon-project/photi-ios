@@ -21,16 +21,12 @@ final class FeedLikeButton: UIButton {
   init() {
     super.init(frame: .zero)
     setupUI()
+    addTarget(self, action: #selector(didTap), for: .touchUpInside)
   }
   
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    super.touchesEnded(touches, with: event)
-    isSelected.toggle()
   }
 }
 
@@ -58,5 +54,9 @@ private extension FeedLikeButton {
     }
     
     button.configuration = configuration
+  }
+  
+  @objc func didTap() {
+    isSelected.toggle()
   }
 }

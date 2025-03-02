@@ -7,17 +7,39 @@
 //
 
 import UIKit
+import Kingfisher
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class FeedCommentTopView: UIView {
+  var author: AuthorPresentationModel? {
+    didSet {
+      guard let author else { return }
+      configureAuthor(author)
+    }
+  }
+  
+  var updateTime: String = "" {
+    didSet { configureUpdateTime(updateTime) }
+  }
+  
+  var likeCount: Int = 0 {
+    didSet { configureLikeCount(likeCount) }
+  }
+  
+  var isLike: Bool = false {
+    didSet { likeButton.isSelected = isLike }
+  }
+  
   // MARK: - UI Components
-  private let topGradientLayer = FeedCommentGradientLayer(mode: .topToBottom, maxAlpha: 0.5)
+  private let topGradientLayer = FeedCommentGradientLayer(mode: .topToBottom, maxAlpha: 0.7)
   private let avatarImageView = AvatarImageView(size: .xSmall)
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
-  private let likeButton = IconButton(size: .small)
+  fileprivate let likeButton = IconButton(size: .small)
   private let likeCountLabel = UILabel()
   
   // MARK: - Initializers
@@ -85,25 +107,42 @@ private extension FeedCommentTopView {
 
 // MARK: - Methods
 extension FeedCommentTopView {
-  func setUserName(_ userName: String) {
-    userNameLabel.attributedText = userName.attributedString(
+  func configureAuthor(_ author: AuthorPresentationModel) {
+    userNameLabel.attributedText = author.name.attributedString(
       font: .body2Bold,
       color: .white
     )
+    
+    Task {
+      guard
+        let imageURL = author.imageURL,
+        let result = try? await KingfisherManager.shared.retrieveImage(with: imageURL)
+      else { return }
+      
+      avatarImageView.image = result.image
+    }
   }
   
-  func updateTime(_ updateTime: String) {
+  func configureUpdateTime(_ updateTime: String) {
     updateTimeLabel.attributedText = updateTime.attributedString(
       font: .caption1,
       color: .gray200
     )
   }
   
-  func setLikeCount(_ likeCount: Int) {
+  func configureLikeCount(_ likeCount: Int) {
     let likeCountText = likeCount == 0 ? "" : "\(likeCount)"
     likeCountLabel.attributedText = likeCountText.attributedString(
       font: .caption1Bold,
-      color: .gray200
+      color: .white
     )
+  }
+}
+
+extension Reactive where Base: FeedCommentTopView {
+  var didTapLikeButton: ControlEvent<Bool> {
+    let source = base.likeButton.rx.tap.map { _ in base.likeButton.isSelected }
+    
+    return .init(events: source)
   }
 }

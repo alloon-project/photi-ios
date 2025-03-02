@@ -16,8 +16,8 @@ import Core
 import DesignSystem
 
 final class FeedCommentViewController: UIViewController, ViewControllerable {
-  typealias DataSourceType = UITableViewDiffableDataSource<String, CommentPresentationModel>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<String, CommentPresentationModel>
+  typealias DataSourceType = UITableViewDiffableDataSource<String, FeedCommentPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<String, FeedCommentPresentationModel>
   
   // MARK: - Properties
   var keyboardShowNotification: NSObjectProtocol?
@@ -26,6 +26,12 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
+  
+  private let requestComments = PublishRelay<Void>()
+  private let requestDataRelay = PublishRelay<Void>()
+  private let requestDeleteCommentRelay = PublishRelay<Int>()
+  private let uploadCommentRelay = PublishRelay<String>()
+  private let didTapLoginButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let blurView: UIView = {
@@ -78,8 +84,11 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     self.dataSource = dataSource
     tableView.dataSource = dataSource
     tableView.delegate = self
+    configureRefreshControl()
     setupUI()
     bind()
+    
+    requestDataRelay.accept(())
   }
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -90,18 +99,20 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     mainContainerView.layoutIfNeeded()
-    
     bottomGradientLayer.frame = bottomView.bounds
+    
+    presentWithAnimation()
   }
   
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    scrollToBottom()
-  }
-  
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     removeKeyboardNotification(keyboardShowNotification, keyboardHideNotification)
+    
+    guard let coordinator = transitionCoordinator else { return }
+    keepAliveBlurView()
+    coordinator.animateAlongsideTransition(in: self.view, animation: nil) { _ in
+      self.blurView.removeFromSuperview()
+    }
   }
   
   // MARK: - UIResponder
@@ -174,7 +185,13 @@ private extension FeedCommentViewController {
       .asSignal(onErrorJustReturn: ())
     
     let input = FeedCommentViewModel.Input(
-      didTapBackground: didTapBackground
+      didTapBackground: didTapBackground,
+      requestComments: requestComments.asSignal(),
+      requestData: requestDataRelay.asSignal(),
+      didTapLikeButton: topView.rx.didTapLikeButton.asSignal(),
+      requestDeleteComment: requestDeleteCommentRelay.asSignal(),
+      requestUploadComment: uploadCommentRelay.asSignal(),
+      requestLogin: didTapLoginButton.asSignal()
     )
     let output = viewModel.transform(input: input)
     bind(for: output)
@@ -195,10 +212,97 @@ private extension FeedCommentViewController {
       .disposed(by: disposeBag)
   }
   
-  func bind(for output: FeedCommentViewModel.Output) { }
+  func bind(for output: FeedCommentViewModel.Output) {
+    bindFeedInfo(for: output)
+    bindRequestFailed(for: output)
+    
+    output.comments
+      .skip(1)
+      .drive(with: self) { owner, commentPage in
+        switch commentPage {
+          case let .initialPage(comments):
+            owner.initialize(models: comments)
+          case let .default(comments):
+            owner.appendToFront(models: comments)
+        }
+      }
+      .disposed(by: disposeBag)
+    
+    output.stopLoadingAnimation
+      .emit(with: self) { owner, _ in
+        owner.tableView.refreshControl?.endRefreshing()
+        owner.scrollToBottom()
+      }
+      .disposed(by: disposeBag)
+    
+    output.comment
+      .emit(with: self) { owner, model in
+        owner.append(model: model)
+      }
+      .disposed(by: disposeBag)
+    
+    output.deleteComment
+      .emit(with: self) { owner, id in
+        owner.delete(commentId: id)
+      }
+      .disposed(by: disposeBag)
+    
+    output.uploadCommentSuccess
+      .emit(with: self) { owner, result in
+        owner.update(commentId: result.1, for: result.0)
+      }
+      .disposed(by: disposeBag)
+  }
   
-  func bind(for cell: FeedCommentCell, model: CommentPresentationModel) {
+  func bindFeedInfo(for output: FeedCommentViewModel.Output) {
+    output.feedImageURL
+      .compactMap { $0 }
+      .drive(with: self) { owner, url in
+        owner.imageView.kf.setImage(with: url)
+      }
+      .disposed(by: disposeBag)
+    
+    output.author
+      .drive(topView.rx.author)
+      .disposed(by: disposeBag)
+    
+    output.updateTime
+      .drive(topView.rx.updateTime)
+      .disposed(by: disposeBag)
+    
+    output.likeCount
+      .drive(topView.rx.likeCount)
+      .disposed(by: disposeBag)
+    
+    output.isLike
+      .drive(topView.rx.isLike)
+      .disposed(by: disposeBag)
+  }
+  
+  func bindRequestFailed(for output: FeedCommentViewModel.Output) {
+    output.uploadCommentFailed
+      .emit(with: self) { owner, id in
+        owner.delete(modelId: id)
+      }
+      .disposed(by: disposeBag)
+    
+    output.loginTrigger
+      .emit(with: self) { owner, _ in
+        let alert = owner.presentLoginTriggerAlert()
+        owner.bind(alert: alert)
+      }
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, reason in
+        owner.presentNetworkUnstableAlert(reason: reason)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for cell: FeedCommentCell) {
     cell.rx.longPressGesture()
+      .filter { _ in cell.id != -1 }
       .map { $0.state }
       .bind(with: self) { owner, state in
         switch state {
@@ -207,9 +311,17 @@ private extension FeedCommentViewController {
           case .failed, .cancelled:
             cell.isPressed = false
           case .ended:
-            owner.delete(model: model)
+            owner.requestDeleteCommentRelay.accept(cell.id)
           default: break
         }
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(alert: AlertViewController) {
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -252,53 +364,138 @@ private extension FeedCommentViewController {
   func diffableDataSource() -> DataSourceType {
     return .init(tableView: tableView) { [weak self] tableView, indexPath, model in
       let cell = tableView.dequeueCell(FeedCommentCell.self, for: indexPath)
-      cell.configure(userName: model.userName, comment: model.content)
-      
-      self?.bind(for: cell, model: model)
+      cell.configure(model: model)
+      if model.isOwner { self?.bind(for: cell) }
       
       return cell
     }
   }
   
-  func configureInitialData(models: [CommentPresentationModel]) {
-    var snapshot = Snapshot()
+  func appendToFront(models: [FeedCommentPresentationModel]) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+
+    guard let minSection = snapshot.sectionIdentifiers.min() else { return append(models: models) }
+    
     let sections = models.map { $0.id }
-    snapshot.appendSections(sections)
+    snapshot.insertSections(sections, beforeSection: minSection)
     
     models.forEach { model in
       snapshot.appendItems([model], toSection: model.id)
     }
     
-    dataSource?.apply(snapshot)
+    dataSource.apply(snapshot)
   }
   
-  func append(model: CommentPresentationModel) {
-    guard let dataSource else { return }
-    var snapshot = dataSource.snapshot()
-    snapshot.appendSections([model.id])
-    snapshot.appendItems([model], toSection: model.id)
-    dataSource.apply(snapshot) { [weak self] in
-      self?.setupBoundaryCellAlpha()
+  func initialize(models: [FeedCommentPresentationModel]) {
+    let snapshot = append(models: models, snapshot: Snapshot())
+    dataSource?.apply(snapshot) { [weak self] in
+      self?.scrollToBottom()
     }
   }
   
-  func delete(model: CommentPresentationModel) {
+  func append(models: [FeedCommentPresentationModel]) {
     guard let dataSource else { return }
-    defer {
-      scrollToBottom { [weak self] in
-        self?.setupBoundaryCellAlpha()
+    let snapshot = append(models: models, snapshot: dataSource.snapshot())
+    dataSource.apply(snapshot) { [weak self] in
+      self?.scrollToBottom()
+    }
+  }
+  
+  func append(model: FeedCommentPresentationModel) {
+    guard let dataSource else { return }
+    commentTextField.text = ""
+    let snapshot = append(model: model, snapshot: dataSource.snapshot())
+    dataSource.apply(snapshot) { [weak self] in
+      self?.scrollToBottom { [weak self] in
+        self?.presentDeleteToastView()
       }
     }
+  }
+  
+  func append(model: FeedCommentPresentationModel, snapshot: Snapshot) -> Snapshot {
+    var snapshot = snapshot
+    snapshot.appendSections([model.id])
+    snapshot.appendItems([model], toSection: model.id)
+    return snapshot
+  }
+
+  func append(models: [FeedCommentPresentationModel], snapshot: Snapshot) -> Snapshot {
+    var snapshot = snapshot
+    let sections = models.map { $0.id }
+    
+    snapshot.appendSections(sections)
+    models.forEach { model in
+      snapshot.appendItems([model], toSection: model.id)
+    }
+    
+    return snapshot
+  }
+  
+  func update(commentId: Int, for modelId: String) {
+    guard let dataSource else { return }
+    
     var snapshot = dataSource.snapshot()
     
-    snapshot.deleteItems([model])
+    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.id == modelId }) else { return }
+    
+    let existingModel = snapshot.itemIdentifiers[index]
+    var updatedModel = existingModel
+    updatedModel.commentId = commentId
+    
+    snapshot.deleteItems([existingModel])
+    snapshot.appendItems([updatedModel], toSection: modelId)
+    dataSource.apply(snapshot, animatingDifferences: false)
+  }
+  
+  func delete(commentId: Int) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.commentId == commentId }) else { return }
+    let model = snapshot.itemIdentifiers[index]
+    
     snapshot.deleteSections([model.id])
-    dataSource.apply(snapshot)
+    dataSource.apply(snapshot) { [weak self] in
+      guard snapshot.itemIdentifiers.count <= 3 else { return }
+      self?.scrollToBottom()
+    }
+  }
+  
+  func delete(modelId: String) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    guard let model = snapshot.itemIdentifiers.first(where: { $0.id == modelId }) else { return }
+    snapshot.deleteSections([model.id])
+    dataSource.apply(snapshot) { [weak self] in
+      guard snapshot.itemIdentifiers.count <= 3 else { return }
+      self?.scrollToBottom()
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension FeedCommentViewController {
+  func configureRefreshControl() {
+    tableView.refreshControl = UIRefreshControl()
+    tableView.refreshControl?.addTarget(self, action: #selector(refreshStart), for: .valueChanged)
+  }
+  
+  @objc func refreshStart() {
+    requestComments.accept(())
+  }
+  
+  func scrollToBottom(_ completion: (() -> Void)? = nil) {
+    tableView.layoutIfNeeded()
+    UIView.animate(withDuration: 0.3) {
+      let scrollDistance = self.tableView.contentSize.height - self.tableView.frame.height + 8
+      self.tableView.setContentOffset(CGPoint(x: 0, y: scrollDistance), animated: false)
+      self.view.layoutIfNeeded()
+    } completion: { _ in
+      self.setupBoundaryCellAlpha()
+      completion?()
+    }
+  }
+  
   func setupBoundaryCellAlpha() {
     let minOffsetY = tableView.contentOffset.y
     let maxOffsetY = minOffsetY + tableView.frame.height
@@ -354,30 +551,23 @@ private extension FeedCommentViewController {
   func didTapReturnButton() {
     view.endEditing(true)
     guard !commentTextField.text.isEmpty else { return }
-    // TODO: 서버 연동 후, 수정 예정
-    let model = CommentPresentationModel(
-      id: UUID().uuidString,
-      userName: "석영",
-      content: commentTextField.text,
-      isOwner: true,
-      updatedAt: Date()
-    )
-    append(model: model)
-    commentTextField.text = ""
+    uploadCommentRelay.accept(commentTextField.text)
+  }
+  
+  func presentWithAnimation() {
+    let origin = mainContainerView.frame.origin
+    mainContainerView.frame.origin = .init(x: origin.x, y: view.frame.maxY)
     
-    scrollToBottom { [weak self] in
-      self?.presentDeleteToastView()
+    UIView.animate(withDuration: 0.3) {
+      self.mainContainerView.frame.origin = origin
+      self.mainContainerView.layoutIfNeeded()
     }
   }
   
-  func scrollToBottom(_ completion: (() -> Void)? = nil) {
-    tableView.layoutIfNeeded()
-    UIView.animate(withDuration: 0.3) {
-      let scrollDistance = self.tableView.contentSize.height - self.tableView.frame.height + 4
-      self.tableView.setContentOffset(CGPoint(x: 0, y: scrollDistance), animated: false)
-      self.view.layoutIfNeeded()
-    } completion: { _ in
-      completion?()
-    }
+  func keepAliveBlurView() {
+    guard let window = UIWindow.key else { return }
+    
+    blurView.frame = window.frame
+    window.addSubview(blurView)
   }
 }

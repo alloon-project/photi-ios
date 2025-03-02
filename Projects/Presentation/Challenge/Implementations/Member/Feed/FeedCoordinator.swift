@@ -39,15 +39,19 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
 
 // MARK: - FeedCoordinatable
 extension FeedCoordinator: FeedCoordinatable {
-  func attachFeedDetail(for feedID: String) {
+  func attachFeedDetail(challengeId: Int, feedId: Int) {
     guard feedCommentCoordinator == nil else { return }
-    let coordinator = feedCommentContainer.coordinator(listener: self, feedID: feedID)
+    let coordinator = feedCommentContainer.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      feedId: feedId
+    )
     self.feedCommentCoordinator = coordinator
     addChild(coordinator)
     
     viewControllerable.present(
       coordinator.viewControllerable,
-      animated: true,
+      animated: false,
       modalPresentationStyle: .overFullScreen
     )
   }
@@ -57,7 +61,7 @@ extension FeedCoordinator: FeedCoordinatable {
     guard let coordinator = feedCommentCoordinator else { return }
     
     removeChild(coordinator)
-    coordinator.viewControllerable.dismiss(animated: false)
+    coordinator.viewControllerable.dismiss(animated: true)
     self.feedCommentCoordinator = nil
   }
   
@@ -78,5 +82,9 @@ extension FeedCoordinator: FeedCoordinatable {
 extension FeedCoordinator: FeedCommentListener {
   func requestDismissAtFeedComment() {
     detachFeedDetail()
+  }
+  
+  func requestLogInAtFeedComment() {
+    listener?.requestLoginAtChallengeFeed()
   }
 }

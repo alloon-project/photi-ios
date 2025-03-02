@@ -9,9 +9,12 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Entity
+import UseCase
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
+  func requestLogIn()
 }
 
 protocol FeedCommentViewModelType: AnyObject {
@@ -23,26 +26,255 @@ protocol FeedCommentViewModelType: AnyObject {
 
 final class FeedCommentViewModel: FeedCommentViewModelType {
   weak var coordinator: FeedCommentCoordinatable?
+  private let modelMapper = FeedPresentatoinModelMapper()
   private let disposeBag = DisposeBag()
+  private let useCase: FeedUseCase
+  private let challengeId: Int
+  private let feedId: Int
+  
+  private var isFetching: Bool = false
+  private var isLastPage: Bool = false
+  private var currentPage: Int = 0
+  
+  private let authorRelay = BehaviorRelay<AuthorPresentationModel>(value: .default)
+  private let updateTimeRelay = BehaviorRelay<String>(value: "")
+  private let likeCountRelay = BehaviorRelay<Int>(value: 0)
+  private let isLikeRelay = BehaviorRelay<Bool>(value: false)
+  private let feedImageURLRelay = BehaviorRelay<URL?>(value: nil)
+  private let commentsRelay = BehaviorRelay<FeedCommentType>(value: .initialPage([]))
+  private let stopLoadingAnimation = PublishRelay<Void>()
+  private let deleteCommentRelay = PublishRelay<Int>()
+  private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
+  private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
+  private let uploadCommentFailedRelay = PublishRelay<String>()
+  private let networkUnstableRelay = PublishRelay<String?>()
+  private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
-    var didTapBackground: Signal<Void>
+    let didTapBackground: Signal<Void>
+    let requestComments: Signal<Void>
+    let requestData: Signal<Void>
+    let didTapLikeButton: Signal<Bool>
+    let requestDeleteComment: Signal<Int>
+    let requestUploadComment: Signal<String>
+    let requestLogin: Signal<Void>
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let feedImageURL: Driver<URL?>
+    let updateTime: Driver<String>
+    let author: Driver<AuthorPresentationModel>
+    let likeCount: Driver<Int>
+    let isLike: Driver<Bool>
+    let comments: Driver<FeedCommentType>
+    let stopLoadingAnimation: Signal<Void>
+    let deleteComment: Signal<Int>
+    let comment: Signal<FeedCommentPresentationModel>
+    let uploadCommentSuccess: Signal<(String, Int)>
+    let uploadCommentFailed: Signal<String>
+    let networkUnstable: Signal<String?>
+    let loginTrigger: Signal<Void>
+  }
   
   // MARK: - Initializers
-  init(feedID: String) { }
+  init(
+    useCase: FeedUseCase,
+    challengeId: Int,
+    feedID: Int
+  ) {
+    self.useCase = useCase
+    self.challengeId = challengeId
+    self.feedId = feedID
+  }
   
   func transform(input: Input) -> Output {
+    bindRequest(input: input)
+
     input.didTapBackground
       .emit(with: self) { owner, _ in
         owner.coordinator?.requestDismiss()
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    input.didTapLikeButton
+      .debounce(.milliseconds(500))
+      .emit(with: self) { owner, isLike in
+        owner.updateLikeState(isLike: isLike)
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      feedImageURL: feedImageURLRelay.asDriver(),
+      updateTime: updateTimeRelay.asDriver(),
+      author: authorRelay.asDriver(),
+      likeCount: likeCountRelay.asDriver(),
+      isLike: isLikeRelay.asDriver(),
+      comments: commentsRelay.asDriver(),
+      stopLoadingAnimation: stopLoadingAnimation.asSignal(),
+      deleteComment: deleteCommentRelay.asSignal(),
+      comment: commentRelay.asSignal(),
+      uploadCommentSuccess: uploadCommentSuccessRelay.asSignal(),
+      uploadCommentFailed: uploadCommentFailedRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal(),
+      loginTrigger: loginTriggerRelay.asSignal()
+    )
+  }
+  
+  func bindRequest(input: Input) {
+    input.requestData
+      .emit(with: self) { owner, _ in
+        Task { await owner.fetchData() }
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestComments
+      .emit(with: self) { owner, _ in
+        guard !owner.isLastPage else { return owner.stopLoadingAnimation.accept(()) }
+        Task {
+          await owner.fetchFeedComments()
+          owner.stopLoadingAnimation.accept(())
+        }
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestUploadComment
+      .emit(with: self) { owner, comment in
+        let model = owner.modelMapper.feedCommentPresentationModel(comment)
+        owner.commentRelay.accept(model)
+        Task { await owner.uploadComment(modelId: model.id, comment: comment) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestDeleteComment
+      .emit(with: self) { owner, id in
+        Task { await owner.deleteFeedComment(commentId: id) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestLogin
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestLogIn()
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
+// MARK: - Fetch Method
+private extension FeedCommentViewModel {
+  func fetchData() async {
+    do {
+      try await fetchFeedWithThrowing()
+      try await fetchFeedCommentsWithThrowing()
+    } catch {
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    }
+  }
+  
+  func fetchFeed() async {
+    do {
+      try await fetchFeedWithThrowing()
+    } catch {
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    }
+  }
+  
+  func fetchFeedWithThrowing() async throws {
+    let result = try await useCase.fetchFeed(challengeId: challengeId, feedId: feedId)
+    let updateTime = modelMapper.mapToUpdateTimeString(result.updateTime)
+    let author = modelMapper.mapToAuthorPresentaionModel(author: result.author, url: result.authorImageURL)
+    
+    feedImageURLRelay.accept(result.imageURL)
+    authorRelay.accept(author)
+    updateTimeRelay.accept(updateTime)
+    likeCountRelay.accept(result.likeCount)
+    isLikeRelay.accept(result.isLike)
+  }
+  
+  func fetchFeedComments() async {
+    do {
+      try await fetchFeedCommentsWithThrowing()
+    } catch {
+      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+    }
+  }
+  
+  func fetchFeedCommentsWithThrowing() async throws {
+    guard !isFetching else { return stopLoadingAnimation.accept(()) }
+    isFetching = true
+    defer {
+      isFetching = false
+      currentPage += 1
+    }
+    
+    let result = try await useCase.fetchFeedComments(
+      feedId: feedId,
+      page: currentPage,
+      size: 10
+    )
+    
+    switch result {
+      case let .default(comments):
+        let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+        let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+        commentsRelay.accept(page)
+      case let .lastPage(comments):
+        let models = modelMapper.mapToFeedCommentPresentationModels(comments)
+        let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
+        isLastPage = true
+        commentsRelay.accept(page)
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedCommentViewModel {
+  func updateLikeState(isLike: Bool) {
+    Task {
+      guard isLikeRelay.value != isLike else { return }
+      let count = likeCountRelay.value
+      let adder = isLike ? 1 : -1
+      likeCountRelay.accept(count + adder)
+      isLikeRelay.accept(isLike)
+      
+      await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+    }
+  }
+  
+  @MainActor
+  func uploadComment(modelId: String, comment: String) async {
+    do {
+      let commentId = try await useCase.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
+      uploadCommentSuccessRelay.accept((modelId, commentId))
+    } catch {
+      let message = "코멘트 등록에 실패했어요.\n잠시후 다시 시도해주세요."
+      uploadCommentFailedRelay.accept(modelId)
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
+    }
+  }
+  
+  @MainActor
+  func deleteFeedComment(commentId: Int) async {
+    do {
+      try await useCase.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
+      deleteCommentRelay.accept(commentId)
+    } catch {
+      let message = "코멘트 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
+    }
+  }
+  
+  func requestFailed(with error: Error, reasonWhenNetworkUnstable: String?) {
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(reasonWhenNetworkUnstable)
+    }
+    
+    switch error {
+      case .authenticationFailed:
+        loginTriggerRelay.accept(())
+      default:
+        networkUnstableRelay.accept(reasonWhenNetworkUnstable)
+    }
   }
 }
