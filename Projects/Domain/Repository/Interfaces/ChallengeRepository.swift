@@ -26,6 +26,7 @@ public protocol ChallengeRepository {
   func fetchPopularChallenges() -> Single<[ChallengeDetail]>
   func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
+  func joinPublicChallenge(id: Int) -> Single<Void>
   func joinPrivateChallnege(id: Int, code: String) -> Single<Void>
   func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
@@ -44,4 +45,5 @@ public protocol ChallengeRepository {
   ) async throws -> (feeds: [FeedComment], isLast: Bool)
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
+  func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
 }
