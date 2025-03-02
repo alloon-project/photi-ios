@@ -44,7 +44,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
 
   private let requestData = PublishRelay<Void>()
   private let reloadData = PublishRelay<Void>()
-  private let didTapFeedCell = PublishRelay<String>()
+  private let didTapFeedCell = PublishRelay<Int>()
   private let contentOffset = PublishRelay<Double>()
   private let uploadImageRelay = PublishRelay<UIImageWrapper>()
   private let requestFeeds = PublishRelay<Void>()
@@ -257,7 +257,8 @@ private extension FeedViewController {
     
     output.loginTrigger
       .emit(with: self) { owner, _ in
-        owner.presentLoginTriggerAlert()
+        let alert = owner.presentLoginTriggerAlert()
+        owner.bind(alert: alert)
       }
       .disposed(by: disposeBag)
     
@@ -299,6 +300,14 @@ private extension FeedViewController {
       .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
       .bind(with: self) { owner, result in
         owner.didTapLikeButtonRelay.accept(result)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(alert: AlertViewController) {
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -403,8 +412,8 @@ extension FeedViewController {
 // MARK: - UICollectionViewDelegate
 extension FeedViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    // TODO: API 연결 후 수정
-    didTapFeedCell.accept("0")
+    guard let item = dataSource?.itemIdentifier(for: indexPath) else { return }
+    didTapFeedCell.accept(item.id)
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -516,22 +525,6 @@ private extension FeedViewController {
     alert.rx.didTapConfirmButton
       .bind(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func presentLoginTriggerAlert() {
-    let alert = AlertViewController(
-      alertType: .canCancel,
-      title: "재로그인이 필요해요",
-      subTitle: "보안을 위해 자동 로그아웃 됐어요.\n다시 로그인해주세요."
-    )
-    alert.confirmButtonTitle = "로그인하기"
-    alert.cancelButtonTitle = "나중에 할래요"
-    
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }

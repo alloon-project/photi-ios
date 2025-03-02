@@ -12,6 +12,7 @@ import UseCase
 
 public protocol ChallengeDependency: Dependency {
   var challengeUseCase: ChallengeUseCase { get }
+  var feedUseCase: FeedUseCase { get }
 }
 
 public final class ChallengeContainer:
@@ -43,4 +44,5 @@ public final class ChallengeContainer:
   }
   
   var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
+  var feedUseCase: FeedUseCase { dependency.feedUseCase }
 }

@@ -33,4 +33,7 @@ public enum TaskType {
   
   /// "multipart/form-data"를 upload합니다.
   case uploadMultipartFormData(multipart: MultipartFormData)
+  
+  /// `urlParameters`와 함께, "multipart/form-data"를 upload합니다.
+  case uploadCompositeMultipart(multipart: MultipartFormData, urlParameters: [String: Any])
 }

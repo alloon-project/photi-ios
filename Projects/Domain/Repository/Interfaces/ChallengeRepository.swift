@@ -36,4 +36,12 @@ public protocol ChallengeRepository {
     size: Int,
     orderType: ChallengeFeedsOrderType
   ) async throws -> FeedReturnType
+  func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
+  func fetchFeedComments(
+    feedId: Int,
+    page: Int,
+    size: Int
+  ) async throws -> (feeds: [FeedComment], isLast: Bool)
+  func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
+  func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
 }

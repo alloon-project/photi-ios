@@ -6,16 +6,19 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
-
-struct CommentPresentationModel: Hashable {
+struct FeedCommentPresentationModel: Hashable {
   let id: String
-  let userName: String
+  var commentId: Int
+  let author: String
   let content: String
   let isOwner: Bool
-  let updatedAt: Date
   
   func hash(into hasher: inout Hasher) {
     hasher.combine(id)
   }
+}
+
+enum FeedCommentType {
+  case initialPage([FeedCommentPresentationModel])
+  case `default`([FeedCommentPresentationModel])
 }

@@ -51,7 +51,11 @@ extension AuthAPI: TargetType {
 fileprivate extension AuthAPI {
   static let sampleData = """
     {
+    "code": "200 OK",
+    "message": "성공",
+    "data": {
       "successMessage": "string"
+      }
     }
   """
 }
