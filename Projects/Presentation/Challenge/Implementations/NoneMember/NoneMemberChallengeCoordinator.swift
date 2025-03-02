@@ -105,6 +105,6 @@ extension NoneMemberChallengeCoordinator: LogInGuideListener {
   }
   
   func didTapLogInButtonAtLogInGuide() {
-    listener?.requestLogIn(for: viewModel.challengeId)
+    listener?.requestLogInAtNoneMemberChallenge()
   }
 }

@@ -123,7 +123,7 @@ extension ChallengeCoordinator: FeedListener {
   }
   
   func requestLoginAtChallengeFeed() {
-    listener?.requestLogin()
+    listener?.requestLoginAtChallenge()
   }
   
   func shouldDismissChallenge() {
