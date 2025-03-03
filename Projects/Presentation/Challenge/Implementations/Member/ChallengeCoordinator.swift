@@ -123,7 +123,7 @@ extension ChallengeCoordinator: FeedListener {
   }
   
   func requestLoginAtChallengeFeed() {
-    listener?.requestLogin()
+    listener?.requestLoginAtChallenge()
   }
   
   func shouldDismissChallenge() {
@@ -158,11 +158,15 @@ extension ChallengeCoordinator: EnterChallengeGoalListener {
   func didTapBackButtonAtEnterChallengeGoal() {
     detachEditChallengeGoal()
   }
-  
-  func didEnterChallengeGoal() {
+
+  func didFinishEnterChallengeGoal() {
     // TODO: API 연결 이후 수정 예정
     detachEditChallengeGoal { [weak self] in
       self?.presenter.presentDidChangeGoalToastView()
     }
+  }
+  
+  func requestLoginAtEnterChallengeGoal() {
+    listener?.requestLoginAtChallenge()
   }
 }

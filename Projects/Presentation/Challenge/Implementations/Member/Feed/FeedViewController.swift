@@ -344,7 +344,7 @@ extension FeedViewController {
     guard let sectionData = dataSource?.sectionIdentifier(for: indexPath.section) else {
       return headerView
     }
-    if indexPath.section == 0 {
+    if indexPath.section == 0, sectionData == "오늘" {
       switch isProve {
         case let .didNotProve(proveTime):
           headerView.configure(date: sectionData, type: .didNotProve(proveTime))
@@ -367,8 +367,12 @@ extension FeedViewController {
   
   func configureTodayHeaderView(for type: ProveType) {
     let indexPath = IndexPath(row: 0, section: 0)
-    guard let headerView = feedCollectionView.headerView(FeedsHeaderView.self, at: indexPath) else { return }
-    
+    guard
+      let headerView = feedCollectionView.headerView(FeedsHeaderView.self, at: indexPath),
+      let sectionData = dataSource?.sectionIdentifier(for: 0),
+      sectionData == "오늘"
+    else { return }
+
     switch type {
       case let .didNotProve(proveTime):
         headerView.configure(type: .didNotProve(proveTime))

@@ -20,8 +20,11 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
   public init(dataMapper: ChallengeDataMapper) {
     self.dataMapper = dataMapper
   }
-  
-  public func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
+}
+
+// MARK: - Fetch Methods
+public extension ChallengeRepositoryImpl {
+  func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.popularChallenges,
       responseType: [PopularChallengeResponseDTO].self
@@ -29,7 +32,7 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
   
-  public func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
+  func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.endedChallenges(page: page, size: size),
       responseType: EndedChallengeResponseDTO.self
@@ -37,7 +40,7 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     .map { dataMapper.mapToChallengeSummary(dto: $0) }
   }
   
-  public func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
+  func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.challengeDetail(id: id),
       responseType: ChallengeDetailResponseDTO.self,
@@ -46,16 +49,7 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
   
-  public func joinPrivateChallnege(id: Int, code: String) -> Single<Void> {
-    return requestAuthorizableAPI(
-      api: ChallengeAPI.joinPrivateChallenge(id: id, code: code),
-      responseType: SuccessResponseDTO.self,
-      behavior: .immediate
-    )
-    .map { _ in () }
-  }
-  
-  public func fetchFeeds(
+  func fetchFeeds(
     id: Int,
     page: Int,
     size: Int,
@@ -84,57 +78,8 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
       memberCount: value.content.first?.feedMemberCnt ?? 0
     )
   }
-  
-  public func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
-    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    } else if result.statusCode == 409 {
-      throw APIError.challengeFailed(reason: .alreadyUploadFeed)
-    }
-  }
-  
-  public func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
-    let api = ChallengeAPI.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    }
-  }
-  
-  public func isProve(challengeId: Int) async throws -> Bool {
-    let api = ChallengeAPI.isProve(challengeId: challengeId)
-    let result = try await requestAuthorizableAPI(
-      api: api,
-      responseType: ChallengeProveResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    return result.isProve
-  }
-  
-  public func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed {
+
+  func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed {
     let api = ChallengeAPI.feedDetail(challengeId: challengeId, feedId: feedId)
     let result = try await requestAuthorizableAPI(
       api: api,
@@ -145,7 +90,7 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     return dataMapper.mapToFeed(dto: result, id: challengeId)
   }
   
-  public func fetchFeedComments(
+  func fetchFeedComments(
     feedId: Int,
     page: Int,
     size: Int
@@ -162,7 +107,39 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     return (feeds, result.last)
   }
   
-  public func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
+  func isProve(challengeId: Int) async throws -> Bool {
+    let api = ChallengeAPI.isProve(challengeId: challengeId)
+    let result = try await requestAuthorizableAPI(
+      api: api,
+      responseType: ChallengeProveResponseDTO.self,
+      behavior: .immediate
+    ).value
+    
+    return result.isProve
+  }
+}
+
+// MARK: - Upload Methods
+public extension ChallengeRepositoryImpl {
+  func joinPrivateChallnege(id: Int, code: String) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.joinPrivateChallenge(id: id, code: code),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { _ in () }
+  }
+  
+  func joinPublicChallenge(id: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.joinChallenge(id: id),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { _ in () }
+  }
+  
+  func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
     let api = ChallengeAPI.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
     let provider = Provider<ChallengeAPI>(
       stubBehavior: .immediate,
@@ -183,7 +160,57 @@ public struct ChallengeRepositoryImpl: ChallengeRepository {
     return 100
   }
   
-  public func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
+  func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { _ in }
+  }
+  
+  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
+    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
+    } else if result.statusCode == 409 {
+      throw APIError.challengeFailed(reason: .alreadyUploadFeed)
+    }
+  }
+  
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
+    let api = ChallengeAPI.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+    let provider = Provider<ChallengeAPI>(
+      stubBehavior: .immediate,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    
+    guard let result = try? await provider.request(api).value else {
+      throw APIError.serverError
+    }
+    
+    if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
+    }
+  }
+}
+
+// MARK: - Delete Methods
+public extension ChallengeRepositoryImpl {
+  func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
     let api = ChallengeAPI.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
     let provider = Provider<ChallengeAPI>(
       stubBehavior: .immediate,

@@ -27,6 +27,7 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
   private let challengeName: String
 
   private let didTapSkipButtonRelay = PublishRelay<Void>()
+  private let didTapLoginButtonRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -155,7 +156,8 @@ private extension EnterChallengeGoalViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       goalText: textField.rx.text,
       didTapSaveButton: saveButton.rx.tap,
-      didTapSkipButton: didTapSkipButtonRelay.asSignal()
+      didTapSkipButton: didTapSkipButtonRelay.asSignal(),
+      didTapLoginButton: didTapLoginButtonRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -188,6 +190,27 @@ private extension EnterChallengeGoalViewController {
   func viewModelBind(for output: EnterChallengeGoalViewModel.Output) {
     output.saveButtonisEnabled
       .drive(saveButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.loginTrigger
+      .emit(with: self) { owner, _ in
+        let alert = owner.presentLoginTriggerAlert()
+        owner.bind(alert: alert)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(alert: AlertViewController) {
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButtonRelay.accept(())
+      }
       .disposed(by: disposeBag)
   }
 }

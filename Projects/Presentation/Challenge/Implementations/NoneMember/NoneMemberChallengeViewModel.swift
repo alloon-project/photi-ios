@@ -29,7 +29,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   weak var coordinator: NoneMemberChallengeCoordinatable?
   private let disposeBag = DisposeBag()
 
-  let challengeId: Int
+  private let challengeId: Int
   private let useCase: ChallengeUseCase
 
   private var challengeName = ""
@@ -106,7 +106,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     
     input.requestVerifyInvitationCode
       .emit(with: self) { owner, code in
-        Task { await owner.requestVerify(invitationCode: code) }
+        Task { await owner.requestJoinPrivateChallenge(code: code) }
       }
       .disposed(by: disposeBag)
     
@@ -135,23 +135,6 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
 
 // MARK: - Private Methods
 private extension NoneMemberChallengeViewModel {
-  func fetchChallenge() {
-    useCase.fetchChallengeDetail(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, challenge in
-          owner.challengeName = challenge.name
-          owner.isPrivateChallenge = !(challenge.isPublic ?? false)
-          owner.challengeRelay.accept(challenge)
-        },
-        onFailure: { owner, error in
-          owner.fetchChallengeFailed(with: error)
-        }
-      )
-      .disposed(by: disposeBag)
-  }
-  
   func didTapJoinButton() {
     Task {
       let isLogin = await useCase.isLogIn()
@@ -175,14 +158,25 @@ private extension NoneMemberChallengeViewModel {
       )
     }
   }
-  
-  func requestVerify(invitationCode: String) async {
-    do {
-      try await useCase.joinPrivateChallnege(id: challengeId, code: invitationCode)
-      verifyCodeResultRelay.accept(true)
-    } catch {
-      requestJoinChallengeFailed(with: error)
-    }
+}
+
+// MARK: - API Methods
+private extension NoneMemberChallengeViewModel {
+  func fetchChallenge() {
+    useCase.fetchChallengeDetail(id: challengeId)
+      .observe(on: MainScheduler.instance)
+      .subscribe(
+        with: self,
+        onSuccess: { owner, challenge in
+          owner.challengeName = challenge.name
+          owner.isPrivateChallenge = !(challenge.isPublic ?? false)
+          owner.challengeRelay.accept(challenge)
+        },
+        onFailure: { owner, error in
+          owner.fetchChallengeFailed(with: error)
+        }
+      )
+      .disposed(by: disposeBag)
   }
   
   func fetchChallengeFailed(with error: Error) {
@@ -196,6 +190,24 @@ private extension NoneMemberChallengeViewModel {
     }
   }
   
+  func requestJoinPublicChallenge() async {
+    do {
+      try await useCase.joinPublicChallenge(id: challengeId).value
+      coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+    } catch {
+      requestJoinChallengeFailed(with: error)
+    }
+  }
+  
+  func requestJoinPrivateChallenge(code: String) async {
+    do {
+      try await useCase.joinPrivateChallnege(id: challengeId, code: code)
+      verifyCodeResultRelay.accept(true)
+    } catch {
+      requestJoinChallengeFailed(with: error)
+    }
+  }
+  
   func requestJoinChallengeFailed(with error: Error) {
     guard let error = error as? APIError else { return }
     
@@ -204,8 +216,6 @@ private extension NoneMemberChallengeViewModel {
         verifyCodeResultRelay.accept(false)
       case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
         alreadyJoinedRelay.accept(())
-      case let .challengeFailed(reason) where reason == .challengeNotFound:
-        coordinator?.attachLogInGuide()
       case .authenticationFailed:
         coordinator?.attachLogInGuide()
       default:

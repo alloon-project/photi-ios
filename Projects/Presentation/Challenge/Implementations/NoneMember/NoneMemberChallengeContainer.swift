@@ -35,4 +35,6 @@ public final class NoneMemberChallengeContainer:
     coordinator.listener = listener
     return coordinator
   }
+  
+  var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
 }
