@@ -92,9 +92,13 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
     detachEnterChallengeGoal()
   }
   
-  func didEnterChallengeGoal() {
+  func didFinishEnterChallengeGoal() {
     detachEnterChallengeGoal()
     listener?.didJoinChallenge()
+  }
+  
+  func requestLoginAtEnterChallengeGoal() {
+    listener?.requestLogInAtNoneMemberChallenge()
   }
 }
 
@@ -105,6 +109,6 @@ extension NoneMemberChallengeCoordinator: LogInGuideListener {
   }
   
   func didTapLogInButtonAtLogInGuide() {
-    listener?.requestLogIn(for: viewModel.challengeId)
+    listener?.requestLogInAtNoneMemberChallenge()
   }
 }

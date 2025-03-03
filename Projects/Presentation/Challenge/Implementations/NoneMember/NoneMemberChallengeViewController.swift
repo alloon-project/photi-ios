@@ -334,7 +334,7 @@ private extension NoneMemberChallengeViewController {
   }
   
   func displayAlreadyJoinPopUp() {
-    let popUp = AlertViewController(alertType: .confirm, title: "오류", subTitle: "이미 참여한 챌린지입니다.")
+    let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
     popUp.present(to: self, animted: false)
   }
 }
