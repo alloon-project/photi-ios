@@ -13,7 +13,9 @@ import Core
 import Entity
 import UseCase
 
-protocol ChallengeHomeCoordinatable: AnyObject { }
+protocol ChallengeHomeCoordinatable: AnyObject {
+  func attachLogin()
+}
 
 protocol ChallengeHomeViewModelType: AnyObject {
   associatedtype Input
@@ -35,11 +37,16 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   private let myChallengeFeedsRelay = BehaviorRelay<[MyChallengeFeedPresentationModel]>(value: [])
   private let myChallengesRelay = BehaviorRelay<[MyChallengePresentationModel]>(value: [])
   private let didUploadChallengeFeed = PublishRelay<UploadChallnegeFeedResult>()
+  private let networkUnstableRelay = PublishRelay<String?>()
+  private let fileTooLargeRelay = PublishRelay<Void>()
+  private let alreadProveChallengeRelay = PublishRelay<Void>()
+  private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
+    let didTapLoginButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -47,6 +54,10 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     let myChallengeFeeds: Driver<[MyChallengeFeedPresentationModel]>
     let myChallenges: Driver<[MyChallengePresentationModel]>
     let didUploadChallengeFeed: Signal<UploadChallnegeFeedResult>
+    let networkUnstable: Signal<String?>
+    let fileTooLarge: Signal<Void>
+    let loginTrigger: Signal<Void>
+    let alreadProveChallenge: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -67,10 +78,20 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapLoginButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestLogin()
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       myChallengeFeeds: myChallengeFeedsRelay.asDriver(),
       myChallenges: myChallengesRelay.asDriver(),
-      didUploadChallengeFeed: didUploadChallengeFeed.asSignal()
+      didUploadChallengeFeed: didUploadChallengeFeed.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal(),
+      fileTooLarge: fileTooLargeRelay.asSignal(),
+      loginTrigger: loginTriggerRelay.asSignal(),
+      alreadProveChallenge: alreadProveChallengeRelay.asSignal()
     )
   }
 }
@@ -97,11 +118,23 @@ private extension ChallengeHomeViewModel {
       didUploadChallengeFeed.accept(.success(id: id, image: image))
     } catch {
       didUploadChallengeFeed.accept(.failure)
-      requestFailed(with: error)
+      requestFailed(with: error, message: "네트워크가 불안정해, 챌린지 인증에 실패했어요.\n다시 시도해주세요.")
     }
   }
   
-  func requestFailed(with error: Error) { }
+  func requestFailed(with error: Error, message: String? = nil) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(message) }
+    
+    switch error {
+      case .authenticationFailed:
+        loginTriggerRelay.accept(())
+      case let .challengeFailed(reason) where reason == .fileTooLarge:
+        fileTooLargeRelay.accept(())
+      case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
+        alreadProveChallengeRelay.accept(())
+      default: networkUnstableRelay.accept(message)
+    }
+  }
   
   func mapToMyChallengeFeeds(_ challenges: [ChallengeSummary]) -> [MyChallengeFeedPresentationModel] {
     let didNotProofChallenges = challenges.filter { !$0.isProve }.sorted {

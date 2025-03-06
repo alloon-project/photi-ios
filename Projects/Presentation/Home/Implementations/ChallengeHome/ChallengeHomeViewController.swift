@@ -34,6 +34,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
+  private let didTapLoginButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -141,7 +142,8 @@ private extension ChallengeHomeViewController {
   func bind() {
     let input = ChallengeHomeViewModel.Input(
       requestData: requestData.asSignal(),
-      uploadChallengeFeed: uploadChallengeFeed.asSignal()
+      uploadChallengeFeed: uploadChallengeFeed.asSignal(),
+      didTapLoginButton: didTapLoginButton.asSignal()
     )
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
@@ -166,6 +168,25 @@ private extension ChallengeHomeViewController {
         }
       }
       .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, reason in
+        owner.presentNetworkUnstableAlert(reason: reason)
+      }
+      .disposed(by: disposeBag)
+    
+    output.loginTrigger
+      .emit(with: self) { owner, _ in
+        let alert = owner.presentLoginTriggerAlert()
+        owner.bind(alert: alert)
+      }
+      .disposed(by: disposeBag)
+    
+    output.fileTooLarge
+      .emit(with: self) { owner, _ in
+        owner.presentFileTooLargeAlert()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for cell: ProofChallengeCell, isNotProof: Bool) {
@@ -174,6 +195,14 @@ private extension ChallengeHomeViewController {
       .bind(with: self) { owner, _ in
         owner.uploadChallengeId = cell.challengeId
         owner.requestOpenCamera(delegate: owner)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(alert: AlertViewController) {
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -279,5 +308,14 @@ private extension ChallengeHomeViewController {
     
     let snapshot = datasource.snapshot()
     return snapshot.numberOfItems - 1 == row
+  }
+  
+  func presentFileTooLargeAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "용량이 너무 커요",
+      subTitle: "파일 용량이 너무 커, 챌린지 인증에 실패했어요. \n용량은 8MB이하만 가능해요."
+    )
+    alert.present(to: self, animted: true)
   }
 }

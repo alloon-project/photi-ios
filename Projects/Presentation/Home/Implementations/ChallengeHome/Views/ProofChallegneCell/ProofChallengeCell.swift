@@ -90,7 +90,7 @@ private extension ProofChallengeCell {
     configureSeperatorView(type: type, isLast: isLast)
     
     switch type {
-      case .proof:
+      case .proofURL, .proofImage:
         deadLineChip.type = .green
       case .didNotProof:
         deadLineChip.type = .blue
@@ -106,7 +106,7 @@ private extension ProofChallengeCell {
     switch type {
       case .didNotProof:
         seperatorView.backgroundColor = .blue100
-      case .proof:
+      case .proofURL, .proofImage:
         seperatorView.backgroundColor = .green0
     }
   }

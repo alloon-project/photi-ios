@@ -73,7 +73,7 @@ private extension ChallengeTitleView {
 
   func configureBackgounrd(type: ModelType) {
     switch type {
-      case .proof:
+      case .proofURL, .proofImage:
         self.backgroundColor = .green400
       case .didNotProof:
         self.backgroundColor = .blue400
@@ -82,7 +82,7 @@ private extension ChallengeTitleView {
   
   func configureImageView(type: ModelType) {
     switch type {
-      case .proof:
+      case .proofURL, .proofImage:
         self.imageView.image = .cloverGreen
       case .didNotProof:
         self.imageView.image = .timeLightBlue

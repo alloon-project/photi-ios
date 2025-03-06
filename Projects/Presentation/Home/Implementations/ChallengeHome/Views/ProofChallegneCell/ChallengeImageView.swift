@@ -62,9 +62,17 @@ private extension ChallengeImageView {
   
   func setupUI(for type: ModelType) {
     switch type {
-      case let .proof(url):
-        setupDidProofUI(url: url)
-  
+      case let .proofURL(url):
+        setupDidProofUI()
+        imageView.kf.setImage(with: url) { [weak self] _ in
+          guard let self else { return }
+          bringSubviewToFront(cornerView)
+        }
+        
+      case let .proofImage(image):
+        setupDidProofUI()
+        imageView.image = image
+        
       case .didNotProof:
         setupNotProofUI(image: .cameraPlusLightBlue)
     }
@@ -88,21 +96,11 @@ private extension ChallengeImageView {
 
 // MARK: - Private Methods
 private extension ChallengeImageView {
-  func demo() {
-    self.roundCorners(leftTop: 10, rightTop: 10, leftBottom: 10, rightBottom: 34)
-    imageView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
-    }
-  }
-  
-  func setupDidProofUI(url: URL?) {
+  func setupDidProofUI() {
     self.roundCorners(leftTop: 10, rightTop: 10, leftBottom: 10, rightBottom: 34)
     configureShapeBorder(width: 6, strockColor: .green200, backGroundColor: .clear)
     cornerView.backgroundColor = .green200
-    imageView.kf.setImage(with: url) { [weak self] _ in
-      guard let self else { return }
-      bringSubviewToFront(cornerView)
-    }
+
     imageView.snp.remakeConstraints {
       $0.edges.equalToSuperview()
     }
