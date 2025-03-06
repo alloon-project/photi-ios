@@ -37,7 +37,7 @@ public extension ChallengeRepositoryImpl {
       api: ChallengeAPI.endedChallenges(page: page, size: size),
       responseType: EndedChallengeResponseDTO.self
     )
-    .map { dataMapper.mapToChallengeSummary(dto: $0) }
+    .map { dataMapper.mapToChallengeSummaryFromEnded(dto: $0) }
   }
   
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
@@ -116,6 +116,15 @@ public extension ChallengeRepositoryImpl {
     ).value
     
     return result.isProve
+  }
+    
+  func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.myChallenges(page: page, size: size),
+      responseType: MyChallengesResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
 }
 
