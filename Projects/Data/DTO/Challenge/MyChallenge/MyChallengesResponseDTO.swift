@@ -15,7 +15,7 @@ public struct MyChallengesResponseDTO: Decodable {
 public struct MyChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let challengeImageUrl: URL
+  public let challengeImageUrl: URL?
   public let proveTime: String
   public let endDate: String
   public let hashtags: [HashTagResponseDTO]
@@ -52,7 +52,7 @@ public extension MyChallengesResponseDTO {
         "id": 1,
         "name": "신나게 하는 러닝 챌린지",
         "challengeImageUrl": "https://fastly.picsum.photos/id/370/200/200.jpg?hmac=HT9dVkM8BnOVYNnQU3Kiehyb9hJUPrehSqcOHXrq_y0",
-        "proveTime": "16:00",
+        "proveTime": "16:11 ",
         "endDate": "2024-12-01",
         "hashtags": [
           {
@@ -83,7 +83,7 @@ public extension MyChallengesResponseDTO {
       {
         "id": 3,
         "name": "신나게 하는 러닝 챌린지",
-        "challengeImageUrl": "https://fastly.picsum.photos/id/370/200/200.jpg?hmac=HT9dVkM8BnOVYNnQU3Kiehyb9hJUPrehSqcOHXrq_y0",
+        "challengeImageUrl": "https://fastly.picsum.photos",
         "proveTime": "18:00",
         "endDate": "2024-12-01",
         "hashtags": [
@@ -100,7 +100,6 @@ public extension MyChallengesResponseDTO {
       {
         "id": 4,
         "name": "신나게 하는 러닝 챌린지",
-        "challengeImageUrl": "https://fastly.picsum.photos/id/370/200/200.jpg?hmac=HT9dVkM8BnOVYNnQU3Kiehyb9hJUPrehSqcOHXrq_y0",
         "proveTime": "21:00",
         "endDate": "2024-12-01",
         "hashtags": [

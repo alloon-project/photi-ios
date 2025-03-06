@@ -28,10 +28,6 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHomeViewModel
   
-  private var myChallengeDataSources: [MyChallengePresentationModel] = [] {
-    didSet { bottomView.dataSources = myChallengeDataSources }
-  }
-  
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
   private let didTapLoginButton = PublishRelay<Void>()
@@ -157,7 +153,7 @@ private extension ChallengeHomeViewController {
       .disposed(by: disposeBag)
     
     output.myChallenges
-      .drive(self.rx.myChallengeDataSources)
+      .drive(bottomView.rx.dataSources)
       .disposed(by: disposeBag)
     
     output.didUploadChallengeFeed

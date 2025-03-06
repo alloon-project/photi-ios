@@ -80,7 +80,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     
     input.didTapLoginButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.requestLogin()
+        owner.coordinator?.attachLogin()
       }
       .disposed(by: disposeBag)
     
