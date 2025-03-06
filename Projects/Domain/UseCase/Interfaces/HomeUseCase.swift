@@ -11,4 +11,5 @@ import Entity
 
 public protocol HomeUseCase {
   func fetchPopularChallenge() -> Single<[ChallengeDetail]>
+  func fetchMyChallenges() -> Single<[ChallengeSummary]>
 }
