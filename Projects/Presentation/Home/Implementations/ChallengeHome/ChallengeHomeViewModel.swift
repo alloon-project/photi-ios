@@ -22,6 +22,11 @@ protocol ChallengeHomeViewModelType: AnyObject {
   var coordinator: ChallengeHomeCoordinatable? { get set }
 }
 
+enum UploadChallnegeFeedResult {
+  case success(id: Int)
+  case failure
+}
+
 final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   weak var coordinator: ChallengeHomeCoordinatable?
   private let disposeBag = DisposeBag()
@@ -29,6 +34,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   
   private let myChallengeFeedsRelay = BehaviorRelay<[MyChallengeFeedPresentationModel]>(value: [])
   private let myChallengesRelay = BehaviorRelay<[MyChallengePresentationModel]>(value: [])
+  private let didUploadChallengeFeed = PublishRelay<UploadChallnegeFeedResult>()
 
   // MARK: - Input
   struct Input {
@@ -40,6 +46,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   struct Output {
     let myChallengeFeeds: Driver<[MyChallengeFeedPresentationModel]>
     let myChallenges: Driver<[MyChallengePresentationModel]>
+    let didUploadChallengeFeed: Signal<UploadChallnegeFeedResult>
   }
   
   // MARK: - Initializers
@@ -56,7 +63,8 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     
     return Output(
       myChallengeFeeds: myChallengeFeedsRelay.asDriver(),
-      myChallenges: myChallengesRelay.asDriver()
+      myChallenges: myChallengesRelay.asDriver(),
+      didUploadChallengeFeed: didUploadChallengeFeed.asSignal()
     )
   }
 }
@@ -75,6 +83,16 @@ private extension ChallengeHomeViewModel {
         owner.requestFailed(with: error)
       }
       .disposed(by: disposeBag)
+  }
+  
+  func fetchUploadChallengeFeed(id: Int, image: UIImageWrapper) async {
+    do {
+      try await useCase.uploadChallengeFeed(challengeId: id, image: image)
+      didUploadChallengeFeed.accept(.success(id: id))
+    } catch {
+      didUploadChallengeFeed.accept(.failure)
+      requestFailed(with: error)
+    }
   }
   
   func requestFailed(with error: Error) { }
