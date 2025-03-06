@@ -12,7 +12,7 @@ import DesignSystem
 import Core
 
 final class ChallengeTitleView: UIView {
-  typealias ModelType = ProofChallengePresentationModel.ModelType
+  typealias ModelType = MyChallengeFeedPresentationModel.ModelType
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let imageView = UIImageView()

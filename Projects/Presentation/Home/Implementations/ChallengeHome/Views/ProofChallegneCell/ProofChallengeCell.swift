@@ -13,11 +13,11 @@ import DesignSystem
 import Core
 
 final class ProofChallengeCell: UICollectionViewCell {
-  typealias ModelType = ProofChallengePresentationModel.ModelType
+  typealias ModelType = MyChallengeFeedPresentationModel.ModelType
   
   // MARK: - Properties
   private(set) var isLast: Bool = false
-  private(set) var model: ProofChallengePresentationModel?
+  private(set) var model: MyChallengeFeedPresentationModel?
   
   // MARK: - UI Components
   private let deadLineChip = TextChip(type: .green, size: .large)
@@ -37,7 +37,7 @@ final class ProofChallengeCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure(with model: ProofChallengePresentationModel, isLast: Bool) {
+  func configure(with model: MyChallengeFeedPresentationModel, isLast: Bool) {
     self.model = model
     deadLineChip.text = model.deadLine
     setupUI(type: model.type, isLast: isLast)

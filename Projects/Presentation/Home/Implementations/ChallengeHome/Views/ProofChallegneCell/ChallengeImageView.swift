@@ -14,9 +14,9 @@ import Core
 import DesignSystem
 
 final class ChallengeImageView: UIView {
-  typealias ModelType = ProofChallengePresentationModel.ModelType
+  typealias ModelType = MyChallengeFeedPresentationModel.ModelType
   
-  private var type: ModelType = .didNotProof
+  fileprivate var modelType: ModelType = .didNotProof
   
   override var intrinsicContentSize: CGSize {
     return .init(width: 198, height: 198)
@@ -33,7 +33,6 @@ final class ChallengeImageView: UIView {
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
-    
     setupUI()
   }
   

@@ -1,16 +1,16 @@
 //
-//  ProofChallengePresentationModel.swift
+//  MyChallengeFeedPresentationModel.swift
 //  HomeImpl
 //
 //  Created by jung on 10/7/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
-struct ProofChallengePresentationModel {
-  enum ModelType {
-    case proof(image: UIImage)
+struct MyChallengeFeedPresentationModel {
+  enum ModelType: Equatable {
+    case proof(url: URL?)
     case didNotProof
   }
   
