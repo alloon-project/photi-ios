@@ -7,6 +7,7 @@
 //
 
 import RxSwift
+import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject { }
 
@@ -20,6 +21,7 @@ protocol ChallengeHomeViewModelType: AnyObject {
 final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   weak var coordinator: ChallengeHomeCoordinatable?
   private let disposeBag = DisposeBag()
+  private let useCase: HomeUseCase
 
   // MARK: - Input
   struct Input { }
@@ -28,7 +30,9 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: HomeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     return Output()
