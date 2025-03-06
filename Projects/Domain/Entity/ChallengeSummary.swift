@@ -20,6 +20,7 @@ public struct ChallengeSummary {
   public let feedImageURL: URL?
   public let memberCount: Int?
   public let memberImages: [URL]?
+  public let isProve: Bool
 }
 
 // MARK: - Initializers
@@ -40,6 +41,7 @@ public extension ChallengeSummary {
     self.feedImageURL = nil
     self.memberCount = nil
     self.memberImages = nil
+    self.isProve = false
   }
   
   init(
@@ -49,7 +51,8 @@ public extension ChallengeSummary {
     endDate: Date,
     hashTags: [String],
     proveTime: Date,
-    feedImageURL: URL?
+    feedImageURL: URL?,
+    isProve: Bool = false
   ) {
     self.id = id
     self.name = name
@@ -60,6 +63,7 @@ public extension ChallengeSummary {
     self.feedImageURL = feedImageURL
     self.memberCount = nil
     self.memberImages = nil
+    self.isProve = isProve
   }
   
   init(
@@ -80,5 +84,6 @@ public extension ChallengeSummary {
     self.feedImageURL = nil
     self.memberCount = memberCount
     self.memberImages = memberImages
+    self.isProve = false
   }
 }

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import RxCocoa
 import RxGesture
 import RxSwift
@@ -14,9 +15,9 @@ import Core
 import DesignSystem
 
 final class ChallengeImageView: UIView {
-  typealias ModelType = ProofChallengePresentationModel.ModelType
+  typealias ModelType = MyChallengeFeedPresentationModel.ModelType
   
-  private var type: ModelType = .didNotProof
+  fileprivate var modelType: ModelType = .didNotProof
   
   override var intrinsicContentSize: CGSize {
     return .init(width: 198, height: 198)
@@ -33,7 +34,6 @@ final class ChallengeImageView: UIView {
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
-    
     setupUI()
   }
   
@@ -44,11 +44,12 @@ final class ChallengeImageView: UIView {
   
   // MARK: - Configure Methods
   func configure(with model: ModelType) {
-    self.type = model
+    self.modelType = model
+    setupUI(for: modelType)
   }
   
   override func layoutSubviews() {
-    setupUI(for: type)
+    setupUI(for: modelType)
   }
 }
 
@@ -61,16 +62,24 @@ private extension ChallengeImageView {
   
   func setupUI(for type: ModelType) {
     switch type {
-      case let .proof(image):
-        setupDidProofUI(image: image)
+      case let .proofURL(url):
+        setupDidProofUI()
+        imageView.kf.setImage(with: url) { [weak self] _ in
+          guard let self else { return }
+          bringSubviewToFront(cornerView)
+        }
+        
+      case let .proofImage(image):
+        setupDidProofUI()
+        imageView.image = image
+        
       case .didNotProof:
         setupNotProofUI(image: .cameraPlusLightBlue)
     }
-    bringSubviewToFront(cornerView)
   }
   
   func setViewHeirarchy() {
-    addSubviews(cornerView)
+    addSubviews(cornerView, imageView)
   }
   
   func setConstraints() {
@@ -78,19 +87,21 @@ private extension ChallengeImageView {
       $0.width.height.equalTo(28)
       $0.bottom.trailing.equalToSuperview()
     }
+    
+    imageView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension ChallengeImageView {
-  func setupDidProofUI(image: UIImage) {
+  func setupDidProofUI() {
     self.roundCorners(leftTop: 10, rightTop: 10, leftBottom: 10, rightBottom: 34)
-    configureShapeBorder(width: 6, strockColor: .green200, backGroundColor: .gray100)
+    configureShapeBorder(width: 6, strockColor: .green200, backGroundColor: .clear)
     cornerView.backgroundColor = .green200
-    
-    imageView.image = image
-    addSubview(imageView)
-    imageView.snp.makeConstraints {
+
+    imageView.snp.remakeConstraints {
       $0.edges.equalToSuperview()
     }
   }
@@ -99,10 +110,10 @@ private extension ChallengeImageView {
     self.roundCorners(leftTop: 10, rightTop: 10, leftBottom: 10, rightBottom: 34)
     configureShapeBorder(width: 6, strockColor: .blue300, backGroundColor: .gray100)
     cornerView.backgroundColor = .blue300
-    
+    bringSubviewToFront(imageView)
+    bringSubviewToFront(cornerView)
     imageView.image = image
-    addSubview(imageView)
-    imageView.snp.makeConstraints {
+    imageView.snp.remakeConstraints {
       $0.center.equalToSuperview()
       $0.width.height.equalTo(45)
     }
@@ -112,6 +123,7 @@ private extension ChallengeImageView {
 extension Reactive where Base: ChallengeImageView {
   var didTapImage: ControlEvent<Void> {
     let observable = base.imageView.rx.tapGesture().when(.recognized)
+      .filter { _ in base.modelType == .didNotProof }
       .map { _ in }
     return ControlEvent(events: observable)
   }

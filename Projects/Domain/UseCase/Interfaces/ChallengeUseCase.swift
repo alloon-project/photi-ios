@@ -6,9 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxRelay
 import RxSwift
+import Core
 import Entity
 
 public enum PageFeeds {
@@ -24,7 +24,7 @@ public protocol ChallengeUseCase {
   func joinPrivateChallnege(id: Int, code: String) async throws
   func joinPublicChallenge(id: Int) -> Single<Void>
   func isProve(challengeId: Int) async throws -> Bool
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws
+  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(
     id: Int,

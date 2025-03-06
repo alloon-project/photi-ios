@@ -28,4 +28,6 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
 }
 
 // MARK: - Coordinatable
-extension ChallengeHomeCoordinator: ChallengeHomeCoordinatable { }
+extension ChallengeHomeCoordinator: ChallengeHomeCoordinatable {
+  func attachLogin() { }
+}

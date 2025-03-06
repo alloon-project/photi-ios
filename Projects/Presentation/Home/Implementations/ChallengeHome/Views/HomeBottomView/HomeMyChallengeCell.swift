@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import SnapKit
 import Core
 import DesignSystem
@@ -32,9 +33,16 @@ final class HomeMyChallengeCell: UITableViewCell {
   
   private let timeInformationView = MyChallengeInformationView()
   private let dateInformationView = MyChallengeInformationView()
+  private let dimmedView: UIView = {
+    let view = UIView()
+    view.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.2)
+    return view
+  }()
+ 
   private let challengeImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 6
+    imageView.clipsToBounds = true
     
     return imageView
   }()
@@ -45,6 +53,7 @@ final class HomeMyChallengeCell: UITableViewCell {
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     setupUI()
+    selectionStyle = .none
     hashTagCollectionView.dataSource = self
   }
   
@@ -57,7 +66,17 @@ final class HomeMyChallengeCell: UITableViewCell {
   func configure(with model: MyChallengePresentationModel) {
     configureTitleLabel(text: model.title)
     configureInformationViews(time: model.deadLineTime, date: model.deadLineDate)
-    challengeImageView.image = model.image ?? .defaultHomeCard
+
+    challengeImageView.kf.setImage(with: model.imageUrl) { [weak self] result in
+      guard let self else { return }
+      switch result {
+        case .failure:
+          DispatchQueue.main.async { [weak self] in
+            self?.challengeImageView.image = .defaultHomeCard
+          }
+        default: break
+      }
+    }
 
     self.hashTags = model.hashTags
   }
@@ -67,7 +86,8 @@ final class HomeMyChallengeCell: UITableViewCell {
 private extension HomeMyChallengeCell {
   func setupUI() {
     contentView.layer.cornerRadius = 8
-    selectionStyle = .none
+    contentView.backgroundColor = .white
+    backgroundColor = .clear
     
     setViewHierarchy()
     setConstraints()
@@ -77,6 +97,7 @@ private extension HomeMyChallengeCell {
     contentView.addSubview(containerView)
     containerView.addSubviews(titleLabel, informationStackView, challengeImageView)
     informationStackView.addArrangedSubviews(timeInformationView, dateInformationView)
+    challengeImageView.addSubview(dimmedView)
     challengeImageView.addSubview(hashTagCollectionView)
   }
   
@@ -102,6 +123,10 @@ private extension HomeMyChallengeCell {
       $0.height.equalTo(112)
     }
 
+    dimmedView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+    
     hashTagCollectionView.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.trailing.equalToSuperview().inset(16)
@@ -119,7 +144,7 @@ extension HomeMyChallengeCell: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
     let text = hashTags[indexPath.row]
-    cell.configure(type: .text(size: .medium, type: .gray), text: text)
+    cell.configure(type: .text(size: .medium, type: .white), text: text)
     
     return cell
   }

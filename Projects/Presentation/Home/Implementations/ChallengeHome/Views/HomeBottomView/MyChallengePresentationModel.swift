@@ -6,13 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 struct MyChallengePresentationModel {
   let id: Int
   let title: String
   let hashTags: [String]
-  let image: UIImage?
+  let imageUrl: URL?
   let deadLineTime: String
   let deadLineDate: String
 }
