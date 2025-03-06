@@ -254,24 +254,9 @@ private extension FeedViewModel {
   }
 
   func upload(image: UIImageWrapper) {
-    var dataType: String
-    var imageData: Data
-    let maxSizeBytes = 8 * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      imageData = data
-      dataType = "png"
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      imageData = data
-      dataType = "jpeg"
-    } else {
-      fileTooLargeRelay.accept(())
-      return isUploadSuccessRelay.accept(false)
-    }
-      
     Task {
       do {
-        try await useCase.uploadChallengeFeedProof(id: challengeId, image: imageData, imageType: dataType)
+        try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
         isUploadSuccessRelay.accept(true)
       } catch {
         isUploadSuccessRelay.accept(false)
@@ -298,6 +283,8 @@ private extension FeedViewModel {
         alreadyVerifyFeedRelay.accept(())
       case let .challengeFailed(reason) where reason == .challengeNotFound:
         challengeNotFoundRelay.accept(())
+      case let .challengeFailed(reason) where reason == .fileTooLarge:
+        fileTooLargeRelay.accept(())
       default:
         networkUnstableRelay.accept(())
     }
