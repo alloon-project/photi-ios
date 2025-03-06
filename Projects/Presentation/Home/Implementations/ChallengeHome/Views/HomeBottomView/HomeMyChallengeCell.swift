@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import SnapKit
 import Core
 import DesignSystem
@@ -57,7 +58,16 @@ final class HomeMyChallengeCell: UITableViewCell {
   func configure(with model: MyChallengePresentationModel) {
     configureTitleLabel(text: model.title)
     configureInformationViews(time: model.deadLineTime, date: model.deadLineDate)
-    challengeImageView.image = model.image ?? .defaultHomeCard
+
+    challengeImageView.kf.setImage(with: model.imageUrl) { [weak self ] result in
+      switch result {
+        case .failure:
+          DispatchQueue.main.async {
+            self?.challengeImageView.image = .defaultHomeCard
+          }
+        default: break
+      }
+    }
 
     self.hashTags = model.hashTags
   }

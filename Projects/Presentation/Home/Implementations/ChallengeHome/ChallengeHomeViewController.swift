@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import RxCocoa
 import RxSwift
 import SnapKit
 import DesignSystem
@@ -22,8 +23,14 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHomeViewModel
   
-  private var dataSources: [ProofChallengePresentationModel] = []
-  private var myChallengeDataSources: [MyChallengePresentationModel] = []
+  private var myChallengeFeedDataSources: [MyChallengeFeedPresentationModel] = [] {
+    didSet { proofChallengeCollectionView.reloadData() }
+  }
+  private var myChallengeDataSources: [MyChallengePresentationModel] = [] {
+    didSet { bottomView.dataSources = myChallengeDataSources }
+  }
+  
+  private let requestData = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -71,6 +78,8 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     proofChallengeCollectionView.collectionViewLayout = compositionalLayout()
     proofChallengeCollectionView.dataSource = self
     setupUI()
+    bind()
+    requestData.accept(())
   }
 }
 
@@ -125,6 +134,22 @@ private extension ChallengeHomeViewController {
 
 // MARK: - Bind Methods
 private extension ChallengeHomeViewController {
+  func bind() {
+    let input = ChallengeHomeViewModel.Input(requestData: requestData.asSignal())
+    let output = viewModel.transform(input: input)
+    viewModelBind(for: output)
+  }
+  
+  func viewModelBind(for output: ChallengeHomeViewModel.Output) {
+    output.myChallengeFeeds
+      .drive(self.rx.myChallengeFeedDataSources)
+      .disposed(by: disposeBag)
+    
+    output.myChallenges
+      .drive(self.rx.myChallengeDataSources)
+      .disposed(by: disposeBag)
+  }
+  
   func bind(for cell: ProofChallengeCell) {
     guard let model = cell.model else { return }
     
@@ -145,13 +170,13 @@ extension ChallengeHomeViewController: ChallengeHomePresentable { }
 // MARK: - UICollectionViewDataSource
 extension ChallengeHomeViewController: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return dataSources.count
+    return myChallengeFeedDataSources.count
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
-    let model = dataSources[indexPath.row]
-    cell.configure(with: model, isLast: indexPath.row == dataSources.count - 1)
+    let model = myChallengeFeedDataSources[indexPath.row]
+    cell.configure(with: model, isLast: indexPath.row == myChallengeFeedDataSources.count - 1)
     bind(for: cell)
     
     return cell
