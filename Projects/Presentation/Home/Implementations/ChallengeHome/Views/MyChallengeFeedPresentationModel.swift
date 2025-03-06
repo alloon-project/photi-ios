@@ -6,16 +6,21 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
-struct MyChallengeFeedPresentationModel {
+struct MyChallengeFeedPresentationModel: Hashable {
   enum ModelType: Equatable {
-    case proof(url: URL?)
+    case proofURL(_ url: URL?)
+    case proofImage(_ image: UIImage)
     case didNotProof
   }
   
   let id: Int
   let title: String
   let deadLine: String
-  let type: ModelType
+  var type: ModelType
+  
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
 }

@@ -23,7 +23,7 @@ protocol ChallengeHomeViewModelType: AnyObject {
 }
 
 enum UploadChallnegeFeedResult {
-  case success(id: Int)
+  case success(id: Int, image: UIImageWrapper)
   case failure
 }
 
@@ -61,6 +61,12 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.uploadChallengeFeed
+      .emit(with: self) { owner, info in
+        Task { await owner.uploadChallengeFeed(id: info.0, image: info.1) }
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       myChallengeFeeds: myChallengeFeedsRelay.asDriver(),
       myChallenges: myChallengesRelay.asDriver(),
@@ -85,10 +91,10 @@ private extension ChallengeHomeViewModel {
       .disposed(by: disposeBag)
   }
   
-  func fetchUploadChallengeFeed(id: Int, image: UIImageWrapper) async {
+  func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {
     do {
       try await useCase.uploadChallengeFeed(challengeId: id, image: image)
-      didUploadChallengeFeed.accept(.success(id: id))
+      didUploadChallengeFeed.accept(.success(id: id, image: image))
     } catch {
       didUploadChallengeFeed.accept(.failure)
       requestFailed(with: error)
@@ -119,7 +125,7 @@ private extension ChallengeHomeViewModel {
       id: challenge.id,
       title: challenge.name,
       deadLine: proveTime,
-      type: challenge.isProve ? .proof(url: challenge.feedImageURL) : .didNotProof
+      type: challenge.isProve ? .proofURL(challenge.feedImageURL) : .didNotProof
     )
   }
   

@@ -19,14 +19,15 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     static let groupSpacing: CGFloat = 16
   }
   
+  typealias MyChallengeFeedDataSourceType = UICollectionViewDiffableDataSource<Int, MyChallengeFeedPresentationModel>
+  typealias SnapShot = NSDiffableDataSourceSnapshot<Int, MyChallengeFeedPresentationModel>
+  
   // MARK: - Properties
   private var uploadChallengeId: Int = 0
+  private var datasource: MyChallengeFeedDataSourceType?
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHomeViewModel
   
-  private var myChallengeFeedDataSources: [MyChallengeFeedPresentationModel] = [] {
-    didSet { proofChallengeCollectionView.reloadData() }
-  }
   private var myChallengeDataSources: [MyChallengePresentationModel] = [] {
     didSet { bottomView.dataSources = myChallengeDataSources }
   }
@@ -76,9 +77,10 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    bottomView.dataSources = myChallengeDataSources
     proofChallengeCollectionView.collectionViewLayout = compositionalLayout()
-    proofChallengeCollectionView.dataSource = self
+    let dataSource = diffableDataSource()
+    proofChallengeCollectionView.dataSource = dataSource
+    self.datasource = dataSource
     setupUI()
     bind()
     requestData.accept(())
@@ -147,11 +149,22 @@ private extension ChallengeHomeViewController {
   
   func viewModelBind(for output: ChallengeHomeViewModel.Output) {
     output.myChallengeFeeds
-      .drive(self.rx.myChallengeFeedDataSources)
+      .drive(with: self) { owner, challengeFeeds in
+        owner.initalize(models: challengeFeeds)
+      }
       .disposed(by: disposeBag)
     
     output.myChallenges
       .drive(self.rx.myChallengeDataSources)
+      .disposed(by: disposeBag)
+    
+    output.didUploadChallengeFeed
+      .emit(with: self) { owner, result in
+        LoadingAnimation.default.stop()
+        if case let .success(challengeId, image) = result {
+          owner.update(challengeId: challengeId, image: image.image)
+        }
+      }
       .disposed(by: disposeBag)
   }
   
@@ -170,18 +183,44 @@ private extension ChallengeHomeViewController {
 extension ChallengeHomeViewController: ChallengeHomePresentable { }
 
 // MARK: - UICollectionViewDataSource
-extension ChallengeHomeViewController: UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return myChallengeFeedDataSources.count
+extension ChallengeHomeViewController {
+  func diffableDataSource() -> MyChallengeFeedDataSourceType {
+    return .init(collectionView: proofChallengeCollectionView) { [weak self] collectionView, indexPath, model in
+      guard let self else { return .init() }
+      
+      let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
+      let isLast = isLastItem(row: indexPath.row)
+      cell.configure(with: model, isLast: isLast)
+      bind(for: cell, isNotProof: model.type == .didNotProof)
+      
+      return cell
+    }
   }
   
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
-    let model = myChallengeFeedDataSources[indexPath.row]
-    cell.configure(with: model, isLast: indexPath.row == myChallengeFeedDataSources.count - 1)
-    bind(for: cell, isNotProof: model.type == .didNotProof)
+  func initalize(models: [MyChallengeFeedPresentationModel]) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    if snapshot.numberOfSections != 0 { snapshot.deleteSections([0]) }
     
-    return cell
+    snapshot.appendSections([0])
+    snapshot.appendItems(models)
+    
+    datasource.apply(snapshot)
+  }
+  
+  func update(challengeId: Int, image: UIImage) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    
+    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.id == challengeId }) else { return }
+
+    let existingModel = snapshot.itemIdentifiers[index]
+    var updatedModel = existingModel
+    updatedModel.type = .proofImage(image)
+    
+    snapshot.deleteItems([existingModel])
+    snapshot.appendItems([updatedModel])
+    datasource.apply(snapshot, animatingDifferences: false)
   }
 }
 
@@ -206,6 +245,7 @@ extension ChallengeHomeViewController: UIImagePickerControllerDelegate, UINaviga
 // MARK: - Upload
 extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
+    LoadingAnimation.default.start()
     uploadChallengeFeed.accept((uploadChallengeId, .init(image: image)))
   }
 }
@@ -232,5 +272,12 @@ private extension ChallengeHomeViewController {
       
       return section
     }
+  }
+  
+  func isLastItem(row: Int) -> Bool {
+    guard let datasource else { return false }
+    
+    let snapshot = datasource.snapshot()
+    return snapshot.numberOfItems - 1 == row
   }
 }
