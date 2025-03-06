@@ -9,6 +9,7 @@
 import Foundation
 import RxRelay
 import RxSwift
+import Core
 import Entity
 import UseCase
 import Repository
@@ -58,13 +59,16 @@ public extension ChallengeUseCaseImpl {
     return repository.joinPublicChallenge(id: id)
   }
   
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
-    let type = imageType.lowercased()
-    
-    guard type == "jpeg" || type == "jpg" || type == "png" else {
-      throw APIError.challengeFailed(reason: .unsupportedFileType)
+  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws {
+    guard let (data, type) = imageToData(image, maxMB: 8) else {
+      throw APIError.challengeFailed(reason: .fileTooLarge)
     }
-    return try await repository.uploadChallengeFeedProof(id: id, image: image, imageType: type)
+    
+    try await repository.uploadChallengeFeedProof(
+      id: id,
+      image: data,
+      imageType: type
+    )
   }
   
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
@@ -78,4 +82,18 @@ public extension ChallengeUseCaseImpl {
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
     return repository.updateChallengeGoal(goal, challengeId: challengeId)
   }
+}
+
+// MARK: - Private Methods
+private extension ChallengeUseCaseImpl {
+ func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+   let maxSizeBytes = maxMB * 1024 * 1024
+   
+   if let data = image.image.pngData(), data.count <= maxSizeBytes {
+     return (data, "png")
+   } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+     return (data, "jpeg")
+   }
+   return nil
+ }
 }

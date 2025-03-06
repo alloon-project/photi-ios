@@ -15,6 +15,7 @@ public enum ChallengeAPI {
   case popularChallenges
   case challengeDetail(id: Int)
   case endedChallenges(page: Int, size: Int)
+  case myChallenges(page: Int, size: Int)
   case joinChallenge(id: Int)
   case joinPrivateChallenge(id: Int, code: String)
   case feeds(id: Int, page: Int, size: Int, sortOrder: String)
@@ -39,6 +40,7 @@ extension ChallengeAPI: TargetType {
       case .popularChallenges: return "challenges/popular"
       case let .challengeDetail(id): return "challenges/\(id)"
       case .endedChallenges: return "users/ended-challenges"
+      case .myChallenges: return "/users/my-challenges"
       case let .joinChallenge(id): return "challenges/\(id)/join/public"
       case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
       case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
@@ -59,7 +61,7 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges: return .get
       case .challengeDetail: return .get
-      case .endedChallenges: return .get
+      case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .feeds: return .get
       case .uploadChallengeProof: return .post
@@ -82,7 +84,7 @@ extension ChallengeAPI: TargetType {
         let parameters = ["challengeId": challengeId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
-      case let .endedChallenges(page, size):
+      case let .endedChallenges(page, size), let .myChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
@@ -164,6 +166,12 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
+      case .myChallenges:
+        let data = MyChallengesResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+
       // swiftlint:disable line_length 
       case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState, .uploadFeedComment, .deleteFeedComment, .updateChallengeGoal:
       // swiftlint:enable line_length

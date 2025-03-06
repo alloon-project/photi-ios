@@ -93,7 +93,7 @@ private extension HomeBottomView {
       $0.width.equalTo(330)
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-40)
+      $0.bottom.equalToSuperview().inset(40)
     }
   }
 }
