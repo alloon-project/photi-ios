@@ -9,6 +9,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import Core
 import Entity
 import UseCase
 
@@ -32,6 +33,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
   }
   
   // MARK: - Output

@@ -41,7 +41,6 @@ public struct HomeUseCaseImpl: HomeUseCase {
   }
 }
 
-
 private extension HomeUseCaseImpl {
   func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
@@ -54,4 +53,3 @@ private extension HomeUseCaseImpl {
     return nil
   }
 }
-

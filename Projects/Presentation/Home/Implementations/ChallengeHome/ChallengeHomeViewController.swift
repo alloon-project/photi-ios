@@ -20,6 +20,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   }
   
   // MARK: - Properties
+  private var uploadChallengeId: Int = 0
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHomeViewModel
   
@@ -31,6 +32,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   }
   
   private let requestData = PublishRelay<Void>()
+  private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -135,7 +137,10 @@ private extension ChallengeHomeViewController {
 // MARK: - Bind Methods
 private extension ChallengeHomeViewController {
   func bind() {
-    let input = ChallengeHomeViewModel.Input(requestData: requestData.asSignal())
+    let input = ChallengeHomeViewModel.Input(
+      requestData: requestData.asSignal(),
+      uploadChallengeFeed: uploadChallengeFeed.asSignal()
+    )
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
   }
@@ -150,15 +155,12 @@ private extension ChallengeHomeViewController {
       .disposed(by: disposeBag)
   }
   
-  func bind(for cell: ProofChallengeCell) {
-    guard let model = cell.model else { return }
-    
+  func bind(for cell: ProofChallengeCell, isNotProof: Bool) {
     cell.rx.didTapImage
+      .filter { _ in isNotProof }
       .bind(with: self) { owner, _ in
-        switch model.type {
-          case .didNotProof: owner.requestOpenCamera(delegate: owner)
-          case .proof: return
-        }
+        owner.uploadChallengeId = cell.challengeId
+        owner.requestOpenCamera(delegate: owner)
       }
       .disposed(by: disposeBag)
   }
@@ -177,7 +179,7 @@ extension ChallengeHomeViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
     let model = myChallengeFeedDataSources[indexPath.row]
     cell.configure(with: model, isLast: indexPath.row == myChallengeFeedDataSources.count - 1)
-    bind(for: cell)
+    bind(for: cell, isNotProof: model.type == .didNotProof)
     
     return cell
   }
@@ -204,8 +206,7 @@ extension ChallengeHomeViewController: UIImagePickerControllerDelegate, UINaviga
 // MARK: - Upload
 extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
-    // TODO: 서버로 전송
-    print(image.size)
+    uploadChallengeFeed.accept((uploadChallengeId, .init(image: image)))
   }
 }
 
