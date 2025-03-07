@@ -20,7 +20,17 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var dataSource: [FeedHistoryCellPresentationModel] = [] {
     didSet {
-      feedHistoryCollectionView.reloadData()
+      let oldCount = feedHistoryCollectionView.numberOfItems(inSection: 0)
+      let newCount = dataSource.count
+
+      if newCount > oldCount {
+          let indexPaths = (oldCount..<newCount).map { IndexPath(item: $0, section: 0) }
+          feedHistoryCollectionView.performBatchUpdates({
+              feedHistoryCollectionView.insertItems(at: indexPaths)
+          }, completion: nil)
+      } else {
+          feedHistoryCollectionView.reloadData()
+      }
     }
   }
   // MARK: - UIComponents
