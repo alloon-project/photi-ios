@@ -21,7 +21,7 @@ public struct FeedDataMapperImpl: FeedDataMapper {
   public func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory] {
     let contents = dto.content
     
-    return dto.content.map {
+    return contents.map {
       return .init(
         feedId: $0.feedId,
         challengeId: $0.challengeId,

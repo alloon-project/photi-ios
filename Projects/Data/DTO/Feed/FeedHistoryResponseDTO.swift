@@ -9,11 +9,11 @@
 import Foundation
 
 public struct FeedHistoryResponseDTO: Decodable {
+  public let page: Int
+  public let size: Int
+  public let first: Bool
+  public let last: Bool
   public let content: [FeedHistoryContent]
-  
-  public init(content: [FeedHistoryContent]) {
-    self.content = content
-  }
 }
 
 public struct FeedHistoryContent: Decodable {
