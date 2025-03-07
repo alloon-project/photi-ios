@@ -178,11 +178,12 @@ private extension FeedHistoryViewController {
 
 // MARK: - FeedHistoryPresentable
 extension FeedHistoryViewController: FeedHistoryPresentable {
-  func setProofCount(_ count: Int) {
+  func setMyFeedCount(_ count: Int) {
     titleLabel.attributedText = "총 \(count)회 인증했어요".attributedString(
       font: .heading3,
       color: .gray900
     ).setColor(.green400, for: "\(count)")
+    titleLabel.textAlignment = .center
   }
 }
 

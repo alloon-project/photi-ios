@@ -65,7 +65,7 @@ extension MyPageCoordinator: MyPageCoordinatable {
   func attachFeedHistory(count: Int) {
     guard FeedHistoryCoordinator == nil else { return }
     
-    let coordinator = FeedHistoryContainable.coordinator(listener: self)
+    let coordinator = FeedHistoryContainable.coordinator(listener: self, feedCount: count)
     addChild(coordinator)
     
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)

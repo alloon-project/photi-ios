@@ -64,7 +64,7 @@ final class MyPageViewModel: MyPageViewModelType {
     
     input.didTapAuthCountBox
       .withLatestFrom(FeedHistoryCount)
-      .filter { $0 > 0 } 
+//      .filter { $0 > 0 } 
       .bind(with: self) { owner, count in
         owner.coordinator?.attachFeedHistory(count: count)
       }.disposed(by: disposeBag)
@@ -75,8 +75,10 @@ final class MyPageViewModel: MyPageViewModelType {
       }.disposed(by: disposeBag)
     
     input.isVisible
-      .bind(with: self) { owner, _ in
-        owner.userChallengeHistory()
+      .bind(with: self) { owner, isVisible in
+        if isVisible {
+          owner.userChallengeHistory()
+        }
       }.disposed(by: disposeBag)
     
     return Output(

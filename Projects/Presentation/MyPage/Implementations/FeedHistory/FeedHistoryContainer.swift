@@ -14,19 +14,20 @@ protocol FeedHistoryDependency: Dependency {
 }
 
 protocol FeedHistoryContainable: Containable {
-  func coordinator(listener: FeedHistoryListener) -> ViewableCoordinating
+  func coordinator(listener: FeedHistoryListener, feedCount: Int) -> ViewableCoordinating
 }
 
 final class FeedHistoryContainer:
   Container<FeedHistoryDependency>,
   FeedHistoryContainable {
-  func coordinator(listener: FeedHistoryListener) -> ViewableCoordinating {
+  func coordinator(listener: FeedHistoryListener, feedCount: Int) -> ViewableCoordinating {
     let viewModel = FeedHistoryViewModel(useCase: dependency.feedHistoryUseCase)
     let viewControllerable = FeedHistoryViewController(viewModel: viewModel)
     
     let coordinator = FeedHistoryCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      feedCount: feedCount
     )
     coordinator.listener = listener
     

@@ -13,7 +13,7 @@ protocol FeedHistoryListener: AnyObject {
 }
 
 protocol FeedHistoryPresentable {
-  func setProofCount(_ count: Int)
+  func setMyFeedCount(_ count: Int)
 }
 
 final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> {
@@ -33,7 +33,7 @@ final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> 
   }
   
   override func start() {
-    presenter.setProofCount(feedCount)
+    presenter.setMyFeedCount(feedCount)
   }
 }
 
