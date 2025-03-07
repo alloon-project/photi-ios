@@ -23,12 +23,12 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
       let oldCount = feedHistoryCollectionView.numberOfItems(inSection: 0)
       let newCount = dataSource.count
 
-      if newCount > oldCount {
+      if newCount > oldCount { // 새로운 데이터가 추가 되었을 경우
           let indexPaths = (oldCount..<newCount).map { IndexPath(item: $0, section: 0) }
           feedHistoryCollectionView.performBatchUpdates({
               feedHistoryCollectionView.insertItems(at: indexPaths)
           }, completion: nil)
-      } else {
+      } else { // 삭제 & 수정의 경우에 동작
           feedHistoryCollectionView.reloadData()
       }
     }
