@@ -45,9 +45,9 @@ extension FeedAPI: TargetType {
     switch self {
     case .feedHistory:
       let data = FeedHistoryResponseDTO.stubData
-        let jsonData = data.data(using: .utf8)
-        
-        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      let jsonData = data.data(using: .utf8)
+      
+      return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
   }
 }
