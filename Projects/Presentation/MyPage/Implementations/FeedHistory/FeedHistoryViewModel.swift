@@ -60,6 +60,11 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.isVisible
+      .bind(with: self) { owner, isVisible in
+        owner.fetchFeedHistory(page: 0, size: 10) // TODO: - 현재 데이터 기준으로 수정예정
+      }.disposed(by: disposeBag)
+    
     return Output(
       feedHistory: userFeedHistoryRelay.asDriver(),
       requestFailed: requestFailedRelay.asSignal()
