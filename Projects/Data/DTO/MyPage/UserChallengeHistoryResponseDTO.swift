@@ -21,3 +21,18 @@ public struct UserChallengeHistoryResponseDTO: Decodable {
     self.endedChallengeCnt = endedChallengeCnt
   }
 }
+
+public extension UserChallengeHistoryResponseDTO  {
+  static let stubData = """
+{
+  "code": "200 OK",
+  "message": "성공",
+  "data": {
+    "username": "photi",
+    "imageUrl": "https://url.kr/5MhHhD",
+    "feedCnt": 99,
+    "endedChallengeCnt": 2
+  }
+}
+"""
+}
