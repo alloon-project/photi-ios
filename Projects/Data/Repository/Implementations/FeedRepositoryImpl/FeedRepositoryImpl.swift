@@ -23,7 +23,8 @@ public struct FeedRepositoryImpl: FeedRepository {
   public func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
     return requestFeedHistory(
       api: FeedAPI.feedHistory(page: page, size: size),
-      responseType: FeedHistoryResponseDTO.self
+      responseType: FeedHistoryResponseDTO.self,
+      behavior: .immediate
     )
     .map { dataMapper.mapToFeedHistory(dto: $0) }
   }
@@ -39,7 +40,10 @@ private extension FeedRepositoryImpl {
     return Single.create { single in
       Task {
         do {
-          let provider = Provider<FeedAPI>(stubBehavior: behavior)
+          let provider = Provider<FeedAPI>(
+            stubBehavior: behavior,
+            session: .init(interceptor: AuthenticationInterceptor())
+          )
           
           let result = try await provider
             .request(api, type: responseType.self).value
