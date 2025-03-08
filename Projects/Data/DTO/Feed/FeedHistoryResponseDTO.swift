@@ -37,12 +37,75 @@ public extension FeedHistoryResponseDTO  {
         "imageUrl": "https://url.kr/5MhHhD",
         "createdDate": "2024-10-23",
         "name": "신나게 하는 러닝 챌린지"
-      }
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
+      {
+        "feedId": 1,
+        "challengeId": 1,
+        "imageUrl": "https://url.kr/5MhHhD",
+        "createdDate": "2024-10-23",
+        "name": "신나게 하는 러닝 챌린지"
+      },
     ],
     "page": 0,
-    "size": 0,
+    "size": 10,
     "first": true,
-    "last": true
+    "last": false
   }
 }
 """

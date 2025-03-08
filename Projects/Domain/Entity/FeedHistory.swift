@@ -29,6 +29,3 @@ public struct FeedHistory {
     self.name = name
   }
 }
-
-// MARK: - Initializers
-public extension FeedHistory {}
