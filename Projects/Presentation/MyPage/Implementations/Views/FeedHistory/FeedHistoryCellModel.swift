@@ -12,5 +12,5 @@ public struct FeedHistoryCellPresentationModel {
   let challengeImageUrl: URL?
   let challengeTitle: String
   let provedDate: String
-  let challengeId: String
+  let challengeId: Int
 }

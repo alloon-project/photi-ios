@@ -28,9 +28,17 @@ public final class FeedHistoryCell: UICollectionViewCell {
   private let challengeImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 8
+    imageView.clipsToBounds = true
     imageView.contentMode = .scaleAspectFill
     
     return imageView
+  }()
+  
+  private let grayRoundCornerView = {
+    let view = UIView()
+    view.backgroundColor = .gray200
+    view.layer.cornerRadius = 6
+    return view
   }()
   
   private let finishedDateLabel = {
@@ -70,7 +78,12 @@ public final class FeedHistoryCell: UICollectionViewCell {
       challengeImageView.kf.setImage(with: url)
     }
     
-    finishedDateLabel.text = viewModel.provedDate
+    finishedDateLabel.attributedText = viewModel.provedDate.attributedString(
+      font: .caption1Bold,
+      color: .init(white: 1.0, alpha: 0.6)
+    )
+    finishedDateLabel.textAlignment = .center
+    
     challengeTitleChip.text = viewModel.challengeTitle
   }
 }
@@ -85,12 +98,17 @@ private extension FeedHistoryCell {
   func setViewHierarchy() {
     contentView.addSubviews(
       whiteBackGroundView,
-      challengeTitleChip
+      challengeTitleChip,
+      shareButton
     )
     
     whiteBackGroundView.addSubviews(
       challengeImageView,
       finishedDateLabel
+    )
+    
+    challengeImageView.addSubview(
+      grayRoundCornerView
     )
   }
   
@@ -101,8 +119,29 @@ private extension FeedHistoryCell {
     }
     
     challengeImageView.snp.makeConstraints {
-      $0.leading.top.equalToSuperview().offset(2)
-      $0.bottom.trailing.equalToSuperview().offset(-2)
+      $0.leading.top.equalToSuperview().offset(4)
+      $0.bottom.trailing.equalToSuperview().inset(4)
+    }
+    
+    grayRoundCornerView.snp.makeConstraints {
+      $0.trailing.bottom.equalToSuperview().offset(1)
+      $0.width.height.equalTo(22)
+    }
+    
+    finishedDateLabel.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(8)
+      $0.trailing.equalToSuperview().inset(8)
+      $0.bottom.equalToSuperview().inset(16)
+    }
+    
+    shareButton.snp.makeConstraints {
+      $0.trailing.bottom.equalToSuperview()
+      $0.width.height.equalTo(23)
+    }
+    
+    challengeTitleChip.snp.makeConstraints {
+      $0.leading.bottom.equalToSuperview()
+      $0.trailing.lessThanOrEqualTo(shareButton.snp.leading).offset(-16)
     }
   }
 }
