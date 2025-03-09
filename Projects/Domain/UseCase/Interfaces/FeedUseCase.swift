@@ -10,5 +10,5 @@ import RxSwift
 import Entity
 
 public protocol FeedUseCase {
-  func fetchFeeds(page: Int, size: Int) -> Single<[FeedHistory]>
+  func fetchFeeds(page: Int, size: Int) -> Single<FeedHistory>
 }

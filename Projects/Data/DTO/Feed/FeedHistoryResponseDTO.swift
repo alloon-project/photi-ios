@@ -18,7 +18,7 @@ public struct FeedHistoryResponseDTO: Decodable {
 
 public struct FeedHistoryContent: Decodable {
   public let feedId: Int
-  public let challengeId: String
+  public let challengeId: Int
   public let imageUrl: URL?
   public let createDate: Date
   public let name: String
