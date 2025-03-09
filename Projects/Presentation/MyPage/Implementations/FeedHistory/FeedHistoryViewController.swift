@@ -33,6 +33,9 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
       }
     }
   }
+  private var isLast = false
+  private var isNeedMoreData = PublishRelay<Int>()
+  
   // MARK: - UIComponents
   private let grayBackgroundView = {
     let view = UIView()
@@ -102,6 +105,14 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     feedHistoryCollectionView.dataSource = self
     setupUI()
     bind()
+    
+    var data : [FeedHistoryCellPresentationModel] = []
+    for _ in 0..<10 {
+      data.append(
+        FeedHistoryCellPresentationModel(challengeImageUrl: URL(string: "https://i3n.news1.kr/system/photos/2024/10/6/6912782/high.jpg")!, challengeTitle: "고양이", provedDate: "2025. 03. 09", challengeId: 1)
+      )
+    }
+    dataSource.append(contentsOf: data)
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -164,7 +175,8 @@ private extension FeedHistoryViewController {
   func bind() {
     let input = FeedHistoryViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      isVisible: self.rx.isVisible
+      isVisible: self.rx.isVisible,
+      isNeedMoreData: isNeedMoreData.asObservable()
     )
     
     let output = viewModel.transform(input: input)
@@ -174,13 +186,19 @@ private extension FeedHistoryViewController {
   func bind(for output: FeedHistoryViewModel.Output) {
     output.feedHistory
       .drive(with: self) { owner, feeds in
-        owner.dataSource = feeds
+        owner.dataSource.append(contentsOf: feeds)
       }
       .disposed(by: disposeBag)
     
     output.requestFailed
       .emit(with: self) { owner, _ in
         owner.presentWarningPopup()
+      }
+      .disposed(by: disposeBag)
+    
+    output.isLastData
+      .emit(with: self) { owner, isLastData in
+        owner.isLast = isLastData
       }
       .disposed(by: disposeBag)
   }
@@ -227,6 +245,16 @@ extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
     (collectionView.contentInset.left + collectionView.contentInset.right)
     let width = (widthOfCells - 16) / 2.0
     
-    return CGSize(width: width, height: 182.0)
+    return CGSize(width: width, height: 189.0)
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    if indexPath.item == dataSource.count - 1 && !isLast {
+      isNeedMoreData.accept(dataSource.count)
+    }
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    // TODO: ChallengeID값을 활용하여 해당 챌린지로 넘어가기.
   }
 }
