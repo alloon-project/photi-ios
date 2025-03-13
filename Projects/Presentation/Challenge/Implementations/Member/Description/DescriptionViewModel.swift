@@ -11,7 +11,11 @@ import RxSwift
 import Entity
 import UseCase
 
-protocol DescriptionCoordinatable: AnyObject { }
+protocol DescriptionCoordinatable: AnyObject {
+  func authenticatedFailed()
+  func networkUnstable()
+  func challengeNotFound()
+}
 
 protocol DescriptionViewModelType: AnyObject {
   associatedtype Input
@@ -77,9 +81,24 @@ private extension DescriptionViewModel {
       .observe(on: MainScheduler.instance)
       .subscribe(with: self) { owner, description in
         owner.description.accept(description)
-      } onFailure: { _, _ in
-        print("error")
+      } onFailure: { owner, error in
+        owner.requestFailed(with: error)
       }
       .disposed(by: disposeBag)
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else {
+      coordinator?.networkUnstable(); return
+    }
+    
+    switch error {
+      case .authenticationFailed:
+        coordinator?.authenticatedFailed()
+      case let .challengeFailed(reason) where reason == .challengeNotFound:
+        coordinator?.challengeNotFound()
+      default:
+        coordinator?.networkUnstable()
+    }
   }
 }

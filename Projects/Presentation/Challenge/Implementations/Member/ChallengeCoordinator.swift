@@ -143,7 +143,19 @@ extension ChallengeCoordinator: FeedListener {
 }
 
 // MARK: - DescriptionListener
-extension ChallengeCoordinator: DescriptionListener { }
+extension ChallengeCoordinator: DescriptionListener {
+  func authenticatedFailedAtDescription() {
+    presenter.presentLoginTrrigerWarning()
+  }
+  
+  func networkUnstableAtDescription() {
+    presenter.presentNetworkWarning(reason: nil)
+  }
+  
+  func challengeNotFoundAtDescription() {
+    presenter.presentChallengeNotFoundWaring()
+  }
+}
 
 // MARK: - ParticipantListener
 extension ChallengeCoordinator: ParticipantListener {
