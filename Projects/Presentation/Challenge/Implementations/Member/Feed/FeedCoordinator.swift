@@ -10,8 +10,9 @@ import Core
 
 protocol FeedListener: AnyObject {
   func didChangeContentOffsetAtFeed(_ offset: Double)
-  func requestLoginAtChallengeFeed()
-  func shouldDismissChallenge()
+  func authenticatedFailedAtFeed()
+  func networkUnstableAtFeed(reason: String?)
+  func challengeNotFoundAtFeed()
 }
 
 protocol FeedPresentable { }
@@ -69,12 +70,16 @@ extension FeedCoordinator: FeedCoordinatable {
     listener?.didChangeContentOffsetAtFeed(offset)
   }
   
-  func requestLogin() {
-    listener?.requestLoginAtChallengeFeed()
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtFeed()
+  }
+
+  func networkUnstable() {
+    listener?.networkUnstableAtFeed(reason: nil)
   }
   
-  func didTapConfirmButtonAtAlert() {
-    listener?.shouldDismissChallenge()
+  func challengeNotFound() {
+    listener?.challengeNotFoundAtFeed()
   }
 }
 
@@ -84,7 +89,11 @@ extension FeedCoordinator: FeedCommentListener {
     detachFeedDetail()
   }
   
-  func requestLogInAtFeedComment() {
-    listener?.requestLoginAtChallengeFeed()
+  func authenticatedFailedAtFeedComment() {
+    listener?.authenticatedFailedAtFeed()
+  }
+  
+  func networkUnstableAtFeedComment(reason: String?) {
+    listener?.networkUnstableAtFeed(reason: reason)
   }
 }

@@ -16,8 +16,9 @@ import UseCase
 protocol FeedCoordinatable: AnyObject {
   func attachFeedDetail(challengeId: Int, feedId: Int)
   func didChangeContentOffset(_ offset: Double)
-  func requestLogin()
-  func didTapConfirmButtonAtAlert()
+  func authenticatedFailed()
+  func networkUnstable()
+  func challengeNotFound()
 }
 
 protocol FeedViewModelType: AnyObject {
@@ -54,16 +55,11 @@ final class FeedViewModel: FeedViewModelType {
   private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
   private let startFetchingRelay = PublishRelay<Void>()
   private let stopFetchingRelay = PublishRelay<Void>()
-  private let loginTriggerRelay = PublishRelay<Void>()
   private let alreadyVerifyFeedRelay = PublishRelay<Void>()
-  private let challengeNotFoundRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
   private let fileTooLargeRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
-    let didTapConfirmButtonAtAlert: Signal<Void>
-    let didTapLoginButton: Signal<Void>
     let requestData: Signal<Void>
     let reloadData: Signal<Void>
     let didTapFeed: Signal<Int>
@@ -83,10 +79,7 @@ final class FeedViewModel: FeedViewModelType {
     let feeds: Driver<FeedsType>
     let startFetching: Signal<Void>
     let stopFetching: Signal<Void>
-    let loginTrigger: Signal<Void>
     let alreadyVerifyFeed: Signal<Void>
-    let challengeNotFound: Signal<Void>
-    let networkUnstable: Signal<Void>
     let fileTooLarge: Signal<Void>
   }
   
@@ -99,19 +92,7 @@ final class FeedViewModel: FeedViewModelType {
 
   func transform(input: Input) -> Output {
     fetchBind(input: input)
-    
-    input.didTapConfirmButtonAtAlert
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.didTapConfirmButtonAtAlert()
-      }
-      .disposed(by: disposeBag)
-    
-    input.didTapLoginButton
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.requestLogin()
-      }
-      .disposed(by: disposeBag)
-   
+       
     input.didTapFeed
       .emit(with: self) { owner, feedId in
         owner.coordinator?.attachFeedDetail(challengeId: owner.challengeId, feedId: feedId)
@@ -138,10 +119,7 @@ final class FeedViewModel: FeedViewModelType {
       feeds: feedsRelay.asDriver(),
       startFetching: startFetchingRelay.asSignal(),
       stopFetching: stopFetchingRelay.asSignal(),
-      loginTrigger: loginTriggerRelay.asSignal(),
       alreadyVerifyFeed: alreadyVerifyFeedRelay.asSignal(),
-      challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
       fileTooLarge: fileTooLargeRelay.asSignal()
     )
   }
@@ -273,20 +251,20 @@ private extension FeedViewModel {
   
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      coordinator?.networkUnstable(); return
     }
     
     switch error {
       case .authenticationFailed:
-        loginTriggerRelay.accept(())
+        coordinator?.authenticatedFailed()
       case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
         alreadyVerifyFeedRelay.accept(())
       case let .challengeFailed(reason) where reason == .challengeNotFound:
-        challengeNotFoundRelay.accept(())
+        coordinator?.challengeNotFound()
       case let .challengeFailed(reason) where reason == .fileTooLarge:
         fileTooLargeRelay.accept(())
       default:
-        networkUnstableRelay.accept(())
+        coordinator?.networkUnstable()
     }
   }
 }

@@ -31,7 +31,6 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let requestDataRelay = PublishRelay<Void>()
   private let requestDeleteCommentRelay = PublishRelay<Int>()
   private let uploadCommentRelay = PublishRelay<String>()
-  private let didTapLoginButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let blurView: UIView = {
@@ -190,8 +189,7 @@ private extension FeedCommentViewController {
       requestData: requestDataRelay.asSignal(),
       didTapLikeButton: topView.rx.didTapLikeButton.asSignal(),
       requestDeleteComment: requestDeleteCommentRelay.asSignal(),
-      requestUploadComment: uploadCommentRelay.asSignal(),
-      requestLogin: didTapLoginButton.asSignal()
+      requestUploadComment: uploadCommentRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
     bind(for: output)
@@ -285,19 +283,6 @@ private extension FeedCommentViewController {
         owner.delete(modelId: id)
       }
       .disposed(by: disposeBag)
-    
-    output.loginTrigger
-      .emit(with: self) { owner, _ in
-        let alert = owner.presentLoginTriggerAlert()
-        owner.bind(alert: alert)
-      }
-      .disposed(by: disposeBag)
-    
-    output.networkUnstable
-      .emit(with: self) { owner, reason in
-        owner.presentNetworkUnstableAlert(reason: reason)
-      }
-      .disposed(by: disposeBag)
   }
   
   func bind(for cell: FeedCommentCell) {
@@ -314,14 +299,6 @@ private extension FeedCommentViewController {
             owner.requestDeleteCommentRelay.accept(cell.id)
           default: break
         }
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func bind(alert: AlertViewController) {
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }

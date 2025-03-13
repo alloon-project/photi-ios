@@ -14,6 +14,7 @@ import UseCase
 protocol ChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
+  func didTapLoginButtonAtAlert()
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -41,6 +42,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
     let viewDidLoad: Signal<Void>
     let didTapBackButton: Signal<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
+    let didTapLoginButtonAtAlert: Signal<Void>
   }
   
   // MARK: - Output
@@ -69,9 +71,9 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
-    input.didTapConfirmButtonAtAlert
+    input.didTapLoginButtonAtAlert
       .emit(with: self) { owner, _ in
-        owner.coordinator?.didTapConfirmButtonAtAlert()
+        owner.coordinator?.didTapLoginButtonAtAlert()
       }
       .disposed(by: disposeBag)
     

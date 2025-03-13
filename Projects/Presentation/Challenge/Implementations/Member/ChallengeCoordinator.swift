@@ -13,6 +13,9 @@ protocol ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
   func presentDidChangeGoalToastView()
+  func presentChallengeNotFoundWaring()
+  func presentNetworkWarning(reason: String?)
+  func presentLoginTrrigerWarning()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -76,7 +79,11 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 // MARK: - ChallengeCoordinatable
 extension ChallengeCoordinator: ChallengeCoordinatable {
   func didTapConfirmButtonAtAlert() {
-    listener?.didTapBackButtonAtChallenge()
+    listener?.shouldDismissChallenge()
+  }
+  
+  func didTapLoginButtonAtAlert() {
+    listener?.requestLoginAtChallenge()
   }
   
   func didTapBackButton() {
@@ -122,12 +129,16 @@ extension ChallengeCoordinator: FeedListener {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
   
-  func requestLoginAtChallengeFeed() {
-    listener?.requestLoginAtChallenge()
+  func authenticatedFailedAtFeed() {
+    presenter.presentLoginTrrigerWarning()
   }
   
-  func shouldDismissChallenge() {
-    listener?.shouldDismissChallenge()
+  func networkUnstableAtFeed(reason: String?) {
+    presenter.presentNetworkWarning(reason: reason)
+  }
+  
+  func challengeNotFoundAtFeed() {
+    presenter.presentChallengeNotFoundWaring()
   }
 }
 
