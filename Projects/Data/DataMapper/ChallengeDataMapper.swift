@@ -19,6 +19,7 @@ public protocol ChallengeDataMapper {
   func mapToFeed(dto: FeedResponseDTO) -> Feed
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
   func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment
+  func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -129,6 +130,21 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       id: dto.id,
       author: dto.username,
       comment: dto.comment
+    )
+  }
+  
+  public func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription {
+    let proveTime = dto.proveTime.toDate("HH:mm") ?? Date()
+    let startDate = dto.startDate.toDate() ?? Date()
+    let endDate = dto.endDate.toDate() ?? Date()
+    let rules = dto.rules.map { $0.rule }
+    return .init(
+      id: id,
+      rules: rules,
+      proveTime: proveTime,
+      startDate: startDate,
+      goal: dto.goal,
+      endDate: endDate
     )
   }
 }
