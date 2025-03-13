@@ -7,16 +7,19 @@
 //
 
 import Core
+import UseCase
 
-protocol DescriptionDependency: Dependency { }
+protocol DescriptionDependency: Dependency {
+  var challengeUseCase: ChallengeUseCase { get }
+}
 
 protocol DescriptionContainable: Containable {
-  func coordinator(listener: DescriptionListener) -> ViewableCoordinating
+  func coordinator(challengeId: Int, listener: DescriptionListener) -> ViewableCoordinating
 }
 
 final class DescriptionContainer: Container<DescriptionDependency>, DescriptionContainable {
-  func coordinator(listener: DescriptionListener) -> ViewableCoordinating {
-    let viewModel = DescriptionViewModel()
+  func coordinator(challengeId: Int, listener: DescriptionListener) -> ViewableCoordinating {
+    let viewModel = DescriptionViewModel(challengeId: challengeId, useCase: dependency.challengeUseCase)
     let viewControllerable = DescriptionViewController(viewModel: viewModel)
     
     let coordinator = DescriptionCoordinator(

@@ -7,6 +7,7 @@
 //
 
 import RxSwift
+import UseCase
 
 protocol DescriptionCoordinatable: AnyObject { }
 
@@ -19,6 +20,8 @@ protocol DescriptionViewModelType: AnyObject {
 
 final class DescriptionViewModel: DescriptionViewModelType {
   weak var coordinator: DescriptionCoordinatable?
+  private let challengeId: Int
+  private let useCase: ChallengeUseCase
   private let disposeBag = DisposeBag()
 
   // MARK: - Input
@@ -28,7 +31,11 @@ final class DescriptionViewModel: DescriptionViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeId: Int, useCase: ChallengeUseCase) {
+    self.challengeId = challengeId
+    self.useCase = useCase
+    self.descriptionObservable = description.compactMap { $0 }
+  }
   
   func transform(input: Input) -> Output {
     return Output()
