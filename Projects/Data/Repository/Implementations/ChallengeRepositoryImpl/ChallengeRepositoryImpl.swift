@@ -126,6 +126,15 @@ public extension ChallengeRepositoryImpl {
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
+  
+  func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.challengeDescription(id: challengeId),
+      responseType: ChallengeDescriptionResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
+  }
 }
 
 // MARK: - Upload Methods
@@ -173,7 +182,7 @@ public extension ChallengeRepositoryImpl {
     return requestAuthorizableAPI(
       api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
       responseType: SuccessResponseDTO.self,
-      behavior: .immediate
+      behavior: .delayed(seconds: 3)
     )
     .map { _ in }
   }

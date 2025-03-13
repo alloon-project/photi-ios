@@ -27,6 +27,7 @@ public enum ChallengeAPI {
   case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
   case updateChallengeGoal(_ goal: String, challengeId: Int)
+  case challengeDescription(id: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -54,6 +55,7 @@ extension ChallengeAPI: TargetType {
       case let .deleteFeedComment(challengeId, feedId, commentId): 
         return "/challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
       case let .updateChallengeGoal(_, challengeId): return "/challenges/\(challengeId)/challenge-members/goal"
+      case let .challengeDescription(id): return "challenges/\(id)/info"
     }
   }
   
@@ -72,6 +74,7 @@ extension ChallengeAPI: TargetType {
       case .uploadFeedComment: return .post
       case .deleteFeedComment: return .delete
       case .updateChallengeGoal: return .patch
+      case .challengeDescription: return .get
     }
   }
   
@@ -143,6 +146,10 @@ extension ChallengeAPI: TargetType {
         let urlParameters = ["challengeId": challengeId]
         let bodyParameters = ["goal": goal]
         return .requestCompositeParameters(bodyParameters: bodyParameters, urlParameters: urlParameters)
+        
+      case let .challengeDescription(challengeId):
+        let parameters = ["challengeId": challengeId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
   
@@ -211,6 +218,12 @@ extension ChallengeAPI: TargetType {
         let page = min(page, 1)
         let commentsData = [FeedCommentsResponseDTO.stubData1, FeedCommentsResponseDTO.stubData2]
         let jsonData = commentsData[page].data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .challengeDescription:
+        let data = ChallengeDescriptionResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
