@@ -15,6 +15,7 @@ import UseCase
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
+  func deleteFeed(id: Int)
   func authenticatedFailed()
   func networkUnstable(reason: String?)
 }
@@ -153,6 +154,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
         Task { await owner.deleteFeedComment(commentId: id) }
       }
       .disposed(by: disposeBag)
+    
+    input.didTapDeleteButton
+      .emit(with: self) { owner, _ in
+        Task { await owner.deleteFeed() }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -256,6 +263,17 @@ private extension FeedCommentViewModel {
       deleteCommentRelay.accept(commentId)
     } catch {
       let message = "코멘트 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
+    }
+  }
+  
+  @MainActor
+  func deleteFeed() async {
+    do {
+      try await useCase.deleteFeed(challengeId: challengeId, feedId: feedId).value
+      coordinator?.deleteFeed(id: feedId)
+    } catch {
+      let message = "피드 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
       requestFailed(with: error, reasonWhenNetworkUnstable: message)
     }
   }
