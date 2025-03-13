@@ -175,21 +175,6 @@ extension ChallengeViewController: ChallengePresentable {
     }
   }
   
-  func presentDidChangeGoalToastView() {
-    let toastView = ToastView(
-      tipPosition: .none,
-      text: "수정 완료! 새로운 목표까지 화이팅이에요!",
-      icon: .bulbWhite
-    )
-    
-    toastView.setConstraints {
-      $0.bottom.equalToSuperview().inset(64)
-      $0.centerX.equalToSuperview()
-    }
-    
-    toastView.present(to: self)
-  }
-  
   func presentChallengeNotFoundWaring() {
     let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
     alert.rx.didTapConfirmButton

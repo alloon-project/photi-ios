@@ -14,17 +14,37 @@ protocol ParticipantDependency: Dependency {
 }
 
 protocol ParticipantContainable: Containable {
-  func coordinator(challengeId: Int, listener: ParticipantListener) -> ViewableCoordinating
+  func coordinator(
+    challengeId: Int,
+    challengeName: String,
+    listener: ParticipantListener
+  ) -> ViewableCoordinating
 }
 
-final class ParticipantContainer: Container<ParticipantDependency>, ParticipantContainable {
-  func coordinator(challengeId: Int, listener: ParticipantListener) -> ViewableCoordinating {
-    let viewModel = ParticipantViewModel(challengeId: challengeId, useCase: dependency.challengeUseCase)
+final class ParticipantContainer:
+  Container<ParticipantDependency>,
+  ParticipantContainable,
+  EnterChallengeGoalDependency {
+  var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
+
+  func coordinator(
+    challengeId: Int,
+    challengeName: String,
+    listener: ParticipantListener
+  ) -> ViewableCoordinating {
+    let viewModel = ParticipantViewModel(
+      challengeId: challengeId,
+      challegeName: challengeName,
+      useCase: dependency.challengeUseCase
+    )
     let viewControllerable = ParticipantViewController(viewModel: viewModel)
     
+    let editChallengeGoalContainer = EnterChallengeGoalContainer(dependency: self)
+
     let coordinator = ParticipantCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      editChallengeGoalContainer: editChallengeGoalContainer
     )
     coordinator.listener = listener
     return coordinator

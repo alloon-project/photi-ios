@@ -12,7 +12,6 @@ import Challenge
 protocol ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
-  func presentDidChangeGoalToastView()
   func presentChallengeNotFoundWaring()
   func presentNetworkWarning(reason: String?)
   func presentLoginTrrigerWarning()
@@ -32,22 +31,17 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
-  private let editChallengeGoalContainer: EnterChallengeGoalContainable
-  private var editChallengeGoalCoordinator: ViewableCoordinating?
-  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
-    participantContainer: ParticipantContainable,
-    editChallengeGoalContainer: EnterChallengeGoalContainer
+    participantContainer: ParticipantContainable
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
-    self.editChallengeGoalContainer = editChallengeGoalContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -58,9 +52,14 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   
   func attachSegments() {
     let challengeId = viewModel.challengeId
+    let challengeName = viewModel.challengeName
     let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
     let descriptionCoordinator = descriptionContainer.coordinator(challengeId: challengeId, listener: self)
-    let participantCoordinator = participantContainer.coordinator(challengeId: challengeId, listener: self)
+    let participantCoordinator = participantContainer.coordinator(
+      challengeId: challengeId,
+      challengeName: challengeName,
+      listener: self
+    )
     
     presenter.attachViewControllerables(
       feedCoordinator.viewControllerable,
@@ -88,38 +87,6 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   
   func didTapBackButton() {
     listener?.didTapBackButtonAtChallenge()
-  }
-}
-
-// MARK: - EditChallengeGoal
-extension ChallengeCoordinator {
-  func attachEditChallengeGoal(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  ) {
-    guard editChallengeGoalCoordinator == nil else { return }
-    
-    let coordinator = editChallengeGoalContainer.coordinator(
-      mode: .edit(goal: goal),
-      challengeID: challengeID,
-      challengeName: challengeName,
-      listener: self
-    )
-    
-    addChild(coordinator)
-    self.editChallengeGoalCoordinator = coordinator
-    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-  }
-  
-  func detachEditChallengeGoal(completion: (() -> Void)? = nil) {
-    guard let coordinator = editChallengeGoalCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.editChallengeGoalCoordinator = nil
-    viewControllerable.popViewController(animated: true) {
-      completion?()
-    }
   }
 }
 
@@ -162,19 +129,7 @@ extension ChallengeCoordinator: ParticipantListener {
   func didChangeContentOffsetAtParticipant(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
-  
-  func didTapEditButton(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  ) {
-    attachEditChallengeGoal(
-      challengeID: challengeID,
-      goal: goal,
-      challengeName: challengeName
-    )
-  }
-  
+
   func authenticatedFailedAtParticipant() {
     presenter.presentLoginTrrigerWarning()
   }
@@ -182,22 +137,8 @@ extension ChallengeCoordinator: ParticipantListener {
   func networkUnstableAtParticipant() {
     presenter.presentNetworkWarning(reason: nil)
   }
-}
-
-// MARK: - EditChallengeGoalListener
-extension ChallengeCoordinator: EnterChallengeGoalListener {
-  func didTapBackButtonAtEnterChallengeGoal() {
-    detachEditChallengeGoal()
-  }
-
-  func didFinishEnterChallengeGoal() {
-    // TODO: API 연결 이후 수정 예정
-    detachEditChallengeGoal { [weak self] in
-      self?.presenter.presentDidChangeGoalToastView()
-    }
-  }
   
-  func requestLoginAtEnterChallengeGoal() {
+  func requestLoginAtPariticipant() {
     listener?.requestLoginAtChallenge()
   }
 }

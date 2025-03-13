@@ -30,6 +30,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   
   let disposeBag = DisposeBag()
   let challengeId: Int
+  private(set) var challengeName: String = ""
   
   weak var coordinator: ChallengeCoordinatable?
   
@@ -93,6 +94,7 @@ private extension ChallengeViewModel {
       .subscribe(with: self) { owner, challenge in
         let model = owner.mapToPresentatoinModel(challenge)
         owner.challengeModelRelay.accept(model)
+        owner.challengeName = challenge.name
       }
       .disposed(by: disposeBag)
   }

@@ -12,7 +12,7 @@ struct ParticipantPresentationModel {
   let name: String
   let avatarURL: URL?
   let duration: String
-  let goal: String
+  var goal: String
   let isChallengeOwner: Bool
   let isSelf: Bool
 }

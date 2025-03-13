@@ -16,11 +16,7 @@ protocol ParticipantCoordinatable: AnyObject {
   func didChangeContentOffset(_ offset: Double)
   func authenticatedFailed()
   func networkUnstable()
-  func didTapEditButton(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  )
+  func didTapEditButton(goal: String)
 }
 
 protocol ParticipantViewModelType: AnyObject {
@@ -32,8 +28,10 @@ protocol ParticipantViewModelType: AnyObject {
 
 final class ParticipantViewModel: ParticipantViewModelType {
   weak var coordinator: ParticipantCoordinatable?
+  let challengeId: Int
+  let challengeName: String
+
   private let disposeBag = DisposeBag()
-  private let challengeId: Int
   private let useCase: ChallengeUseCase
   
   private let participants = BehaviorRelay<[ParticipantPresentationModel]>(value: [])
@@ -42,7 +40,7 @@ final class ParticipantViewModel: ParticipantViewModelType {
   struct Input {
     let requestData: Signal<Void>
     let contentOffset: Signal<Double>
-    let didTapEditButton: Signal<(String, Int)>
+    let didTapEditButton: Signal<String>
   }
   
   // MARK: - Output
@@ -51,8 +49,9 @@ final class ParticipantViewModel: ParticipantViewModelType {
   }
   
   // MARK: - Initializers
-  init(challengeId: Int, useCase: ChallengeUseCase) {
+  init(challengeId: Int, challegeName: String, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
+    self.challengeName = challegeName
     self.useCase = useCase
   }
   
@@ -70,12 +69,8 @@ final class ParticipantViewModel: ParticipantViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapEditButton
-      .emit(with: self) { owner, info in
-        owner.coordinator?.didTapEditButton(
-          challengeID: info.1,
-          goal: info.0,
-          challengeName: "러닝하기"
-        )
+      .emit(with: self) { owner, goal in
+        owner.coordinator?.didTapEditButton(goal: goal)
       }
       .disposed(by: disposeBag)
     
