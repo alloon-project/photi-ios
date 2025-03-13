@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Core
 import Entity
 import UseCase
 
@@ -55,6 +56,8 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let requestComments: Signal<Void>
     let requestData: Signal<Void>
     let didTapLikeButton: Signal<Bool>
+    let didTapShareButton: Signal<Void>
+    let didTapDeleteButton: Signal<Void>
     let requestDeleteComment: Signal<Int>
     let requestUploadComment: Signal<String>
   }
@@ -63,6 +66,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   struct Output {
     let feedImageURL: Driver<URL?>
     let updateTime: Driver<String>
+    let isEditable: Driver<Bool>
     let author: Driver<AuthorPresentationModel>
     let likeCount: Driver<Int>
     let isLike: Driver<Bool>
@@ -101,9 +105,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       }
       .disposed(by: disposeBag)
     
+    let isEditable = authorRelay.map { $0.name == ServiceConfiguration.shared.userName }
+    
     return Output(
       feedImageURL: feedImageURLRelay.asDriver(),
       updateTime: updateTimeRelay.asDriver(),
+      isEditable: isEditable.asDriver(onErrorJustReturn: false),
       author: authorRelay.asDriver(),
       likeCount: likeCountRelay.asDriver(),
       isLike: isLikeRelay.asDriver(),
