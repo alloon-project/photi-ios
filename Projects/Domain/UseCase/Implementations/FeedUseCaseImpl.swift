@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import RxSwift
 import Entity
 import Repository
 import UseCase
@@ -49,5 +50,9 @@ public struct FeedUseCaseImpl: FeedUseCase {
   
   public func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
     try await repository.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
+  }
+  
+  public func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void> {
+    return repository.deleteFeed(challengeId: challengeId, feedId: feedId)
   }
 }

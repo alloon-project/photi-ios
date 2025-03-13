@@ -144,6 +144,15 @@ public extension FeedRepositoryImpl {
       throw APIError.challengeFailed(reason: .challengeNotFound)
     }
   }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: .deleteFeed(challengeId: challengeId, feedId: feedId),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { _ in }
+  }
 }
 
 // MARK: - Private Methods

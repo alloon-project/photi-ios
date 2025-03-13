@@ -15,6 +15,7 @@ public enum FeedAPI {
   case feeds(id: Int, page: Int, size: Int, sortOrder: String)
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case feedDetail(challengeId: Int, feedId: Int)
+  case deleteFeed(challengeId: Int, feedId: Int)
   case feedComments(feedId: Int, page: Int, size: Int)
   case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
@@ -31,6 +32,7 @@ extension FeedAPI: TargetType {
       case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
       case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
       case let .feedDetail(challengeId, feedId): return "/challenges/\(challengeId)/feeds/\(feedId)"
+      case let .deleteFeed(challengeId, feedId): return "/challenges/\(challengeId)/feeds/\(feedId)"
       case let .feedComments(feedId, _, _): return "/challenges/feeds/\(feedId)/comments"
       case let .uploadFeedComment(challengeId, feedId, _):
         return "/challenges/\(challengeId)feeds/\(feedId)/comments"
@@ -46,7 +48,7 @@ extension FeedAPI: TargetType {
       case .feedDetail: return .get
       case .feedComments: return .get
       case .uploadFeedComment: return .post
-      case .deleteFeedComment: return .delete
+      case .deleteFeedComment, .deleteFeed: return .delete
     }
   }
   
@@ -60,6 +62,10 @@ extension FeedAPI: TargetType {
         )
         
       case let .updateLikeState(challengeId, feedId, _), let .feedDetail(challengeId, feedId):
+        let parameters = ["challengeId": challengeId, "feedId": feedId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .deleteFeed(challengeId, feedId):
         let parameters = ["challengeId": challengeId, "feedId": feedId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
@@ -80,7 +86,7 @@ extension FeedAPI: TargetType {
   
   public var sampleResponse: EndpointSampleResponse {
     switch self {
-      case .updateLikeState, .deleteFeedComment:
+      case .updateLikeState, .deleteFeedComment, .deleteFeed:
         let data = """
           {
             "code": "200 OK",
