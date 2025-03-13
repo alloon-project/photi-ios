@@ -173,7 +173,7 @@ public extension ChallengeRepositoryImpl {
       session: .init(interceptor: AuthenticationInterceptor())
     )
     
-    guard let result = try? await provider.request(api).value else {
+    guard let result = try? await provider.request(api, type: FeedCommentResponseDTO.self).value else {
       throw APIError.serverError
     }
     
@@ -183,8 +183,8 @@ public extension ChallengeRepositoryImpl {
       throw APIError.challengeFailed(reason: .challengeNotFound)
     }
       
-    // TODO: 서버 API수정시 Feed CommentID 리턴으로 수정 예정
-    return 100
+    guard let id = result.data?.id else { throw APIError.serverError }
+    return id
   }
   
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {

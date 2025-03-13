@@ -187,7 +187,7 @@ extension ChallengeAPI: TargetType {
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
 
       // swiftlint:disable line_length 
-      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState, .uploadFeedComment, .deleteFeedComment, .updateChallengeGoal:
+      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateLikeState, .deleteFeedComment, .updateChallengeGoal:
       // swiftlint:enable line_length
         let data = """
           {
@@ -198,6 +198,12 @@ extension ChallengeAPI: TargetType {
             }
           }
         """
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .uploadFeedComment:
+        let data = FeedCommentResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
