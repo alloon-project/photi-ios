@@ -28,6 +28,7 @@ public enum ChallengeAPI {
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
   case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
+  case challengeMember(challengeId: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -56,6 +57,7 @@ extension ChallengeAPI: TargetType {
         return "/challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
       case let .updateChallengeGoal(_, challengeId): return "/challenges/\(challengeId)/challenge-members/goal"
       case let .challengeDescription(id): return "challenges/\(id)/info"
+      case let .challengeMember(challengeId): return "/challenges/\(challengeId)/challenge-members"
     }
   }
   
@@ -75,6 +77,7 @@ extension ChallengeAPI: TargetType {
       case .deleteFeedComment: return .delete
       case .updateChallengeGoal: return .patch
       case .challengeDescription: return .get
+      case .challengeMember: return .get
     }
   }
   
@@ -150,6 +153,10 @@ extension ChallengeAPI: TargetType {
       case let .challengeDescription(challengeId):
         let parameters = ["challengeId": challengeId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .challengeMember(challengeId):
+        let parameters = ["challengeId": challengeId]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
   
@@ -223,6 +230,12 @@ extension ChallengeAPI: TargetType {
         
       case .challengeDescription:
         let data = ChallengeDescriptionResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .challengeMember:
+        let data = ChallengeMemberResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

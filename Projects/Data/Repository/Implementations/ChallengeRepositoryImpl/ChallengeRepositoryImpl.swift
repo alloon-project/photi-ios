@@ -135,6 +135,15 @@ public extension ChallengeRepositoryImpl {
     )
     .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
   }
+  
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.challengeMember(challengeId: challengeId),
+      responseType: [ChallengeMemberResponseDTO].self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeMembers(dto: $0) }
+  }
 }
 
 // MARK: - Upload Methods
