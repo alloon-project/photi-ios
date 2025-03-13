@@ -14,6 +14,8 @@ import UseCase
 
 protocol ParticipantCoordinatable: AnyObject {
   func didChangeContentOffset(_ offset: Double)
+  func authenticatedFailed()
+  func networkUnstable()
   func didTapEditButton(
     challengeID: Int,
     goal: String,
@@ -103,5 +105,13 @@ private extension ParticipantViewModel {
       isChallengeOwner: member.isCreator,
       isSelf: ServiceConfiguration.shared.userName == member.name
     )
+  }
+  
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError, case .authenticationFailed = error {
+      coordinator?.authenticatedFailed()
+    } else {
+      coordinator?.networkUnstable()
+    }
   }
 }

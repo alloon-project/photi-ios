@@ -174,6 +174,14 @@ extension ChallengeCoordinator: ParticipantListener {
       challengeName: challengeName
     )
   }
+  
+  func authenticatedFailedAtParticipant() {
+    presenter.presentLoginTrrigerWarning()
+  }
+  
+  func networkUnstableAtParticipant() {
+    presenter.presentNetworkWarning(reason: nil)
+  }
 }
 
 // MARK: - EditChallengeGoalListener

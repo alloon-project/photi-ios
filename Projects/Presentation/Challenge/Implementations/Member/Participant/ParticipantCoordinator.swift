@@ -15,6 +15,8 @@ protocol ParticipantListener: AnyObject {
     goal: String,
     challengeName: String
   )
+  func authenticatedFailedAtParticipant()
+  func networkUnstableAtParticipant()
 }
 
 protocol ParticipantPresentable { }
@@ -50,5 +52,13 @@ extension ParticipantCoordinator: ParticipantCoordinatable {
       goal: goal,
       challengeName: challengeName
     )
+  }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtParticipant()
+  }
+  
+  func networkUnstable() {
+    listener?.networkUnstableAtParticipant()
   }
 }
