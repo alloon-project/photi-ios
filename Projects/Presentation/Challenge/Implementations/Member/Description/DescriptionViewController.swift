@@ -18,6 +18,8 @@ final class DescriptionViewController: UIViewController, ViewControllerable {
   private let viewModel: DescriptionViewModel
   private let disposeBag = DisposeBag()
   
+  private let requestData = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let mainContainerView = UIView()
   private let ruleDescriptionView = RuleDescriptionView()
@@ -50,8 +52,10 @@ final class DescriptionViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
+    bind()
+    
+    requestData.accept(())
   }
 }
 
@@ -111,7 +115,7 @@ private extension DescriptionViewController {
 // MARK: - Bind Methods
 private extension DescriptionViewController {
   func bind() {
-    let input = DescriptionViewModel.Input()
+    let input = DescriptionViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -120,7 +124,23 @@ private extension DescriptionViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: DescriptionViewModel.Output) { }
+  func viewModelBind(for output: DescriptionViewModel.Output) {
+    output.rules
+      .drive(ruleDescriptionView.rx.rules)
+      .disposed(by: disposeBag)
+    
+    output.proveTime
+      .drive(ruleDescriptionView.rx.proveTime)
+      .disposed(by: disposeBag)
+    
+    output.goal
+      .drive(goalDescriptionView.rx.content)
+      .disposed(by: disposeBag)
+    
+    output.duration
+      .drive(durationDescriptionView.rx.content)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - DescriptionPresentable

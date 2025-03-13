@@ -31,7 +31,12 @@ public class LineTextField: UIView {
   
   public var text: String? {
     get { textField.text }
-    set { textField.text = newValue }
+    set {
+      textField.text = newValue
+      if case let .count(max) = type {
+        setCountLabel(max: max)
+      }
+    }
   }
   
   // MARK: - UI Components

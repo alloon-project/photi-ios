@@ -33,4 +33,6 @@ public protocol ChallengeUseCase {
     orderType: ChallengeFeedsOrderType
   ) async throws -> PageFeeds
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
+  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
 }

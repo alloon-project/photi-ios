@@ -8,7 +8,11 @@
 
 import Core
 
-protocol DescriptionListener: AnyObject { }
+protocol DescriptionListener: AnyObject {
+  func authenticatedFailedAtDescription()
+  func networkUnstableAtDescription()
+  func challengeNotFoundAtDescription()
+}
 
 protocol DescriptionPresentable { }
 
@@ -28,4 +32,16 @@ final class DescriptionCoordinator: ViewableCoordinator<DescriptionPresentable> 
 }
 
 // MARK: - DescriptionCoordinatable
-extension DescriptionCoordinator: DescriptionCoordinatable { }
+extension DescriptionCoordinator: DescriptionCoordinatable {
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtDescription()
+  }
+  
+  func networkUnstable() {
+    listener?.networkUnstableAtDescription()
+  }
+  
+  func challengeNotFound() {
+    listener?.challengeNotFoundAtDescription()
+  }
+}

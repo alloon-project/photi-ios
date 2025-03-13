@@ -13,7 +13,7 @@ import UseCase
 
 protocol EnterChallengeGoalCoordinatable: AnyObject {
   func didTapBackButton()
-  func didChangeChallengeGoal()
+  func didChangeChallengeGoal(goal: String)
   func didSkipEnterChallengeGoal()
   func requestLogin()
 }
@@ -92,10 +92,11 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
 
 // MARK: - Private Methods
 private extension EnterChallengeGoalViewModel {
+  @MainActor
   func updateChallengeGoal(_ goal: String) async {
     do {
       try await useCase.updateChallengeGoal(goal, challengeId: challengeID).value
-      coordinator?.didChangeChallengeGoal()
+      coordinator?.didChangeChallengeGoal(goal: goal)
     } catch {
       requestFailed(with: error)
     }

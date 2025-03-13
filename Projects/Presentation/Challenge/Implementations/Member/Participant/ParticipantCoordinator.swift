@@ -10,25 +10,30 @@ import Core
 
 protocol ParticipantListener: AnyObject {
   func didChangeContentOffsetAtParticipant(_ offset: Double)
-  func didTapEditButton(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  )
+  func requestLoginAtPariticipant()
+  func authenticatedFailedAtParticipant()
+  func networkUnstableAtParticipant()
 }
 
-protocol ParticipantPresentable { }
+protocol ParticipantPresentable {
+  func didUpdateGoal(_ goal: String)
+}
 
 final class ParticipantCoordinator: ViewableCoordinator<ParticipantPresentable> {
   weak var listener: ParticipantListener?
 
   private let viewModel: ParticipantViewModel
   
+  private let editChallengeGoalContainer: EnterChallengeGoalContainable
+  private var editChallengeGoalCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: ParticipantViewModel
+    viewModel: ParticipantViewModel,
+    editChallengeGoalContainer: EnterChallengeGoalContainer
   ) {
     self.viewModel = viewModel
+    self.editChallengeGoalContainer = editChallengeGoalContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -40,15 +45,60 @@ extension ParticipantCoordinator: ParticipantCoordinatable {
     listener?.didChangeContentOffsetAtParticipant(offset)
   }
   
-  func didTapEditButton(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  ) {
-    listener?.didTapEditButton(
-      challengeID: challengeID,
-      goal: goal,
-      challengeName: challengeName
+  func didTapEditButton(goal: String) {
+    attachEditChallengeGoal(goal: goal)
+  }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtParticipant()
+  }
+  
+  func networkUnstable() {
+    listener?.networkUnstableAtParticipant()
+  }
+}
+
+// MARK: - EditChallengeGoal
+extension ParticipantCoordinator {
+  func attachEditChallengeGoal(goal: String) {
+    guard editChallengeGoalCoordinator == nil else { return }
+    
+    let coordinator = editChallengeGoalContainer.coordinator(
+      mode: .edit(goal: goal),
+      challengeID: viewModel.challengeId,
+      challengeName: viewModel.challengeName,
+      listener: self
     )
+    
+    addChild(coordinator)
+    self.editChallengeGoalCoordinator = coordinator
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+  }
+  
+  func detachEditChallengeGoal(completion: (() -> Void)? = nil) {
+    guard let coordinator = editChallengeGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.editChallengeGoalCoordinator = nil
+    viewControllerable.popViewController(animated: true) {
+      completion?()
+    }
+  }
+}
+
+// MARK: - EditChallengeGoalListener
+extension ParticipantCoordinator: EnterChallengeGoalListener {
+  func didTapBackButtonAtEnterChallengeGoal() {
+    detachEditChallengeGoal()
+  }
+
+  func didFinishEnterChallengeGoal(_ goal: String) {
+    detachEditChallengeGoal { [weak self] in
+      self?.presenter.didUpdateGoal(goal)
+    }
+  }
+  
+  func requestLoginAtEnterChallengeGoal() {
+    listener?.requestLoginAtPariticipant()
   }
 }

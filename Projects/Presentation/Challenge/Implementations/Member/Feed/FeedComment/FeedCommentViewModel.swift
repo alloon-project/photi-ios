@@ -14,7 +14,8 @@ import UseCase
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
-  func requestLogIn()
+  func authenticatedFailed()
+  func networkUnstable(reason: String?)
 }
 
 protocol FeedCommentViewModelType: AnyObject {
@@ -47,8 +48,6 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
   private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
   private let uploadCommentFailedRelay = PublishRelay<String>()
-  private let networkUnstableRelay = PublishRelay<String?>()
-  private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -58,7 +57,6 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let didTapLikeButton: Signal<Bool>
     let requestDeleteComment: Signal<Int>
     let requestUploadComment: Signal<String>
-    let requestLogin: Signal<Void>
   }
   
   // MARK: - Output
@@ -74,8 +72,6 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let comment: Signal<FeedCommentPresentationModel>
     let uploadCommentSuccess: Signal<(String, Int)>
     let uploadCommentFailed: Signal<String>
-    let networkUnstable: Signal<String?>
-    let loginTrigger: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -116,9 +112,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       deleteComment: deleteCommentRelay.asSignal(),
       comment: commentRelay.asSignal(),
       uploadCommentSuccess: uploadCommentSuccessRelay.asSignal(),
-      uploadCommentFailed: uploadCommentFailedRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      loginTrigger: loginTriggerRelay.asSignal()
+      uploadCommentFailed: uploadCommentFailedRelay.asSignal()
     )
   }
   
@@ -150,12 +144,6 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     input.requestDeleteComment
       .emit(with: self) { owner, id in
         Task { await owner.deleteFeedComment(commentId: id) }
-      }
-      .disposed(by: disposeBag)
-    
-    input.requestLogin
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.requestLogIn()
       }
       .disposed(by: disposeBag)
   }
@@ -267,14 +255,14 @@ private extension FeedCommentViewModel {
   
   func requestFailed(with error: Error, reasonWhenNetworkUnstable: String?) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(reasonWhenNetworkUnstable)
+      coordinator?.networkUnstable(reason: reasonWhenNetworkUnstable); return
     }
     
     switch error {
       case .authenticationFailed:
-        loginTriggerRelay.accept(())
+        coordinator?.authenticatedFailed()
       default:
-        networkUnstableRelay.accept(reasonWhenNetworkUnstable)
+        coordinator?.networkUnstable(reason: reasonWhenNetworkUnstable)
     }
   }
 }

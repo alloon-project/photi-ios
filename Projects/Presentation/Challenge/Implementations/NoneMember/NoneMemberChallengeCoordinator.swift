@@ -92,7 +92,7 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
     detachEnterChallengeGoal()
   }
   
-  func didFinishEnterChallengeGoal() {
+  func didFinishEnterChallengeGoal(_ goal: String) {
     detachEnterChallengeGoal()
     listener?.didJoinChallenge()
   }

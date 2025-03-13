@@ -50,12 +50,12 @@ final class ParticipantCell: UITableViewCell {
   
   // MARK: - Configure Methods
   func configure(with model: ParticipantPresentationModel) {
-    userNameLabel.attributedText = model.userName.attributedString(
+    userNameLabel.attributedText = model.name.attributedString(
       font: .body1Bold,
       color: .photiBlack
     )
     
-    durationLabel.attributedText = "\(model.duration)일째 활동 중".attributedString(
+    durationLabel.attributedText = model.duration.attributedString(
       font: .body2,
       color: .gray500
     )

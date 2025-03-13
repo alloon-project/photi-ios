@@ -126,6 +126,24 @@ public extension ChallengeRepositoryImpl {
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
+  
+  func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.challengeDescription(id: challengeId),
+      responseType: ChallengeDescriptionResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
+  }
+  
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.challengeMember(challengeId: challengeId),
+      responseType: [ChallengeMemberResponseDTO].self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToChallengeMembers(dto: $0) }
+  }
 }
 
 // MARK: - Upload Methods
@@ -173,7 +191,7 @@ public extension ChallengeRepositoryImpl {
     return requestAuthorizableAPI(
       api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
       responseType: SuccessResponseDTO.self,
-      behavior: .immediate
+      behavior: .delayed(seconds: 3)
     )
     .map { _ in }
   }
@@ -253,8 +271,7 @@ private extension ChallengeRepositoryImpl {
             session: .init(interceptor: AuthenticationInterceptor())
           )
           
-          let result = try await provider
-            .request(api, type: responseType.self).value
+          let result = try await provider.request(api, type: responseType.self).value
           
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))

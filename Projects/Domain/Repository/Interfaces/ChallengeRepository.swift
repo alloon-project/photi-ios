@@ -47,4 +47,6 @@ public protocol ChallengeRepository {
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
+  func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription>
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
 }

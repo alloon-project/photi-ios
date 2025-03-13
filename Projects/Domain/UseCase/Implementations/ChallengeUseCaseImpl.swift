@@ -47,6 +47,14 @@ public extension ChallengeUseCaseImpl {
     
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
   }
+  
+  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription> {
+    return repository.fetchChallengeDescription(challengeId: id)
+  }
+  
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
+    return repository.fetchChallengeMembers(challengeId: challengeId)
+  }
 }
 
 // MARK: - Upload & Update Methods

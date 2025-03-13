@@ -15,9 +15,13 @@ final class DescriptionView: UIView {
     case goal, duration
   }
   
+  var content: String = "" {
+    didSet { configureContent(content) }
+  }
+  
   // MARK: - UI Components
   private let titleLabel = UILabel()
-  private let subTitleLabel = UILabel()
+  private let contentLabel = UILabel()
   
   // MARK: - Initializers
   init(type: DescriptionType) {
@@ -29,14 +33,6 @@ final class DescriptionView: UIView {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  // MARK: - Configure Methods
-  func configure(subTitle: String) {
-    subTitleLabel.attributedText = subTitle.attributedString(
-      font: .body2,
-      color: .gray600
-    )
   }
 }
 
@@ -54,7 +50,7 @@ private extension DescriptionView {
   }
   
   func setViewHierarchy() {
-    addSubviews(titleLabel, subTitleLabel)
+    addSubviews(titleLabel, contentLabel)
   }
   
   func setConstraints() {
@@ -62,9 +58,19 @@ private extension DescriptionView {
       $0.leading.top.equalToSuperview()
     }
     
-    subTitleLabel.snp.makeConstraints {
+    contentLabel.snp.makeConstraints {
       $0.leading.trailing.bottom.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(20)
     }
+  }
+}
+
+// MARK: - Private Methods
+private extension DescriptionView {
+  func configureContent(_ content: String) {
+    contentLabel.attributedText = content.attributedString(
+      font: .body2,
+      color: .gray600
+    )
   }
 }
