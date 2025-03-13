@@ -27,6 +27,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
+  private let didTapLoginButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -116,7 +117,8 @@ private extension ChallengeViewController {
     let input = ChallengeViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
-      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
+      didTapLoginButtonAtAlert: didTapLoginButtonAtAlert.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -141,23 +143,23 @@ private extension ChallengeViewController {
     
     output.challengeNotFound
       .emit(with: self) { owner, _ in
-        owner.presentChallengeNotFound()
+        owner.presentChallengeNotFoundWaring()
       }
       .disposed(by: disposeBag)
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.presentNetworkWarning()
+        owner.presentNetworkWarning(reason: nil)
       }
       .disposed(by: disposeBag)
   }
 }
 
 // MARK: - ChallengePresentable
-extension ChallengeViewController: ChallengePresentable {  
+extension ChallengeViewController: ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...) {
     segmentViewControllers = viewControllerables.map(\.uiviewController)
-
+    
     attachViewController(segmentIndex: segmentIndex)
   }
   
@@ -167,25 +169,34 @@ extension ChallengeViewController: ChallengePresentable {
     
     let offset = offset.bound(lower: minOffset, upper: maxOffset)
     let mainContainerOffset = minOffset + maxOffset - offset
-
+    
     mainView.snp.updateConstraints {
       $0.top.equalToSuperview().offset(mainContainerOffset)
     }
   }
   
-  func presentDidChangeGoalToastView() {
-    let toastView = ToastView(
-      tipPosition: .none,
-      text: "수정 완료! 새로운 목표까지 화이팅이에요!",
-      icon: .bulbWhite
-    )
+  func presentChallengeNotFoundWaring() {
+    let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentNetworkWarning(reason: String?) {
+    presentNetworkUnstableAlert(reason: reason)
+  }
+  
+  func presentLoginTrrigerWarning() {
+    let alert = self.presentLoginTriggerAlert()
     
-    toastView.setConstraints {
-      $0.bottom.equalToSuperview().inset(64)
-      $0.centerX.equalToSuperview()
-    }
-    
-    toastView.present(to: self)
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLoginButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -218,25 +229,5 @@ private extension ChallengeViewController {
     viewController.view.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-  }
-  
-  func presentChallengeNotFound() {
-    let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
-    alert.present(to: self, animted: true)
-  }
-  
-  func presentNetworkWarning() {
-    let alert = self.presentNetworkUnstableAlert()
-    
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
   }
 }

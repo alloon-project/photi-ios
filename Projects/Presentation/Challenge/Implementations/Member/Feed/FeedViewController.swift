@@ -50,8 +50,6 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let requestFeeds = PublishRelay<Void>()
   private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
   private let didTapLikeButtonRelay = PublishRelay<(Bool, Int)>()
-  private let didTapLoginButton = PublishRelay<Void>()
-  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -181,8 +179,6 @@ private extension FeedViewController {
 private extension FeedViewController {
   func bind() {
     let input = FeedViewModel.Input(
-      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      didTapLoginButton: didTapLoginButton.asSignal(),
       requestData: requestData.asSignal(),
       reloadData: reloadData.asSignal(),
       didTapFeed: didTapFeedCell.asSignal(),
@@ -249,31 +245,6 @@ private extension FeedViewController {
   }
   
   func bindFailed(for output: FeedViewModel.Output) {
-    output.challengeNotFound
-      .emit(with: self) { owner, _ in
-        owner.presentChallengeNotFoundAlert()
-      }
-      .disposed(by: disposeBag)
-    
-    output.loginTrigger
-      .emit(with: self) { owner, _ in
-        let alert = owner.presentLoginTriggerAlert()
-        owner.bind(alert: alert)
-      }
-      .disposed(by: disposeBag)
-    
-    output.alreadyVerifyFeed
-      .emit(with: self) { owner, _ in
-        owner.presentAlreadyVerifyFeedAlert()
-      }
-      .disposed(by: disposeBag)
-    
-    output.networkUnstable
-      .emit(with: self) { owner, _ in
-        owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
-    
     output.fileTooLarge
       .emit(with: self) { owner, _ in
         owner.presentFileTooLargeAlert()
@@ -300,14 +271,6 @@ private extension FeedViewController {
       .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
       .bind(with: self) { owner, result in
         owner.didTapLikeButtonRelay.accept(result)
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func bind(alert: AlertViewController) {
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -521,16 +484,6 @@ private extension FeedViewController {
     )
     bottomSheet.delegate = self
     bottomSheet.present(to: self, animated: true)
-  }
-  
-  func presentChallengeNotFoundAlert() {
-    let alert = AlertViewController(alertType: .confirm, title: "이미 삭제된 페이지입니다.")
-    
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
   }
   
   func presentAlreadyVerifyFeedAlert() {

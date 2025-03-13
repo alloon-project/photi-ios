@@ -24,8 +24,9 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     }
   }
   
+  private let requestData = PublishRelay<Void>()
   private let contentOffset = PublishRelay<Double>()
-  private let didTapEditButtonRelay = PublishRelay<(String, Int)>()
+  private let didTapEditButtonRelay = PublishRelay<String>()
 
   // MARK: - UI Components
   private let participantCountLabel = UILabel()
@@ -58,6 +59,8 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     participantTableView.delegate = self
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
 }
 
@@ -90,6 +93,7 @@ private extension ParticipantViewController {
 private extension ParticipantViewController {
   func bind() {
     let input = ParticipantViewModel.Input(
+      requestData: requestData.asSignal(),
       contentOffset: contentOffset.asSignal(),
       didTapEditButton: didTapEditButtonRelay.asSignal()
     )
@@ -101,11 +105,22 @@ private extension ParticipantViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: ParticipantViewModel.Output) { }
+  func viewModelBind(for output: ParticipantViewModel.Output) {
+    output.participants
+      .drive(rx.dataSource)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ParticipantPresentable
-extension ParticipantViewController: ParticipantPresentable { }
+extension ParticipantViewController: ParticipantPresentable {
+  func didUpdateGoal(_ goal: String) {
+    guard let ownerIndex = dataSource.firstIndex(where: { $0.isSelf }) else { return }
+    
+    dataSource[ownerIndex].goal = goal
+    presentDidChangeGoalToastView()
+  }
+}
 
 // MARK: - UITableViewDataSource
 extension ParticipantViewController: UITableViewDataSource {
@@ -117,10 +132,9 @@ extension ParticipantViewController: UITableViewDataSource {
     let cell = tableView.dequeueCell(ParticipantCell.self, for: indexPath)
     cell.configure(with: dataSource[indexPath.row])
     
-    // TODO: - API 연동 후 수정 예정
     cell.rx.didTapEditButton
       .withUnretained(self)
-      .map { ($0.0.dataSource[indexPath.row].goal, indexPath.row) }
+      .map { ($0.0.dataSource[indexPath.row].goal) }
       .bind(to: didTapEditButtonRelay)
       .disposed(by: disposeBag)
     
@@ -143,5 +157,20 @@ private extension ParticipantViewController {
       font: .body1Bold,
       color: .init(red: 0.27, green: 0.27, blue: 0.27, alpha: 1)
     )
+  }
+  
+  func presentDidChangeGoalToastView() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "수정 완료! 새로운 목표까지 화이팅이에요!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
   }
 }

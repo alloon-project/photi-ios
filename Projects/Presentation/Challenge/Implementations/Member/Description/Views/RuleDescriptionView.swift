@@ -11,10 +11,12 @@ import Core
 import DesignSystem
 
 final class RuleDescriptionView: UIView {
-  private var rules = [String]() {
-    didSet {
-      self.rulesLabels = configureRuleLabels(rules)
-    }
+  var rules = [String]() {
+    didSet { self.rulesLabels = configureRuleLabels(rules) }
+  }
+  
+  var proveTime: String = "" {
+    didSet { configureProveTime(proveTime) }
   }
   
   // MARK: - UI Components
@@ -35,15 +37,15 @@ final class RuleDescriptionView: UIView {
     
     return stackView
   }()
-  private let challengeVerificationTimeView: UIView = {
+  private let challengeProveTimeView: UIView = {
     let view = UIView()
     view.backgroundColor = .blue0
     view.layer.cornerRadius = 8
     
     return view
   }()
-  private let challengeVerificationImageView = UIImageView(image: .timeBlue)
-  private let challengeVerificationTitleLabel: UILabel = {
+  private let timeImageView = UIImageView(image: .timeBlue)
+  private let challengeProveTimeTitleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "인증 시간".attributedString(
       font: .body2Bold,
@@ -52,7 +54,7 @@ final class RuleDescriptionView: UIView {
     return label
   }()
 
-  private let challengeVerificationTimeLabel = UILabel()
+  private let challengeProveTimeLabel = UILabel()
   
   private var rulesLabels: [UILabel] = [] {
     didSet {
@@ -64,22 +66,12 @@ final class RuleDescriptionView: UIView {
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
-    
     setupUI()
   }
   
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
-  }
-  
-  // MARK: - Configure Methods
-  func configure(rules: [String], vertificationTime: String) {
-    self.rules = rules
-    challengeVerificationTimeLabel.attributedText = vertificationTime.attributedString(
-      font: .body2,
-      color: .blue400
-    )
   }
 }
 
@@ -94,12 +86,12 @@ private extension RuleDescriptionView {
     addSubviews(
       titleLabel,
       ruleStackView,
-      challengeVerificationTimeView
+      challengeProveTimeView
     )
-    challengeVerificationTimeView.addSubviews(
-      challengeVerificationImageView,
-      challengeVerificationTitleLabel,
-      challengeVerificationTimeLabel
+    challengeProveTimeView.addSubviews(
+      timeImageView,
+      challengeProveTimeTitleLabel,
+      challengeProveTimeLabel
     )
   }
   
@@ -113,25 +105,25 @@ private extension RuleDescriptionView {
       $0.top.equalTo(titleLabel.snp.bottom).offset(20)
     }
     
-    challengeVerificationTimeView.snp.makeConstraints {
+    challengeProveTimeView.snp.makeConstraints {
       $0.top.equalTo(ruleStackView.snp.bottom).offset(20)
       $0.leading.trailing.bottom.equalToSuperview()
       $0.height.equalTo(42)
     }
     
-    challengeVerificationImageView.snp.makeConstraints {
+    timeImageView.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(14)
       $0.width.height.equalTo(24)
       $0.centerY.equalToSuperview()
     }
     
-    challengeVerificationTitleLabel.snp.makeConstraints {
-      $0.leading.equalTo(challengeVerificationImageView.snp.trailing).offset(4)
+    challengeProveTimeTitleLabel.snp.makeConstraints {
+      $0.leading.equalTo(timeImageView.snp.trailing).offset(4)
       $0.centerY.equalToSuperview()
     }
     
-    challengeVerificationTimeLabel.snp.makeConstraints {
-      $0.leading.equalTo(challengeVerificationTitleLabel.snp.trailing).offset(10)
+    challengeProveTimeLabel.snp.makeConstraints {
+      $0.leading.equalTo(challengeProveTimeTitleLabel.snp.trailing).offset(10)
       $0.centerY.equalToSuperview()
     }
   }
@@ -148,5 +140,12 @@ private extension RuleDescriptionView {
       )
       return label
     }
+  }
+  
+  func configureProveTime(_ time: String) {
+    challengeProveTimeLabel.attributedText = time.attributedString(
+      font: .body2,
+      color: .blue400
+    )
   }
 }
