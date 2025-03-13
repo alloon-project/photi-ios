@@ -11,15 +11,15 @@ import Foundation
 public struct ChallengeMember {
   public let id: Int
   public let name: String
-  public let imageUrl: String
-  public let isOwner: Bool
+  public let imageUrl: URL?
+  public let isCreator: Bool
   public let duration: Int
   public let goal: String
   
   public init(
     id: Int,
     name: String,
-    imageUrl: String,
+    imageUrl: URL?,
     isOwner: Bool,
     duration: Int,
     goal: String
@@ -27,7 +27,7 @@ public struct ChallengeMember {
     self.id = id
     self.name = name
     self.imageUrl = imageUrl
-    self.isOwner = isOwner
+    self.isCreator = isOwner
     self.duration = duration
     self.goal = goal
   }

@@ -8,6 +8,8 @@
 
 import RxCocoa
 import RxSwift
+import Core
+import Entity
 import UseCase
 
 protocol ParticipantCoordinatable: AnyObject {
@@ -31,15 +33,20 @@ final class ParticipantViewModel: ParticipantViewModelType {
   private let disposeBag = DisposeBag()
   private let challengeId: Int
   private let useCase: ChallengeUseCase
+  
+  private let participants = BehaviorRelay<[ParticipantPresentationModel]>(value: [])
 
   // MARK: - Input
   struct Input {
+    let requestData: Signal<Void>
     let contentOffset: Signal<Double>
     let didTapEditButton: Signal<(String, Int)>
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let participants: Driver<[ParticipantPresentationModel]>
+  }
   
   // MARK: - Initializers
   init(challengeId: Int, useCase: ChallengeUseCase) {
@@ -48,6 +55,12 @@ final class ParticipantViewModel: ParticipantViewModelType {
   }
   
   func transform(input: Input) -> Output {
+    input.requestData
+      .emit(with: self) { owner, _ in
+        owner.fetchParticipants()
+      }
+      .disposed(by: disposeBag)
+    
     input.contentOffset
       .emit(with: self) { owner, offSet in
         owner.coordinator?.didChangeContentOffset(offSet)
@@ -64,6 +77,31 @@ final class ParticipantViewModel: ParticipantViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    return Output(participants: participants.asDriver())
+  }
+}
+
+// MARK: - Private Methods
+private extension ParticipantViewModel {
+  func fetchParticipants() {
+    useCase.fetchChallengeMembers(challengeId: challengeId)
+      .subscribe(with: self) { owner, members in
+        let models = members.map { owner.mapToPresentationModel($0) }
+        owner.participants.accept(models)
+      } onFailure: { _, error in
+        print("error!!!:\(error)")
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func mapToPresentationModel(_ member: ChallengeMember) -> ParticipantPresentationModel {
+    return .init(
+      name: member.name,
+      avatarURL: member.imageUrl,
+      duration: "\(member.duration)일째 활동 중",
+      goal: member.goal,
+      isChallengeOwner: member.isCreator,
+      isSelf: ServiceConfiguration.shared.userName == member.name
+    )
   }
 }

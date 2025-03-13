@@ -33,36 +33,37 @@ public extension ChallengeMemberResponseDTO {
     },
     {
       "id": 2,
-      "username": "photi",
+      "username": "photi1",
       "imageUrl": "https://url.kr/5MhHhD",
-      "isCreator": fasle,
+      "isCreator": false,
       "duration": 1,
       "goal": "열심히 운동하기!!"
     },
     {
       "id": 3,
-      "username": "photi",
+      "username": "photi2",
       "imageUrl": "https://url.kr/5MhHhD",
-      "isCreator": fasle,
+      "isCreator": false,
       "duration": 0,
       "goal": "열심히 운동하기!!"
     },
     {
       "id": 4,
-      "username": "photi",
+      "username": "photi3",
       "imageUrl": "https://url.kr/5MhHhD",
-      "isCreator": fasle,
+      "isCreator": false,
       "duration": 10,
       "goal": "열심히 운동하기!!"
     },
     {
       "id": 5,
-      "username": "photi",
+      "username": "photi4",
       "imageUrl": "https://url.kr/5MhHhD",
-      "isCreator": fasle,
+      "isCreator": false,
       "duration": 300,
       "goal": "열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!열심히 운동하기!!"
     }
   ]
+}
 """
 }

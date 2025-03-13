@@ -24,6 +24,7 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     }
   }
   
+  private let requestData = PublishRelay<Void>()
   private let contentOffset = PublishRelay<Double>()
   private let didTapEditButtonRelay = PublishRelay<(String, Int)>()
 
@@ -58,6 +59,8 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
     participantTableView.delegate = self
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
 }
 
@@ -90,6 +93,7 @@ private extension ParticipantViewController {
 private extension ParticipantViewController {
   func bind() {
     let input = ParticipantViewModel.Input(
+      requestData: requestData.asSignal(),
       contentOffset: contentOffset.asSignal(),
       didTapEditButton: didTapEditButtonRelay.asSignal()
     )
@@ -101,7 +105,11 @@ private extension ParticipantViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: ParticipantViewModel.Output) { }
+  func viewModelBind(for output: ParticipantViewModel.Output) {
+    output.participants
+      .drive(rx.dataSource)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ParticipantPresentable

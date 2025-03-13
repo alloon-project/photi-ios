@@ -154,7 +154,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       return .init(
         id: $0.id,
         name: $0.username,
-        imageUrl: $0.username,
+        imageUrl: $0.imageUrl,
         isOwner: $0.isCreator,
         duration: $0.duration,
         goal: $0.goal

@@ -9,7 +9,7 @@
 import Foundation
 
 struct ParticipantPresentationModel {
-  let userName: String
+  let name: String
   let avatarURL: URL?
   let duration: String
   let goal: String
