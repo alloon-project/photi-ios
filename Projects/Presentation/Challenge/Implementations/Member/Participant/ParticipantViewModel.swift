@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol ParticipantCoordinatable: AnyObject {
   func didChangeContentOffset(_ offset: Double)
@@ -28,6 +29,8 @@ protocol ParticipantViewModelType: AnyObject {
 final class ParticipantViewModel: ParticipantViewModelType {
   weak var coordinator: ParticipantCoordinatable?
   private let disposeBag = DisposeBag()
+  private let challengeId: Int
+  private let useCase: ChallengeUseCase
 
   // MARK: - Input
   struct Input {
@@ -39,7 +42,10 @@ final class ParticipantViewModel: ParticipantViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(challengeId: Int, useCase: ChallengeUseCase) {
+    self.challengeId = challengeId
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.contentOffset

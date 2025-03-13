@@ -60,7 +60,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     let challengeId = viewModel.challengeId
     let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
     let descriptionCoordinator = descriptionContainer.coordinator(challengeId: challengeId, listener: self)
-    let participantCoordinator = participantContainer.coordinator(listener: self)
+    let participantCoordinator = participantContainer.coordinator(challengeId: challengeId, listener: self)
     
     presenter.attachViewControllerables(
       feedCoordinator.viewControllerable,
