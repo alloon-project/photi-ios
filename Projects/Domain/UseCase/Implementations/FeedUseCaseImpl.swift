@@ -11,9 +11,9 @@ import Repository
 import UseCase
 
 public struct FeedUseCaseImpl: FeedUseCase {
-  private let repository: ChallengeRepository
+  private let repository: FeedRepository
   
-  public init(repository: ChallengeRepository) {
+  public init(repository: FeedRepository) {
     self.repository = repository
   }
   
