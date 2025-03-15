@@ -34,20 +34,18 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   
   private let maxSize: Int = 10
   private let userFeedHistoryRelay = BehaviorRelay<[FeedHistoryCellPresentationModel]>(value: [])
-  private let isLastDataRelay = BehaviorRelay(value: false)
   private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let isVisible: Observable<Bool>
-    let isNeedMoreData: Observable<Int>
+    let fetchMoreData: Observable<Int>
   }
   
   // MARK: - Output
   struct Output {
     let feedHistory: Driver<[FeedHistoryCellPresentationModel]>
-    let isLastData: Signal<Bool>
     let requestFailed: Signal<Void>
   }
   
@@ -70,14 +68,13 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
         }
       }.disposed(by: disposeBag)
     
-    input.isNeedMoreData
-      .bind(with: self) { owner, currentCount in
-        owner.fetchFeedHistory(page: currentCount / owner.maxSize, size: owner.maxSize)
+    input.fetchMoreData
+      .bind(with: self) { owner, currentPage in
+        owner.fetchFeedHistory(page: currentPage, size: owner.maxSize)
       }.disposed(by: disposeBag)
     
     return Output(
       feedHistory: userFeedHistoryRelay.asDriver(),
-      isLastData: isLastDataRelay.asSignal(onErrorJustReturn: false),
       requestFailed: requestFailedRelay.asSignal()
     )
   }
@@ -90,9 +87,8 @@ private extension FeedHistoryViewModel {
       .observe(on: MainScheduler.instance)
       .subscribe(
         with: self,
-        onSuccess: { owner, feedHistoryList in
-          let models = feedHistoryList.content.map { owner.mapToFeedPresentationModel($0) }
-          owner.userFeedHistoryRelay.accept(models)
+        onSuccess: { owner, feedHistories in
+          owner.userFeedHistoryRelay.accept(feedHistories.map { owner.mapToFeedPresentationModel($0) })
         },
         onFailure: { owner, error in
           owner.requestFailedRelay.accept(())
@@ -100,13 +96,14 @@ private extension FeedHistoryViewModel {
       ).disposed(by: disposeBag)
   }
   
-  func mapToFeedPresentationModel(_ feedInfo: FeedInfo) -> FeedHistoryCellPresentationModel {
-    let date = feedInfo.provedDate.toString("yyyy. MM. MM")
+  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedHistoryCellPresentationModel {
+    let date = feedHistory.provedDate.toString("yyyy. MM. MM")
     return .init(
-      challengeImageUrl: feedInfo.imageUrl,
-      challengeTitle: feedInfo.name,
+      feedId: feedHistory.feedId,
+      challengeImageUrl: feedHistory.imageUrl,
+      challengeTitle: feedHistory.name,
       provedDate: date,
-      challengeId: feedInfo.challengeId
+      challengeId: feedHistory.challengeId
     )
   }
 }

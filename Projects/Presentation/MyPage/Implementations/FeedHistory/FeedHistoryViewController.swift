@@ -14,27 +14,16 @@ import Core
 import DesignSystem
 
 final class FeedHistoryViewController: UIViewController, ViewControllerable {
+  typealias DataSourceType = UICollectionViewDiffableDataSource<Int, FeedHistoryCellPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedHistoryCellPresentationModel>
+  
   private let viewModel: FeedHistoryViewModel
   
   // MARK: - Variables
   private let disposeBag = DisposeBag()
-  private var dataSource: [FeedHistoryCellPresentationModel] = [] {
-    didSet {
-      let oldCount = feedHistoryCollectionView.numberOfItems(inSection: 0)
-      let newCount = dataSource.count
-
-      if newCount > oldCount { // 새로운 데이터가 추가 되었을 경우
-          let indexPaths = (oldCount..<newCount).map { IndexPath(item: $0, section: 0) }
-          feedHistoryCollectionView.performBatchUpdates({
-              feedHistoryCollectionView.insertItems(at: indexPaths)
-          }, completion: nil)
-      } else { // 삭제 & 수정의 경우에 동작
-          feedHistoryCollectionView.reloadData()
-      }
-    }
-  }
-  private var isLast = false
-  private var isNeedMoreData = PublishRelay<Int>()
+  private var dataSource: DataSourceType?
+  private var maxFeedsCount: Int = 0 // Presentable에서 초기화.
+  private var currentPageRelay: BehaviorRelay<Int> = BehaviorRelay(value: 0)
   
   // MARK: - UIComponents
   private let grayBackgroundView = {
@@ -101,23 +90,22 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    feedHistoryCollectionView.delegate = self
-    feedHistoryCollectionView.dataSource = self
+    setFeedCollectionView()
     setupUI()
     bind()
-    
-    var data : [FeedHistoryCellPresentationModel] = []
-    for _ in 0..<10 {
-      data.append(
-        FeedHistoryCellPresentationModel(challengeImageUrl: URL(string: "https://i3n.news1.kr/system/photos/2024/10/6/6912782/high.jpg")!, challengeTitle: "고양이", provedDate: "2025. 03. 09", challengeId: 1)
-      )
-    }
-    dataSource.append(contentsOf: data)
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
+  }
+}
+
+//MARK: - Private Methods
+private extension FeedHistoryViewController {
+  func setFeedCollectionView() {
+    diffableDataSource()
+    feedHistoryCollectionView.delegate = self
   }
 }
 
@@ -176,7 +164,7 @@ private extension FeedHistoryViewController {
     let input = FeedHistoryViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       isVisible: self.rx.isVisible,
-      isNeedMoreData: isNeedMoreData.asObservable()
+      fetchMoreData: currentPageRelay.asObservable()
     )
     
     let output = viewModel.transform(input: input)
@@ -186,7 +174,7 @@ private extension FeedHistoryViewController {
   func bind(for output: FeedHistoryViewModel.Output) {
     output.feedHistory
       .drive(with: self) { owner, feeds in
-        owner.dataSource.append(contentsOf: feeds)
+        owner.append(models: feeds)
       }
       .disposed(by: disposeBag)
     
@@ -195,12 +183,10 @@ private extension FeedHistoryViewController {
         owner.presentWarningPopup()
       }
       .disposed(by: disposeBag)
-    
-    output.isLastData
-      .emit(with: self) { owner, isLastData in
-        owner.isLast = isLastData
-      }
-      .disposed(by: disposeBag)
+  }
+  
+  func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) {
+    // TODO: ChallengeID값을 활용하여 해당 챌린지로 넘어가기.
   }
 }
 
@@ -212,28 +198,36 @@ extension FeedHistoryViewController: FeedHistoryPresentable {
       color: .gray900
     ).setColor(.green400, for: "\(count)")
     titleLabel.textAlignment = .center
+    maxFeedsCount = count
   }
 }
 
-// MARK: - UICollectionViewDataSource
-extension FeedHistoryViewController: UICollectionViewDataSource {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    numberOfItemsInSection section: Int
-  ) -> Int {
-    dataSource.count
+// MARK: - UICollectionView Diffable DataSource
+extension FeedHistoryViewController {
+  func diffableDataSource() {
+    self.dataSource = .init(collectionView: feedHistoryCollectionView) { collectionView, indexPath, model in
+      let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
+      cell.configure(with: model)
+      
+      return cell
+    }
   }
   
-  func collectionView(
-    _ collectionView: UICollectionView,
-    cellForItemAt indexPath: IndexPath
-  ) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
+  func append(models: [FeedHistoryCellPresentationModel]) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
     
-    cell.configure(with: dataSource[indexPath.row])
-    return cell
+    // 섹션이 이미 존재하는지 확인
+    DispatchQueue.main.async {
+      if !snapshot.sectionIdentifiers.contains(0) {
+          snapshot.appendSections([0]) // 최초 한 번만 추가
+      }
+      snapshot.appendItems(models, toSection: 0)
+      dataSource.apply(snapshot)
+    }
   }
 }
+
 
 extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
@@ -249,12 +243,12 @@ extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
   }
   
   func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    if indexPath.item == dataSource.count - 1 && !isLast {
-      isNeedMoreData.accept(dataSource.count)
+    guard let dataSource else { return }
+    let snapshot = dataSource.snapshot()
+    let count = snapshot.itemIdentifiers(inSection: 0).count
+    
+    if indexPath.item == count - 1 && count != maxFeedsCount {
+      currentPageRelay.accept(count)
     }
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    // TODO: ChallengeID값을 활용하여 해당 챌린지로 넘어가기.
   }
 }
