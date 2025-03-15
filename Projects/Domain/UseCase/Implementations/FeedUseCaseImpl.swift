@@ -18,7 +18,7 @@ public struct FeedUseCaseImpl: FeedUseCase {
     self.repository = repository
   }
   
-  public func fetchFeeds(page: Int, size: Int) -> Single<FeedHistory> {
+  public func fetchFeeds(page: Int, size: Int) -> Single<[FeedHistory]> {
     return repository.fetchFeedHistory(page: page, size: size)
   }
 }

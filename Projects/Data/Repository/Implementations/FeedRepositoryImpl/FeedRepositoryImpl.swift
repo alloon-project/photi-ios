@@ -20,7 +20,7 @@ public struct FeedRepositoryImpl: FeedRepository {
     self.dataMapper = dataMapper
   }
   
-  public func fetchFeedHistory(page: Int, size: Int) -> Single<FeedHistory> {
+  public func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
     return requestFeedHistory(
       api: FeedAPI.feedHistory(page: page, size: size),
       responseType: FeedHistoryResponseDTO.self,
