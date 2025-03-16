@@ -15,14 +15,23 @@ protocol ChallengeOrganizeListener: AnyObject {
 
 protocol ChallengeOrganizePresentable { }
 
-final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizePresentable>, ChallengeOrganizeCoordinatable {
+final class ChallengeOrganizeCoordinator: Coordinator {
 
+  private var challengeName: String?
+  private var isPublic: Bool = true
+  private var challengeGoal: String?
+  private var challengeProveTime: String?
+  private var challengeEndDate: String?
+  private var challengeCover: UIImageWrapper?
+  private var challengeRule: [[String: String]]
+  private var challengeHashtags: [[String: String]]
   
   weak var listener: ChallengeOrganizeListener?
   
   private let navigationControllerable: NavigationControllerable
 
-  private let viewModel: any ChallengeOrganizeViewModelType
+  private let challengeStartContainable: ChallengeNameContainable
+  private var challengeStartCoordinator: Coordinating?
   
   private let challengeNameContainable: ChallengeNameContainable
   private var challengeNameCoordinator: Coordinating?
@@ -42,18 +51,30 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
   private let challengePreviewContainable: ChallengePreviewContainable
   private var challengePreviewCoordinator: Coordinating?
   
-  
   init(
     navigationControllerable: NavigationControllerable,
-    viewModel: ChallengeOrganizeViewModel
+    challengeStartContainable: ChallengeStartContainable,
+    challengeNameContainable: ChallengeNameContainable,
+    challengeGoalContainable: ChallengeGoalContainable,
+    challengeCoverContainable: ChallengeCoverContainable,
+    challengeRuleContainable: ChallengeRuleContainable,
+    challengeHashTagContainable: ChallengeHashTagContainable,
+    challengePreviewContainable: ChallengePreviewContainable
   ) {
-    self.viewModel = viewModel
-    super.init(viewControllerable)
-    viewModel.coordinator = self
+    self.navigationControllerable = navigationControllerable
+    self.challengeStartContainable = challengeStartContainable
+    self.challengeNameContainable = challengeNameContainable
+    self.challengeGoalContainable = challengeGoalContainable
+    self.challengeCoverContainable = challengeCoverContainable
+    self.challengeRuleContainable = challengeRuleContainable
+    self.challengeHashTagContainable = challengeHashTagContainable
+    self.challengePreviewContainable = challengePreviewContainable
+    super.init()
+    
   }
   
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtChallengeOrganize()
+  override func start() {
+    attachChallengeStart()
   }
   
   override func stop() {
@@ -66,10 +87,30 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
     self.navigationControllerable.popViewController(animated: false)
   }
   
+  // MARK: - ChallengeStart
+  func attachChallengeStart() {
+    guard challengeStartCoordinator == nil else { return }
+    
+    let coordinater = challengeStartContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengeStartCoordinator = coordinater
+  }
+  
+  func detachChallengeStart(animated: Bool) {
+    guard let coordinater = challengeStartCoordinator else { return }
+    
+    removeChild(coordinater)
+    navigationControllerable.popViewController(animated: animated)
+    self.challengeStartCoordinator = nil
+  }
+  
+  // MARK: - ChallengeName
   func attachChallengeName() {
     guard challengeNameCoordinator == nil else { return }
     
-    let coordinater = challengeNameContainable.coordinator()
+    let coordinater = challengeNameContainable.coordinator(listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -84,12 +125,34 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
     self.challengeNameCoordinator = nil
   }
   
+  // MARK: - ChallengeGoal
+  func attachChallengeGoal() {
+    guard challengeGoalCoordinator == nil else { return }
+    
+    let coordinater = challengeGoalContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengeCoverCoordinator = coordinater
+  }
+  
   func detachChallengeGoal(animated: Bool) {
     guard let coordinater = challengeGoalCoordinator else { return }
     
     removeChild(coordinater)
     navigationControllerable.popViewController(animated: animated)
     self.challengeGoalCoordinator = nil
+  }
+  
+  // MARK: - ChallengeCover
+  func attachChallengeCover() {
+    guard challengeCoverCoordinator == nil else { return }
+    
+    let coordinater = challengeCoverContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengeCoverCoordinator = coordinater
   }
   
   func detachChallengeCover(animated: Bool) {
@@ -100,12 +163,34 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
     self.challengeCoverCoordinator = nil
   }
   
+  // MARK: - ChallengeRule
+  func attachChallengeRule() {
+    guard challengeRuleCoordinator == nil else { return }
+    
+    let coordinater = challengeRuleContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengeRuleCoordinator = coordinater
+  }
+  
   func detachChallengeRule(animated: Bool) {
     guard let coordinater = challengeRuleCoordinator else { return }
     
     removeChild(coordinater)
     navigationControllerable.popViewController(animated: animated)
     self.challengeRuleCoordinator = nil
+  }
+  
+  // MARK: - ChallengeHashtag
+  func attachChallengeHashtag() {
+    guard challengeHashTagCoordinator == nil else { return }
+    
+    let coordinater = challengeHashTagContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengeHashTagCoordinator = coordinater
   }
   
   func detachChallengeHashTag(animated: Bool) {
@@ -116,6 +201,17 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
     self.challengeHashTagCoordinator = nil
   }
   
+  // MARK: - ChallengePreview
+  func attachChallengePreview() {
+    guard challengePreviewCoordinator == nil else { return }
+    
+    let coordinater = challengePreviewContainable.coordinator(listener: self)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.challengePreviewCoordinator = coordinater
+  }
+  
   func detachChallengePreview(animated: Bool) {
     guard let coordinater = challengePreviewCoordinator else { return }
     
@@ -123,6 +219,11 @@ final class ChallengeOrganizeCoordinator: ViewableCoordinator<ChallengeOrganizeP
     navigationControllerable.popViewController(animated: animated)
     self.challengePreviewCoordinator = nil
   }
+}
+
+// MARK: ChallengeStartListener
+extension ChallengeOrganizeCoordinator: ChallengeStartListener {
+  
 }
 
 // MARK: ChallengeNameListener
