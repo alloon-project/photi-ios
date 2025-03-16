@@ -17,16 +17,41 @@ protocol ChallengeOrganizeContainable: Containable {
   ) -> ViewableCoordinating
 }
 
-final class ChallengeOrganizeContainer: Container<ChallengeOrganizeDependency>, ChallengeOrganizeContainable {
+final class ChallengeOrganizeContainer:
+  Container<ChallengeOrganizeDependency>,
+    ChallengeOrganizeContainable,
+    ChallengeStartDependency,
+    ChallengeNameDependency,
+    ChallengeGoalDependency,
+    ChallengeCoverDependency,
+    ChallengeRuleDependency,
+    ChallengeHashTagDependency,
+    ChallengePreviewDependency
+{
+  
+  
   func coordinator(
     navigationControllerable: NavigationControllerable,
     listener: ChallengeOrganizeListener
   ) -> ViewableCoordinating {
-    let viewModel = ChallengeOrganizeViewModel()
-    let viewControllerable = ChallengeOrganizeViewController(viewModel: viewModel)
+    let challengeStartContainable = ChallengeStartContainer(dependency: self)
+    let challengeNameContainable = ChallengeNameContainer(dependency: self)
+    let challengeGoalContainable = ChallengeGoalContainer(dependency: self)
+    let challengeCoverContainable = ChallengeCoverContainer(dependency: self)
+    let challengeRuleContainable = ChallengeRuleContainer(dependency: self)
+    let challengeHashTagContainable = ChallengeHashTagContainer(dependency: self)
+    let challengePreviewContainable = ChallengePreviewContainer(dependency: self)
+    
+    
     let coordinator = ChallengeOrganizeCoordinator(
       navigationControllerable: navigationControllerable,
-      viewModel: viewModel
+      challengeStartContainable: challengeStartContainable,
+      challengeNameContainable: challengeNameContainable,
+      challengeGoalContainable: challengeGoalContainable,
+      challengeCoverContainable: challengeCoverContainable,
+      challengeRuleContainable: challengeRuleContainable,
+      challengeHashTagContainable: challengeHashTagContainable,
+      challengePreviewContainable: challengePreviewContainable
     )
     coordinator.listener = listener
     return coordinator
