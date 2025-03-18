@@ -35,4 +35,5 @@ public protocol ChallengeUseCase {
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
+  func leaveChallenge(id: Int) -> Single<Void>
 }

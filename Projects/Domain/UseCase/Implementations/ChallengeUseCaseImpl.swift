@@ -98,6 +98,13 @@ public extension ChallengeUseCaseImpl {
   }
 }
 
+// MARK: - Delete Methods
+public extension ChallengeUseCaseImpl {
+  func leaveChallenge(id: Int) -> Single<Void> {
+    return challengeRepository.leaveChallenge(id: id)
+  }
+}
+
 // MARK: - Private Methods
 private extension ChallengeUseCaseImpl {
  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {

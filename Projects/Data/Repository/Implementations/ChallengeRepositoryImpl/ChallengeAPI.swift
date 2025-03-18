@@ -23,6 +23,7 @@ public enum ChallengeAPI {
   case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
+  case leaveChallenge(challengeId: Int)
 }
 
 extension ChallengeAPI: TargetType {
@@ -34,7 +35,7 @@ extension ChallengeAPI: TargetType {
   public var path: String {
     switch self {
       case .popularChallenges: return "challenges/popular"
-      case let .challengeDetail(id): return "challenges/\(id)"
+      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
       case .endedChallenges: return "users/ended-challenges"
       case .myChallenges: return "/users/my-challenges"
       case let .joinChallenge(id): return "challenges/\(id)/join/public"
@@ -58,6 +59,7 @@ extension ChallengeAPI: TargetType {
       case .updateChallengeGoal: return .patch
       case .challengeDescription: return .get
       case .challengeMember: return .get
+      case .leaveChallenge: return .delete
     }
   }
   
@@ -110,7 +112,7 @@ extension ChallengeAPI: TargetType {
         let parameters = ["challengeId": challengeId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
-      case let .challengeMember(challengeId):
+      case let .challengeMember(challengeId), let .leaveChallenge(challengeId):
         let parameters = ["challengeId": challengeId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
@@ -142,7 +144,7 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
 
-      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateChallengeGoal:
+      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateChallengeGoal, .leaveChallenge:
         let data = """
           {
             "code": "200 OK",

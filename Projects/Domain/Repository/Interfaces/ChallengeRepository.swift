@@ -22,4 +22,5 @@ public protocol ChallengeRepository {
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
+  func leaveChallenge(id: Int) -> Single<Void>
 }
