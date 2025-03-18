@@ -8,6 +8,7 @@
 
 import Core
 import Challenge
+import Report
 
 protocol ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
@@ -31,17 +32,22 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
+  private let reportContainer: ReportContainable
+  private var reportCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
-    participantContainer: ParticipantContainable
+    participantContainer: ParticipantContainable,
+    reportContainer: ReportContainable
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
+    self.reportContainer = reportContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -89,7 +95,14 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
     listener?.didTapBackButtonAtChallenge()
   }
   
-  func attachReport() { }
+  func attachReport() {
+    guard reportCoordinator == nil else { return }
+    
+    let coordinator = reportContainer.coordinator(listener: self, reportType: .challenge)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.reportCoordinator = coordinator
+  }
   
   func leaveChallenge(isLastMember: Bool) {
     listener?.leaveChallenge(isDelete: isLastMember)
@@ -146,5 +159,15 @@ extension ChallengeCoordinator: ParticipantListener {
   
   func requestLoginAtPariticipant() {
     listener?.requestLoginAtChallenge()
+  }
+}
+
+// MARK: - ReportListener
+extension ChallengeCoordinator: ReportListener {
+  func detachReport() {
+    guard let coordinator = reportCoordinator else { return }
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    self.reportCoordinator = nil
   }
 }
