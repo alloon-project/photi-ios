@@ -138,6 +138,18 @@ public extension ChallengeRepositoryImpl {
   }
 }
 
+// MARK: - Delete Methods
+public extension ChallengeRepositoryImpl {
+  func leaveChallenge(id: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: .leaveChallenge(challengeId: id),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { _ in }
+  }
+}
+
 // MARK: - Private Methods
 private extension ChallengeRepositoryImpl {
   func requestAuthorizableAPI<T: Decodable>(

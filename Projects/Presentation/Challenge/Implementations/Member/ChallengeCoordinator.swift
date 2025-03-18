@@ -88,6 +88,12 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtChallenge()
   }
+  
+  func attachReport() { }
+  
+  func leaveChallenge(isLastMember: Bool) {
+    listener?.leaveChallenge(isDelete: isLastMember)
+  }
 }
 
 // MARK: - FeedListener

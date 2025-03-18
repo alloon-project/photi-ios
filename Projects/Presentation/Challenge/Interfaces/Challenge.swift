@@ -16,4 +16,5 @@ public protocol ChallengeListener: AnyObject {
   func didTapBackButtonAtChallenge()
   func shouldDismissChallenge()
   func requestLoginAtChallenge()
+  func leaveChallenge(isDelete: Bool)
 }
