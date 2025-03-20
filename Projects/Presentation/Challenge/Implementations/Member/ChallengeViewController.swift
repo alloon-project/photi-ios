@@ -24,20 +24,26 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   private let viewModel: ChallengeViewModel
   private let disposeBag = DisposeBag()
   private var segmentIndex: Int = 0
+  private var memberCount: Int = 0
+  private let dropDownData = ["챌린지 신고하기", "챌린지 탈퇴하기"]
   
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   private let didTapLoginButtonAtAlert = PublishRelay<Void>()
+  private let didTapReportButton = PublishRelay<Void>()
+  private let didTapLeaveButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
-  private let navigationBar = PhotiNavigationBar(
+  private let navigationOptionButton = PhotiNavigationButton.optionButton
+  private lazy var navigationBar = PhotiNavigationBar(
     leftView: .backButton,
-    rigthItems: [.shareButton, .optionButton],
+    rigthItems: [.shareButton, navigationOptionButton],
     displayMode: .white
   )
   private let titleView = ChallengeTitleView()
   private let segmentControl = PhotiSegmentControl(items: ["피드", "소개", "파티원"])
+  private lazy var dropDownView = DropDownView(anchorView: navigationOptionButton)
   private let mainView = UIView()
   private let mainContentView: UIView = {
     let view = UIView()
@@ -61,12 +67,19 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     setupUI()
     bind()
+    dropDownView.dataSource = dropDownData
+    dropDownView.delegate = self
     viewDidLoadRelay.accept(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
+  }
+  
+  // MARK: - UI Responder
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    view.endEditing(true)
   }
 }
 
@@ -78,7 +91,7 @@ private extension ChallengeViewController {
   }
   
   func setViewHierarhcy() {
-    view.addSubviews(titleView, navigationBar, mainView)
+    view.addSubviews(titleView, navigationBar, mainView, dropDownView)
     mainView.addSubviews(segmentControl, mainContentView)
   }
   
@@ -108,6 +121,13 @@ private extension ChallengeViewController {
       $0.top.equalTo(segmentControl.snp.bottom)
       $0.bottom.trailing.leading.equalToSuperview()
     }
+    
+    dropDownView.setConstraints { [weak self] make in
+      guard let self else { return }
+      make.trailing.equalToSuperview().inset(24)
+      make.top.equalTo(view.safeAreaLayoutGuide).offset(44)
+      make.width.equalTo(130)
+    }
   }
 }
 
@@ -118,7 +138,9 @@ private extension ChallengeViewController {
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      didTapLoginButtonAtAlert: didTapLoginButtonAtAlert.asSignal()
+      didTapLoginButtonAtAlert: didTapLoginButtonAtAlert.asSignal(),
+      didTapLeaveButton: didTapLeaveButton.asSignal(),
+      didTapReportButton: didTapReportButton.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -141,15 +163,25 @@ private extension ChallengeViewController {
       }
       .disposed(by: disposeBag)
     
+    output.memberCount
+      .drive(rx.memberCount)
+      .disposed(by: disposeBag)
+    
     output.challengeNotFound
       .emit(with: self) { owner, _ in
         owner.presentChallengeNotFoundWaring()
       }
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networnUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkWarning(reason: nil)
+      }
+      .disposed(by: disposeBag)
+    
+    output.loginTrigger
+      .emit(with: self) { owner, _ in
+        owner.presentLoginTrrigerWarning()
       }
       .disposed(by: disposeBag)
   }
@@ -200,6 +232,17 @@ extension ChallengeViewController: ChallengePresentable {
   }
 }
 
+// MARK: - DropDownDelegate
+extension ChallengeViewController: DropDownDelegate {
+  func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
+    if didSelectRowAt == 0 {
+      didTapReportButton.accept(())
+    } else {
+      presentLeaveChallengeAlert(memberCount: memberCount)
+    }
+  }
+}
+
 // MARK: - Private Methods
 private extension ChallengeViewController {
   func updateSegmentViewController(to index: Int) {
@@ -228,6 +271,40 @@ private extension ChallengeViewController {
     mainContentView.addSubview(viewController.view)
     viewController.view.snp.makeConstraints {
       $0.edges.equalToSuperview()
+    }
+  }
+  
+  func presentLeaveChallengeAlert(memberCount: Int) {
+    let alert = AlertViewController(
+      alertType: .canCancel,
+      title: "챌린지를 탈퇴할까요?",
+      attributedSubTitle: leaveChallengeString(memberCount: 1)
+    )
+    alert.confirmButtonTitle = "탈퇴할게요"
+    alert.cancelButtonTitle = "취소할게요"
+    
+    alert.rx.didTapConfirmButton
+      .bind(to: didTapLeaveButton)
+      .disposed(by: disposeBag)
+    
+    alert.present(to: self, animted: true)
+  }
+  
+  func leaveChallengeString(memberCount: Int) -> NSAttributedString {
+    if memberCount == 1 {
+      return "회원님은 이 챌린지의 마지막 파티원예요.\n지금 탈퇴하면 챌린지가 삭제돼요.\n삭제된 챌린지는 복구할 수 없어요.\n정말 탈퇴하시겠어요?".attributedString(
+        font: .body2,
+        color: .gray600,
+        alignment: .center
+      )
+      .setColor(.red400, for: "챌린지가 삭제돼요.")
+      .setColor(.red400, for: "삭제된 챌린지는 복구할 수 없어요.")
+    } else {
+      return "탈퇴해도 기록은 남아있어요.\n탈퇴하시기 전에 직접 지워주세요.".attributedString(
+        font: .body2,
+        color: .gray600,
+        alignment: .center
+      )
     }
   }
 }

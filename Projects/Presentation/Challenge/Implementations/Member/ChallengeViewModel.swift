@@ -15,6 +15,8 @@ protocol ChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
   func didTapLoginButtonAtAlert()
+  func leaveChallenge(isLastMember: Bool)
+  func attachReport()
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -35,8 +37,10 @@ final class ChallengeViewModel: ChallengeViewModelType {
   weak var coordinator: ChallengeCoordinatable?
   
   private let challengeModelRelay = BehaviorRelay<ChallengeTitlePresentationModel>(value: .default)
+  private let memberCount = BehaviorRelay<Int>(value: 0)
   private let challengeNotFoundRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstable = PublishRelay<Void>()
+  private let loginTriggerRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -44,13 +48,17 @@ final class ChallengeViewModel: ChallengeViewModelType {
     let didTapBackButton: Signal<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
     let didTapLoginButtonAtAlert: Signal<Void>
+    let didTapLeaveButton: Signal<Void>
+    let didTapReportButton: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let challengeInfo: Driver<ChallengeTitlePresentationModel>
+    let memberCount: Driver<Int>
     let challengeNotFound: Signal<Void>
-    let requestFailed: Signal<Void>
+    let networnUnstable: Signal<Void>
+    let loginTrigger: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -78,10 +86,24 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapReportButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.attachReport()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapLeaveButton
+      .emit(with: self) { owner, _ in
+        owner.leaveChallenge()
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       challengeInfo: challengeModelRelay.asDriver(),
+      memberCount: memberCount.asDriver(),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      networnUnstable: networkUnstable.asSignal(),
+      loginTrigger: loginTriggerRelay.asSignal()
     )
   }
 }
@@ -94,7 +116,21 @@ private extension ChallengeViewModel {
       .subscribe(with: self) { owner, challenge in
         let model = owner.mapToPresentatoinModel(challenge)
         owner.challengeModelRelay.accept(model)
+        owner.memberCount.accept(challenge.memberCount)
         owner.challengeName = challenge.name
+      } onFailure: { owner, error in
+        owner.requestFailed(with: error)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func leaveChallenge() {
+    useCase.leaveChallenge(id: challengeId)
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self) { owner, _ in
+        owner.coordinator?.leaveChallenge(isLastMember: owner.memberCount.value == 1)
+      } onFailure: { owner, error in
+        owner.requestFailed(with: error)
       }
       .disposed(by: disposeBag)
   }
@@ -105,5 +141,17 @@ private extension ChallengeViewModel {
       hashTags: challenge.hashTags,
       imageURL: challenge.imageUrl
     )
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstable.accept(()) }
+    
+    switch error {
+      case .authenticationFailed:
+        loginTriggerRelay.accept(())
+      case let .challengeFailed(reason) where reason == .challengeNotFound:
+        challengeNotFoundRelay.accept(())
+      default: networkUnstable.accept(())
+    }
   }
 }

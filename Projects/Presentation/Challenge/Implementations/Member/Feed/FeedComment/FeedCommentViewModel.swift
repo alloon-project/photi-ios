@@ -9,11 +9,13 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Core
 import Entity
 import UseCase
 
 protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
+  func deleteFeed(id: Int)
   func authenticatedFailed()
   func networkUnstable(reason: String?)
 }
@@ -55,6 +57,8 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let requestComments: Signal<Void>
     let requestData: Signal<Void>
     let didTapLikeButton: Signal<Bool>
+    let didTapShareButton: Signal<Void>
+    let didTapDeleteButton: Signal<Void>
     let requestDeleteComment: Signal<Int>
     let requestUploadComment: Signal<String>
   }
@@ -63,6 +67,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   struct Output {
     let feedImageURL: Driver<URL?>
     let updateTime: Driver<String>
+    let isEditable: Driver<Bool>
     let author: Driver<AuthorPresentationModel>
     let likeCount: Driver<Int>
     let isLike: Driver<Bool>
@@ -101,9 +106,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       }
       .disposed(by: disposeBag)
     
+    let isEditable = authorRelay.map { $0.name == ServiceConfiguration.shared.userName }
+    
     return Output(
       feedImageURL: feedImageURLRelay.asDriver(),
       updateTime: updateTimeRelay.asDriver(),
+      isEditable: isEditable.asDriver(onErrorJustReturn: false),
       author: authorRelay.asDriver(),
       likeCount: likeCountRelay.asDriver(),
       isLike: isLikeRelay.asDriver(),
@@ -144,6 +152,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     input.requestDeleteComment
       .emit(with: self) { owner, id in
         Task { await owner.deleteFeedComment(commentId: id) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapDeleteButton
+      .emit(with: self) { owner, _ in
+        Task { await owner.deleteFeed() }
       }
       .disposed(by: disposeBag)
   }
@@ -249,6 +263,17 @@ private extension FeedCommentViewModel {
       deleteCommentRelay.accept(commentId)
     } catch {
       let message = "코멘트 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
+      requestFailed(with: error, reasonWhenNetworkUnstable: message)
+    }
+  }
+  
+  @MainActor
+  func deleteFeed() async {
+    do {
+      try await useCase.deleteFeed(challengeId: challengeId, feedId: feedId).value
+      coordinator?.deleteFeed(id: feedId)
+    } catch {
+      let message = "피드 삭제에 실패했어요.\n잠시후 다시 시도해주세요."
       requestFailed(with: error, reasonWhenNetworkUnstable: message)
     }
   }

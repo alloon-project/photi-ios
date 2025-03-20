@@ -277,7 +277,16 @@ private extension FeedViewController {
 }
 
 // MARK: - FeedPresentable
-extension FeedViewController: FeedPresentable { }
+extension FeedViewController: FeedPresentable {
+  func deleteFeed(feedId: Int) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    guard let model = snapshot.itemIdentifiers.first(where: { $0.id == feedId }) else { return }
+    snapshot.deleteItems([model])
+    dataSource.apply(snapshot)
+  }
+}
 
 // MARK: - UICollectionViewDiffableDataSource
 extension FeedViewController {

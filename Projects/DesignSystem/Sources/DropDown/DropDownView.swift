@@ -29,9 +29,7 @@ public final class DropDownView: UIView {
   
   /// DropDown을 display여부를 확인 및 설정할 수 있습니다.
   public var isDisplayed: Bool {
-    get {
-      dropDownMode == .display
-    }
+    get { dropDownMode == .display }
     set {
       if newValue {
         becomeFirstResponder()
@@ -71,6 +69,7 @@ public final class DropDownView: UIView {
   public convenience init(anchorView: UIView) {
     self.init()
     self.anchorView = anchorView
+    setupAnchorView(anchorView)
   }
   
   @available(*, unavailable)
@@ -142,8 +141,8 @@ extension DropDownView: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 extension DropDownView: UITableViewDelegate {
   public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    delegate?.dropDown(self, didSelectRowAt: indexPath.row)
     resignFirstResponder()
+    delegate?.dropDown(self, didSelectRowAt: indexPath.section)
   }
 }
 
@@ -178,8 +177,8 @@ public extension DropDownView {
     guard let window else { return }
     UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) { [weak self] in
       guard let self else { return }
-      self.dropDownTableView.removeFromSuperview()
       self.dropDownTableView.snp.removeConstraints()
+      self.dropDownTableView.removeFromSuperview()
     }
   }
   
