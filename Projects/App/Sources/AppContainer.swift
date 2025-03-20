@@ -104,11 +104,15 @@ final class AppContainer:
   }()
   
   lazy var challengeUseCase: ChallengeUseCase = {
-    return ChallengeUseCaseImpl(repository: challengeRepository, authRepository: authRepository)
+    return ChallengeUseCaseImpl(
+      challengeRepository: challengeRepository,
+      feedRepository: feedRepository,
+      authRepository: authRepository
+    )
   }()
   
   lazy var feedUseCase: FeedUseCase = {
-    return FeedUseCaseImpl(repository: challengeRepository)
+    return FeedUseCaseImpl(repository: feedRepository)
   }()
   
   lazy var reportUseCase: ReportUseCase = {
@@ -154,6 +158,10 @@ final class AppContainer:
   
   lazy var challengeRepository: ChallengeRepository = {
     return ChallengeRepositoryImpl(dataMapper: ChallengeDataMapperImpl())
+  }()
+  
+  lazy var feedRepository: FeedRepository = {
+    return FeedRepositoryImpl(dataMapper: ChallengeDataMapperImpl())
   }()
   
   lazy var reportRepository: ReportRepository = {

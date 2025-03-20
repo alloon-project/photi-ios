@@ -49,64 +49,6 @@ public extension ChallengeRepositoryImpl {
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
   
-  func fetchFeeds(
-    id: Int,
-    page: Int,
-    size: Int,
-    orderType: ChallengeFeedsOrderType
-  ) async throws -> FeedReturnType {
-    let api = ChallengeAPI.feeds(
-      id: id,
-      page: page,
-      size: size,
-      sortOrder: orderType.rawValue
-    )
-    
-    let value = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedsResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    let feeds = value.content.map { data in
-      data.feeds.map { dataMapper.mapToFeed(dto: $0) }
-    }
-    
-    return .init(
-      feeds: feeds,
-      isLast: value.last,
-      memberCount: value.content.first?.feedMemberCnt ?? 0
-    )
-  }
-
-  func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed {
-    let api = ChallengeAPI.feedDetail(challengeId: challengeId, feedId: feedId)
-    let result = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedDetailResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    return dataMapper.mapToFeed(dto: result, id: challengeId)
-  }
-  
-  func fetchFeedComments(
-    feedId: Int,
-    page: Int,
-    size: Int
-  ) async throws -> (feeds: [FeedComment], isLast: Bool) {
-    let api = ChallengeAPI.feedComments(feedId: feedId, page: page, size: size)
-    let result = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedCommentsResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    let feeds = result.content.map { dataMapper.mapToFeedComment(dto: $0) }
-    
-    return (feeds, result.last)
-  }
-  
   func isProve(challengeId: Int) async throws -> Bool {
     let api = ChallengeAPI.isProve(challengeId: challengeId)
     let result = try await requestAuthorizableAPI(
@@ -166,27 +108,6 @@ public extension ChallengeRepositoryImpl {
     .map { _ in () }
   }
   
-  func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
-    let api = ChallengeAPI.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.challengeFailed(reason: .challengeNotFound)
-    }
-      
-    // TODO: 서버 API수정시 Feed CommentID 리턴으로 수정 예정
-    return 100
-  }
-  
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
@@ -215,44 +136,17 @@ public extension ChallengeRepositoryImpl {
       throw APIError.challengeFailed(reason: .alreadyUploadFeed)
     }
   }
-  
-  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
-    let api = ChallengeAPI.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    }
-  }
 }
 
 // MARK: - Delete Methods
 public extension ChallengeRepositoryImpl {
-  func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
-    let api = ChallengeAPI.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
+  func leaveChallenge(id: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: .leaveChallenge(challengeId: id),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
     )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.challengeFailed(reason: .challengeNotFound)
-    }
+    .map { _ in }
   }
 }
 

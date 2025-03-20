@@ -65,6 +65,14 @@ public final class IconButton: UIButton {
     addTarget(self, action: #selector(didTap), for: .touchUpInside)
   }
   
+  public convenience init(selectedIcon: UIImage, size: ButtonSize) {
+    self.init(
+      selectedIcon: selectedIcon,
+      unSelectedIcon: selectedIcon,
+      size: size
+    )
+  }
+  
   public convenience init(size: ButtonSize) {
     self.init(
       selectedIcon: .heartFilledWhite,

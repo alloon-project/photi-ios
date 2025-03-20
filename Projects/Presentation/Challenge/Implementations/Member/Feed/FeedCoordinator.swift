@@ -15,7 +15,9 @@ protocol FeedListener: AnyObject {
   func challengeNotFoundAtFeed()
 }
 
-protocol FeedPresentable { }
+protocol FeedPresentable {
+  func deleteFeed(feedId: Int)
+}
 
 final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
@@ -58,11 +60,13 @@ extension FeedCoordinator: FeedCoordinatable {
   }
   
   // MARK: - Detach
-  func detachFeedDetail() {
+  func detachFeedDetail(completion: (() -> Void)? = nil) {
     guard let coordinator = feedCommentCoordinator else { return }
     
     removeChild(coordinator)
-    coordinator.viewControllerable.dismiss(animated: true)
+    coordinator.viewControllerable.dismiss(animated: true) {
+      completion?()
+    }
     self.feedCommentCoordinator = nil
   }
   
@@ -87,6 +91,12 @@ extension FeedCoordinator: FeedCoordinatable {
 extension FeedCoordinator: FeedCommentListener {
   func requestDismissAtFeedComment() {
     detachFeedDetail()
+  }
+  
+  func deleteFeed(id: Int) {
+    detachFeedDetail { [weak self] in
+      self?.presenter.deleteFeed(feedId: id)
+    }
   }
   
   func authenticatedFailedAtFeedComment() {
