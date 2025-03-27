@@ -33,7 +33,6 @@ final class AppContainer:
   Container<AppDependency>,
   AppContainable,
   LogInDependency,
-  SignUpDependency,
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
@@ -57,11 +56,7 @@ final class AppContainer:
   lazy var loginContainable: LogInContainable = {
     return LogInContainer(dependency: self)
   }()
-  
-  lazy var signUpContainable: SignUpContainable = {
-    return SignUpContainer(dependency: self)
-  }()
-  
+    
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
   }()

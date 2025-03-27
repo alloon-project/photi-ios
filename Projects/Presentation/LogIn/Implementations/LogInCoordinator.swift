@@ -13,7 +13,7 @@ protocol LogInPresentable { }
 
 final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   weak var listener: LogInListener?
-  private let viewModel: any LogInViewModelType
+  private let viewModel: LogInViewModel
   private var signUpNavigationControllerable: NavigationControllerable?
   
   private let signUpContainable: SignUpContainable
@@ -43,25 +43,21 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   
   // MARK: - SignUp
   func attachSignUp() {
-    guard signUpCoordinator == nil else { return }
+    guard
+      signUpCoordinator == nil,
+      let navigationController = viewControllerable.uiviewController.navigationController
+    else { return }
 
-    let navigation = NavigationControllerable()
+    let navigation = NavigationControllerable(navigationController: navigationController)
     let coordinater = signUpContainable.coordinator(navigationControllerable: navigation, listener: self)
-    viewControllerable.present(
-      navigation,
-      animated: true,
-      modalPresentationStyle: .overFullScreen
-    )
     addChild(coordinater)
-    self.signUpNavigationControllerable = navigation
     self.signUpCoordinator = coordinater
   }
   
   func detachSignUp() {
     guard let coordinater = signUpCoordinator else { return }
-    signUpNavigationControllerable?.dismiss()
     removeChild(coordinater)
-    self.signUpNavigationControllerable = nil
+//    self.signUpNavigationControllerable = nil
     self.signUpCoordinator = nil
   }
   

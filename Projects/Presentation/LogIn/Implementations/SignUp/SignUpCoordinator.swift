@@ -11,6 +11,11 @@ import LogIn
 
 protocol SignUpViewModelable { }
 
+protocol SignUpListener: AnyObject {
+  func didFinishSignUp(userName: String)
+  func didTapBackButtonAtSignUp()
+}
+
 final class SignUpCoordinator: Coordinator {
   private var email: String?
   private var verificationCode: String?
