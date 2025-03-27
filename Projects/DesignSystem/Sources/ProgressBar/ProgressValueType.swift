@@ -8,6 +8,7 @@
 
 /// Large Type의 진행상태 값 분류입니다. 나타냅니다. (ex. one, two, ..., five)
 public enum PhotiProgressStep {
+  case zero
   case one
   case two
   case three
