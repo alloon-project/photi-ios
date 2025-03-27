@@ -21,7 +21,7 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .two)
+  private let progressBar = LargeProgressBar(step: .one)
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "이메일로 인증코드를 보내드렸습니다\n숫자 4자리를 입력해주세요".attributedString(
@@ -68,7 +68,20 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+//  
+//  override func viewIsAppearing(_ animated: Bool) {
+//    super.viewIsAppearing(animated)
+//    progressBar.step = .two
+//  }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?.progressBar.step = .two
+    }
+  }
+  
+  // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
     

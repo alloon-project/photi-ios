@@ -19,7 +19,7 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .one)
+  private let progressBar = LargeProgressBar(step: .zero)
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "환영합니다!\n이메일을 입력해주세요".attributedString(
@@ -59,9 +59,14 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cylces
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    lineTextField.text = "a@a.com"
     setupUI()
     bind()
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    progressBar.step = .one
   }
   
   // MARK: - UI Responder

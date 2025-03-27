@@ -19,7 +19,7 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .three)
+  private let progressBar = LargeProgressBar(step: .two)
   
   private let titleLabel: UILabel = {
     let label = UILabel()
@@ -72,6 +72,12 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?.progressBar.step = .two
+    }  }
   
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {

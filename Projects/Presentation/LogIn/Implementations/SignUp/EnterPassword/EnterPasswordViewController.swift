@@ -24,7 +24,7 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .four)
+  private let progressBar = LargeProgressBar(step: .three)
   
   private let passwordTitleLabel: UILabel = {
     let label = UILabel()
@@ -37,7 +37,6 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   }()
   
   private let passwordTextField = PasswordTextField(placeholder: "비밀번호", type: .helper)
-  
   private let passwordCheckTitleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "한 번 더 입력해주세요".attributedString(
@@ -88,6 +87,12 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?.progressBar.step = .two
+    }  }
   
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {

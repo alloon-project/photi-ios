@@ -189,7 +189,7 @@ private extension LogInViewController {
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.displayAlertPopUp()
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     }
@@ -202,10 +202,5 @@ extension LogInViewController: LogInPresentable { }
 private extension LogInViewController {
   func displayToastView() {
     warningToastView.present(to: self)
-  }
-  
-  func displayAlertPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
-    alertVC.present(to: self, animted: false)
   }
 }
