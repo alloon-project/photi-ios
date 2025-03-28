@@ -8,11 +8,14 @@
 
 import Core
 import Challenge
+import Report
 
 protocol ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
-  func presentDidChangeGoalToastView()
+  func presentChallengeNotFoundWaring()
+  func presentNetworkWarning(reason: String?)
+  func presentLoginTrrigerWarning()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -29,8 +32,8 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
-  private let editChallengeGoalContainer: EnterChallengeGoalContainable
-  private var editChallengeGoalCoordinator: ViewableCoordinating?
+  private let reportContainer: ReportContainable
+  private var reportCoordinator: ViewableCoordinating?
   
   init(
     viewControllerable: ViewControllerable,
@@ -38,13 +41,13 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
-    editChallengeGoalContainer: EnterChallengeGoalContainer
+    reportContainer: ReportContainable
   ) {
     self.viewModel = viewModel
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
-    self.editChallengeGoalContainer = editChallengeGoalContainer
+    self.reportContainer = reportContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -54,9 +57,15 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   }
   
   func attachSegments() {
-    let feedCoordinator = feedContainer.coordinator(listener: self)
-    let descriptionCoordinator = descriptionContainer.coordinator(listener: self)
-    let participantCoordinator = participantContainer.coordinator(listener: self)
+    let challengeId = viewModel.challengeId
+    let challengeName = viewModel.challengeName
+    let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
+    let descriptionCoordinator = descriptionContainer.coordinator(challengeId: challengeId, listener: self)
+    let participantCoordinator = participantContainer.coordinator(
+      challengeId: challengeId,
+      challengeName: challengeName,
+      listener: self
+    )
     
     presenter.attachViewControllerables(
       feedCoordinator.viewControllerable,
@@ -73,79 +82,92 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 }
 
 // MARK: - ChallengeCoordinatable
-extension ChallengeCoordinator: ChallengeCoordinatable { }
-
-// MARK: - EditChallengeGoal
-extension ChallengeCoordinator {
-  func attachEditChallengeGoal(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  ) {
-    guard editChallengeGoalCoordinator == nil else { return }
-    
-    let coordinator = editChallengeGoalContainer.coordinator(
-      mode: .edit(goal: goal),
-      challengeID: challengeID,
-      challengeName: challengeName,
-      listener: self
-    )
-    
-    addChild(coordinator)
-    self.editChallengeGoalCoordinator = coordinator
-    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+extension ChallengeCoordinator: ChallengeCoordinatable {
+  func didTapConfirmButtonAtAlert() {
+    listener?.shouldDismissChallenge()
   }
   
-  func detachEditChallengeGoal(completion: (() -> Void)? = nil) {
-    guard let coordinator = editChallengeGoalCoordinator else { return }
+  func didTapLoginButtonAtAlert() {
+    listener?.requestLoginAtChallenge()
+  }
+  
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtChallenge()
+  }
+  
+  func attachReport() {
+    guard reportCoordinator == nil else { return }
     
-    removeChild(coordinator)
-    self.editChallengeGoalCoordinator = nil
-    viewControllerable.popViewController(animated: true) {
-      completion?()
-    }
+    let coordinator = reportContainer.coordinator(listener: self, reportType: .challenge)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.reportCoordinator = coordinator
+  }
+  
+  func leaveChallenge(isLastMember: Bool) {
+    listener?.leaveChallenge(isDelete: isLastMember)
   }
 }
 
 // MARK: - FeedListener
-extension ChallengeCoordinator: FeedListener {  
+extension ChallengeCoordinator: FeedListener {
   func didChangeContentOffsetAtFeed(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
+  }
+  
+  func authenticatedFailedAtFeed() {
+    presenter.presentLoginTrrigerWarning()
+  }
+  
+  func networkUnstableAtFeed(reason: String?) {
+    presenter.presentNetworkWarning(reason: reason)
+  }
+  
+  func challengeNotFoundAtFeed() {
+    presenter.presentChallengeNotFoundWaring()
   }
 }
 
 // MARK: - DescriptionListener
-extension ChallengeCoordinator: DescriptionListener { }
+extension ChallengeCoordinator: DescriptionListener {
+  func authenticatedFailedAtDescription() {
+    presenter.presentLoginTrrigerWarning()
+  }
+  
+  func networkUnstableAtDescription() {
+    presenter.presentNetworkWarning(reason: nil)
+  }
+  
+  func challengeNotFoundAtDescription() {
+    presenter.presentChallengeNotFoundWaring()
+  }
+}
 
 // MARK: - ParticipantListener
 extension ChallengeCoordinator: ParticipantListener {
   func didChangeContentOffsetAtParticipant(_ offset: Double) {
     presenter.didChangeContentOffsetAtMainContainer(offset)
   }
+
+  func authenticatedFailedAtParticipant() {
+    presenter.presentLoginTrrigerWarning()
+  }
   
-  func didTapEditButton(
-    challengeID: Int,
-    goal: String,
-    challengeName: String
-  ) {
-    attachEditChallengeGoal(
-      challengeID: challengeID,
-      goal: goal,
-      challengeName: challengeName
-    )
+  func networkUnstableAtParticipant() {
+    presenter.presentNetworkWarning(reason: nil)
+  }
+  
+  func requestLoginAtPariticipant() {
+    listener?.requestLoginAtChallenge()
   }
 }
 
-// MARK: - EditChallengeGoalListener
-extension ChallengeCoordinator: EnterChallengeGoalListener {
-  func didTapBackButtonAtEnterChallengeGoal() {
-    detachEditChallengeGoal()
-  }
-  
-  func didEnterChallengeGoal() {
-    // TODO: API 연결 이후 수정 예정
-    detachEditChallengeGoal { [weak self] in
-      self?.presenter.presentDidChangeGoalToastView()
-    }
+// MARK: - ReportListener
+extension ChallengeCoordinator: ReportListener {
+  func detachReport() {
+    guard let coordinator = reportCoordinator else { return }
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    self.reportCoordinator = nil
   }
 }

@@ -23,4 +23,22 @@ public extension UIImage {
   func color(_ color: UIColor) -> UIImage {
     return self.withTintColor(color, renderingMode: .alwaysOriginal)
   }
+  
+  func converToJPEG(maxSizeMB: Int) -> Data? {
+    let maxSizeBytes = maxSizeMB * 1024 * 1024
+    
+    var compression: CGFloat = 1.0
+    var jpegConvertedData = jpegData(compressionQuality: compression)
+    
+    while let data = jpegConvertedData, data.count > maxSizeBytes, compression > 0.1 {
+      compression -= 0.1
+      jpegConvertedData = jpegData(compressionQuality: compression)
+    }
+    
+    if let jpegData = jpegConvertedData, jpegData.count <= maxSizeBytes {
+      return jpegData
+    } else {
+      return nil
+    }
+  }
 }

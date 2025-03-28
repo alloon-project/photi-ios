@@ -14,7 +14,13 @@ import Entity
 public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: PopularChallengeResponseDTO) -> ChallengeDetail
   func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
-  func mapToChallengeSummary(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromEnded(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromMyChallenge(dto: MyChallengesResponseDTO) -> [ChallengeSummary]
+  func mapToFeed(dto: FeedResponseDTO) -> Feed
+  func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
+  func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment
+  func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription
+  func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember]
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -61,9 +67,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
     )
   }
   
-  public func mapToChallengeSummary(dto: EndedChallengeResponseDTO) -> [ChallengeSummary] {
-    let contents = dto.content
-    
+  public func mapToChallengeSummaryFromEnded(dto: EndedChallengeResponseDTO) -> [ChallengeSummary] {
     return dto.content.map {
       let endDate = $0.endDate.toDate() ?? Date()
       let memberImages = $0.memberImages.map { $0.memberImage }
@@ -76,6 +80,84 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         hashTags: [],
         memberCount: $0.currentMemberCnt,
         memberImages: memberImages
+      )
+    }
+  }
+  
+  public func mapToChallengeSummaryFromMyChallenge(dto: MyChallengesResponseDTO) -> [ChallengeSummary] {
+    return dto.content.map {
+      let endDate = $0.endDate.toDate() ?? Date()
+      let hasTags = $0.hashtags.map { $0.hashtag }
+      let proveTime = $0.proveTime.toDate("HH:mm") ?? Date()
+      
+      return .init(
+        id: $0.id,
+        name: $0.name,
+        imageUrl: $0.challengeImageUrl,
+        endDate: endDate,
+        hashTags: hasTags,
+        proveTime: proveTime,
+        feedImageURL: $0.feedImageUrl,
+        isProve: $0.isProve
+      )
+    }
+  }
+
+  public func mapToFeed(dto: FeedResponseDTO) -> Feed {
+    let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    return .init(
+      id: dto.id,
+      author: dto.username,
+      imageURL: dto.imageUrl,
+      isLike: dto.isLike,
+      updateTime: updateTime
+    )
+  }
+  
+  public func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed {
+    let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    return .init(
+      id: id,
+      author: dto.username,
+      imageURL: dto.feedImageUrl,
+      authorImageURL: dto.userImageUrl,
+      updateTime: updateTime,
+      likeCount: dto.likeCnt
+    )
+  }
+  
+  public func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment {
+    return .init(
+      id: dto.id,
+      author: dto.username,
+      comment: dto.comment
+    )
+  }
+  
+  public func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription {
+    let proveTime = dto.proveTime.toDate("HH:mm") ?? Date()
+    let startDate = dto.startDate.toDate() ?? Date()
+    let endDate = dto.endDate.toDate() ?? Date()
+    let rules = dto.rules.map { $0.rule }
+    return .init(
+      id: id,
+      rules: rules,
+      proveTime: proveTime,
+      startDate: startDate,
+      goal: dto.goal,
+      endDate: endDate
+    )
+  }
+  
+  public func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember] {
+    return dto.map {
+      return .init(
+        id: $0.id,
+        name: $0.username,
+        imageUrl: $0.imageUrl,
+        isOwner: $0.isCreator,
+        duration: $0.duration,
+        goal: $0.goal
       )
     }
   }

@@ -23,8 +23,20 @@ public extension Date {
   
   var day: Int {
     let component = Calendar.current.dateComponents([.day], from: self)
-    
+
     return component.day ?? 0
+  }
+  
+  var hour: Int {
+    let component = Calendar.current.dateComponents([.hour], from: self)
+    
+    return component.hour ?? 0
+  }
+  
+  var minute: Int {
+    let component = Calendar.current.dateComponents([.minute], from: self)
+    
+    return component.minute ?? 0
   }
   
   func toString(_ format: String) -> String {
@@ -33,4 +45,16 @@ public extension Date {
     
     return formatter.string(from: self)
   }
+  
+  func convertTimezone(from fromTimeZone: TimeZone, to toTimeZone: TimeZone? = nil) -> Date {
+    let fromOffset = fromTimeZone.secondsFromGMT(for: self)
+    let toOffset = toTimeZone?.secondsFromGMT(for: self) ?? 0
+    let timeInterval = TimeInterval(toOffset - fromOffset)
+    
+    return self.addingTimeInterval(timeInterval)
+  }
+}
+
+public extension TimeZone {
+  static let kst = TimeZone(identifier: "Asia/Seoul") ?? .current
 }

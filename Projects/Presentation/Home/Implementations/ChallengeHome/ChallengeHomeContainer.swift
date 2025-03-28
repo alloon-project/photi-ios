@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol ChallengeHomeDependency: Dependency { }
+protocol ChallengeHomeDependency: Dependency {
+  var homeUseCase: HomeUseCase { get }
+}
 
 protocol ChallengeHomeContainable: Containable {
   func coordinator(listener: ChallengeHomeListener) -> ViewableCoordinating
@@ -16,7 +19,7 @@ protocol ChallengeHomeContainable: Containable {
 
 final class ChallengeHomeContainer: Container<ChallengeHomeDependency>, ChallengeHomeContainable {
   func coordinator(listener: ChallengeHomeListener) -> ViewableCoordinating {
-    let viewModel = ChallengeHomeViewModel()
+    let viewModel = ChallengeHomeViewModel(useCase: dependency.homeUseCase)
     let viewControllerable = ChallengeHomeViewController(viewModel: viewModel)
     
     let coordinator = ChallengeHomeCoordinator(

@@ -21,6 +21,14 @@ final public class AlertViewController: UIViewController {
   }
   
   // MARK: - Properties
+  public var confirmButtonTitle: String = "확인" {
+    didSet { confirmButton.setText(confirmButtonTitle) }
+  }
+  
+  public var cancelButtonTitle: String = "취소" {
+    didSet { cancelButton.setText(cancelButtonTitle) }
+  }
+  
   private let disposeBag = DisposeBag()
   private let type: AlertType
   private let mainTitle: String
@@ -45,7 +53,12 @@ final public class AlertViewController: UIViewController {
   }()
   
   private let mainTitleLabel = UILabel()
-  private lazy var subTitleLabel = UILabel()
+  private lazy var subTitleLabel: UILabel = {
+    let label = UILabel()
+    label.numberOfLines = 0
+    label.textAlignment = .center
+    return label
+  }()
   
   fileprivate let confirmButton: FilledRoundButton
   fileprivate lazy var cancelButton: FilledRoundButton = FilledRoundButton(type: .quaternary, size: .small, text: "취소")
@@ -72,6 +85,15 @@ final public class AlertViewController: UIViewController {
     
     setupUI()
     bind()
+  }
+  
+  public convenience init(
+    alertType: AlertType,
+    title: String,
+    attributedSubTitle: NSAttributedString
+  ) {
+    self.init(alertType: alertType, title: title, subTitle: "")
+    subTitleLabel.attributedText = attributedSubTitle
   }
   
   @available(*, unavailable)
@@ -205,7 +227,8 @@ private extension AlertViewController {
   func setSubTitle(_ text: String) {
     self.subTitleLabel.attributedText = text.attributedString(
       font: .body2,
-      color: .gray600
+      color: .gray600,
+      alignment: .center
     )
   }
   

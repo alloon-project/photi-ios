@@ -10,9 +10,14 @@ import Core
 
 protocol FeedListener: AnyObject {
   func didChangeContentOffsetAtFeed(_ offset: Double)
+  func authenticatedFailedAtFeed()
+  func networkUnstableAtFeed(reason: String?)
+  func challengeNotFoundAtFeed()
 }
 
-protocol FeedPresentable { }
+protocol FeedPresentable {
+  func deleteFeed(feedId: Int)
+}
 
 final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
@@ -37,30 +42,48 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
 
 // MARK: - FeedCoordinatable
 extension FeedCoordinator: FeedCoordinatable {
-  func attachFeedDetail(for feedID: String) {
+  func attachFeedDetail(challengeId: Int, feedId: Int) {
     guard feedCommentCoordinator == nil else { return }
-    let coordinator = feedCommentContainer.coordinator(listener: self, feedID: feedID)
+    let coordinator = feedCommentContainer.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      feedId: feedId
+    )
     self.feedCommentCoordinator = coordinator
     addChild(coordinator)
     
     viewControllerable.present(
       coordinator.viewControllerable,
-      animated: true,
+      animated: false,
       modalPresentationStyle: .overFullScreen
     )
   }
   
   // MARK: - Detach
-  func detachFeedDetail() {
+  func detachFeedDetail(completion: (() -> Void)? = nil) {
     guard let coordinator = feedCommentCoordinator else { return }
     
     removeChild(coordinator)
-    coordinator.viewControllerable.dismiss(animated: false)
+    coordinator.viewControllerable.dismiss(animated: true) {
+      completion?()
+    }
     self.feedCommentCoordinator = nil
   }
   
   func didChangeContentOffset(_ offset: Double) {
     listener?.didChangeContentOffsetAtFeed(offset)
+  }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtFeed()
+  }
+
+  func networkUnstable() {
+    listener?.networkUnstableAtFeed(reason: nil)
+  }
+  
+  func challengeNotFound() {
+    listener?.challengeNotFoundAtFeed()
   }
 }
 
@@ -68,5 +91,19 @@ extension FeedCoordinator: FeedCoordinatable {
 extension FeedCoordinator: FeedCommentListener {
   func requestDismissAtFeedComment() {
     detachFeedDetail()
+  }
+  
+  func deleteFeed(id: Int) {
+    detachFeedDetail { [weak self] in
+      self?.presenter.deleteFeed(feedId: id)
+    }
+  }
+  
+  func authenticatedFailedAtFeedComment() {
+    listener?.authenticatedFailedAtFeed()
+  }
+  
+  func networkUnstableAtFeedComment(reason: String?) {
+    listener?.networkUnstableAtFeed(reason: reason)
   }
 }

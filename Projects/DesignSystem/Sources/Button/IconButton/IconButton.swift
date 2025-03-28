@@ -62,6 +62,15 @@ public final class IconButton: UIButton {
     self.size = size
     super.init(frame: .zero)
     setupUI()
+    addTarget(self, action: #selector(didTap), for: .touchUpInside)
+  }
+  
+  public convenience init(selectedIcon: UIImage, size: ButtonSize) {
+    self.init(
+      selectedIcon: selectedIcon,
+      unSelectedIcon: selectedIcon,
+      size: size
+    )
   }
   
   public convenience init(size: ButtonSize) {
@@ -87,12 +96,6 @@ public final class IconButton: UIButton {
   public override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
     let circlePath = UIBezierPath(ovalIn: self.bounds)
     return circlePath.contains(point)
-  }
-  
-  // MARK: - touchesEnded
-  public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    super.touchesEnded(touches, with: event)
-    isSelected.toggle()
   }
   
   // MARK: - Setup UI
@@ -149,5 +152,9 @@ private extension IconButton {
       case .xSmall:
         return CGSize(width: 12, height: 12)
     }
+  }
+  
+  @objc func didTap() {
+    isSelected.toggle()
   }
 }

@@ -7,8 +7,11 @@
 //
 
 import RxSwift
+import Core
 import Entity
 
 public protocol HomeUseCase {
   func fetchPopularChallenge() -> Single<[ChallengeDetail]>
+  func fetchMyChallenges() -> Single<[ChallengeSummary]>
+  func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws
 }

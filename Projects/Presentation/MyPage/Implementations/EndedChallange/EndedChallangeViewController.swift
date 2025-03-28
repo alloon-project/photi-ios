@@ -175,7 +175,7 @@ private extension EndedChallengeViewController {
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.presentWarningPopup()
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }

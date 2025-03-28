@@ -12,4 +12,9 @@ public protocol ChallengeContainable: Containable {
   func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating
 }
 
-public protocol ChallengeListener: AnyObject { }
+public protocol ChallengeListener: AnyObject {
+  func didTapBackButtonAtChallenge()
+  func shouldDismissChallenge()
+  func requestLoginAtChallenge()
+  func leaveChallenge(isDelete: Bool)
+}

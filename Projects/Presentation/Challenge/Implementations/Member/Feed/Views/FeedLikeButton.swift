@@ -21,6 +21,7 @@ final class FeedLikeButton: UIButton {
   init() {
     super.init(frame: .zero)
     setupUI()
+    addTarget(self, action: #selector(didTap), for: .touchUpInside)
   }
   
   @available(*, unavailable)
@@ -36,7 +37,8 @@ private extension FeedLikeButton {
     backgroundColor = .gray200
     var configuration = UIButton.Configuration.plain()
     configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 13, trailing: 13)
-    
+    configuration.baseBackgroundColor = .clear
+
     self.configuration = configuration
     self.configurationUpdateHandler = configurationUpdate
   }
@@ -52,5 +54,9 @@ private extension FeedLikeButton {
     }
     
     button.configuration = configuration
+  }
+  
+  @objc func didTap() {
+    isSelected.toggle()
   }
 }

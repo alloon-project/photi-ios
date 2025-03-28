@@ -7,21 +7,44 @@
 //
 
 import Core
+import UseCase
 
-protocol ParticipantDependency: Dependency { }
-
-protocol ParticipantContainable: Containable {
-  func coordinator(listener: ParticipantListener) -> ViewableCoordinating
+protocol ParticipantDependency: Dependency {
+  var challengeUseCase: ChallengeUseCase { get }
 }
 
-final class ParticipantContainer: Container<ParticipantDependency>, ParticipantContainable {
-  func coordinator(listener: ParticipantListener) -> ViewableCoordinating {
-    let viewModel = ParticipantViewModel()
+protocol ParticipantContainable: Containable {
+  func coordinator(
+    challengeId: Int,
+    challengeName: String,
+    listener: ParticipantListener
+  ) -> ViewableCoordinating
+}
+
+final class ParticipantContainer:
+  Container<ParticipantDependency>,
+  ParticipantContainable,
+  EnterChallengeGoalDependency {
+  var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
+
+  func coordinator(
+    challengeId: Int,
+    challengeName: String,
+    listener: ParticipantListener
+  ) -> ViewableCoordinating {
+    let viewModel = ParticipantViewModel(
+      challengeId: challengeId,
+      challegeName: challengeName,
+      useCase: dependency.challengeUseCase
+    )
     let viewControllerable = ParticipantViewController(viewModel: viewModel)
     
+    let editChallengeGoalContainer = EnterChallengeGoalContainer(dependency: self)
+
     let coordinator = ParticipantCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      editChallengeGoalContainer: editChallengeGoalContainer
     )
     coordinator.listener = listener
     return coordinator

@@ -13,11 +13,11 @@ import DesignSystem
 import Core
 
 final class ProofChallengeCell: UICollectionViewCell {
-  typealias ModelType = ProofChallengePresentationModel.ModelType
+  typealias ModelType = MyChallengeFeedPresentationModel.ModelType
   
   // MARK: - Properties
   private(set) var isLast: Bool = false
-  private(set) var model: ProofChallengePresentationModel?
+  private(set) var challengeId: Int = 0
   
   // MARK: - UI Components
   private let deadLineChip = TextChip(type: .green, size: .large)
@@ -37,8 +37,8 @@ final class ProofChallengeCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure(with model: ProofChallengePresentationModel, isLast: Bool) {
-    self.model = model
+  func configure(with model: MyChallengeFeedPresentationModel, isLast: Bool) {
+    self.challengeId = model.id
     deadLineChip.text = model.deadLine
     setupUI(type: model.type, isLast: isLast)
     titleView.configure(title: model.title, type: model.type)
@@ -90,7 +90,7 @@ private extension ProofChallengeCell {
     configureSeperatorView(type: type, isLast: isLast)
     
     switch type {
-      case .proof:
+      case .proofURL, .proofImage:
         deadLineChip.type = .green
       case .didNotProof:
         deadLineChip.type = .blue
@@ -106,14 +106,16 @@ private extension ProofChallengeCell {
     switch type {
       case .didNotProof:
         seperatorView.backgroundColor = .blue100
-      case .proof:
+      case .proofURL, .proofImage:
         seperatorView.backgroundColor = .green0
     }
   }
 }
 
 extension Reactive where Base: ProofChallengeCell {
-  var didTapImage: ControlEvent<Void> {
-    return base.challengeImageView.rx.didTapImage
+  var didTapImage: ControlEvent<Int> {
+    let source = base.challengeImageView.rx.didTapImage
+      .map { _ in base.challengeId }
+    return .init(events: source)
   }
 }

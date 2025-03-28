@@ -69,6 +69,10 @@ extension EndPoint {
         
       case let .uploadMultipartFormData(multipart):
         return request.encoded(multipart)
+        
+      case let .uploadCompositeMultipart(multipart, urlParameters):
+        request = request.encoded(multipart)
+        return try request.encoded(urlParameters, parameterEncoding: URLEncoding.queryString)
     }
   }
 }

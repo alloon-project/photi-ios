@@ -14,26 +14,42 @@ import Core
 import DesignSystem
 
 final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
+  typealias DataSourceType = UICollectionViewDiffableDataSource<String, FeedPresentationModel>
+  typealias SnapShot = NSDiffableDataSourceSnapshot<String, FeedPresentationModel>
+
   // MARK: - Properties
+  private let viewModel: FeedViewModel
+  private let disposeBag = DisposeBag()
+
   private var currentPercent = PhotiProgressPercent.percent0 {
     didSet {
+      guard viewDidAppear else { return }
       progressBar.percent = currentPercent
       updateTagViewContraints(percent: currentPercent)
     }
   }
-  private var feedAlign: FeedAlignMode = .recent
-  private var isProof: Bool = false
-  private let viewModel: FeedViewModel
-  private let disposeBag = DisposeBag()
-  private var didProof: Bool = false
-  private var feeds = [[FeedPresentationModel]]() {
+  private var isProve: ProveType = .didNotProve("") {
     didSet {
-      feedCollectionView.reloadData()
+      guard viewWillAppear else { return }
+      configureTodayHeaderView(for: isProve)
+      cameraShutterButton.isHidden = (isProve != .didProve)
     }
   }
-  private let didTapFeedCell = PublishRelay<String>()
+  private var feedsAlign: FeedsAlignMode = .recent {
+    didSet { orderButton.text = feedsAlign.rawValue }
+  }
+  private var dataSource: DataSourceType?
+  private var viewWillAppear: Bool = false
+  private var viewDidAppear: Bool = false
+
+  private let requestData = PublishRelay<Void>()
+  private let reloadData = PublishRelay<Void>()
+  private let didTapFeedCell = PublishRelay<Int>()
   private let contentOffset = PublishRelay<Double>()
-  private let uploadImageRelay = PublishRelay<Data>()
+  private let uploadImageRelay = PublishRelay<UIImageWrapper>()
+  private let requestFeeds = PublishRelay<Void>()
+  private let feedsAlignRelay = BehaviorRelay<FeedsAlignMode>(value: .recent)
+  private let didTapLikeButtonRelay = PublishRelay<(Bool, Int)>()
   
   // MARK: - UI Components
   private let progressBar = MediumProgressBar(percent: .percent0)
@@ -44,15 +60,21 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     layout.scrollDirection = .vertical
     layout.minimumLineSpacing = 10
     layout.minimumInteritemSpacing = 7
+    layout.headerReferenceSize = .init(width: 0, height: 44)
+    layout.footerReferenceSize = .init(width: 0, height: 6)
+    layout.sectionInset = .init(top: 8, left: 0, bottom: 18, right: 0)
     layout.itemSize = .init(width: 160, height: 160)
     layout.sectionHeadersPinToVisibleBounds = true
     
     let collectionView = SelfVerticalSizingCollectionView(layout: layout)
     collectionView.registerCell(FeedCell.self)
-    collectionView.registerHeader(FeedCollectionHeaderView.self)
+    collectionView.registerHeader(FeedsHeaderView.self)
+    collectionView.registerFooter(FeedsLoadingFooterView.self)
+    collectionView.contentInsetAdjustmentBehavior = .never
+    collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-
+    
     return collectionView
   }()
   private let cameraShutterButton: UIButton = {
@@ -78,24 +100,29 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     super.viewDidLoad()
     setupUI()
     bind()
-    feedCollectionView.dataSource = self
+    let dataSource = diffableDataSource()
+    self.dataSource = dataSource
+    feedCollectionView.dataSource = dataSource
+    dataSource.supplementaryViewProvider = supplementaryViewProvider()
     feedCollectionView.delegate = self
+    configureRefreshControl()
+    requestData.accept(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    
-    cameraShutterButton.isHidden = isProof
-    guard !isProof else { return }
-    presentPoofTipView()
+    guard !viewWillAppear else { return }
+    self.viewWillAppear = true
+    cameraShutterButton.isHidden = (isProve == .didProve)
+    if isProve != .didProve { presentPoofTipView() }
   }
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-      self.currentPercent = .percent40
-    }
+    guard !viewDidAppear else { return }
+    self.viewDidAppear = true
+    progressBar.percent = currentPercent
+    updateTagViewContraints(percent: currentPercent)
   }
 }
 
@@ -136,15 +163,14 @@ private extension FeedViewController {
     
     feedCollectionView.snp.makeConstraints {
       $0.top.equalTo(orderButton.snp.bottom).offset(30)
-      $0.centerX.equalToSuperview()
+      $0.centerX.bottom.equalToSuperview()
       $0.width.equalTo(327)
-      $0.bottom.equalToSuperview()
     }
-    
+
     cameraShutterButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.width.height.equalTo(64)
-      $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(22)
+      $0.bottom.equalToSuperview().inset(22)
     }
   }
 }
@@ -153,12 +179,14 @@ private extension FeedViewController {
 private extension FeedViewController {
   func bind() {
     let input = FeedViewModel.Input(
-      didTapOrderButton: orderButton.rx.tap
-        .asSignal()
-        .map { .popular },
+      requestData: requestData.asSignal(),
+      reloadData: reloadData.asSignal(),
       didTapFeed: didTapFeedCell.asSignal(),
       contentOffset: contentOffset.asSignal(),
-      uploadImage: uploadImageRelay.asSignal()
+      uploadImage: uploadImageRelay.asSignal(),
+      requestFeeds: requestFeeds.asSignal(),
+      feedsAlign: feedsAlignRelay.asDriver(),
+      didTapIsLikeButton: didTapLikeButtonRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -167,11 +195,59 @@ private extension FeedViewController {
   }
   
   func bind(for output: FeedViewModel.Output) {
+    output.proveMemberCount
+      .map { "오늘 \($0)명 인증!" }
+      .drive(tagView.rx.title)
+      .disposed(by: disposeBag)
+    
+    output.provePercent
+      .map { PhotiProgressPercent($0) }
+      .drive(rx.currentPercent)
+      .disposed(by: disposeBag)
+    
+    output.proofRelay
+      .distinctUntilChanged { $0 == $1 }
+      .drive(rx.isProve)
+      .disposed(by: disposeBag)
+    
+    output.feeds
+      .drive(with: self) { owner, feeds in
+        switch feeds {
+          case let .initialPage(models):
+            owner.feedCollectionView.refreshControl?.endRefreshing()
+            owner.deleteAllFeeds()
+            owner.initialize(models: models)
+          case let .default(models):
+            owner.append(models: models)
+        }
+      }
+      .disposed(by: disposeBag)
+    
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
         LoadingAnimation.default.stop()
-        owner.isProof = true
+        owner.isProve = .didProve
         owner.cameraShutterButton.isHidden = true
+      }
+      .disposed(by: disposeBag)
+    
+    output.startFetching
+      .emit(with: self) { owner, _ in
+        owner.updateFeedsFooterLoadingState(isFetching: true)
+      }
+      .disposed(by: disposeBag)
+    
+    output.stopFetching
+      .emit(with: self) { owner, _ in
+        owner.updateFeedsFooterLoadingState(isFetching: false)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bindFailed(for output: FeedViewModel.Output) {
+    output.fileTooLarge
+      .emit(with: self) { owner, _ in
+        owner.presentFileTooLargeAlert()
       }
       .disposed(by: disposeBag)
   }
@@ -189,79 +265,140 @@ private extension FeedViewController {
       }
       .disposed(by: disposeBag)
   }
+  
+  func bind(cell: FeedCell) {
+    cell.rx.didTapLikeButton
+      .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
+      .bind(with: self) { owner, result in
+        owner.didTapLikeButtonRelay.accept(result)
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - FeedPresentable
-extension FeedViewController: FeedPresentable { }
+extension FeedViewController: FeedPresentable {
+  func deleteFeed(feedId: Int) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    guard let model = snapshot.itemIdentifiers.first(where: { $0.id == feedId }) else { return }
+    snapshot.deleteItems([model])
+    dataSource.apply(snapshot)
+  }
+}
 
-// MARK: - UICollectionViewDataSource
-extension FeedViewController: UICollectionViewDataSource {
-  func numberOfSections(in collectionView: UICollectionView) -> Int {
-    return feeds.count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return feeds[section].count
-  }
-  
-  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
-    cell.configure(with: feeds[indexPath.section][indexPath.row])
-    
-    return cell
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    viewForSupplementaryElementOfKind kind: String,
-    at indexPath: IndexPath
-  ) -> UICollectionReusableView {
-    guard  kind == UICollectionView.elementKindSectionHeader else {
-      return UICollectionReusableView()
+// MARK: - UICollectionViewDiffableDataSource
+extension FeedViewController {
+  func diffableDataSource() -> DataSourceType {
+    return .init(collectionView: feedCollectionView) { [weak self] collectionView, indexPath, model in
+      let cell = collectionView.dequeueCell(FeedCell.self, for: indexPath)
+      cell.configure(with: model)
+      self?.bind(cell: cell)
+      return cell
     }
-      
-    let header = collectionView.dequeueHeader(FeedCollectionHeaderView.self, for: indexPath)
-    
-    /// 테스트용 코드입니다.
-    if indexPath.section == 0 {
-      header.configure(date: "오늘", type: .didNotProof(deadLine: "18:00까지"))
+  }
+  
+  func supplementaryViewProvider() -> DataSourceType.SupplementaryViewProvider? {
+    return .init { [weak self] collectionView, kind, indexPath in
+      if kind == UICollectionView.elementKindSectionHeader {
+        return self?.supplementaryHeaderView(collectionView, at: indexPath)
+      } else if kind == UICollectionView.elementKindSectionFooter {
+        return self?.supplementaryFooterView(collectionView, at: indexPath)
+      } else {
+        return nil
+      }
+    }
+  }
+  
+  func supplementaryHeaderView(_ collectionView: UICollectionView, at indexPath: IndexPath) -> FeedsHeaderView? {
+    let headerView = collectionView.dequeueHeader(FeedsHeaderView.self, for: indexPath)
+    guard let sectionData = dataSource?.sectionIdentifier(for: indexPath.section) else {
+      return headerView
+    }
+    if indexPath.section == 0, sectionData == "오늘" {
+      switch isProve {
+        case let .didNotProve(proveTime):
+          headerView.configure(date: sectionData, type: .didNotProve(proveTime))
+        case .didProve:
+          headerView.configure(date: sectionData, type: .didProve)
+      }
     } else {
-      header.configure(date: "1일 전", type: .none)
+      headerView.configure(date: sectionData)
     }
     
-    return header
+    return headerView
+  }
+  
+  func supplementaryFooterView(_ collectionView: UICollectionView, at indexPath: IndexPath) -> FeedsLoadingFooterView? {
+    let footerView = collectionView.dequeueFooter(FeedsLoadingFooterView.self, for: indexPath)
+    footerView.isHidden = true
+    
+    return footerView
+  }
+  
+  func configureTodayHeaderView(for type: ProveType) {
+    let indexPath = IndexPath(row: 0, section: 0)
+    guard
+      let headerView = feedCollectionView.headerView(FeedsHeaderView.self, at: indexPath),
+      let sectionData = dataSource?.sectionIdentifier(for: 0),
+      sectionData == "오늘"
+    else { return }
+
+    switch type {
+      case let .didNotProve(proveTime):
+        headerView.configure(type: .didNotProve(proveTime))
+      case .didProve:
+        headerView.configure(type: .didProve)
+    }
+  }
+  
+  func initialize(models: [FeedPresentationModel]) {
+    let snapshot = append(models: models, to: SnapShot())
+    dataSource?.apply(snapshot)
+  }
+  
+  func append(models: [FeedPresentationModel]) {
+    guard let dataSource else { return }
+    let snapshot = append(models: models, to: dataSource.snapshot())
+    dataSource.apply(snapshot)
+  }
+  
+  func append(models: [FeedPresentationModel], to snapshot: SnapShot) -> SnapShot {
+    var snapshot = snapshot
+    models.forEach {
+      if !snapshot.sectionIdentifiers.contains($0.updateGroup) {
+        snapshot.appendSections([$0.updateGroup])
+      }
+      snapshot.appendItems([$0], toSection: $0.updateGroup)
+    }
+    
+    return snapshot
+  }
+  
+  func deleteAllFeeds() {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    snapshot.deleteAllItems()
+    dataSource.apply(snapshot)
   }
 }
 
 // MARK: - UICollectionViewDelegate
 extension FeedViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    // TODO: API 연결 후 수정
-    didTapFeedCell.accept("0")
+    guard let item = dataSource?.itemIdentifier(for: indexPath) else { return }
+    didTapFeedCell.accept(item.id)
   }
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    let offSet = scrollView.contentOffset.y
-    contentOffset.accept(offSet)
-  }
-}
-
-// MARK: - UICollectionViewDelegateFlowLayout
-extension FeedViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    referenceSizeForHeaderInSection section: Int
-  ) -> CGSize {
-    return CGSize(width: collectionView.bounds.width, height: 44)
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    insetForSectionAt section: Int
-  ) -> UIEdgeInsets {
-    return .init(top: 8, left: 0, bottom: 18, right: 0)
+    let yOffset = scrollView.contentOffset.y
+    contentOffset.accept(yOffset)
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+   
+    requestFeeds.accept(())
   }
 }
 
@@ -286,7 +423,7 @@ extension FeedViewController: UIImagePickerControllerDelegate, UINavigationContr
 // MARK: - UploadPhotoPopOverDelegate
 extension FeedViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
-    uploadImageRelay.accept(image.pngData() ?? Data())
+    uploadImageRelay.accept(.init(image: image))
     LoadingAnimation.default.start()
   }
 }
@@ -294,13 +431,23 @@ extension FeedViewController: UploadPhotoPopOverDelegate {
 // MARK: - AlignBottomSheetDelegate
 extension FeedViewController: AlignBottomSheetDelegate {
   func didSelected(at index: Int, data: String) {
-    self.feedAlign = .init(rawValue: data) ?? feedAlign
-    orderButton.text = feedAlign.rawValue
+    self.feedsAlign = .init(rawValue: data) ?? feedsAlign
+    feedsAlignRelay.accept(feedsAlign)
+    deleteAllFeeds()
   }
 }
 
 // MARK: - Private Methods
 private extension FeedViewController {
+  func configureRefreshControl() {
+    feedCollectionView.refreshControl = UIRefreshControl()
+    feedCollectionView.refreshControl?.addTarget(self, action: #selector(refreshStart), for: .valueChanged)
+  }
+  
+  @objc func refreshStart() {
+    reloadData.accept(())
+  }
+  
   func updateTagViewContraints(percent: PhotiProgressPercent) {
     let tagViewLeading = tagViewLeading(for: percent.rawValue)
     
@@ -336,8 +483,8 @@ private extension FeedViewController {
   }
   
   func presentBottomSheet() {
-    let dataSource = FeedAlignMode.allCases.map { $0.rawValue }
-    let selectedRow = dataSource.firstIndex(of: feedAlign.rawValue)
+    let dataSource = FeedsAlignMode.allCases.map { $0.rawValue }
+    let selectedRow = dataSource.firstIndex(of: feedsAlign.rawValue)
     
     let bottomSheet = AlignBottomSheetViewController(
       type: .default,
@@ -346,5 +493,40 @@ private extension FeedViewController {
     )
     bottomSheet.delegate = self
     bottomSheet.present(to: self, animated: true)
+  }
+  
+  func presentAlreadyVerifyFeedAlert() {
+    let alert = AlertViewController(alertType: .confirm, title: "이미 인증한 챌린지입니다.")
+    
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentFileTooLargeAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "파일 용량이 너무 큽니다.",
+      subTitle: "파일 용량은 8MB이하여야 합니다."
+    )
+    
+    alert.present(to: self, animted: true)
+  }
+  
+  func updateFeedsFooterLoadingState(isFetching: Bool) {
+    guard let dataSource else { return }
+    
+    let lastSection = dataSource.numberOfSections(in: feedCollectionView) - 1
+    let lastIndexPath = IndexPath(row: 0, section: lastSection)
+    let loadingView = feedCollectionView.footerView(FeedsLoadingFooterView.self, at: lastIndexPath)
+
+    loadingView?.isHidden = !isFetching
+    isFetching ? loadingView?.startLoading() : loadingView?.stopLoading()
+    
+    if !isFetching, lastSection > 0 {
+      (0..<lastSection).map { IndexPath(row: 0, section: $0) }.forEach {
+        let loadingView = feedCollectionView.footerView(FeedsLoadingFooterView.self, at: $0)
+        loadingView?.isHidden = true
+        loadingView?.stopLoading()
+      }
+    }
   }
 }

@@ -198,39 +198,9 @@ private extension NoneMemberChallengeViewController {
   }
   
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {
-    output.challengeTitle
-      .drive(with: self) { owner, title in
-        owner.configureTitleLabel(title)
-      }
-      .disposed(by: disposeBag)
-    
-    output.hashTags
-      .drive(with: self) { owner, hashTags in
-        owner.hashTags = hashTags
-      }
-      .disposed(by: disposeBag)
-    
-    output.verificationTime
-      .drive(verificationTimeView.rx.verificationTime)
-      .disposed(by: disposeBag)
-    
-    output.goal
-      .drive(goalView.rx.goal)
-      .disposed(by: disposeBag)
-    
-    Driver.zip(output.memberCount, output.challengeImageURL, output.memberThumbnailURLs)
-      .drive(with: self) { owner, result in
-        owner.thumbnailView.configure(count: result.0, thumbnailImageURL: result.1, avartarImageURLs: result.2)
-      }
-      .disposed(by: disposeBag)
-      
-    output.rules
-      .drive(ruleView.rx.rules)
-      .disposed(by: disposeBag)
-    
-    output.deadLine
-      .drive(deadLineView.rx.deadLine)
-      .disposed(by: disposeBag)
+    bindLeftView(for: output)
+    bindRightView(for: output)
+    bindFailedView(for: output)
     
     output.isPrivateChallenge
       .drive(with: self) { owner, isPrivate in
@@ -253,10 +223,50 @@ private extension NoneMemberChallengeViewController {
         owner.isUnlocked = result
       }
       .disposed(by: disposeBag)
+  }
+  
+  func bindLeftView(for output: NoneMemberChallengeViewModel.Output) {
+    output.challengeTitle
+      .drive(with: self) { owner, title in
+        owner.configureTitleLabel(title)
+      }
+      .disposed(by: disposeBag)
     
+    output.hashTags
+      .drive(with: self) { owner, hashTags in
+        owner.hashTags = hashTags
+      }
+      .disposed(by: disposeBag)
+    
+    output.verificationTime
+      .drive(verificationTimeView.rx.verificationTime)
+      .disposed(by: disposeBag)
+    
+    output.goal
+      .drive(goalView.rx.goal)
+      .disposed(by: disposeBag)
+  }
+  
+  func bindRightView(for output: NoneMemberChallengeViewModel.Output) {
+    Driver.zip(output.memberCount, output.challengeImageURL, output.memberThumbnailURLs)
+      .drive(with: self) { owner, result in
+        owner.thumbnailView.configure(count: result.0, thumbnailImageURL: result.1, avartarImageURLs: result.2)
+      }
+      .disposed(by: disposeBag)
+      
+    output.rules
+      .drive(ruleView.rx.rules)
+      .disposed(by: disposeBag)
+    
+    output.deadLine
+      .drive(deadLineView.rx.deadLine)
+      .disposed(by: disposeBag)
+  }
+  
+  func bindFailedView(for output: NoneMemberChallengeViewModel.Output) {
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.presentWarningPopup()
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     
@@ -324,7 +334,7 @@ private extension NoneMemberChallengeViewController {
   }
   
   func displayAlreadyJoinPopUp() {
-    let popUp = AlertViewController(alertType: .confirm, title: "오류", subTitle: "이미 참여한 챌린지입니다.")
+    let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
     popUp.present(to: self, animted: false)
   }
 }
