@@ -100,7 +100,7 @@ final class AppContainer:
   }()
   
   lazy var feedHistoryUseCase: FeedHistoryUseCase = {
-    return FeedHistoryUseCaseImpl(repository: feedRepository)
+    return FeedHistoryUseCaseImpl(repository: feedHistoryRepository)
   }()
   
   lazy var homeUseCae: HomeUseCase = {
@@ -172,7 +172,7 @@ final class AppContainer:
     return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
   }()
   
-  lazy var feedRepository: FeedHistoryRepository = {
+  lazy var feedHistoryRepository: FeedHistoryRepository = {
     return FeedHistoryRepositoryImpl(dataMapper: FeedHistoryDataMapperImpl())
   }()
 }
