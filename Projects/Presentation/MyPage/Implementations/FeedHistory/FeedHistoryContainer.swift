@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol FeedHistoryDependency: Dependency {
-  var feedHistoryUseCase: FeedUseCase { get }
+  var feedHistoryUseCase: FeedHistoryUseCase { get }
 }
 
 protocol FeedHistoryContainable: Containable {

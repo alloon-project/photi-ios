@@ -1,5 +1,5 @@
 //
-//  FeedRepository.swift
+//  FeedHistoryRepository.swift
 //  Domain
 //
 //  Created by 임우섭 on 2/23/25.
@@ -9,6 +9,6 @@
 import RxSwift
 import Entity
 
-public protocol FeedRepository {
+public protocol FeedHistoryRepository {
   func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]>
 }

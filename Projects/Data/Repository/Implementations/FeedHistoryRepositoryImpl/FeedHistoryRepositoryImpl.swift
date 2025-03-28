@@ -13,10 +13,10 @@ import Entity
 import PhotiNetwork
 import Repository
 
-public struct FeedRepositoryImpl: FeedRepository {
-  private let dataMapper: FeedDataMapper
+public struct FeedHistoryRepositoryImpl: FeedHistoryRepository {
+  private let dataMapper: FeedHistoryDataMapper
   
-  public init(dataMapper: FeedDataMapper) {
+  public init(dataMapper: FeedHistoryDataMapper) {
     self.dataMapper = dataMapper
   }
   
@@ -31,7 +31,7 @@ public struct FeedRepositoryImpl: FeedRepository {
 }
 
 // MARK: - Private Methods
-private extension FeedRepositoryImpl {
+private extension FeedHistoryRepositoryImpl {
   func requestFeedHistory<T: Decodable>(
     api: FeedAPI,
     responseType: T.Type,

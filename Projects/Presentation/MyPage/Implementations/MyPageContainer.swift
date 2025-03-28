@@ -17,7 +17,7 @@ public protocol MyPageDependency: Dependency {
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
   var endedChallengeUseCase: EndedChallengeUseCase { get }
-  var feedUseCase: FeedUseCase { get }
+  var feedHistoryUseCase: FeedHistoryUseCase { get }
   var resignUsecase: ResignUseCase { get }
 }
 
@@ -32,7 +32,7 @@ public final class MyPageContainer:
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase }
-  var feedHistoryUseCase: FeedUseCase { dependency.feedUseCase }
+  var feedHistoryUseCase: FeedHistoryUseCase { dependency.feedHistoryUseCase }
   var resignUseCase: ResignUseCase { dependency.resignUsecase }
 
   public func coordinator(

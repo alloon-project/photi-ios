@@ -1,5 +1,5 @@
 //
-//  FeedUseCase.swift
+//  FeedHistoryUseCase.swift
 //  Domain
 //
 //  Created by 임우섭 on 2/23/25.
@@ -9,6 +9,6 @@
 import RxSwift
 import Entity
 
-public protocol FeedUseCase {
+public protocol FeedHistoryUseCase {
   func fetchFeeds(page: Int, size: Int) -> Single<[FeedHistory]>
 }

@@ -26,7 +26,7 @@ protocol FeedHistoryViewModelType: AnyObject {
 }
 
 final class FeedHistoryViewModel: FeedHistoryViewModelType {
-  private let useCase: FeedUseCase
+  private let useCase: FeedHistoryUseCase
   
   let disposeBag = DisposeBag()
   
@@ -50,7 +50,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: FeedUseCase) {
+  init(useCase: FeedHistoryUseCase) {
     self.useCase = useCase
   }
   

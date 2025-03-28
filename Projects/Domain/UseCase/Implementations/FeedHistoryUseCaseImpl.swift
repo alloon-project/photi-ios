@@ -1,5 +1,5 @@
 //
-//  FeedUseCaseImpl.swift
+//  FeedHistoryUseCaseImpl.swift
 //  Domain
 //
 //  Created by 임우섭 on 2/23/25.
@@ -11,10 +11,10 @@ import Entity
 import UseCase
 import Repository
 
-public struct FeedUseCaseImpl: FeedUseCase {
-  private let repository: FeedRepository
+public struct FeedHistoryUseCaseImpl: FeedHistoryUseCase {
+  private let repository: FeedHistoryRepository
   
-  public init(repository: FeedRepository) {
+  public init(repository: FeedHistoryRepository) {
     self.repository = repository
   }
   

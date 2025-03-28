@@ -1,5 +1,5 @@
 //
-//  FeedDataMapper.swift
+//  FeedHistoryDataMapper.swift
 //  Data
 //
 //  Created by 임우섭 on 2/23/25.
@@ -11,11 +11,11 @@ import DTO
 import Core
 import Entity
 
-public protocol FeedDataMapper {
+public protocol FeedHistoryDataMapper {
   func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory]
 }
 
-public struct FeedDataMapperImpl: FeedDataMapper {
+public struct FeedHistoryDataMapperImpl: FeedHistoryDataMapper {
   public init() {}
   
   public func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory] {
