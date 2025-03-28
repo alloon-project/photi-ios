@@ -1,8 +1,8 @@
 //
-//  EndedChallengeViewController.swift
-//  MyPageImpl
+//  FeedHistoryViewController.swift
+//  Presentation
 //
-//  Created by wooseob on 10/18/24.
+//  Created by wooseob on 10/29/24.
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
@@ -13,16 +13,17 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class EndedChallengeViewController: UIViewController, ViewControllerable {
-  private let viewModel: EndedChallengeViewModel
+final class FeedHistoryViewController: UIViewController, ViewControllerable {
+  typealias DataSourceType = UICollectionViewDiffableDataSource<Int, FeedHistoryCellPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedHistoryCellPresentationModel>
+  
+  private let viewModel: FeedHistoryViewModel
   
   // MARK: - Variables
-  private var disposeBag = DisposeBag()
-  private var dataSource: [EndedChallengeCardCellPresentationModel] = [] {
-    didSet {
-      endedChallengeCollectionView.reloadData()
-    }
-  }
+  private let disposeBag = DisposeBag()
+  private var dataSource: DataSourceType?
+  private var maxFeedsCount: Int = 0 // Presentable에서 초기화.
+  private var currentPageRelay: BehaviorRelay<Int> = BehaviorRelay(value: 0)
   
   // MARK: - UIComponents
   private let grayBackgroundView = {
@@ -32,17 +33,14 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
     return view
   }()
   
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    displayMode: .dark
-  )
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
   private let titleLabel = {
     let label = UILabel()
-    label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
+    label.attributedText = "총 0회 인증했어요".attributedString(
       font: .heading3,
       color: .gray900
-    ).setColor(.orange400, for: "0")
+    ).setColor(.green400, for: "0")
     label.textAlignment = .center
     
     return label
@@ -57,7 +55,7 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
     return pinkingView
   }()
   
-  private let endedChallengeCollectionView = {
+  private let feedHistoryCollectionView = {
     let layout = UICollectionViewFlowLayout()
     layout.minimumLineSpacing = 16
     layout.minimumInteritemSpacing = 12
@@ -70,7 +68,7 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
       right: 24
     )
     collectionView.backgroundColor = .white
-    collectionView.registerCell(EndedChallengeCardCell.self)
+    collectionView.registerCell(FeedHistoryCell.self)
     collectionView.showsVerticalScrollIndicator = false
     collectionView.alwaysBounceVertical = false
     
@@ -78,7 +76,7 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
   }()
   
   // MARK: - Initializers
-  init(viewModel: EndedChallengeViewModel) {
+  init(viewModel: FeedHistoryViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -92,20 +90,27 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    endedChallengeCollectionView.delegate = self
-    endedChallengeCollectionView.dataSource = self
+    setFeedCollectionView()
     setupUI()
     bind()
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
   }
 }
 
+//MARK: - Private Methods
+private extension FeedHistoryViewController {
+  func setFeedCollectionView() {
+    diffableDataSource()
+    feedHistoryCollectionView.delegate = self
+  }
+}
+
 // MARK: - UI methods
-private extension EndedChallengeViewController {
+private extension FeedHistoryViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     setViewHierarchy()
@@ -115,7 +120,7 @@ private extension EndedChallengeViewController {
   func setViewHierarchy() {
     self.view.addSubviews(
       grayBackgroundView,
-      endedChallengeCollectionView,
+      feedHistoryCollectionView,
       grayBottomImageView
     )
     
@@ -140,7 +145,7 @@ private extension EndedChallengeViewController {
       $0.trailing.equalToSuperview().offset(-24)
     }
     
-    endedChallengeCollectionView.snp.makeConstraints {
+    feedHistoryCollectionView.snp.makeConstraints {
       $0.top.equalTo(grayBackgroundView.snp.bottom)
       $0.leading.trailing.bottom.equalToSuperview()
     }
@@ -154,54 +159,77 @@ private extension EndedChallengeViewController {
 }
 
 // MARK: - Bind Method
-private extension EndedChallengeViewController {
+private extension FeedHistoryViewController {
   func bind() {
-    let input = EndedChallengeViewModel.Input(
+    let input = FeedHistoryViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      isVisible: self.rx.isVisible
+      isVisible: self.rx.isVisible,
+      fetchMoreData: currentPageRelay.asObservable()
     )
     
     let output = viewModel.transform(input: input)
-    
     bind(for: output)
   }
   
-  func bind(for output: EndedChallengeViewModel.Output) {
-    output.endedChallenges
-      .drive(with: self) { owner, challenges in
-        owner.dataSource = challenges
+  func bind(for output: FeedHistoryViewModel.Output) {
+    output.feedHistory
+      .drive(with: self) { owner, feeds in
+        owner.append(models: feeds)
       }
       .disposed(by: disposeBag)
     
     output.requestFailed
       .emit(with: self) { owner, _ in
-        owner.presentNetworkUnstableAlert()
+        owner.presentWarningPopup()
       }
       .disposed(by: disposeBag)
   }
+  
+  func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) {
+    // TODO: ChallengeID값을 활용하여 해당 챌린지로 넘어가기.
+  }
 }
 
-// MARK: - EndedChallangePresentable
-extension EndedChallengeViewController: EndedChallangePresentable { }
-  
-// MARK: - UICollectionViewDataSource
-extension EndedChallengeViewController: UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    dataSource.count
+// MARK: - FeedHistoryPresentable
+extension FeedHistoryViewController: FeedHistoryPresentable {
+  func setMyFeedCount(_ count: Int) {
+    titleLabel.attributedText = "총 \(count)회 인증했어요".attributedString(
+      font: .heading3,
+      color: .gray900
+    ).setColor(.green400, for: "\(count)")
+    titleLabel.textAlignment = .center
+    maxFeedsCount = count
+  }
+}
+
+// MARK: - UICollectionView Diffable DataSource
+extension FeedHistoryViewController {
+  func diffableDataSource() {
+    self.dataSource = .init(collectionView: feedHistoryCollectionView) { collectionView, indexPath, model in
+      let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
+      cell.configure(with: model)
+      
+      return cell
+    }
   }
   
-  func collectionView(
-    _ collectionView: UICollectionView,
-    cellForItemAt indexPath: IndexPath
-  ) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
+  func append(models: [FeedHistoryCellPresentationModel]) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
     
-    cell.configure(with: dataSource[indexPath.row])
-    return cell
+    // 섹션이 이미 존재하는지 확인
+    DispatchQueue.main.async {
+      if !snapshot.sectionIdentifiers.contains(0) {
+          snapshot.appendSections([0]) // 최초 한 번만 추가
+      }
+      snapshot.appendItems(models, toSection: 0)
+      dataSource.apply(snapshot)
+    }
   }
 }
 
-extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
+
+extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
   func collectionView(
     _ collectionView: UICollectionView,
     layout collectionViewLayout: UICollectionViewLayout,
@@ -211,6 +239,16 @@ extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
     (collectionView.contentInset.left + collectionView.contentInset.right)
     let width = (widthOfCells - 16) / 2.0
     
-    return CGSize(width: width, height: 182.0)
+    return CGSize(width: width, height: 189.0)
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+    guard let dataSource else { return }
+    let snapshot = dataSource.snapshot()
+    let count = snapshot.itemIdentifiers(inSection: 0).count
+    
+    if indexPath.item == count - 1 && count != maxFeedsCount {
+      currentPageRelay.accept(count)
+    }
   }
 }

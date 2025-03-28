@@ -55,6 +55,11 @@ final class SettingViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    hideTabBar(animated: true)
+  }
 }
 
 // MARK: - Private methods
