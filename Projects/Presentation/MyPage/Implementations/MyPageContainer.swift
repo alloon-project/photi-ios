@@ -17,6 +17,7 @@ public protocol MyPageDependency: Dependency {
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
   var endedChallengeUseCase: EndedChallengeUseCase { get }
+  var feedHistoryUseCase: FeedHistoryUseCase { get }
   var resignUsecase: ResignUseCase { get }
 }
 
@@ -25,12 +26,13 @@ public final class MyPageContainer:
   MyPageContainable,
   SettingDependency,
   EndedChallengeDependency,
-  ProofChallengeDependency {
+  FeedHistoryDependency {
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
-  var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase}
+  var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase }
+  var feedHistoryUseCase: FeedHistoryUseCase { dependency.feedHistoryUseCase }
   var resignUseCase: ResignUseCase { dependency.resignUsecase }
 
   public func coordinator(
@@ -41,14 +43,14 @@ public final class MyPageContainer:
     
     let settingContainable = SettingContainer(dependency: self)
     let endedChallengeContainable = EndedChallengeContainer(dependency: self)
-    let proofChallengeContainable = ProofChallengeContainer(dependency: self)
+    let FeedHistoryContainable = FeedHistoryContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       settingContainable: settingContainable,
       endedChallengeContainable: endedChallengeContainable,
-      proofChallengeContainable: proofChallengeContainable
+      FeedHistoryContainable: FeedHistoryContainable
     )
     
     coordinator.listener = listener

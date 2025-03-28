@@ -24,8 +24,10 @@ public struct MyPageRepositoyImpl: MyPageRepository {
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .never)
-            .request(
+          let result = try await Provider(
+            stubBehavior: .immediate,
+            session:.init(interceptor: AuthenticationInterceptor())
+          ).request(
               MyPageAPI.userChallegeHistory,
               type: UserChallengeHistoryResponseDTO.self
             ).value

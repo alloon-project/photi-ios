@@ -129,6 +129,11 @@ final class MyPageViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    showTabBar(animted: true)
+  }
 }
 
 // MARK: - Private methods

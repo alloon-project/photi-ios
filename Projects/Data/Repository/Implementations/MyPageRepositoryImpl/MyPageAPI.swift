@@ -41,4 +41,14 @@ extension MyPageAPI: TargetType {
       return .requestPlain
     }
   }
+  
+  public var sampleResponse: EndpointSampleResponse {
+    switch self {
+    case .userChallegeHistory:
+      let data = UserChallengeHistoryResponseDTO.stubData
+      let jsonData = data.data(using: .utf8)
+      
+      return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+    }
+  }
 }
