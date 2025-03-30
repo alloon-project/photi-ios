@@ -38,6 +38,7 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency {
+  
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     
@@ -99,10 +100,6 @@ final class AppContainer:
     return EndedChallengeUseCaseImpl(repository: challengeRepository)
   }()
   
-  lazy var feedHistoryUseCase: FeedHistoryUseCase = {
-    return FeedHistoryUseCaseImpl(repository: feedHistoryRepository)
-  }()
-  
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(repository: challengeRepository)
   }()
@@ -125,6 +122,10 @@ final class AppContainer:
   
   lazy var inquiryUseCase: InquiryUseCase = {
     return InquiryUseCaseImpl(repository: inquiryRepository)
+  }()
+  
+  lazy var resignUsecase: ResignUseCase = {
+    return ResignUseCaseImpl(repository: resignRepository)
   }()
   
   // MARK: - Repository
@@ -178,9 +179,5 @@ final class AppContainer:
 
   lazy var resignRepository: ResignRepository = {
     return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
-  }()
-  
-  lazy var feedHistoryRepository: FeedHistoryRepository = {
-    return FeedHistoryRepositoryImpl(dataMapper: FeedHistoryDataMapperImpl())
   }()
 }

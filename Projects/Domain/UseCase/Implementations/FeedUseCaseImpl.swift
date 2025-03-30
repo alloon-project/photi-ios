@@ -55,4 +55,8 @@ public struct FeedUseCaseImpl: FeedUseCase {
   public func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void> {
     return repository.deleteFeed(challengeId: challengeId, feedId: feedId)
   }
+  
+  public func fetchFeeds(page: Int, size: Int) -> Single<[FeedHistory]> {
+    return repository.fetchFeedHistory(page: page, size: size)
+  }
 }

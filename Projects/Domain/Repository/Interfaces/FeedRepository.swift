@@ -29,4 +29,5 @@ public protocol FeedRepository {
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
   func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void>
+  func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]>
 }
