@@ -22,7 +22,7 @@ public struct FeedHistoryRepositoryImpl: FeedHistoryRepository {
   
   public func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
     return requestFeedHistory(
-      api: FeedAPI.feedHistory(page: page, size: size),
+      api: FeedHistoryAPI.feedHistory(page: page, size: size),
       responseType: FeedHistoryResponseDTO.self,
       behavior: .immediate
     )
@@ -33,14 +33,14 @@ public struct FeedHistoryRepositoryImpl: FeedHistoryRepository {
 // MARK: - Private Methods
 private extension FeedHistoryRepositoryImpl {
   func requestFeedHistory<T: Decodable>(
-    api: FeedAPI,
+    api: FeedHistoryAPI,
     responseType: T.Type,
     behavior: StubBehavior = .immediate
   ) -> Single<T> {
     return Single.create { single in
       Task {
         do {
-          let provider = Provider<FeedAPI>(
+          let provider = Provider<FeedHistoryAPI>(
             stubBehavior: behavior,
             session: .init(interceptor: AuthenticationInterceptor())
           )

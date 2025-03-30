@@ -1,5 +1,5 @@
 //
-//  FeedAPI.swift
+//  FeedHistoryAPI.swift
 //  Data
 //
 //  Created by 임우섭 on 2/23/25.
@@ -11,11 +11,11 @@ import Core
 import DTO
 import PhotiNetwork
 
-public enum FeedAPI {
+public enum FeedHistoryAPI {
   case feedHistory(page: Int, size: Int)
 }
 
-extension FeedAPI: TargetType {
+extension FeedHistoryAPI: TargetType {
   public var baseURL: URL {
     //    return ServiceConfiguration.baseUrl
     return URL(string: "http://localhost:8080/api")!
