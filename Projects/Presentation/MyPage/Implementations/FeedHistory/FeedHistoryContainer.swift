@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol FeedHistoryDependency: Dependency {
-  var feedHistoryUseCase: FeedHistoryUseCase { get }
+  var feedUseCase: FeedUseCase { get }
 }
 
 protocol FeedHistoryContainable: Containable {
@@ -21,7 +21,7 @@ final class FeedHistoryContainer:
   Container<FeedHistoryDependency>,
   FeedHistoryContainable {
   func coordinator(listener: FeedHistoryListener, feedCount: Int) -> ViewableCoordinating {
-    let viewModel = FeedHistoryViewModel(useCase: dependency.feedHistoryUseCase)
+    let viewModel = FeedHistoryViewModel(useCase: dependency.feedUseCase)
     let viewControllerable = FeedHistoryViewController(viewModel: viewModel)
     
     let coordinator = FeedHistoryCoordinator(

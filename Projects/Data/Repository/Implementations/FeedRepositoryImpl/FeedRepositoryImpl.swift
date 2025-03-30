@@ -81,6 +81,15 @@ public extension FeedRepositoryImpl {
     
     return (feeds, result.last)
   }
+  
+  func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
+    return requestFeedHistory(
+      api: FeedAPI.feedHistory(page: page, size: size),
+      responseType: FeedHistoryResponseDTO.self,
+      behavior: .immediate
+    )
+    .map { dataMapper.mapToFeedHistory(dto: $0) }
+  }
 }
 
 // MARK: - Update Methods
@@ -217,6 +226,39 @@ private extension FeedRepositoryImpl {
         }
       }
       
+      return Disposables.create()
+    }
+  }
+  
+  func requestFeedHistory<T: Decodable>(
+    api: FeedAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .immediate
+  ) -> Single<T> {
+    return Single.create { single in
+      Task {
+        do {
+          let provider = Provider<FeedAPI>(
+            stubBehavior: behavior,
+            session: .init(interceptor: AuthenticationInterceptor())
+          )
+          
+          let result = try await provider
+            .request(api, type: responseType.self).value
+          
+          if result.statusCode == 200, let data = result.data {
+            single(.success(data))
+          } else if result.statusCode == 401 {
+            single(.failure(APIError.tokenUnauthenticated))
+          } else if result.statusCode == 403 {
+            single(.failure(APIError.tokenUnauthorized))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          single(.failure(error))
+        }
+      }
       return Disposables.create()
     }
   }
