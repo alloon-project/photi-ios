@@ -9,11 +9,11 @@ import ProjectDescriptionHelpers
 import ProjectDescription
 
 let project = Project.make(
-	name:"Domain",
+	name: "Domain",
 	targets: [
 		.make(
 			name: "Entity",
-			product: .staticLibrary,
+      product: .framework,
 			bundleId: "com.photi.entity",
 			sources: ["Entity/**"]
 		),
@@ -28,7 +28,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "UseCase",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.useCase",
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
@@ -39,7 +39,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "Repository",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.repository",
 			sources: ["Repository/Interfaces/**"],
 			dependencies: [

@@ -9,7 +9,7 @@ import ProjectDescriptionHelpers
 import ProjectDescription
 
 let project = Project.make(
-	name:"Presentation",
+	name: "Presentation",
 	targets: [
 		// MARK: - Main Coordinators
 		.make(
@@ -31,7 +31,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "Home",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.home",
 			sources: ["Home/Interfaces/**"],
 			dependencies: [
@@ -56,7 +56,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "SearchChallenge",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.searchChallenge",
 			sources: ["SearchChallenge/Interfaces/**"],
 			dependencies: [
@@ -82,7 +82,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "MyPage",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.myPage",
 			sources: ["MyPage/Interfaces/**"],
 			dependencies: [
@@ -107,7 +107,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "LogIn",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.logIn",
 			sources: ["LogIn/Interfaces/**"],
 			dependencies: [
@@ -132,7 +132,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "Challenge",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.challenge",
 			sources: ["Challenge/Interfaces/**"],
 			dependencies: [
@@ -156,7 +156,7 @@ let project = Project.make(
 		),
 		.make(
 			name: "Report",
-			product: .staticLibrary,
+			product: .framework,
 			bundleId: "com.photi.report",
 			sources: ["Report/Interfaces/**"],
 			dependencies: [
