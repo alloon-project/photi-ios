@@ -44,7 +44,7 @@ extension AppViewController: AppPresentable {
   }
   
   func changeNavigationControllerToHome() {
-    guard let viewControllers else { return }
+    guard let _ = viewControllers else { return }
     selectedIndex = 0 // 첫 번째 탭으로 전환
   }
   
