@@ -1,5 +1,5 @@
 //
-//  ChallengeOrganizeViewController.swift
+//  ChallengeStartViewController.swift
 //  Presentation
 //
 //  Created by 임우섭 on 3/15/25.
@@ -12,9 +12,9 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ChallengeOrganizeViewController: UIViewController, ViewControllerable {
+final class ChallengeStartViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
-  private let viewModel: ChallengeOrganizeViewModel
+  private let viewModel: ChallengeStartViewModel
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
@@ -33,7 +33,7 @@ final class ChallengeOrganizeViewController: UIViewController, ViewControllerabl
     return label
   }()
   
-  private let organizeImageView: UIImageView = {
+  private let StartImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = .challengeOrganizeMain
     
@@ -52,7 +52,7 @@ final class ChallengeOrganizeViewController: UIViewController, ViewControllerabl
     icon: .timeBlue
   )
   
-  private let organizeButton = FilledRoundButton(
+  private let StartButton = FilledRoundButton(
     type: .primary,
     size: .xLarge,
     text: "가보자구요!",
@@ -60,7 +60,7 @@ final class ChallengeOrganizeViewController: UIViewController, ViewControllerabl
   )
   
   // MARK: - Initiazliers
-  init(viewModel: ChallengeOrganizeViewModel) {
+  init(viewModel: ChallengeStartViewModel) {
     self.viewModel = viewModel
     
     super.init(nibName: nil, bundle: nil)
@@ -87,7 +87,7 @@ final class ChallengeOrganizeViewController: UIViewController, ViewControllerabl
 }
 
 // MARK: - UI Methods
-private extension ChallengeOrganizeViewController {
+private extension ChallengeStartViewController {
   func setupUI() {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
@@ -101,7 +101,7 @@ private extension ChallengeOrganizeViewController {
       announceLabel,
       firstAnnounceComment,
       secondAnnounceComment,
-      organizeButton
+      StartButton
     )
   }
   
@@ -118,7 +118,7 @@ private extension ChallengeOrganizeViewController {
       $0.top.equalTo(navigationBar.snp.bottom).offset(40)
     }
   
-    organizeButton.snp.makeConstraints {
+    StartButton.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
       $0.bottom.equalToSuperview().offset(-56)
@@ -126,7 +126,7 @@ private extension ChallengeOrganizeViewController {
     
     secondAnnounceComment.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalTo(organizeButton.snp.top).inset(32)
+      $0.bottom.equalTo(StartButton.snp.top).inset(32)
     }
     
     firstAnnounceComment.snp.makeConstraints {
@@ -137,16 +137,16 @@ private extension ChallengeOrganizeViewController {
 }
 
 // MARK: - Bind Method
-private extension ChallengeOrganizeViewController {
+private extension ChallengeStartViewController {
   func bind() {
-    let input = ChallengeOrganizeViewModel.Input(
+    let input = ChallengeStartViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapOrganizeButton: organizeButton.rx.tap
+      didTapStartButton: StartButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
   }
 }
 
-// MARK: - ChallengeOrganizePresentable
-extension ChallengeOrganizeViewController: ChallengeOrganizePresentable { }
+// MARK: - ChallengeStartPresentable
+extension ChallengeStartViewController: ChallengeStartPresentable { }
