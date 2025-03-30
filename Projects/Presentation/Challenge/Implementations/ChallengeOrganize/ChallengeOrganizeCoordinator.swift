@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import Core
 
 protocol ChallengeOrganizeListener: AnyObject {
@@ -21,7 +22,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   private var isPublic: Bool = true
   private var challengeGoal: String?
   private var challengeProveTime: String?
-  private var challengeEndDate: String?
+  private var challengeEndDate: Date?
   private var challengeCover: UIImageWrapper?
   private var challengeRule: [[String: String]]
   private var challengeHashtags: [[String: String]]
@@ -223,17 +224,41 @@ final class ChallengeOrganizeCoordinator: Coordinator {
 
 // MARK: ChallengeStartListener
 extension ChallengeOrganizeCoordinator: ChallengeStartListener {
+  func didTapBackButtonAtChallengeStart() {
+    detachChallengeStart(animated: true)
+    listener?.didTapBackButtonAtChallengeOrganize()
+  }
   
+  func didFinishChallengeStart() {
+    attachChallengeName()
+  }
 }
 
 // MARK: ChallengeNameListener
 extension ChallengeOrganizeCoordinator: ChallengeNameListener  {
+  func didTapBackButtonAtChallengeName() {
+    detachChallengeName(animated: true)
+  }
   
+  func didFisishChallengeName(challengeName: String, isPublic: Bool) {
+    self.challengeName = challengeName
+    self.isPublic = isPublic
+    attachChallengeGoal()
+  }
 }
 
 // MARK: ChallengeGoalListener
 extension ChallengeOrganizeCoordinator: ChallengeGoalListener  {
-
+  func didTapBackButtonAtChallengeGoal() {
+    detachChallengeGoal(animated: true)
+  }
+  
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date) {
+    self.challengeGoal = challengeGoal
+    self.challengeProveTime = proveTime
+    self.challengeEndDate = endDate
+    attachChallengeCover()
+  }
 }
 
 // MARK: ChallengeCoverListener
