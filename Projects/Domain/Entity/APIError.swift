@@ -33,11 +33,12 @@ public enum APIError: Error {
 extension APIError {
   public enum SignUpFailedReason {
     case emailAlreadyExists
+    case userNameAlreadyExists
+    case invalidUserName
+    case invalidUserNameFormat
     case invalidVerificationCode
-    case emailNotFound
-    case useNameAlreadyExists
-    case invalidUseName
     case didNotVerifyEmail
+    case emailNotFound
     case passwordNotEqual
   }
 }
