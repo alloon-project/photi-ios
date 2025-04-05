@@ -59,7 +59,6 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cylces
   override func viewDidLoad() {
     super.viewDidLoad()
-    lineTextField.text = "a@a.com"
     setupUI()
     bind()
   }

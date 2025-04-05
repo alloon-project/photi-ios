@@ -68,12 +68,7 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
-//  
-//  override func viewIsAppearing(_ animated: Bool) {
-//    super.viewIsAppearing(animated)
-//    progressBar.step = .two
-//  }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
