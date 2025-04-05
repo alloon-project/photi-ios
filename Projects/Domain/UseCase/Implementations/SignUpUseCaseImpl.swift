@@ -41,10 +41,8 @@ public struct SignUpUseCaseImpl: SignUpUseCase {
   ) -> Single<String> {
     return repository.register(
       email: email,
-      verificaionCode: verificationCode,
       username: usernmae,
-      password: password.trimmingCharacters(in: .whitespacesAndNewlines),
-      passwordReEnter: passwordReEnter.trimmingCharacters(in: .whitespacesAndNewlines)
+      password: password.trimmingCharacters(in: .whitespacesAndNewlines)
     )
   }
 }
