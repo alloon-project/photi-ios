@@ -162,6 +162,15 @@ private extension VerifyEmailViewController {
     
     let output = viewModel.transform(input: input)
     bind(for: output)
+    viewBind()
+  }
+  
+  func viewBind() {
+    resendButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.presentResendToast()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: VerifyEmailViewModel.Output) {
@@ -177,13 +186,14 @@ private extension VerifyEmailViewController {
     
     output.emailNotFound
       .emit(with: self) { owner, _ in
-        owner.displayEmailNotFoundPopUp()
+        owner.presentEmailNotFoundPopUp()
       }
       .disposed(by: disposeBag)
     
     output.invalidVerificationCode
       .emit(with: self) { owner, _ in
         owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
+        owner.lineTextField.mode = .error
         owner.veriftCodeErrorCommentView.isActivate = true
       }
       .disposed(by: disposeBag)
@@ -202,8 +212,19 @@ extension VerifyEmailViewController: VerifyEmailPresentable {
 
 // MARK: - Private Methods
 private extension VerifyEmailViewController {
-  func displayEmailNotFoundPopUp() {
+  func presentEmailNotFoundPopUp() {
     let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "해당 이메일이 존재하지 않습니다.")
     alertVC.present(to: self, animted: false)
+  }
+  
+  func presentResendToast() {
+    let toast = ToastView(tipPosition: .none, text: "인증메일이 재전송되었어요", icon: .bulbWhite)
+    
+    toast.setConstraints {
+      $0.bottom.equalToSuperview().offset(-64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toast.present(to: self)
   }
 }
