@@ -51,7 +51,7 @@ public final class FilledRoundButton: RoundButton {
     stackView.spacing = 8
     stackView.alignment = .center
     stackView.distribution = .fill
-    
+    stackView.isUserInteractionEnabled = false
     return stackView
   }()
   
@@ -71,7 +71,7 @@ public final class FilledRoundButton: RoundButton {
     self.title = text
     self.icon = icon
     super.init(size: size)
-    
+
     setupUI()
     setText(text)
     setIcon(icon)
