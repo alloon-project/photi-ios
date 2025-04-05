@@ -20,14 +20,20 @@ public extension UITextField {
       width: size.width + leftPdding + rightPadding,
       height: size.height
     )
-    let rightViewOrigin = CGPoint(x: leftPdding, y: 0)
     
     let totalView = UIView(frame: .init(origin: .zero, size: totalViewSize))
     totalView.addSubview(rightView)
-    rightView.frame = .init(origin: rightViewOrigin, size: size)
+    rightView.translatesAutoresizingMaskIntoConstraints = false
     
+    NSLayoutConstraint.activate([
+      rightView.centerYAnchor.constraint(equalTo: totalView.centerYAnchor),
+      rightView.heightAnchor.constraint(equalToConstant: size.height),
+      rightView.trailingAnchor.constraint(equalTo: totalView.trailingAnchor, constant: -rightPadding),
+      rightView.leadingAnchor.constraint(equalTo: totalView.leadingAnchor, constant: leftPdding)
+    ])
+
     self.rightView = totalView
-    rightViewMode = viewMode
+    self.rightViewMode = viewMode
   }
   
   func setLeftView(
