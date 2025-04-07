@@ -20,8 +20,7 @@ public enum SignUpAPI {
 
 extension SignUpAPI: TargetType {
   public var baseURL: URL {
-    return URL(string: "http://localhost:8080")!
-//    return URL(string: ServiceConfiguration.baseUrl)!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
