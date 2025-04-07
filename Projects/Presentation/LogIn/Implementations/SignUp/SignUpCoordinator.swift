@@ -17,10 +17,6 @@ protocol SignUpListener: AnyObject {
 }
 
 final class SignUpCoordinator: Coordinator {
-  private var email: String?
-  private var verificationCode: String?
-  private var userName: String?
-  
   weak var listener: SignUpListener?
   
   private let navigationControllerable: NavigationControllerable
@@ -97,17 +93,9 @@ final class SignUpCoordinator: Coordinator {
   
   // MARK: - EnterPassword
   func attachEnterPassword() {
-    guard 
-      enterPasswordCoordinator == nil,
-      let email, let verificationCode, let userName
-    else { return }
+    guard enterPasswordCoordinator == nil else { return }
     
-    let coordinater = enterPasswordContainable.coordinator(
-      email: email,
-      verificationCode: verificationCode,
-      userName: userName,
-      listener: self
-    )
+    let coordinater = enterPasswordContainable.coordinator(listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: false)
@@ -130,9 +118,7 @@ extension SignUpCoordinator: EnterEmailListener {
     listener?.didTapBackButtonAtSignUp()
   }
   
-  func didFinishEnterEmail(email: String, verificationCode: String) {
-    self.email = email
-    self.verificationCode = verificationCode
+  func didFinishEnterEmail() {
     attachEnterId()
   }
 }
@@ -143,8 +129,7 @@ extension SignUpCoordinator: EnterIdListener {
     detachEnterId()
   }
   
-  func didFinishEnterId(userName: String) {
-    self.userName = userName
+  func didFinishEnterId() {
     attachEnterPassword()
   }
 }
