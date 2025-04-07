@@ -83,7 +83,6 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
   }
@@ -91,7 +90,7 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-      self?.progressBar.step = .two
+      self?.progressBar.step = .four
     }  }
   
   // MARK: - UIResponder
@@ -170,14 +169,17 @@ private extension EnterPasswordViewController {
       didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
     )
     
+    let output = viewModel.transform(input: input)
+    viewBind()
+    bind(output: output)
+  }
+  
+  func viewBind() {
     nextButton.rx.tap
       .bind(with: self) { owner, _ in
         owner.presentBottomSheet()
       }
       .disposed(by: disposeBag)
-    
-    let output = viewModel.transform(input: input)
-    bind(output: output)
   }
   
   func bind(output: EnterPasswordViewModel.Output) {
@@ -224,9 +226,15 @@ private extension EnterPasswordViewController {
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.registerError
+      .emit(with: self) { owner, message in
+        owner.presentRegisterFailWarning(message: message)
       }
       .disposed(by: disposeBag)
   }
@@ -253,6 +261,16 @@ private extension EnterPasswordViewController {
       .map { _ in PhotiProgressStep.four }
       .bind(to: progressBar.rx.step)
       .disposed(by: disposeBag)
+  }
+  
+  func presentRegisterFailWarning(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "회원가입 오류가 발생했어요",
+      subTitle: message
+    )
+    
+    alert.present(to: self, animted: true)
   }
 }
 
