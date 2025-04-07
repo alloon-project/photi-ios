@@ -64,7 +64,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
       responseType: RegisterResponseDTO.self,
       behavior: .never
     )
-    .map { $0.userName }
+    .map { $0.username }
   }
 }
 
