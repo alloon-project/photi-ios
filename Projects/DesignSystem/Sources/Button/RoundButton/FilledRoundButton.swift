@@ -71,7 +71,7 @@ public final class FilledRoundButton: RoundButton {
     self.title = text
     self.icon = icon
     super.init(size: size)
-
+    loadingAnmationView.dimmedBackgroundColor = backGroundColor(type: type, mode: .default)
     setupUI()
     setText(text)
     setIcon(icon)
