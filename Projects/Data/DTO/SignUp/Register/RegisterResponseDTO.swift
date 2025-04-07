@@ -8,10 +8,5 @@
 
 public struct RegisterResponseDTO: Decodable {
   public let userId: Int
-  public let userName: String
-  
-  public init(userId: Int, username: String) {
-    self.userId = userId
-    self.userName = username
-  }
+  public let username: String
 }

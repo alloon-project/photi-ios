@@ -7,10 +7,7 @@
 //
 
 import RxSwift
-import DataMapper
 
 public protocol LogInRepository {
-  init(dataMapper: LogInDataMapper)
-  
   func logIn(userName: String, password: String) -> Single<Void>
 }

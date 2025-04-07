@@ -21,7 +21,7 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .two)
+  private let progressBar = LargeProgressBar(step: .one)
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "이메일로 인증코드를 보내드렸습니다\n숫자 4자리를 입력해주세요".attributedString(
@@ -68,10 +68,17 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?.progressBar.step = .two
+    }
+  }
   
+  // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
-    
     view.endEditing(true)
   }
 }
@@ -149,6 +156,15 @@ private extension VerifyEmailViewController {
     
     let output = viewModel.transform(input: input)
     bind(for: output)
+    viewBind()
+  }
+  
+  func viewBind() {
+    resendButton.rx.tap
+      .bind(with: self) { owner, _ in
+        owner.presentResendToast()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: VerifyEmailViewModel.Output) {
@@ -156,21 +172,16 @@ private extension VerifyEmailViewController {
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
-    
-    output.emailNotFound
-      .emit(with: self) { owner, _ in
-        owner.displayEmailNotFoundPopUp()
-      }
-      .disposed(by: disposeBag)
-    
+        
     output.invalidVerificationCode
       .emit(with: self) { owner, _ in
         owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
+        owner.lineTextField.mode = .error
         owner.veriftCodeErrorCommentView.isActivate = true
       }
       .disposed(by: disposeBag)
@@ -179,7 +190,7 @@ private extension VerifyEmailViewController {
 
 // MARK: - VerifyEmailPresentable
 extension VerifyEmailViewController: VerifyEmailPresentable {
-  func setUserEmail(_ email: String) {
+  func configureUserEmail(_ email: String) {
     userEmailLabel.attributedText = email.attributedString(
       font: .caption1,
       color: .gray700
@@ -189,8 +200,14 @@ extension VerifyEmailViewController: VerifyEmailPresentable {
 
 // MARK: - Private Methods
 private extension VerifyEmailViewController {
-  func displayEmailNotFoundPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "해당 이메일이 존재하지 않습니다.")
-    alertVC.present(to: self, animted: false)
+  func presentResendToast() {
+    let toast = ToastView(tipPosition: .none, text: "인증메일이 재전송되었어요", icon: .bulbWhite)
+    
+    toast.setConstraints {
+      $0.bottom.equalToSuperview().offset(-64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toast.present(to: self)
   }
 }

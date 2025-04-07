@@ -17,8 +17,7 @@ public enum LogInAPI {
 
 extension LogInAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
@@ -47,8 +46,7 @@ extension LogInAPI: TargetType {
         let responseData = LogInRequestDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
-//        return .networkError(NSError())
-        return .networkResponse(500, jsonData ?? Data(), "", "")
+        return .networkResponse(200, jsonData ?? Data(), "", "")
     }
   }
 }

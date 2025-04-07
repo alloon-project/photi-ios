@@ -109,8 +109,6 @@ private extension ResignViewController {
       didTapResignButton: resignButton.rx.tap,
       didTapCancelButton: cancelButton.rx.tap
     )
-    
-    let _ = viewModel.transform(input: input)
   }
 }
 

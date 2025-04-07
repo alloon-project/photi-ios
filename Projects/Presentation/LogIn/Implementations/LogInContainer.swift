@@ -11,7 +11,7 @@ import LogIn
 import UseCase
 
 public protocol LogInDependency: Dependency {
-  var signUpContainable: SignUpContainable { get }
+  var signUpUseCase: SignUpUseCase { get }
   var logInUseCase: LogInUseCase { get }
   var findIdUseCase: FindIdUseCase { get }
   var findPasswordUseCase: FindPasswordUseCase { get }
@@ -20,8 +20,10 @@ public protocol LogInDependency: Dependency {
 public final class LogInContainer:
   Container<LogInDependency>,
   LogInContainable,
+  SignUpDependency,
   FindIdDependency,
   FindPasswordDependency {
+  public var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
   var loginUseCase: LogInUseCase { dependency.logInUseCase }
   var findIdUseCase: FindIdUseCase { dependency.findIdUseCase }
   var findPasswordUseCase: FindPasswordUseCase { dependency.findPasswordUseCase }
@@ -30,13 +32,14 @@ public final class LogInContainer:
     let viewModel = LogInViewModel(useCase: dependency.logInUseCase)
     let viewControllerable = LogInViewController(viewModel: viewModel)
 
+    let signUp = SignUpContainer(dependency: self)
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
     
     let coordinator = LogInCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      signUpContainable: dependency.signUpContainable,
+      signUpContainable: signUp,
       findIdContainable: findId,
       findPasswordContainable: findPassword
     )

@@ -10,11 +10,15 @@ import Core
 import LogIn
 import UseCase
 
-public protocol SignUpDependency: Dependency {
+protocol SignUpDependency: Dependency {
   var signUpUseCase: SignUpUseCase { get }
 }
 
-public final class SignUpContainer: 
+protocol SignUpContainable: Containable {
+  func coordinator(navigationControllerable: NavigationControllerable, listener: SignUpListener) -> Coordinating
+}
+
+final class SignUpContainer:
   Container<SignUpDependency>,
   SignUpContainable,
   EnterEmailDependency,
@@ -22,7 +26,7 @@ public final class SignUpContainer:
   EnterPasswordDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
   
-  public func coordinator(
+  func coordinator(
     navigationControllerable: NavigationControllerable,
     listener: SignUpListener
   ) -> Coordinating {

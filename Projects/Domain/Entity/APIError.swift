@@ -10,7 +10,7 @@ public enum APIError: Error {
   case authenticationFailed
   case clientError(code: String, message: String)
   case serverError
-  case loginFailed
+  case loginFailed(reason: LogInFailedReason)
   case signUpFailed(reason: SignUpFailedReason)
   case challengeFailed(reason: ChallengeFailedReason)
   
@@ -29,15 +29,23 @@ public enum APIError: Error {
   case loginUnauthenticated
 }
 
+extension APIError {
+  public enum LogInFailedReason {
+    case invalidEmailOrPassword
+    case deletedUser
+  }
+}
+
 // MARK: - SignUp
 extension APIError {
   public enum SignUpFailedReason {
     case emailAlreadyExists
+    case userNameAlreadyExists
+    case invalidUserName
+    case invalidUserNameFormat
     case invalidVerificationCode
-    case emailNotFound
-    case useNameAlreadyExists
-    case invalidUseName
     case didNotVerifyEmail
+    case emailNotFound
     case passwordNotEqual
   }
 }

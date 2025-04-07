@@ -31,24 +31,24 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   weak var coordinator: EnterEmailCoordinatable?
   
   private let duplicateEmailRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
-    var didTapBackButton: ControlEvent<Void>
-    var didTapNextButton: ControlEvent<Void>
-    var userEmail: ControlProperty<String>
-    var endEditingUserEmail: ControlEvent<Void>
-    var editingUserEmail: ControlEvent<Void>
+    let didTapBackButton: ControlEvent<Void>
+    let didTapNextButton: ControlEvent<Void>
+    let userEmail: ControlProperty<String>
+    let endEditingUserEmail: ControlEvent<Void>
+    let editingUserEmail: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var isValidEmailForm: Signal<Bool>
-    var isOverMaximumText: Signal<Bool>
-    var isEnabledNextButton: Signal<Bool>
-    var duplicateEmail: Signal<Void>
-    var requestFailed: Signal<Void>
+    let isValidEmailForm: Signal<Bool>
+    let isOverMaximumText: Signal<Bool>
+    let isEnabledNextButton: Signal<Bool>
+    let duplicateEmail: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -87,7 +87,7 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
       isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
       isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
       duplicateEmail: duplicateEmailRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -100,6 +100,7 @@ private extension EnterEmailViewModel {
       .subscribe(
         with: self,
         onSuccess: { owner, _ in
+          owner.useCase.configureEmail(email)
           owner.coordinator?.attachVerifyEmail(userEmail: email)
         },
         onFailure: { owner, error in
@@ -110,13 +111,15 @@ private extension EnterEmailViewModel {
   }
   
   func requestFailed(error: Error) {
-    if
-      let error = error as? APIError,
-      case .signUpFailed(let reason) = error,
-      case .emailAlreadyExists = reason {
-      duplicateEmailRelay.accept(())
-    } else {
-      requestFailedRelay.accept(())
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(())
+    }
+    
+    switch error {
+      case let .signUpFailed(reason) where reason == .emailAlreadyExists:
+        duplicateEmailRelay.accept(())
+      default:
+        networkUnstableRelay.accept(())
     }
   }
 }

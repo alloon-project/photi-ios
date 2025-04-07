@@ -19,7 +19,7 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .one)
+  private let progressBar = LargeProgressBar(step: .zero)
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "환영합니다!\n이메일을 입력해주세요".attributedString(
@@ -31,8 +31,11 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
     return label
   }()
   
-  // TODO: - emailTextField
-  private let lineTextField = LineTextField(placeholder: "이메일", type: .helper)
+  private let emailTextField: LineTextField = {
+    let textField = LineTextField(placeholder: "이메일", type: .helper)
+    textField.setKeyboardType(.emailAddress)
+    return textField
+  }()
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
 
   private let emailFormWarningView = CommentView(
@@ -43,6 +46,9 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   )
   private let duplicateEmailWarningView = CommentView(
     .warning, text: "이미 가입된 이메일이예요", icon: .closeRed, isActivate: true
+  )
+  private let emailNotExistWarningView = CommentView(
+    .warning, text: "존재하지 않는 이메일이에요. 다시 확인해주세요.", icon: .closeRed, isActivate: true
   )
   
   // MARK: - Initialziers
@@ -59,15 +65,18 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cylces
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    progressBar.step = .one
   }
   
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
-    
     view.endEditing(true)
   }
 }
@@ -76,13 +85,12 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
 private extension EnterEmailViewController {
   func setupUI() {
     view.backgroundColor = .white
-    lineTextField.setKeyboardType(.emailAddress)
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, progressBar, titleLabel, lineTextField, nextButton)
+    view.addSubviews(navigationBar, progressBar, titleLabel, emailTextField, nextButton)
   }
   
   func setConstraints() {
@@ -102,7 +110,7 @@ private extension EnterEmailViewController {
       $0.leading.equalToSuperview().offset(24)
     }
     
-    lineTextField.snp.makeConstraints {
+    emailTextField.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.leading.trailing.equalToSuperview().inset(24)
@@ -121,9 +129,9 @@ private extension EnterEmailViewController {
     let input = EnterEmailViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapNextButton: nextButton.rx.tap,
-      userEmail: lineTextField.rx.text,
-      endEditingUserEmail: lineTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserEmail: lineTextField.textField.rx.controlEvent(.editingChanged)
+      userEmail: emailTextField.rx.text,
+      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
+      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged)
     )
     
     let output = viewModel.transform(input: input)
@@ -155,7 +163,7 @@ private extension EnterEmailViewController {
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
@@ -176,11 +184,11 @@ extension EnterEmailViewController: EnterEmailPresentable { }
 private extension EnterEmailViewController {
   func convertLineTextField(commentView: CommentView?) {
     if let commentView = commentView {
-      lineTextField.commentViews = [commentView]
-      lineTextField.mode = .error
+      emailTextField.commentViews = [commentView]
+      emailTextField.mode = .error
     } else {
-      lineTextField.commentViews = []
-      lineTextField.mode = .success
+      emailTextField.commentViews = []
+      emailTextField.mode = .success
     }
   }
 }
