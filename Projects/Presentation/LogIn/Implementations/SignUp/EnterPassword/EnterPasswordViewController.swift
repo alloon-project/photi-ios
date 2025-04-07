@@ -113,6 +113,7 @@ private extension EnterPasswordViewController {
     
     setViewHierarchy()
     setConstraints()
+    [passwordCheckTitleLabel, passwordCheckTextField].forEach { $0.isHidden = true }
   }
   
   func setViewHierarchy() {
@@ -200,25 +201,15 @@ private extension EnterPasswordViewController {
       .disposed(by: disposeBag)
     
     output.isValidPassword
-      .map { !$0 }
-      .drive(passwordCheckTextField.rx.isHidden)
-      .disposed(by: disposeBag)
-    
-    output.isValidPassword
-      .map { !$0 }
-      .drive(passwordCheckTitleLabel.rx.isHidden)
-      .disposed(by: disposeBag)
-    
-    output.isValidPassword
-      .filter { $0 == false }
-      .map { _ in "" }
-      .drive(with: self) { owner, _ in
-        owner.passwordCheckTextField.text = ""
-        owner.correnspondPasswordCommentView.isActivate = false
+      .drive(with: self) { owner, isValid in
+        guard isValid, owner.passwordCheckTextField.isHidden else { return }
+        owner.passwordCheckTextField.isHidden = false
+        owner.passwordCheckTitleLabel.isHidden = false
       }
       .disposed(by: disposeBag)
     
     output.correspondPassword
+      .withLatestFrom(output.isValidPassword) { $0 && $1 }
       .drive(correnspondPasswordCommentView.rx.isActivate)
       .disposed(by: disposeBag)
     
