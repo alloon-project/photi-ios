@@ -79,7 +79,6 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
-    
     view.endEditing(true)
   }
 }
@@ -173,18 +172,12 @@ private extension VerifyEmailViewController {
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
-    
-    output.emailNotFound
-      .emit(with: self) { owner, _ in
-        owner.presentEmailNotFoundPopUp()
-      }
-      .disposed(by: disposeBag)
-    
+        
     output.invalidVerificationCode
       .emit(with: self) { owner, _ in
         owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
@@ -197,7 +190,7 @@ private extension VerifyEmailViewController {
 
 // MARK: - VerifyEmailPresentable
 extension VerifyEmailViewController: VerifyEmailPresentable {
-  func setUserEmail(_ email: String) {
+  func configureUserEmail(_ email: String) {
     userEmailLabel.attributedText = email.attributedString(
       font: .caption1,
       color: .gray700
@@ -207,11 +200,6 @@ extension VerifyEmailViewController: VerifyEmailPresentable {
 
 // MARK: - Private Methods
 private extension VerifyEmailViewController {
-  func presentEmailNotFoundPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "해당 이메일이 존재하지 않습니다.")
-    alertVC.present(to: self, animted: false)
-  }
-  
   func presentResendToast() {
     let toast = ToastView(tipPosition: .none, text: "인증메일이 재전송되었어요", icon: .bulbWhite)
     
