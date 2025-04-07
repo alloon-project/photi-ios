@@ -47,6 +47,9 @@ final class EnterEmailViewController: UIViewController, ViewControllerable {
   private let duplicateEmailWarningView = CommentView(
     .warning, text: "이미 가입된 이메일이예요", icon: .closeRed, isActivate: true
   )
+  private let emailNotExistWarningView = CommentView(
+    .warning, text: "존재하지 않는 이메일이에요. 다시 확인해주세요.", icon: .closeRed, isActivate: true
+  )
   
   // MARK: - Initialziers
   init(viewModel: EnterEmailViewModel) {

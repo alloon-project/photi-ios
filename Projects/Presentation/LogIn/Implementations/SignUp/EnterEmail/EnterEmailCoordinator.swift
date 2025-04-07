@@ -10,7 +10,7 @@ import Core
 
 protocol EnterEmailListener: AnyObject {
   func didTapBackButtonAtEnterEmail()
-  func didFinishEnterEmail(email: String, verificationCode: String)
+  func didFinishEnterEmail()
 }
 
 protocol EnterEmailPresentable { }
@@ -77,6 +77,6 @@ extension EnterEmailCoordinator: VerifyEmailListener {
   func didFinishVerifyEmail(with verificationCode: String) {
     guard let email else { return }
     
-    listener?.didFinishEnterEmail(email: email, verificationCode: verificationCode)
+    listener?.didFinishEnterEmail()
   }
 }

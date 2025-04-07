@@ -100,6 +100,7 @@ private extension EnterEmailViewModel {
       .subscribe(
         with: self,
         onSuccess: { owner, _ in
+          owner.useCase.configureEmail(email)
           owner.coordinator?.attachVerifyEmail(userEmail: email)
         },
         onFailure: { owner, error in
