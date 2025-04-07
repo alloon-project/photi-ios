@@ -10,7 +10,7 @@ public enum APIError: Error {
   case authenticationFailed
   case clientError(code: String, message: String)
   case serverError
-  case loginFailed
+  case loginFailed(reason: LogInFailedReason)
   case signUpFailed(reason: SignUpFailedReason)
   case challengeFailed(reason: ChallengeFailedReason)
   
@@ -27,6 +27,13 @@ public enum APIError: Error {
   case passwordMatchInvalid
   /// 아이디 또는 비밀번호가 틀렸습니다.
   case loginUnauthenticated
+}
+
+extension APIError {
+  public enum LogInFailedReason {
+    case invalidEmailOrPassword
+    case deletedUser
+  }
 }
 
 // MARK: - SignUp
