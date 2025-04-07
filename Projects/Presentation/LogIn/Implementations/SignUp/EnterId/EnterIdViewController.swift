@@ -50,6 +50,10 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
   private let duplicateIdWardningView = CommentView(
     .warning, text: "이미 사용중인 아이디예요", icon: .closeRed, isActivate: true
   )
+  private let unAvailableIdWardningView = CommentView(
+    .warning, text: "사용할 수 없는 아이디예요", icon: .closeRed, isActivate: true
+  )
+
   private let validIdCommentView = CommentView(
     .condition, text: "사용할 수 있는 아이디예요", icon: .checkBlue, isActivate: true
   )
@@ -76,8 +80,9 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-      self?.progressBar.step = .two
-    }  }
+      self?.progressBar.step = .three
+    }
+  }
   
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -146,6 +151,12 @@ private extension EnterIdViewController {
       userId: idTextField.rx.text
     )
     
+    let output = viewModel.transform(input: input)
+    viewBind()
+    bind(for: output)
+  }
+  
+  func viewBind() {
     let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingChanged)
       .share()
     
@@ -166,10 +177,6 @@ private extension EnterIdViewController {
         owner.view.endEditing(true)
       }
       .disposed(by: disposeBag)
-    
-    let output = viewModel.transform(input: input)
-    
-    bind(for: output)
   }
   
   func bind(for output: EnterIdViewModel.Output) {
@@ -191,6 +198,13 @@ private extension EnterIdViewController {
       }
       .disposed(by: disposeBag)
     
+    output.unAvailableId
+      .emit(with: self) { owner, _ in
+        owner.idTextField.commentViews = [owner.unAvailableIdWardningView]
+        owner.idTextField.mode = .error
+      }
+      .disposed(by: disposeBag)
+    
     output.validId
       .emit(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.validIdCommentView]
@@ -199,7 +213,7 @@ private extension EnterIdViewController {
       }
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }

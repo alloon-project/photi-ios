@@ -10,7 +10,7 @@ import Core
 
 protocol EnterIdListener: AnyObject {
   func didTapBackButtonAtEnterId()
-  func didFinishEnterId(userName: String)
+  func didFinishEnterId()
 }
 
 protocol EnterIdPresentable { }
@@ -35,7 +35,7 @@ extension EnterIdCoordinator: EnterIdCoordinatable {
     listener?.didTapBackButtonAtEnterId()
   }
   
-  func didTapNextButton(userName: String) {
-    listener?.didFinishEnterId(userName: userName)
+  func didTapNextButton() {
+    listener?.didFinishEnterId()
   }
 }
