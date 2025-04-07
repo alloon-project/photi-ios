@@ -17,6 +17,8 @@ public final class LargeProgressBar: UIProgressView {
   public var step: PhotiProgressStep = .one {
     didSet {
       switch step {
+      case .zero:
+        self.setProgress(0, animated: true)
       case .one:
         self.setProgress(0.2, animated: true)
       case .two:

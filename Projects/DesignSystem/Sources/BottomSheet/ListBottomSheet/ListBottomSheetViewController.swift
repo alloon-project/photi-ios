@@ -63,7 +63,7 @@ public final class ListBottomSheetViewController: BottomSheetViewController {
     let tableView = SelfSizingTableView()
     tableView.separatorStyle = .none
     tableView.registerCell(ListBottomSheetCell.self)
-    tableView.estimatedRowHeight = 24
+    tableView.rowHeight = 24
     
     return tableView
   }()

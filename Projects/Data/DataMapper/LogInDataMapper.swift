@@ -13,7 +13,7 @@ public protocol LogInDataMapper {
 }
 
 public struct LogInDataMapperImpl: LogInDataMapper {
-  public init() {}
+  public init() { }
   
   public func mapToLogInRequestDTO(userName: String, password: String) -> LogInRequestDTO {
     return LogInRequestDTO(username: userName, password: password)

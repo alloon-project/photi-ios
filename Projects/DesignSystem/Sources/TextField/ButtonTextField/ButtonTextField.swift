@@ -9,6 +9,7 @@
 import UIKit
 import RxCocoa
 import RxSwift
+import Core
 
 /// Button이 포함된 TextField입니다.
 public final class ButtonTextField: LineTextField {
@@ -26,6 +27,7 @@ public final class ButtonTextField: LineTextField {
     mode: TextFieldMode = .default
   ) {
     self.button = FilledRoundButton(type: .primary, size: .xSmall, text: buttonText)
+    button.invalidateIntrinsicContentSize()
     super.init(type: type, mode: mode)
   }
   
@@ -49,7 +51,8 @@ public final class ButtonTextField: LineTextField {
   // MARK: - Setup UI
   override func setupUI() {
     super.setupUI()
-    
+    button.invalidateIntrinsicContentSize()
+
     self.textField.setRightView(
       button,
       size: button.intrinsicContentSize,

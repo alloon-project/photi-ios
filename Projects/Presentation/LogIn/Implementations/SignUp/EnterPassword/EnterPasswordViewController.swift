@@ -24,7 +24,7 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  private let progressBar = LargeProgressBar(step: .four)
+  private let progressBar = LargeProgressBar(step: .three)
   
   private let passwordTitleLabel: UILabel = {
     let label = UILabel()
@@ -37,7 +37,6 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   }()
   
   private let passwordTextField = PasswordTextField(placeholder: "비밀번호", type: .helper)
-  
   private let passwordCheckTitleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "한 번 더 입력해주세요".attributedString(
@@ -84,10 +83,15 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+      self?.progressBar.step = .four
+    }  }
   
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -109,6 +113,7 @@ private extension EnterPasswordViewController {
     
     setViewHierarchy()
     setConstraints()
+    [passwordCheckTitleLabel, passwordCheckTextField].forEach { $0.isHidden = true }
   }
   
   func setViewHierarchy() {
@@ -165,14 +170,17 @@ private extension EnterPasswordViewController {
       didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
     )
     
+    let output = viewModel.transform(input: input)
+    viewBind()
+    bind(output: output)
+  }
+  
+  func viewBind() {
     nextButton.rx.tap
       .bind(with: self) { owner, _ in
         owner.presentBottomSheet()
       }
       .disposed(by: disposeBag)
-    
-    let output = viewModel.transform(input: input)
-    bind(output: output)
   }
   
   func bind(output: EnterPasswordViewModel.Output) {
@@ -193,25 +201,15 @@ private extension EnterPasswordViewController {
       .disposed(by: disposeBag)
     
     output.isValidPassword
-      .map { !$0 }
-      .drive(passwordCheckTextField.rx.isHidden)
-      .disposed(by: disposeBag)
-    
-    output.isValidPassword
-      .map { !$0 }
-      .drive(passwordCheckTitleLabel.rx.isHidden)
-      .disposed(by: disposeBag)
-    
-    output.isValidPassword
-      .filter { $0 == false }
-      .map { _ in "" }
-      .drive(with: self) { owner, _ in
-        owner.passwordCheckTextField.text = ""
-        owner.correnspondPasswordCommentView.isActivate = false
+      .drive(with: self) { owner, isValid in
+        guard isValid, owner.passwordCheckTextField.isHidden else { return }
+        owner.passwordCheckTextField.isHidden = false
+        owner.passwordCheckTitleLabel.isHidden = false
       }
       .disposed(by: disposeBag)
     
     output.correspondPassword
+      .withLatestFrom(output.isValidPassword) { $0 && $1 }
       .drive(correnspondPasswordCommentView.rx.isActivate)
       .disposed(by: disposeBag)
     
@@ -219,9 +217,15 @@ private extension EnterPasswordViewController {
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.registerError
+      .emit(with: self) { owner, message in
+        owner.presentRegisterFailWarning(message: message)
       }
       .disposed(by: disposeBag)
   }
@@ -248,6 +252,16 @@ private extension EnterPasswordViewController {
       .map { _ in PhotiProgressStep.four }
       .bind(to: progressBar.rx.step)
       .disposed(by: disposeBag)
+  }
+  
+  func presentRegisterFailWarning(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "회원가입 오류가 발생했어요",
+      subTitle: message
+    )
+    
+    alert.present(to: self, animted: true)
   }
 }
 

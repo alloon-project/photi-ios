@@ -7,24 +7,40 @@
 //
 
 import UIKit
+import Lottie
 
 open class RoundButton: UIButton {
   /// Round Button의 size입니다.
   public let size: ButtonSize
-  
+  let loadingAnmationView: LoadingAnimation
+
   open override var intrinsicContentSize: CGSize {
     self.cgSize(for: size)
   }
   
   public init(size: ButtonSize) {
     self.size = size
+    self.loadingAnmationView = .init(name: "loading_btn", bundle: .module)
+    loadingAnmationView.animationSize = .init(width: 32, height: 32)
     super.init(frame: .zero)
+    self.clipsToBounds = true
     setupUI()
   }
   
   @available(*, unavailable)
   required public init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+}
+
+// MARK: - Public Methods
+public extension RoundButton {
+  func startLoadingAnimation() {
+    loadingAnmationView.start(at: self)
+  }
+  
+  func stopLoadingAnimation() {
+    loadingAnmationView.stop()
   }
 }
 

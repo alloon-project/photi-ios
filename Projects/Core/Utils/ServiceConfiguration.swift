@@ -13,11 +13,11 @@ public final class ServiceConfiguration {
   
   private init() { }
   
-  public var baseUrl: String {
+  public var baseUrl: URL {
     guard let baseUrl = Bundle.main.object(forInfoDictionaryKey: "BaseURL") as? String else {
       fatalError("Service API URL could not find in plist. Please check plist or user-defined!")
     }
-    return baseUrl
+    return URL(string: baseUrl)!
   }
   
   /// 사용자의 `userName`을 리턴합니다.

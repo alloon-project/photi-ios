@@ -7,7 +7,9 @@
 //
 
 import RxSwift
+import Core
 import DataMapper
+import DTO
 import Entity
 import Repository
 import PhotiNetwork
@@ -25,16 +27,20 @@ public struct LogInRepositoryImpl: LogInRepository {
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .delayed(seconds: 1))
-            .request(LogInAPI.login(dto: requestDTO)).value
-          
-          if result.statusCode == 200 {
+          let result = try await Provider(stubBehavior: .never)
+            .request(LogInAPI.login(dto: requestDTO), type: LogInResponseDTO.self).value
+          if result.statusCode == 200, let data = result.data {
+            ServiceConfiguration.shared.setUseName(data.username)
             single(.success(()))
+          } else if result.statusCode == 401 {
+            single(.failure(APIError.loginFailed(reason: .invalidEmailOrPassword)))
+          } else if result.statusCode == 409 {
+            single(.failure(APIError.loginFailed(reason: .deletedUser)))
           } else {
-            single(.failure(APIError.loginFailed))
+            single(.failure(APIError.serverError))
           }
         } catch {
-          single(.failure(error))
+          single(.failure(APIError.serverError))
         }
       }
       

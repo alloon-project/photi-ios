@@ -21,8 +21,14 @@ extension LogInRequestDTO {
   public static let stubData =
  """
  {
- "code": "FAIL",
- "message": "FAIL",
+   "code": "200 OK",
+   "message": "성공",
+   "data": {
+     "userId": 1,
+     "username": "photi",
+     "imageUrl": "https://url.kr/5MhHhD",
+     "temporaryPasswordYn": true
+   }
  }
  """
 }

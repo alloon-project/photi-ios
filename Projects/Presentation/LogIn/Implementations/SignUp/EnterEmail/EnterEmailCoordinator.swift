@@ -10,7 +10,7 @@ import Core
 
 protocol EnterEmailListener: AnyObject {
   func didTapBackButtonAtEnterEmail()
-  func didFinishEnterEmail(email: String, verificationCode: String)
+  func didFinishEnterEmail()
 }
 
 protocol EnterEmailPresentable { }
@@ -37,7 +37,7 @@ final class EnterEmailCoordinator: ViewableCoordinator<EnterEmailPresentable> {
   }
   
   override func stop() {
-    detachVerifyEmail(animated: false)
+    detachVerifyEmail()
   }
   
   // MARK: - VerifyEmail
@@ -48,15 +48,15 @@ final class EnterEmailCoordinator: ViewableCoordinator<EnterEmailPresentable> {
     addChild(coordinater)
     
     self.email = userEmail
-    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: false)
     self.verifyEmailCoordinator = coordinater
   }
   
-  func detachVerifyEmail(animated: Bool) {
+  func detachVerifyEmail() {
     guard let coordinater = verifyEmailCoordinator else { return }
     
     removeChild(coordinater)
-    viewControllerable.popViewController(animated: animated)
+    viewControllerable.popViewController(animated: false)
     self.verifyEmailCoordinator = nil
   }
 }
@@ -71,12 +71,12 @@ extension EnterEmailCoordinator: EnterEmailCoordinatable {
 // MARK: - VerifyEmailListener
 extension EnterEmailCoordinator: VerifyEmailListener {
   func didTapBackButtonAtVerifyEmail() {
-    detachVerifyEmail(animated: true)
+    detachVerifyEmail()
   }
   
   func didFinishVerifyEmail(with verificationCode: String) {
     guard let email else { return }
     
-    listener?.didFinishEnterEmail(email: email, verificationCode: verificationCode)
+    listener?.didFinishEnterEmail()
   }
 }

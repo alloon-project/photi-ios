@@ -14,27 +14,12 @@ protocol EnterPasswordDependency: Dependency {
 }
 
 protocol EnterPasswordContainable: Containable {
-  func coordinator(
-    email: String,
-    verificationCode: String,
-    userName: String,
-    listener: EnterPasswordListener
-  ) -> ViewableCoordinating
+  func coordinator(listener: EnterPasswordListener) -> ViewableCoordinating
 }
 
 final class EnterPasswordContainer: Container<EnterPasswordDependency>, EnterPasswordContainable {
-  func coordinator(
-    email: String,
-    verificationCode: String,
-    userName: String,
-    listener: EnterPasswordListener
-  ) -> ViewableCoordinating {
-    let viewModel = EnterPasswordViewModel(
-      useCase: dependency.signUpUseCase,
-      email: email,
-      verificationCode: verificationCode,
-      userName: userName
-    )
+  func coordinator(listener: EnterPasswordListener) -> ViewableCoordinating {
+    let viewModel = EnterPasswordViewModel(useCase: dependency.signUpUseCase)
     let viewContollerable = EnterPasswordViewController(viewModel: viewModel)
     
     let coordinator = EnterPasswordCoordinator(

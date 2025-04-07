@@ -15,10 +15,8 @@ public protocol SignUpDataMapper {
   
   func mapToRegisterRequestDTO(
     email: String,
-    verificationCode: String,
     username: String,
-    password: String,
-    passwordReEnter: String
+    password: String
   ) -> RegisterRequestDTO
 }
 
@@ -35,17 +33,13 @@ public struct SignUpDataMapperImpl: SignUpDataMapper {
   
   public func mapToRegisterRequestDTO(
     email: String,
-    verificationCode: String,
     username: String,
-    password: String,
-    passwordReEnter: String
+    password: String
   ) -> RegisterRequestDTO {
     return .init(
       email: email,
-      verificationCode: verificationCode,
       username: username,
-      password: password,
-      passwordReEnter: passwordReEnter
+      password: password
       )
   }
 }

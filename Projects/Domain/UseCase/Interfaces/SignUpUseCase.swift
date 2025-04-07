@@ -7,19 +7,13 @@
 //
 
 import RxSwift
-import Repository
 
 public protocol SignUpUseCase {
-  init(repository: SignUpRepository)
-  
+  func configureEmail(_ email: String)
+  func configureUsername(_ username: String)
+
   func requestVerificationCode(email: String) -> Single<Void>
   func verifyCode(email: String, code: String) -> Single<Void>
-  func verifyUseName(_ useName: String) -> Single<Void>
-  func register(
-    email: String,
-    verificationCode: String, 
-    usernmae: String,
-    password: String,
-    passwordReEnter: String
-  ) -> Single<String>
+  func verifyUserName(_ useName: String) -> Single<Void>
+  func register(password: String) -> Single<String>
 }

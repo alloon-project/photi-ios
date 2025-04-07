@@ -12,7 +12,19 @@ import SnapKit
 import Core
 
 public final class LoadingAnimation {
-  public static let `default` = LoadingAnimation()
+  public static let logo: LoadingAnimation = {
+    let animation = LoadingAnimation(name: "loading_logo", bundle: .module)
+    animation.animationSize = CGSize(width: 130, height: 130)
+    
+    return animation
+  }()
+  
+  public var animationSize: CGSize = .zero
+  public var dimmedBackgroundColor: UIColor? = .init(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.4) {
+    didSet {
+      dimmedView.backgroundColor = dimmedBackgroundColor
+    }
+  }
   
   private let animationView: LottieAnimationView
   private let dimmedView: UIView = {
@@ -23,8 +35,8 @@ public final class LoadingAnimation {
   }()
   
   // MARK: - Initializers
-  public init(loopMode: LottieLoopMode = .loop) {
-    self.animationView = .init(name: "loading_logo", bundle: .module)
+  public init(name: String, bundle: Bundle, loopMode: LottieLoopMode = .loop) {
+    self.animationView = .init(name: name, bundle: bundle)
     animationView.loopMode = loopMode
   }
   
@@ -33,8 +45,11 @@ public final class LoadingAnimation {
     view.addSubview(dimmedView)
     view.addSubview(animationView)
     dimmedView.frame = view.bounds
-    animationView.frame.size = .init(width: 130, height: 130)
-    animationView.center = view.center
+    animationView.frame.size = animationSize
+    animationView.center = .init(
+      x: view.frame.width / 2,
+      y: view.frame.height / 2
+    )
     animationView.contentMode = .scaleAspectFit
     animationView.play()
   }

@@ -23,7 +23,8 @@ public final class LineRoundButton: RoundButton {
     self.type = type
     super.init(size: size)
     setupUI()
-    
+    loadingAnmationView.dimmedBackgroundColor = .white
+
     self.setAttributedTitle(
       text.attributedString(font: font(for: size), color: textColor(for: type)),
       for: .normal

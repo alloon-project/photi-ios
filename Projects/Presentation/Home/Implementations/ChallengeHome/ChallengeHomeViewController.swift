@@ -158,7 +158,7 @@ private extension ChallengeHomeViewController {
     
     output.didUploadChallengeFeed
       .emit(with: self) { owner, result in
-        LoadingAnimation.default.stop()
+        LoadingAnimation.logo.stop()
         if case let .success(challengeId, image) = result {
           owner.update(challengeId: challengeId, image: image.image)
         }
@@ -270,7 +270,7 @@ extension ChallengeHomeViewController: UIImagePickerControllerDelegate, UINaviga
 // MARK: - Upload
 extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
-    LoadingAnimation.default.start()
+    LoadingAnimation.logo.start()
     uploadChallengeFeed.accept((uploadChallengeId, .init(image: image)))
   }
 }

@@ -225,7 +225,7 @@ private extension FeedViewController {
     
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
-        LoadingAnimation.default.stop()
+        LoadingAnimation.logo.stop()
         owner.isProve = .didProve
         owner.cameraShutterButton.isHidden = true
       }
@@ -424,7 +424,7 @@ extension FeedViewController: UIImagePickerControllerDelegate, UINavigationContr
 extension FeedViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
     uploadImageRelay.accept(.init(image: image))
-    LoadingAnimation.default.start()
+    LoadingAnimation.logo.start()
   }
 }
 

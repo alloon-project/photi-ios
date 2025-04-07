@@ -14,7 +14,7 @@ protocol VerifyEmailListener: AnyObject {
 }
 
 protocol VerifyEmailPresentable {
-  func setUserEmail(_ userEmail: String)
+  func configureUserEmail(_ userEmail: String)
 }
 
 final class VerifyEmailCoordinator: ViewableCoordinator<VerifyEmailPresentable> {
@@ -35,7 +35,7 @@ final class VerifyEmailCoordinator: ViewableCoordinator<VerifyEmailPresentable> 
   }
   
   override func start() {
-    presenter.setUserEmail(userEmail)
+    presenter.configureUserEmail(userEmail)
   }
 }
 
