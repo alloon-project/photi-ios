@@ -8,6 +8,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 import Core
 import DesignSystem
 
@@ -31,15 +32,8 @@ final class ChallengeInformationView: UIView {
     
     return view
   }()
-  private let participateImageView: UIImageView = {
-    let imageView = UIImageView(image: .memberGroup)
-    imageView.contentMode = .scaleToFill
-    
-    return imageView
-  }()
-  
+  private let avatarImageView = GroupAvatarView(size: .small)
   private let participateCountLabel = UILabel()
-  
   private let participateButton = FilledRoundButton(type: .primary, size: .small, text: "나도 함께하기")
   
   // MARK: - Initializers
@@ -68,7 +62,7 @@ final class ChallengeInformationView: UIView {
       font: .caption1,
       color: .gray700
     )
-    
+    configureParticipantView(urls: model.memberImageURLs, count: model.numberOfPersons)
     self.hashTags = model.hashTags
   }
 }
@@ -90,7 +84,7 @@ private extension ChallengeInformationView {
       participateButton
     )
     
-    participateCountView.addSubviews(participateImageView, participateCountLabel)
+    participateCountView.addSubviews(avatarImageView, participateCountLabel)
   }
   
   func setConstraints() {
@@ -123,15 +117,13 @@ private extension ChallengeInformationView {
       $0.height.equalTo(participateButton)
     }
     
-    participateImageView.snp.makeConstraints {
+    avatarImageView.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(14)
       $0.centerY.equalToSuperview()
-      $0.width.equalTo(66)
-      $0.height.equalTo(30)
     }
     
     participateCountLabel.snp.makeConstraints {
-      $0.leading.equalTo(participateImageView.snp.trailing).offset(8)
+      $0.leading.equalTo(avatarImageView.snp.trailing).offset(8)
       $0.centerY.equalToSuperview()
     }
     
@@ -142,7 +134,7 @@ private extension ChallengeInformationView {
   }
 }
 
-// MARK: -
+// MARK: - UICollectionViewDataSource
 extension ChallengeInformationView: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return hashTags.count
@@ -155,5 +147,36 @@ extension ChallengeInformationView: UICollectionViewDataSource {
       text: hashTags[indexPath.row]
     )
     return cell
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeInformationView {
+  func configureParticipantView(urls: [URL], count: Int) {
+    Task { [weak self] in
+      guard let self else { return }
+      let images = await downLoadImages(with: urls)
+      
+      self.avatarImageView.configure(
+        maximumAvatarCount: 2,
+        avatarImages: images,
+        count: count
+      )
+    }
+  }
+  
+  func downLoadImages(with urls: [URL]) async -> [UIImage] {
+    var images = [UIImage]()
+    
+    await withTaskGroup(of: Void.self) { group in
+      urls.forEach { url in
+        group.addTask {
+          guard let image = try? await KingfisherManager.shared.retrieveImage(with: url) else { return }
+          images.append(image.image)
+        }
+      }
+    }
+    
+    return images
   }
 }
