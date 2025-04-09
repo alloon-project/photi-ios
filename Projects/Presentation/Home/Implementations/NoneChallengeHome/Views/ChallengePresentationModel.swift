@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 struct ChallengePresentationModel {
   let name: String
@@ -16,4 +16,5 @@ struct ChallengePresentationModel {
   let endDate: String
   let numberOfPersons: Int
   let hashTags: [String]
+  let memberImageURLs: [URL]
 }

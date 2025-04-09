@@ -89,8 +89,9 @@ private extension NoneChallengeHomeViewModel {
       goal: challenge.goal,
       proveTime: proveTime,
       endDate: endDate,
-      numberOfPersons: 0,
-      hashTags: challenge.hashTags
+      numberOfPersons: challenge.memberCount,
+      hashTags: challenge.hashTags,
+      memberImageURLs: challenge.memberImages
     )
   }
 }
