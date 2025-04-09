@@ -40,8 +40,8 @@ public extension ChallengeUseCaseImpl {
     return challengeRepository.fetchChallengeDetail(id: id)
   }
   
-  func isLogIn() async -> Bool {
-    return await authRepository.isLogIn()
+  func isLogIn() async throws -> Bool {
+    return try await authRepository.isLogIn()
   }
   
   func fetchFeeds(id: Int, page: Int, size: Int, orderType: ChallengeFeedsOrderType) async throws -> PageFeeds {

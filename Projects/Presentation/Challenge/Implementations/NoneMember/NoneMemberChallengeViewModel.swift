@@ -137,14 +137,18 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
 private extension NoneMemberChallengeViewModel {
   func didTapJoinButton() {
     Task {
-      let isLogin = await useCase.isLogIn()
-      
-      DispatchQueue.main.async { [weak self] in
-        if isLogin {
-          self?.joinChallenge()
-        } else {
-          self?.coordinator?.attachLogInGuide()
+      do {
+        let isLogin = try await useCase.isLogIn()
+        
+        DispatchQueue.main.async { [weak self] in
+          if isLogin {
+            self?.joinChallenge()
+          } else {
+            self?.coordinator?.attachLogInGuide()
+          }
         }
+      } catch {
+        requestFailedRelay.accept(())
       }
     }
   }
