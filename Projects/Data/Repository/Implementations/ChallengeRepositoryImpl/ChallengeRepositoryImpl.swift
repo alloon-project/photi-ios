@@ -129,22 +129,14 @@ public extension ChallengeRepositoryImpl {
   
   func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
     let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
+    
+    let single = requestAuthorizableAPI(
+      api: api,
+      responseType: SuccessResponseDTO.self,
+      behavior: .never
     )
     
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    } else if result.statusCode == 409 {
-      throw APIError.challengeFailed(reason: .alreadyUploadFeed)
-    }
+    try await executeSingle(single)
   }
 }
 
@@ -176,17 +168,16 @@ private extension ChallengeRepositoryImpl {
           )
           
           let result = try await provider.request(api, type: responseType.self).value
-          
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
           } else if result.statusCode == 400 {
-            single(.failure(APIError.challengeFailed(reason: .invalidInvitationCode)))
+            single(.failure(map400ToAPIError(result.code, result.message)))
           } else if result.statusCode == 401 || result.statusCode == 403 {
             single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
-            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
+            single(.failure(map404ToAPIError(result.code, result.message)))
           } else if result.statusCode == 409 {
-            single(.failure(APIError.challengeFailed(reason: .alreadyJoinedChallenge)))
+            single(.failure(map409ToAPIError(result.code, result.message)))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -212,8 +203,16 @@ private extension ChallengeRepositoryImpl {
           
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
+          } else if result.statusCode == 400 {
+            single(.failure(map400ToAPIError(result.code, result.message)))
           } else if result.statusCode == 404 {
-            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
+            single(.failure(map404ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 409 {
+            single(.failure(map409ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.challengeFailed(reason: .fileTooLarge)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.challengeFailed(reason: .invalidFileFormat)))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -221,8 +220,44 @@ private extension ChallengeRepositoryImpl {
           single(.failure(error))
         }
       }
-      
       return Disposables.create()
     }
+  }
+  
+  func map400ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "CHALLENGE_INVITATION_CODE_INVALID" {
+      return APIError.challengeFailed(reason: .invalidInvitationCode)
+    } else if code == "CHALLENGE_LIMIT_EXCEED" {
+      return APIError.challengeFailed(reason: .challengeLimitExceed)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
+  func map404ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "USER_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .userNotFound)
+    } else if code == "CHALLENGE_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .challengeNotFound)
+    } else if code == "CHALLENGE_MEMBER_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .notChallengeMemeber)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
+  func map409ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "EXISTING_CHALLENGE_MEMBER" {
+      return APIError.challengeFailed(reason: .alreadyJoinedChallenge)
+    } else if code == "EXISTING_FEED" {
+      return APIError.challengeFailed(reason: .alreadyUploadFeed)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
+  @discardableResult
+  func executeSingle<T>(_ single: Single<T>) async throws -> T {
+    return try await single.value
   }
 }
