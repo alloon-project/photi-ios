@@ -37,7 +37,6 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency {
-  
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     
@@ -96,7 +95,7 @@ final class AppContainer:
   }()
   
   lazy var homeUseCae: HomeUseCase = {
-    return HomeUseCaseImpl(repository: challengeRepository)
+    return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
   
   lazy var challengeUseCase: ChallengeUseCase = {

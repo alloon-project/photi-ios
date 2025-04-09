@@ -11,6 +11,7 @@ import Core
 import Entity
 
 public protocol HomeUseCase {
+  func challengeCount() async throws -> Int
   func fetchPopularChallenge() -> Single<[ChallengeDetail]>
   func fetchMyChallenges() -> Single<[ChallengeSummary]>
   func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws
