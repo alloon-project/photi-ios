@@ -20,6 +20,7 @@ public enum ChallengeAPI {
   case joinPrivateChallenge(id: Int, code: String)
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case isProve(challengeId: Int)
+  case challengeCount
   case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
@@ -55,7 +56,7 @@ extension ChallengeAPI: TargetType {
       case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .uploadChallengeProof: return .post
-      case .isProve: return .get
+      case .isProve, .challengeCount: return .get
       case .updateChallengeGoal: return .patch
       case .challengeDescription: return .get
       case .challengeMember: return .get
@@ -65,7 +66,7 @@ extension ChallengeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges:
+      case .popularChallenges, .challengeCount:
         return .requestPlain
         
       case let .challengeDetail(challengeId):
@@ -172,6 +173,12 @@ extension ChallengeAPI: TargetType {
         
       case .challengeMember:
         let data = ChallengeMemberResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .challengeCount:
+        let data = ChallengeCountResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
