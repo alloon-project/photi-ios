@@ -28,23 +28,23 @@ public enum ChallengeAPI {
 
 extension ChallengeAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080/api")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
     switch self {
-      case .popularChallenges: return "challenges/popular"
-      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
-      case .endedChallenges: return "users/ended-challenges"
-      case .myChallenges: return "/users/my-challenges"
-      case let .joinChallenge(id): return "challenges/\(id)/join/public"
-      case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
-      case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
-      case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
-      case let .updateChallengeGoal(_, challengeId): return "/challenges/\(challengeId)/challenge-members/goal"
-      case let .challengeDescription(id): return "challenges/\(id)/info"
-      case let .challengeMember(challengeId): return "/challenges/\(challengeId)/challenge-members"
+      case .popularChallenges: return "api/challenges/popular"
+      case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
+      case .endedChallenges: return "api/users/ended-challenges"
+      case .myChallenges: return "api/users/my-challenges"
+      case let .joinChallenge(id): return "api/challenges/\(id)/join/public"
+      case let .joinPrivateChallenge(id, _): return "api/challenges/\(id)/join/private"
+      case let .uploadChallengeProof(id, _, _): return "api/challenges/\(id)/feeds"
+      case let .isProve(challengeId): return "api/users/challenges/\(challengeId)/prove"
+      case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
+      case let .challengeDescription(id): return "api/challenges/\(id)/info"
+      case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
+      case .challengeCount: return "api/users/challenges"
     }
   }
   
