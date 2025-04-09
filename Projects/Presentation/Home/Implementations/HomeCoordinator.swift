@@ -6,17 +6,22 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import RxSwift
 import Core
+import Entity
 import Home
 import LogIn
+import UseCase
 
 final class HomeCoordinator: Coordinator {
   weak var listener: HomeListener?
-  private let navigationControllerable: NavigationControllerable
+  private let disposeBag = DisposeBag()
+  private let useCase: HomeUseCase
   
+  private let navigationControllerable: NavigationControllerable
   private let challengeHomeContainer: ChallengeHomeContainable
   private var challengeHomeCoordinator: ViewableCoordinating?
-
+  
   private let noneMemberHomeContainer: NoneMemberHomeContainable
   private var noneMemberHomeCoordinator: ViewableCoordinating?
   
@@ -27,12 +32,14 @@ final class HomeCoordinator: Coordinator {
   private var loginCoordinator: ViewableCoordinating?
   
   init(
+    useCase: HomeUseCase,
     navigationControllerable: NavigationControllerable,
     loginContainer: LogInContainable,
     challengeHomeContainer: ChallengeHomeContainable,
     noneMemberHomeContainer: NoneMemberHomeContainable,
     noneChallengeHomeContainer: NoneChallengeHomeContainable
   ) {
+    self.useCase = useCase
     self.navigationControllerable = navigationControllerable
     self.loginContainer = loginContainer
     self.challengeHomeContainer = challengeHomeContainer
@@ -42,24 +49,23 @@ final class HomeCoordinator: Coordinator {
   }
   
   override func start() {
-    // TODO: - Token에 따라 어떤 Home으로 갈지 로직 구현
-    attachNoneMemberHome()
+    Task { await attachInitialScreenIfNeeded() }
   }
 }
 
 // MARK: - ChallengeHome
 private extension HomeCoordinator {
-  func attachChallengeHome() {
+  @MainActor func attachChallengeHome() {
     guard challengeHomeCoordinator == nil else { return }
     
     let coordinator = challengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
     navigationControllerable.setViewControllers([coordinator.viewControllerable])
-
+    
     self.noneChallengeHomeCoordinator = coordinator
   }
   
-  func detachChallengeHome() {
+  @MainActor func detachChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
@@ -70,17 +76,17 @@ private extension HomeCoordinator {
 
 // MARK: - NoneChallengeHome
 private extension HomeCoordinator {
-  func attachNoneChallengeHome() {
+  @MainActor func attachNoneChallengeHome() {
     guard noneChallengeHomeCoordinator == nil else { return }
     
     let coordinator = noneChallengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
     navigationControllerable.setViewControllers([coordinator.viewControllerable])
-
+    
     self.noneChallengeHomeCoordinator = coordinator
   }
   
-  func detachNoneChallengeHome() {
+  @MainActor func detachNoneChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
@@ -91,17 +97,17 @@ private extension HomeCoordinator {
 
 // MARK: - NoneMemberHome
 private extension HomeCoordinator {
-  func attachNoneMemberHome() {
+  @MainActor func attachNoneMemberHome() {
     guard noneMemberHomeCoordinator == nil else { return }
     let coordinator = noneMemberHomeContainer.coordinator(listener: self)
     addChild(coordinator)
     
     navigationControllerable.setViewControllers([coordinator.viewControllerable])
-
+    
     self.noneMemberHomeCoordinator = coordinator
   }
   
-  func detachNoneMemberHome() {
+  @MainActor func detachNoneMemberHome() {
     guard let coordinator = noneMemberHomeCoordinator else { return }
     
     removeChild(coordinator)
@@ -112,7 +118,7 @@ private extension HomeCoordinator {
 
 // MARK: - LogIn
 private extension HomeCoordinator {
-  func attachLogIn() {
+  @MainActor func attachLogIn() {
     guard loginCoordinator == nil else { return }
     
     let coordinator = loginContainer.coordinator(listener: self)
@@ -122,7 +128,7 @@ private extension HomeCoordinator {
     self.loginCoordinator = coordinator
   }
   
-  func detachLogIn() {
+  @MainActor func detachLogIn() {
     guard let coordinator = loginCoordinator else { return }
     
     removeChild(coordinator)
@@ -139,7 +145,7 @@ extension HomeCoordinator: ChallengeHomeListener { }
 // MARK: - NoneMemberHome Listener
 extension HomeCoordinator: NoneMemberHomeListener {
   func didTapLogInButtonAtNoneMemberHome() {
-    attachLogIn()
+    Task { await attachLogIn() }
   }
 }
 
@@ -149,10 +155,38 @@ extension HomeCoordinator: NoneChallengeHomeListener { }
 // MARK: - LogInListener
 extension HomeCoordinator: LogInListener {
   func didTapBackButtonAtLogIn() {
-    detachLogIn()
+    Task { await detachLogIn() }
   }
   
-  public func didFinishLogIn(userName: String) {
-    detachLogIn()
+  // TODO: 어디로 넘어갈지 판별 필요
+  func didFinishLogIn(userName: String) {
+    Task { await detachLogIn() }
+  }
+}
+
+// MARK: - Private Methods
+private extension HomeCoordinator {
+  func attachInitialScreenIfNeeded() async {
+    do {
+      let count = try await useCase.challengeCount()
+
+      count == 0 ? await attachNoneChallengeHome() : await attachChallengeHome()
+    } catch {
+      if let error = error as? APIError, case .authenticationFailed = error {
+        await attachLogIn()
+      } else {
+        await presentNetworkUnstableAlert()
+      }
+    }
+  }
+  
+  @MainActor func presentNetworkUnstableAlert() {
+    let alert = navigationControllerable.navigationController.presentNetworkUnstableAlert()
+    
+    alert.rx.didTapConfirmButton
+      .subscribe(with: self) { owner, _ in
+        Task { await owner.attachInitialScreenIfNeeded() }
+      }
+      .disposed(by: disposeBag)
   }
 }

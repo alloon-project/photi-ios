@@ -30,6 +30,7 @@ public final class HomeContainer:
     let noneChallengeHome = NoneChallengeHomeContainer(dependency: self)
     
     let coordinator = HomeCoordinator(
+      useCase: dependency.homeUseCae,
       navigationControllerable: navigationControllerable,
       loginContainer: dependency.loginContainable,
       challengeHomeContainer: challengeHome,
