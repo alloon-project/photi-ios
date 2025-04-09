@@ -46,11 +46,7 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 0
-    label.attributedText = "photi님의\n열정을 보여주세요!".attributedString(
-      font: .heading1,
-      color: .gray900
-    )
-    
+
     return label
   }()
   
@@ -189,7 +185,14 @@ private extension NoneChallengeHomeViewController {
 }
 
 // MARK: - NoneChallengeHomePresentable
-extension NoneChallengeHomeViewController: NoneChallengeHomePresentable { }
+extension NoneChallengeHomeViewController: NoneChallengeHomePresentable {
+  func configureUserName(_ username: String) {
+    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
+      font: .heading1,
+      color: .gray900
+    )
+  }
+}
 
 // MARK: - UICollectionViewDataSource
 extension NoneChallengeHomeViewController: UICollectionViewDataSource {
