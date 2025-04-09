@@ -27,7 +27,8 @@ public extension ChallengeRepositoryImpl {
   func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.popularChallenges,
-      responseType: [PopularChallengeResponseDTO].self
+      responseType: [PopularChallengeResponseDTO].self,
+      behavior: .never
     )
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
@@ -157,7 +158,7 @@ private extension ChallengeRepositoryImpl {
   func requestAuthorizableAPI<T: Decodable>(
     api: ChallengeAPI,
     responseType: T.Type,
-    behavior: StubBehavior = .immediate
+    behavior: StubBehavior = .never
   ) -> Single<T> {
     return Single.create { single in
       Task {
@@ -192,7 +193,7 @@ private extension ChallengeRepositoryImpl {
   func requestUnAuthorizableAPI<T: Decodable>(
     api: ChallengeAPI,
     responseType: T.Type,
-    behavior: StubBehavior = .immediate
+    behavior: StubBehavior = .never
   ) -> Single<T> {
     Single.create { single in
       Task {
