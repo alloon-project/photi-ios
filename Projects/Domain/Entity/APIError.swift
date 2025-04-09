@@ -54,9 +54,13 @@ extension APIError {
 extension APIError {
   public enum ChallengeFailedReason {
     case challengeNotFound
+    case notChallengeMemeber
+    case userNotFound
     case alreadyJoinedChallenge
     case invalidInvitationCode
     case alreadyUploadFeed
     case fileTooLarge
+    case challengeLimitExceed
+    case invalidFileFormat
   }
 }
