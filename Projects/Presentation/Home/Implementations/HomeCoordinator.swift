@@ -173,7 +173,7 @@ private extension HomeCoordinator {
       count == 0 ? await attachNoneChallengeHome() : await attachChallengeHome()
     } catch {
       if let error = error as? APIError, case .authenticationFailed = error {
-        await attachLogIn()
+        await attachNoneMemberHome()
       } else {
         await presentNetworkUnstableAlert()
       }
