@@ -32,7 +32,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
 
   // MARK: - Input
   struct Input {
-    let viewWillAppear: Signal<Void>
+    let viewDidLoad: Signal<Void>
   }
   
   // MARK: - Output
@@ -47,7 +47,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    input.viewWillAppear
+    input.viewDidLoad
       .emit(with: self) { owner, _ in
         owner.fetchPopularChallenge()
       }

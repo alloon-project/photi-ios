@@ -32,7 +32,7 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     }
   }
   
-  private let viewWillAppear = PublishRelay<Void>()
+  private let viewDidLoadRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
@@ -98,12 +98,7 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     challengeImageCollectionView.dataSource = self
     setupUI()
     bind()
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    
-    viewWillAppear.accept(())
+    viewDidLoadRelay.accept(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -171,7 +166,7 @@ private extension NoneChallengeHomeViewController {
 private extension NoneChallengeHomeViewController {
   func bind() {
     let input = NoneChallengeHomeViewModel.Input(
-      viewWillAppear: viewWillAppear.asSignal()
+      viewDidLoad: viewDidLoadRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
