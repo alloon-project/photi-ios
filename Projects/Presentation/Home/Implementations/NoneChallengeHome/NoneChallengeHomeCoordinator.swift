@@ -14,9 +14,7 @@ protocol NoneChallengeHomeListener: AnyObject {
   func requstConvertInitialHome()
 }
 
-protocol NoneChallengeHomePresentable {
-  func configureUserName(_ username: String)
-}
+protocol NoneChallengeHomePresentable { }
 
 final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomePresentable> {
   weak var listener: NoneChallengeHomeListener?
@@ -35,10 +33,6 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
     self.noneMemberChallengeContainer = noneMemberChallengeContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start() {
-    presenter.configureUserName(ServiceConfiguration.shared.userName)
   }
 }
 

@@ -98,6 +98,11 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     viewDidLoadRelay.accept(())
   }
   
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    configureUserName(ServiceConfiguration.shared.userName)
+  }
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     
@@ -194,14 +199,7 @@ private extension NoneChallengeHomeViewController {
 }
 
 // MARK: - NoneChallengeHomePresentable
-extension NoneChallengeHomeViewController: NoneChallengeHomePresentable {
-  func configureUserName(_ username: String) {
-    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
-      font: .heading1,
-      color: .gray900
-    )
-  }
-}
+extension NoneChallengeHomeViewController: NoneChallengeHomePresentable { }
 
 // MARK: - UICollectionViewDataSource
 extension NoneChallengeHomeViewController: UICollectionViewDataSource {
@@ -300,6 +298,13 @@ private extension NoneChallengeHomeViewController {
     DispatchQueue.main.async {
       self.challengeImageCollectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
     }
+  }
+  
+  func configureUserName(_ username: String) {
+    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
+      font: .heading1,
+      color: .gray900
+    )
   }
 
   func presentChallengeInformationView() {
