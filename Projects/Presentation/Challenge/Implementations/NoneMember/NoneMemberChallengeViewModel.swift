@@ -157,9 +157,7 @@ private extension NoneMemberChallengeViewModel {
     if isPrivateChallenge {
       displayUnlockViewRelay.accept(())
     } else {
-      coordinator?.attachEnterChallengeGoal(
-        challengeName: challengeName, challengeID: challengeId
-      )
+      Task { await requestJoinPublicChallenge() }
     }
   }
 }
@@ -197,7 +195,10 @@ private extension NoneMemberChallengeViewModel {
   func requestJoinPublicChallenge() async {
     do {
       try await useCase.joinPublicChallenge(id: challengeId).value
-      coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+      }
     } catch {
       requestJoinChallengeFailed(with: error)
     }
