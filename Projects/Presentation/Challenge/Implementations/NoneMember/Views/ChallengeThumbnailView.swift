@@ -76,6 +76,8 @@ final class ChallengeThumbnailView: UIView, ChallengeInformationPresentable {
 // MARK: - UI Methods
 private extension ChallengeThumbnailView {
   func setupUI() {
+    thumbnailImageView.layer.cornerRadius = 10
+    thumbnailImageView.clipsToBounds = true
     setViewHierarchy()
     setConstraints()
   }

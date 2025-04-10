@@ -11,7 +11,9 @@ import RxSwift
 import Entity
 import UseCase
 
-protocol NoneChallengeHomeCoordinatable: AnyObject { }
+protocol NoneChallengeHomeCoordinatable: AnyObject {
+  func attachNoneMemberChallenge(challengeId: Int)
+}
 
 protocol NoneChallengeHomeViewModelType: AnyObject {
   associatedtype Input
@@ -32,7 +34,8 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
 
   // MARK: - Input
   struct Input {
-    let viewWillAppear: Signal<Void>
+    let viewDidLoad: Signal<Void>
+    let requestJoinChallenge: Signal<Int>
   }
   
   // MARK: - Output
@@ -47,9 +50,15 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    input.viewWillAppear
+    input.viewDidLoad
       .emit(with: self) { owner, _ in
         owner.fetchPopularChallenge()
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestJoinChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachNoneMemberChallenge(challengeId: id)
       }
       .disposed(by: disposeBag)
     
@@ -84,13 +93,15 @@ private extension NoneChallengeHomeViewModel {
     let endDate = challenge.endDate.toString("yyyy.MM.dd")
     
     return .init(
+      id: challenge.id,
       name: challenge.name,
       imageURL: challenge.imageUrl,
       goal: challenge.goal,
       proveTime: proveTime,
       endDate: endDate,
-      numberOfPersons: 0,
-      hashTags: challenge.hashTags
+      numberOfPersons: challenge.memberCount,
+      hashTags: challenge.hashTags,
+      memberImageURLs: challenge.memberImages
     )
   }
 }

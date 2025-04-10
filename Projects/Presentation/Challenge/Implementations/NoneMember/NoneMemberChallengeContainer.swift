@@ -8,10 +8,12 @@
 
 import Challenge
 import Core
+import LogIn
 import UseCase
 
 public protocol NoneMemberChallengeDependency: Dependency {
   var challengeUseCase: ChallengeUseCase { get }
+  var loginContainable: LogInContainable { get }
 }
 
 public final class NoneMemberChallengeContainer:
@@ -30,7 +32,8 @@ public final class NoneMemberChallengeContainer:
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       enterChallengeGoalContainer: enterChallengeGoalContainer,
-      logInGuideContainer: logInGuideContainer
+      logInGuideContainer: logInGuideContainer,
+      logInContainer: dependency.loginContainable
     )
     coordinator.listener = listener
     return coordinator

@@ -14,18 +14,22 @@ import UseCase
 import Repository
 
 public struct HomeUseCaseImpl: HomeUseCase {
-  private let repository: ChallengeRepository
+  private let challengeRepository: ChallengeRepository
   
-  public init(repository: ChallengeRepository) {
-    self.repository = repository
+  public init(challengeRepository: ChallengeRepository) {
+    self.challengeRepository = challengeRepository
+  }
+
+  public func challengeCount() async throws -> Int {
+    return try await challengeRepository.challengeCount()
   }
   
   public func fetchPopularChallenge() -> Single<[ChallengeDetail]> {
-    return repository.fetchPopularChallenges()
+    return challengeRepository.fetchPopularChallenges()
   }
   
   public func fetchMyChallenges() -> Single<[ChallengeSummary]> {
-    return repository.fetchMyChallenges(page: 0, size: 20)
+    return challengeRepository.fetchMyChallenges(page: 0, size: 20)
   }
   
   public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws {
@@ -33,7 +37,7 @@ public struct HomeUseCaseImpl: HomeUseCase {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
     
-    try await repository.uploadChallengeFeedProof(
+    try await challengeRepository.uploadChallengeFeedProof(
       id: challengeId,
       image: data,
       imageType: type

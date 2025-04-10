@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Core
 import DTO
 import PhotiNetwork
 
@@ -16,13 +17,12 @@ public enum AuthAPI {
 
 extension AuthAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080/api")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
     switch self {
-      case .isLogIn: return "auth/validate/access-token"
+      case .isLogIn: return "api/auth/validate/access-token"
     }
   }
   
@@ -42,7 +42,7 @@ extension AuthAPI: TargetType {
     switch self {
       case .isLogIn:
         let data = AuthAPI.sampleData.data(using: .utf8) ?? Data()
-      
+        
         return .networkResponse(200, data, "", "")
     }
   }

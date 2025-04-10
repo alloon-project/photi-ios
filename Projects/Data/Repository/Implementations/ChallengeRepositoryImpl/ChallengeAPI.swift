@@ -20,6 +20,7 @@ public enum ChallengeAPI {
   case joinPrivateChallenge(id: Int, code: String)
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case isProve(challengeId: Int)
+  case challengeCount
   case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
@@ -28,23 +29,23 @@ public enum ChallengeAPI {
 
 extension ChallengeAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080/api")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
     switch self {
-      case .popularChallenges: return "challenges/popular"
-      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
-      case .endedChallenges: return "users/ended-challenges"
-      case .myChallenges: return "/users/my-challenges"
-      case let .joinChallenge(id): return "challenges/\(id)/join/public"
-      case let .joinPrivateChallenge(id, _): return "challenges/\(id)/join/private"
-      case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
-      case let .isProve(challengeId): return "/users/challenges/\(challengeId)/prove"
-      case let .updateChallengeGoal(_, challengeId): return "/challenges/\(challengeId)/challenge-members/goal"
-      case let .challengeDescription(id): return "challenges/\(id)/info"
-      case let .challengeMember(challengeId): return "/challenges/\(challengeId)/challenge-members"
+      case .popularChallenges: return "api/challenges/popular"
+      case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
+      case .endedChallenges: return "api/users/ended-challenges"
+      case .myChallenges: return "api/users/my-challenges"
+      case let .joinChallenge(id): return "api/challenges/\(id)/join/public"
+      case let .joinPrivateChallenge(id, _): return "api/challenges/\(id)/join/private"
+      case let .uploadChallengeProof(id, _, _): return "api/challenges/\(id)/feeds"
+      case let .isProve(challengeId): return "api/users/challenges/\(challengeId)/prove"
+      case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
+      case let .challengeDescription(id): return "api/challenges/\(id)/info"
+      case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
+      case .challengeCount: return "api/users/challenges"
     }
   }
   
@@ -55,7 +56,7 @@ extension ChallengeAPI: TargetType {
       case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .uploadChallengeProof: return .post
-      case .isProve: return .get
+      case .isProve, .challengeCount: return .get
       case .updateChallengeGoal: return .patch
       case .challengeDescription: return .get
       case .challengeMember: return .get
@@ -65,7 +66,7 @@ extension ChallengeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges:
+      case .popularChallenges, .challengeCount:
         return .requestPlain
         
       case let .challengeDetail(challengeId):
@@ -172,6 +173,12 @@ extension ChallengeAPI: TargetType {
         
       case .challengeMember:
         let data = ChallengeMemberResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .challengeCount:
+        let data = ChallengeCountResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

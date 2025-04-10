@@ -32,7 +32,8 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     }
   }
   
-  private let viewWillAppear = PublishRelay<Void>()
+  private let viewDidLoadRelay = PublishRelay<Void>()
+  private let requestJoinChallenge = PublishRelay<Int>()
   
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
@@ -46,11 +47,7 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 0
-    label.attributedText = "photi님의\n열정을 보여주세요!".attributedString(
-      font: .heading1,
-      color: .gray900
-    )
-    
+
     return label
   }()
   
@@ -98,12 +95,12 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     challengeImageCollectionView.dataSource = self
     setupUI()
     bind()
+    viewDidLoadRelay.accept(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    
-    viewWillAppear.accept(())
+    configureUserName(ServiceConfiguration.shared.userName)
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -171,11 +168,19 @@ private extension NoneChallengeHomeViewController {
 private extension NoneChallengeHomeViewController {
   func bind() {
     let input = NoneChallengeHomeViewModel.Input(
-      viewWillAppear: viewWillAppear.asSignal()
+      viewDidLoad: viewDidLoadRelay.asSignal(),
+      requestJoinChallenge: requestJoinChallenge.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(for: output)
+  }
+  
+  func viewBind() {
+    challengeInformationView.rx.didTapJoinButton
+      .bind(to: requestJoinChallenge)
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: NoneChallengeHomeViewModel.Output) {
@@ -293,6 +298,13 @@ private extension NoneChallengeHomeViewController {
     DispatchQueue.main.async {
       self.challengeImageCollectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
     }
+  }
+  
+  func configureUserName(_ username: String) {
+    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
+      font: .heading1,
+      color: .gray900
+    )
   }
 
   func presentChallengeInformationView() {

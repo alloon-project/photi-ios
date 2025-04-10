@@ -7,5 +7,5 @@
 //
 
 public protocol AuthRepository {
-  func isLogIn() async -> Bool
+  func isLogIn() async throws -> Bool
 }

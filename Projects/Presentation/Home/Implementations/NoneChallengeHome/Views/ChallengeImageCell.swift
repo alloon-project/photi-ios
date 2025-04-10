@@ -15,10 +15,7 @@ import DesignSystem
 final class ChallengeImageCell: UICollectionViewCell {
   // MARK: - Properties
   var isCurrentPage: Bool = false {
-    didSet {
-      self.setImageView(for: isCurrentPage)
-      gradientLayer.isHidden = !(isDefaultImage && isCurrentPage)
-    }
+    didSet { setImageView(for: isCurrentPage) }
   }
   
   // MARK: - UI Components
@@ -30,7 +27,8 @@ final class ChallengeImageCell: UICollectionViewCell {
   private let imageView: UIImageView = {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 10
-    
+    imageView.clipsToBounds = true
+    imageView.layer.masksToBounds = true
     return imageView
   }()
   private let pinImageView = UIImageView(image: .pinBlue)
@@ -41,6 +39,7 @@ final class ChallengeImageCell: UICollectionViewCell {
       UIColor(red: 0.118, green: 0.137, blue: 0.149, alpha: 0).cgColor
     ]
     layer.cornerRadius = 10
+    layer.masksToBounds = true
 
     return layer
   }()
@@ -59,13 +58,19 @@ final class ChallengeImageCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with viewModel: ChallengePresentationModel) {
-    if let url = viewModel.imageURL {
-      imageView.kf.setImage(with: url)
-    } else {
-      imageView.image = .defaultChallengeImage
+    Task {
+      guard
+        let imageURL = viewModel.imageURL,
+        let result = try? await KingfisherManager.shared.retrieveImage(with: imageURL)
+      else {
+        imageView.image = .defaultChallengeImage
+        isDefaultImage = true
+        return
+      }
+      
+      imageView.image = result.image
+      isDefaultImage = false
     }
-    
-    isDefaultImage = viewModel.imageURL == nil
   }
   
   func configureCreateCell() {
@@ -76,10 +81,10 @@ final class ChallengeImageCell: UICollectionViewCell {
 // MARK: - UI Methods
 private extension ChallengeImageCell {
   func setupUI() {
+    imageView.backgroundColor = .white
     contentView.addSubviews(imageView, pinImageView)
     imageView.layer.addSublayer(gradientLayer)
     gradientLayer.frame = .init(x: 0, y: 0, width: 160, height: 160)
-    
     imageView.snp.makeConstraints {
       $0.width.height.equalTo(160)
       $0.bottom.equalToSuperview()
@@ -97,7 +102,7 @@ private extension ChallengeImageCell {
     pinImageView.isHidden = !isCurrentPage
     self.imageView.alpha = isCurrentPage ? 1.0 : 0.3
     if isCurrentPage {
-      UIView.animate(withDuration: 0.2) {
+      UIView.animate(withDuration: 0.1) {
         self.imageView.snp.updateConstraints {
           $0.width.height.equalTo(160)
           $0.bottom.equalToSuperview()
@@ -105,7 +110,7 @@ private extension ChallengeImageCell {
         self.contentView.layoutIfNeeded()
       }
     } else {
-      UIView.animate(withDuration: 0.2) {
+      UIView.animate(withDuration: 0.1) {
         self.imageView.snp.updateConstraints {
           $0.width.height.equalTo(140)
           $0.bottom.equalToSuperview().offset(-10)
