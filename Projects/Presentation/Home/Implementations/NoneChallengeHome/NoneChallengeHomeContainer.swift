@@ -29,7 +29,7 @@ final class NoneChallengeHomeContainer:
     let coordinator = NoneChallengeHomeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      noneMemberChallengeContainable: dependency.noneMemberChallengeContainable
+      noneMemberChallengeContainer: dependency.noneMemberChallengeContainable
     )
     coordinator.listener = listener
     

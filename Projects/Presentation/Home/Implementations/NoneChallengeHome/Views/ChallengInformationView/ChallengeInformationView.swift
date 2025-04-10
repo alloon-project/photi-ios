@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Kingfisher
 import Core
@@ -16,6 +18,7 @@ final class ChallengeInformationView: UIView {
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
+  private(set) var id: Int = 0
   
   // MARK: - UI Components
   private let challengeNameLabel = UILabel()
@@ -34,7 +37,7 @@ final class ChallengeInformationView: UIView {
   }()
   private let avatarImageView = GroupAvatarView(size: .small)
   private let participateCountLabel = UILabel()
-  private let participateButton = FilledRoundButton(type: .primary, size: .small, text: "나도 함께하기")
+  fileprivate let joinButton = FilledRoundButton(type: .primary, size: .small, text: "나도 함께하기")
   
   // MARK: - Initializers
   init() {
@@ -51,6 +54,7 @@ final class ChallengeInformationView: UIView {
   
   // MARK: - Configure Methods
   func configure(with model: ChallengePresentationModel) {
+    self.id = model.id
     goalContentView.configure(firstContent: model.goal)
     challengeTimeContentView.configure(
       firstContent: model.proveTime,
@@ -81,7 +85,7 @@ private extension ChallengeInformationView {
       goalContentView,
       challengeTimeContentView,
       participateCountView,
-      participateButton
+      joinButton
     )
     
     participateCountView.addSubviews(avatarImageView, participateCountLabel)
@@ -108,13 +112,13 @@ private extension ChallengeInformationView {
     challengeTimeContentView.snp.makeConstraints {
       $0.top.height.equalTo(goalContentView)
       $0.trailing.equalToSuperview()
-      $0.width.equalTo(participateButton)
+      $0.width.equalTo(joinButton)
     }
     
     participateCountView.snp.makeConstraints {
       $0.leading.trailing.equalTo(goalContentView)
       $0.top.equalTo(goalContentView.snp.bottom).offset(10)
-      $0.height.equalTo(participateButton)
+      $0.height.equalTo(joinButton)
     }
     
     avatarImageView.snp.makeConstraints {
@@ -127,7 +131,7 @@ private extension ChallengeInformationView {
       $0.centerY.equalToSuperview()
     }
     
-    participateButton.snp.makeConstraints {
+    joinButton.snp.makeConstraints {
       $0.top.equalTo(challengeTimeContentView.snp.bottom).offset(10)
       $0.leading.equalTo(challengeTimeContentView)
     }
@@ -178,5 +182,13 @@ private extension ChallengeInformationView {
     }
     
     return images
+  }
+}
+
+extension Reactive where Base == ChallengeInformationView {
+  var didTapJoinButton: ControlEvent<Int> {
+    let source = base.joinButton.rx.tap.map { _ in base.id }
+    
+    return .init(events: source)
   }
 }

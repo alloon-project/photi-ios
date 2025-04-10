@@ -150,7 +150,15 @@ extension HomeCoordinator: NoneMemberHomeListener {
 }
 
 // MARK: - NoneChallengeHomeListener
-extension HomeCoordinator: NoneChallengeHomeListener { }
+extension HomeCoordinator: NoneChallengeHomeListener {
+  func requestLoginAtNoneChallengeHome() {
+    Task { await attachLogIn() }
+  }
+  
+  func requstConvertInitialHome() {
+    Task { await attachInitialScreenIfNeeded() }
+  }
+}
 
 // MARK: - LogInListener
 extension HomeCoordinator: LogInListener {
@@ -158,7 +166,6 @@ extension HomeCoordinator: LogInListener {
     Task { await detachLogIn() }
   }
   
-  // TODO: 어디로 넘어갈지 판별 필요
   func didFinishLogIn(userName: String) {
     Task {
       await detachLogIn()

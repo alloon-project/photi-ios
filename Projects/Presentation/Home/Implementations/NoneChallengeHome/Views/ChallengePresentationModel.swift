@@ -9,6 +9,7 @@
 import Foundation
 
 struct ChallengePresentationModel {
+  let id: Int
   let name: String
   let imageURL: URL?
   let goal: String

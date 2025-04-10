@@ -9,7 +9,10 @@
 import Challenge
 import Core
 
-protocol NoneChallengeHomeListener: AnyObject { }
+protocol NoneChallengeHomeListener: AnyObject {
+  func requestLoginAtNoneChallengeHome()
+  func requstConvertInitialHome()
+}
 
 protocol NoneChallengeHomePresentable {
   func configureUserName(_ username: String)
@@ -20,16 +23,16 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
 
   private let viewModel: NoneChallengeHomeViewModel
   
-  private let noneMemberChallengeContainable: NoneMemberChallengeContainable
+  private let noneMemberChallengeContainer: NoneMemberChallengeContainable
   private var noneMemberChallengeCoordinator: ViewableCoordinating?
   
   init(
     viewControllerable: ViewControllerable,
     viewModel: NoneChallengeHomeViewModel,
-    noneMemberChallengeContainable: NoneMemberChallengeContainable
+    noneMemberChallengeContainer: NoneMemberChallengeContainable
   ) {
     self.viewModel = viewModel
-    self.noneMemberChallengeContainable = noneMemberChallengeContainable
+    self.noneMemberChallengeContainer = noneMemberChallengeContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -40,4 +43,37 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
 }
 
 // MARK: - NoneMemberHomeCoordinatable
-extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable { }
+extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
+  func attachNoneMemberChallenge(challengeId: Int) {
+    guard noneMemberChallengeCoordinator == nil else { return }
+    
+    let coordinator = noneMemberChallengeContainer.coordinator(listener: self, challengeId: challengeId)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    
+    self.noneMemberChallengeCoordinator = coordinator
+  }
+  
+  func detachNoneMemberChallenge() {
+    guard let coordinator = noneMemberChallengeCoordinator else { return }
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    noneMemberChallengeCoordinator = nil
+  }
+}
+
+// MARK: - NoneMem
+extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
+  func didTapBackButtonAtNoneMemberChallenge() {
+    detachNoneMemberChallenge()
+  }
+  
+  func didJoinChallenge() {
+    detachNoneMemberChallenge()
+    listener?.requstConvertInitialHome()
+  }
+  
+  func requestLogInAtNoneMemberChallenge() {
+    listener?.requestLoginAtNoneChallengeHome()
+  }
+}
