@@ -45,7 +45,7 @@ public extension ChallengeRepositoryImpl {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.challengeDetail(id: id),
       responseType: ChallengeDetailResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
@@ -75,7 +75,7 @@ public extension ChallengeRepositoryImpl {
     return requestAuthorizableAPI(
       api: ChallengeAPI.myChallenges(page: page, size: size),
       responseType: MyChallengesResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
@@ -84,7 +84,7 @@ public extension ChallengeRepositoryImpl {
     return requestAuthorizableAPI(
       api: ChallengeAPI.challengeDescription(id: challengeId),
       responseType: ChallengeDescriptionResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
   }
