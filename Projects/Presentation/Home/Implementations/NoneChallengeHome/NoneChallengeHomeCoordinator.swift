@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol NoneChallengeHomeListener: AnyObject { }
@@ -19,11 +20,16 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
 
   private let viewModel: NoneChallengeHomeViewModel
   
+  private let noneMemberChallengeContainable: NoneMemberChallengeContainable
+  private var noneMemberChallengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: NoneChallengeHomeViewModel
+    viewModel: NoneChallengeHomeViewModel,
+    noneMemberChallengeContainable: NoneMemberChallengeContainable
   ) {
     self.viewModel = viewModel
+    self.noneMemberChallengeContainable = noneMemberChallengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }

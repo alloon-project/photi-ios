@@ -160,7 +160,10 @@ extension HomeCoordinator: LogInListener {
   
   // TODO: 어디로 넘어갈지 판별 필요
   func didFinishLogIn(userName: String) {
-    Task { await detachLogIn() }
+    Task {
+      await detachLogIn()
+      await attachInitialScreenIfNeeded()
+    }
   }
 }
 

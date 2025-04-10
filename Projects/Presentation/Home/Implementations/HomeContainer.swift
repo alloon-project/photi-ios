@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Challenge
 import Core
 import Home
 import LogIn
@@ -14,6 +15,7 @@ import UseCase
 public protocol HomeDependency: Dependency {
   var loginContainable: LogInContainable { get }
   var homeUseCae: HomeUseCase { get }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
 }
 
 public final class HomeContainer:
@@ -23,6 +25,7 @@ public final class HomeContainer:
   NoneMemberHomeDependency,
   NoneChallengeHomeDependency {
   var homeUseCase: HomeUseCase { dependency.homeUseCae }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { dependency.noneMemberChallengeContainable }
   
   public func coordinator(navigationControllerable: NavigationControllerable, listener: HomeListener) -> Coordinating {
     let challengeHome = ChallengeHomeContainer(dependency: self)

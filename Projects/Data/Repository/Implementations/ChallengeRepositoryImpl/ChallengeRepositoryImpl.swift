@@ -183,7 +183,11 @@ private extension ChallengeRepositoryImpl {
             single(.failure(APIError.serverError))
           }
         } catch {
-          single(.failure(error))
+          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+            single(.failure(APIError.authenticationFailed))
+          } else {
+            single(.failure(error))
+          }
         }
       }
       return Disposables.create()
