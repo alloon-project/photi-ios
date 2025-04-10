@@ -42,7 +42,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       proveTime: proveTime,
       goal: dto.goal,
       memberCount: dto.currentMemberCnt,
-      memberImages: memberImages
+      memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
     )
   }
   
@@ -62,7 +62,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       proveTime: proveTime,
       goal: dto.goal,
       memberCount: dto.currentMemberCnt,
-      memberImages: memberImages,
+      memberImages: memberImages.compactMap { URL(string: $0 ?? "") },
       isPublic: dto.isPublic,
       rules: rules
     )
@@ -80,7 +80,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         endDate: endDate,
         hashTags: [],
         memberCount: $0.currentMemberCnt,
-        memberImages: memberImages
+        memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
       )
     }
   }

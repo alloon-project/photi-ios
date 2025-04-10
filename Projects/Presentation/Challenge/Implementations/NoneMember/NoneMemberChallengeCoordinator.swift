@@ -8,6 +8,7 @@
 
 import Challenge
 import Core
+import LogIn
 
 protocol NoneMemberChallengePresentable { }
 
@@ -22,14 +23,19 @@ final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChalle
   private let logInGuideContainer: LogInGuideContainable
   private var logInGuideCoordinator: ViewableCoordinating?
   
+  private let logInContainer: LogInContainable
+  private var logInCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: NoneMemberChallengeViewModel,
     enterChallengeGoalContainer: EnterChallengeGoalContainable,
-    logInGuideContainer: LogInGuideContainable
+    logInGuideContainer: LogInGuideContainable,
+    logInContainer: LogInContainable
   ) {
     self.enterChallengeGoalContainer = enterChallengeGoalContainer
     self.logInGuideContainer = logInGuideContainer
+    self.logInContainer = logInContainer
     self.viewModel = viewModel
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -51,6 +57,14 @@ private extension NoneMemberChallengeCoordinator {
     
     removeChild(coordinator)
     self.logInGuideCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+  
+  func detachLogIn() {
+    guard let coordinator = logInCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.logInCoordinator = nil
     viewControllerable.popViewController(animated: true)
   }
 }
@@ -84,6 +98,15 @@ extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable {
     self.logInGuideCoordinator = coordinator
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
   }
+  
+  func attachLogIn() {
+    guard logInCoordinator == nil else { return }
+    
+    let coordinator = logInContainer.coordinator(listener: self)
+    addChild(coordinator)
+    self.logInCoordinator = coordinator
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+  }
 }
 
 // MARK: - EnterChallengeGoalListener
@@ -98,7 +121,7 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   }
   
   func requestLoginAtEnterChallengeGoal() {
-    listener?.requestLogInAtNoneMemberChallenge()
+    attachLogIn()
   }
 }
 
@@ -109,6 +132,18 @@ extension NoneMemberChallengeCoordinator: LogInGuideListener {
   }
   
   func didTapLogInButtonAtLogInGuide() {
-    listener?.requestLogInAtNoneMemberChallenge()
+    attachLogIn()
+  }
+}
+
+// MARK: - LogInListener
+extension NoneMemberChallengeCoordinator: LogInListener {
+  func didFinishLogIn(userName: String) {
+    detachLogIn()
+    detachLogInGuide()
+  }
+  
+  func didTapBackButtonAtLogIn() {
+    detachLogIn()
   }
 }

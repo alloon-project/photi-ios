@@ -9,5 +9,5 @@
 import Foundation
 
 public struct MemberImageResponseDTO: Decodable {
-  public let memberImage: URL
+  public let memberImage: String?
 }

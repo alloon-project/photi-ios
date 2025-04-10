@@ -6,25 +6,25 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Entity
 import PhotiNetwork
 import Repository
 
 public struct AuthRepositoryImpl: AuthRepository {
   public init() { }
   
-  public func isLogIn() async -> Bool {
+  public func isLogIn() async throws -> Bool {
     let provider = Provider<AuthAPI>(
-      stubBehavior: .immediate,
+      stubBehavior: .never,
       session: .init(interceptor: AuthenticationInterceptor())
     )
     
     do {
       let result = try await provider
         .request(AuthAPI.isLogIn).value
-      
       return result.statusCode == 200
     } catch {
-      return false
+      throw APIError.serverError
     }
   }
 }

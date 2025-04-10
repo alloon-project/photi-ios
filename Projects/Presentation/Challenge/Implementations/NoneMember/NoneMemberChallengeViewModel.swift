@@ -137,14 +137,18 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
 private extension NoneMemberChallengeViewModel {
   func didTapJoinButton() {
     Task {
-      let isLogin = await useCase.isLogIn()
-      
-      DispatchQueue.main.async { [weak self] in
-        if isLogin {
-          self?.joinChallenge()
-        } else {
-          self?.coordinator?.attachLogInGuide()
+      do {
+        let isLogin = try await useCase.isLogIn()
+        
+        DispatchQueue.main.async { [weak self] in
+          if isLogin {
+            self?.joinChallenge()
+          } else {
+            self?.coordinator?.attachLogInGuide()
+          }
         }
+      } catch {
+        requestFailedRelay.accept(())
       }
     }
   }
@@ -153,9 +157,7 @@ private extension NoneMemberChallengeViewModel {
     if isPrivateChallenge {
       displayUnlockViewRelay.accept(())
     } else {
-      coordinator?.attachEnterChallengeGoal(
-        challengeName: challengeName, challengeID: challengeId
-      )
+      Task { await requestJoinPublicChallenge() }
     }
   }
 }
@@ -193,7 +195,10 @@ private extension NoneMemberChallengeViewModel {
   func requestJoinPublicChallenge() async {
     do {
       try await useCase.joinPublicChallenge(id: challengeId).value
-      coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+      }
     } catch {
       requestJoinChallengeFailed(with: error)
     }

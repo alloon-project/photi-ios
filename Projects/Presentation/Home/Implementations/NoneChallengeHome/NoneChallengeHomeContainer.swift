@@ -6,11 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 import UseCase
 
 protocol NoneChallengeHomeDependency: Dependency {
   var homeUseCase: HomeUseCase { get }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
 }
 
 protocol NoneChallengeHomeContainable: Containable {
@@ -26,7 +28,8 @@ final class NoneChallengeHomeContainer:
     
     let coordinator = NoneChallengeHomeCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      noneMemberChallengeContainer: dependency.noneMemberChallengeContainable
     )
     coordinator.listener = listener
     

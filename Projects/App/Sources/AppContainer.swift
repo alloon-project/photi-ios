@@ -6,6 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Challenge
+import ChallengeImpl
 import Core
 import DataMapper
 import Home
@@ -36,8 +38,8 @@ final class AppContainer:
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
-  ReportDependency {
-  
+  ReportDependency,
+  NoneMemberChallengeDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     
@@ -60,6 +62,10 @@ final class AppContainer:
     
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
+  }()
+  
+  lazy var noneMemberChallengeContainable: NoneMemberChallengeContainable = {
+    return NoneMemberChallengeContainer(dependency: self)
   }()
   
   // MARK: - UseCase
@@ -96,7 +102,7 @@ final class AppContainer:
   }()
   
   lazy var homeUseCae: HomeUseCase = {
-    return HomeUseCaseImpl(repository: challengeRepository)
+    return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
   
   lazy var challengeUseCase: ChallengeUseCase = {
