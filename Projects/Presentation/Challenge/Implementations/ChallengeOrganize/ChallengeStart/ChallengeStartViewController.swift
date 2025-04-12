@@ -25,15 +25,16 @@ final class ChallengeStartViewController: UIViewController, ViewControllerable {
   private let announceLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 2
-    label.textAlignment = .center
     label.attributedText = "개최하고 싶은\n챌린지가 있나요?".attributedString(
       font: .heading2,
       color: .gray900
     )
+    label.textAlignment = .center
+    
     return label
   }()
   
-  private let StartImageView: UIImageView = {
+  private let startImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.image = .challengeOrganizeMain
     
@@ -43,16 +44,18 @@ final class ChallengeStartViewController: UIViewController, ViewControllerable {
   private let firstAnnounceComment = CommentView(
     .condition,
     text: "파티장이 되어보세요",
-    icon: .rocketBlue
+    icon: .rocketBlue,
+    isActivate: true
   )
   
   private let secondAnnounceComment = CommentView(
     .condition,
     text: "평균 5~10분이 소요돼요",
-    icon: .timeBlue
+    icon: .timeBlue,
+    isActivate: true
   )
   
-  private let StartButton = FilledRoundButton(
+  private let startButton = FilledRoundButton(
     type: .primary,
     size: .xLarge,
     text: "가보자구요!",
@@ -98,10 +101,11 @@ private extension ChallengeStartViewController {
   func setViewHierarchy() {
     view.addSubviews(
       navigationBar,
+      startImageView,
       announceLabel,
       firstAnnounceComment,
       secondAnnounceComment,
-      StartButton
+      startButton
     )
   }
   
@@ -118,7 +122,14 @@ private extension ChallengeStartViewController {
       $0.top.equalTo(navigationBar.snp.bottom).offset(40)
     }
   
-    StartButton.snp.makeConstraints {
+    startImageView.snp.makeConstraints {
+      $0.top.equalTo(announceLabel.snp.bottom).offset(84)
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().inset(24)
+      $0.height.equalTo(250)
+    }
+    
+    startButton.snp.makeConstraints {
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().offset(-24)
       $0.bottom.equalToSuperview().offset(-56)
@@ -126,12 +137,12 @@ private extension ChallengeStartViewController {
     
     secondAnnounceComment.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalTo(StartButton.snp.top).inset(32)
+      $0.bottom.equalTo(startButton.snp.top).inset(-32)
     }
     
     firstAnnounceComment.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalTo(secondAnnounceComment.snp.top).inset(20)
+      $0.bottom.equalTo(secondAnnounceComment.snp.top).inset(-20)
     }
   }
 }
@@ -141,7 +152,7 @@ private extension ChallengeStartViewController {
   func bind() {
     let input = ChallengeStartViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapStartButton: StartButton.rx.tap
+      didTapStartButton: startButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
