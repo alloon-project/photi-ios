@@ -55,18 +55,22 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
     isActivate: true
   )
   
-  private let privateComment = CommentView(
-    .condition,
-    text: "친한 친구들과 챌린지를 즐겨요",
-    icon: .peopleBlue,
-    isActivate: true
-  )
+  private let privateComment: CommentView = {
+    let commentView = CommentView(
+      .condition,
+      text: "친한 친구들과 챌린지를 즐겨요",
+      icon: .peopleBlue,
+      isActivate: true
+    )
+    commentView.isHidden = true
+    return commentView
+  }()
   
   private let publicSwitch = {
     let publicSwitch = UISwitch()
     publicSwitch.isOn = true
     publicSwitch.onTintColor = .blue400
-    publicSwitch.addTarget(self, action: #selector(toggleSwitch), for: .touchUpInside)
+    publicSwitch.addTarget(ChallengeNameViewController.self, action: #selector(toggleSwitch), for: .touchUpInside)
     
     return publicSwitch
   }()
@@ -108,7 +112,7 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
 private extension ChallengeNameViewController {
   func setupUI() {
     view.backgroundColor = .white
-    challengeNameTextField.setKeyboardType(.emailAddress)
+    challengeNameTextField.setKeyboardType(.default)
     setViewHierarchy()
     setConstraints()
   }
@@ -165,6 +169,11 @@ private extension ChallengeNameViewController {
       $0.top.equalTo(publicLabel.snp.bottom).offset(16)
     }
     
+    publicSwitch.snp.makeConstraints {
+      $0.top.equalTo(publicLabel).offset(4)
+      $0.trailing.equalToSuperview().inset(24)
+    }
+    
     nextButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-56)
@@ -184,9 +193,23 @@ private extension ChallengeNameViewController {
     
     let output = viewModel.transform(input: input)
     bind(for: output)
+    viewBind()
   }
   
   func bind(for output: ChallengeNameViewModel.Output) { }
+  
+  func viewBind() {
+    challengeNameTextField.rx.text
+      .map { !$0.isEmpty }
+      .bind(to: nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+      
+    isPublicRelay.asObservable()
+      .bind(with: self) { owner, isPublic in
+        owner.publicComment.isHidden = !isPublic
+        owner.privateComment.isHidden = isPublic
+      }.disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengeNamePresentable
@@ -196,7 +219,6 @@ extension ChallengeNameViewController: ChallengeNamePresentable { }
 private extension ChallengeNameViewController {
   @objc
   func toggleSwitch() {
-    publicSwitch.isOn.toggle()
     isPublicRelay.accept(publicSwitch.isOn)
   }
 }
