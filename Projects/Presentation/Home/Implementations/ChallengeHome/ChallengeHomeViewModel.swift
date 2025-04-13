@@ -15,6 +15,7 @@ import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject {
   func attachLogin()
+  func attachChallenge(id: Int)
 }
 
 protocol ChallengeHomeViewModelType: AnyObject {
@@ -82,6 +83,12 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     input.didTapLoginButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.attachLogin()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachChallenge(id: id)
       }
       .disposed(by: disposeBag)
     

@@ -37,3 +37,40 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
 extension ChallengeHomeCoordinator {
   func attachLogin() { }
 }
+
+// MARK: - Challenge
+extension ChallengeHomeCoordinator {
+  func attachChallenge(id: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainer.coordinator(listener: self, challengeId: id)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    
+    self.challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
+    self.challengeCoordinator = nil
+  }
+}
+
+// MARK: - ChallengeListener
+extension ChallengeHomeCoordinator: ChallengeListener {
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
+  
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func requestLoginAtChallenge() { }
+  
+  func leaveChallenge(isDelete: Bool) { }
+}
