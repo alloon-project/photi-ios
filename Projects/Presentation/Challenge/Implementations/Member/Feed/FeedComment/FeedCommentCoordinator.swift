@@ -10,6 +10,7 @@ import Core
 
 protocol FeedCommentListener: AnyObject {
   func requestDismissAtFeedComment()
+  func deleteFeed(id: Int)
   func authenticatedFailedAtFeedComment()
   func networkUnstableAtFeedComment(reason: String?)
 }
@@ -35,6 +36,10 @@ final class FeedCommentCoordinator: ViewableCoordinator<FeedCommentPresentable> 
 extension FeedCommentCoordinator: FeedCommentCoordinatable {
   func requestDismiss() {
     listener?.requestDismissAtFeedComment()
+  }
+  
+  func deleteFeed(id: Int) {
+    listener?.deleteFeed(id: id)
   }
   
   func authenticatedFailed() {

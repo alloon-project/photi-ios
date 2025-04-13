@@ -34,12 +34,17 @@ final class FeedCommentTopView: UIView {
     didSet { likeButton.isSelected = isLike }
   }
   
+  var isEnbledOptionButton: Bool = false {
+    didSet { optionButton.isHidden = !isEnbledOptionButton }
+  }
+  
   // MARK: - UI Components
   private let topGradientLayer = FeedCommentGradientLayer(mode: .topToBottom, maxAlpha: 0.7)
   private let avatarImageView = AvatarImageView(size: .xSmall)
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
   fileprivate let likeButton = IconButton(size: .small)
+  let optionButton = IconButton(selectedIcon: .ellipsisVerticalWhite, size: .small)
   private let likeCountLabel = UILabel()
   
   // MARK: - Initializers
@@ -74,6 +79,7 @@ private extension FeedCommentTopView {
       userNameLabel,
       updateTimeLabel,
       likeButton,
+      optionButton,
       likeCountLabel
     )
   }
@@ -96,6 +102,11 @@ private extension FeedCommentTopView {
     
     likeButton.snp.makeConstraints {
       $0.top.trailing.equalToSuperview().inset(18)
+    }
+    
+    optionButton.snp.makeConstraints {
+      $0.centerY.equalTo(likeButton)
+      $0.trailing.equalTo(likeButton.snp.leading).offset(-12)
     }
     
     likeCountLabel.snp.makeConstraints {

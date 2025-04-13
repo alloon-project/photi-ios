@@ -13,7 +13,7 @@ import UseCase
 
 protocol EnterIdCoordinatable: AnyObject { 
   func didTapBackButton()
-  func didTapNextButton(userName: String)
+  func didTapNextButton()
 }
 
 protocol EnterIdViewModelType: AnyObject {
@@ -33,23 +33,25 @@ final class EnterIdViewModel: EnterIdViewModelType {
   private let inValidIdFormRelay = PublishRelay<Void>()
   private let duplicateIdRelay = PublishRelay<Void>()
   private let validIdRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let unAvailableIdRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input { 
-    var didTapBackButton: ControlEvent<Void>
-    var didTapNextButton: ControlEvent<Void>
-    var didTapVerifyIdButton: ControlEvent<Void>
-    var userId: ControlProperty<String>
+    let didTapBackButton: ControlEvent<Void>
+    let didTapNextButton: ControlEvent<Void>
+    let didTapVerifyIdButton: ControlEvent<Void>
+    let userId: ControlProperty<String>
   }
   
   // MARK: - Output
   struct Output { 
-    var inValidIdForm: Signal<Void>
-    var duplicateId: Signal<Void>
-    var validId: Signal<Void>
-    var isDuplicateButtonEnabled: Signal<Bool>
-    var requestFailed: Signal<Void>
+    let inValidIdForm: Signal<Void>
+    let duplicateId: Signal<Void>
+    let validId: Signal<Void>
+    let unAvailableId: Signal<Void>
+    let isDuplicateButtonEnabled: Signal<Bool>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -67,14 +69,15 @@ final class EnterIdViewModel: EnterIdViewModelType {
     input.didTapNextButton
       .withLatestFrom(input.userId)
       .subscribe(with: self) { owner, userName in
-        owner.coordinator?.didTapNextButton(userName: userName)
+        owner.useCase.configureUsername(userName)
+        owner.coordinator?.didTapNextButton()
       }
       .disposed(by: disposeBag)
     
     input.didTapVerifyIdButton
       .withLatestFrom(input.userId)
       .subscribe(with: self) { owner, userId in
-        owner.verifyUseName(userId)
+        owner.verifyUserName(userId)
       }
       .disposed(by: disposeBag)
     
@@ -82,21 +85,17 @@ final class EnterIdViewModel: EnterIdViewModelType {
       inValidIdForm: inValidIdFormRelay.asSignal(),
       duplicateId: duplicateIdRelay.asSignal(),
       validId: validIdRelay.asSignal(),
+      unAvailableId: unAvailableIdRelay.asSignal(),
       isDuplicateButtonEnabled: input.userId.map { !$0.isEmpty }.asSignal(onErrorJustReturn: false),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension EnterIdViewModel {
-  func verifyUseName(_ useName: String) {
-    guard useName.isValidateId else {
-      inValidIdFormRelay.accept(())
-      return
-    }
-    
-    useCase.verifyUseName(useName)
+  func verifyUserName(_ userName: String) {
+    useCase.verifyUserName(userName)
       .observe(on: MainScheduler.instance)
       .subscribe(
         with: self,
@@ -111,16 +110,19 @@ private extension EnterIdViewModel {
   }
   
   func requestFailed(error: Error) {
-    if
-      let error = error as? APIError,
-      case .signUpFailed(let reason) = error {
-      if case .useNameAlreadyExists = reason {
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(())
+    }
+    
+    switch error {
+      case let .signUpFailed(reason) where reason == .userNameAlreadyExists:
         duplicateIdRelay.accept(())
-      } else {
-        requestFailedRelay.accept(())
-      }
-    } else {
-      requestFailedRelay.accept(())
+      case let .signUpFailed(reason) where reason == .invalidUserNameFormat:
+        inValidIdFormRelay.accept(())
+      case let .signUpFailed(reason) where reason == .invalidUserName:
+        unAvailableIdRelay.accept(())
+      default:
+        networkUnstableRelay.accept(())
     }
   }
 }

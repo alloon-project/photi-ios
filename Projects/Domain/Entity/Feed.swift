@@ -17,8 +17,6 @@ public struct Feed {
   public let updateTime: Date
   public let likeCount: Int
   
-  
-  
   public init(
     id: Int,
     author: String,

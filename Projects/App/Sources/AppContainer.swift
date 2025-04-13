@@ -6,6 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Challenge
+import ChallengeImpl
 import Core
 import DataMapper
 import Home
@@ -33,11 +35,11 @@ final class AppContainer:
   Container<AppDependency>,
   AppContainable,
   LogInDependency,
-  SignUpDependency,
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
-  ReportDependency {
+  ReportDependency,
+  NoneMemberChallengeDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     
@@ -57,13 +59,13 @@ final class AppContainer:
   lazy var loginContainable: LogInContainable = {
     return LogInContainer(dependency: self)
   }()
-  
-  lazy var signUpContainable: SignUpContainable = {
-    return SignUpContainer(dependency: self)
-  }()
-  
+    
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
+  }()
+  
+  lazy var noneMemberChallengeContainable: NoneMemberChallengeContainable = {
+    return NoneMemberChallengeContainer(dependency: self)
   }()
   
   // MARK: - UseCase
@@ -100,15 +102,19 @@ final class AppContainer:
   }()
   
   lazy var homeUseCae: HomeUseCase = {
-    return HomeUseCaseImpl(repository: challengeRepository)
+    return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
   
   lazy var challengeUseCase: ChallengeUseCase = {
-    return ChallengeUseCaseImpl(repository: challengeRepository, authRepository: authRepository)
+    return ChallengeUseCaseImpl(
+      challengeRepository: challengeRepository,
+      feedRepository: feedRepository,
+      authRepository: authRepository
+    )
   }()
   
   lazy var feedUseCase: FeedUseCase = {
-    return FeedUseCaseImpl(repository: challengeRepository)
+    return FeedUseCaseImpl(repository: feedRepository)
   }()
   
   lazy var reportUseCase: ReportUseCase = {
@@ -117,6 +123,10 @@ final class AppContainer:
   
   lazy var inquiryUseCase: InquiryUseCase = {
     return InquiryUseCaseImpl(repository: inquiryRepository)
+  }()
+  
+  lazy var resignUsecase: ResignUseCase = {
+    return ResignUseCaseImpl(repository: resignRepository)
   }()
   
   // MARK: - Repository
@@ -156,11 +166,19 @@ final class AppContainer:
     return ChallengeRepositoryImpl(dataMapper: ChallengeDataMapperImpl())
   }()
   
+  lazy var feedRepository: FeedRepository = {
+    return FeedRepositoryImpl(dataMapper: ChallengeDataMapperImpl())
+  }()
+  
   lazy var reportRepository: ReportRepository = {
     return ReportRepositoryImpl(dataMapper: ReportDataMapperImpl())
   }()
   
   lazy var inquiryRepository: InquiryRepository = {
     return InquiryRepositoryImpl(dataMapper: InquiryDataMapperImpl())
+  }()
+
+  lazy var resignRepository: ResignRepository = {
+    return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
   }()
 }

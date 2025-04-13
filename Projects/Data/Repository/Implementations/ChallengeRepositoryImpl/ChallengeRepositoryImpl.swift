@@ -27,7 +27,8 @@ public extension ChallengeRepositoryImpl {
   func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.popularChallenges,
-      responseType: [PopularChallengeResponseDTO].self
+      responseType: [PopularChallengeResponseDTO].self,
+      behavior: .never
     )
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
@@ -44,67 +45,9 @@ public extension ChallengeRepositoryImpl {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.challengeDetail(id: id),
       responseType: ChallengeDetailResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
-  }
-  
-  func fetchFeeds(
-    id: Int,
-    page: Int,
-    size: Int,
-    orderType: ChallengeFeedsOrderType
-  ) async throws -> FeedReturnType {
-    let api = ChallengeAPI.feeds(
-      id: id,
-      page: page,
-      size: size,
-      sortOrder: orderType.rawValue
-    )
-    
-    let value = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedsResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    let feeds = value.content.map { data in
-      data.feeds.map { dataMapper.mapToFeed(dto: $0) }
-    }
-    
-    return .init(
-      feeds: feeds,
-      isLast: value.last,
-      memberCount: value.content.first?.feedMemberCnt ?? 0
-    )
-  }
-
-  func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed {
-    let api = ChallengeAPI.feedDetail(challengeId: challengeId, feedId: feedId)
-    let result = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedDetailResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    return dataMapper.mapToFeed(dto: result, id: challengeId)
-  }
-  
-  func fetchFeedComments(
-    feedId: Int,
-    page: Int,
-    size: Int
-  ) async throws -> (feeds: [FeedComment], isLast: Bool) {
-    let api = ChallengeAPI.feedComments(feedId: feedId, page: page, size: size)
-    let result = try await requestAuthorizableAPI(
-      api: api,
-      responseType: FeedCommentsResponseDTO.self,
-      behavior: .immediate
-    ).value
-    
-    let feeds = result.content.map { dataMapper.mapToFeedComment(dto: $0) }
-    
-    return (feeds, result.last)
   }
   
   func isProve(challengeId: Int) async throws -> Bool {
@@ -117,12 +60,22 @@ public extension ChallengeRepositoryImpl {
     
     return result.isProve
   }
+  
+  func challengeCount() async throws -> Int {
+    let result = try await requestAuthorizableAPI(
+        api: ChallengeAPI.challengeCount,
+        responseType: ChallengeCountResponseDTO.self,
+        behavior: .never
+      ).value
+      
+    return result.challengeCnt
+  }
     
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.myChallenges(page: page, size: size),
       responseType: MyChallengesResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
@@ -131,7 +84,7 @@ public extension ChallengeRepositoryImpl {
     return requestAuthorizableAPI(
       api: ChallengeAPI.challengeDescription(id: challengeId),
       responseType: ChallengeDescriptionResponseDTO.self,
-      behavior: .immediate
+      behavior: .never
     )
     .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
   }
@@ -166,27 +119,6 @@ public extension ChallengeRepositoryImpl {
     .map { _ in () }
   }
   
-  func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
-    let api = ChallengeAPI.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.challengeFailed(reason: .challengeNotFound)
-    }
-      
-    // TODO: 서버 API수정시 Feed CommentID 리턴으로 수정 예정
-    return 100
-  }
-  
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
@@ -198,61 +130,26 @@ public extension ChallengeRepositoryImpl {
   
   func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
     let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
+    
+    let single = requestAuthorizableAPI(
+      api: api,
+      responseType: SuccessResponseDTO.self,
+      behavior: .never
     )
     
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    } else if result.statusCode == 409 {
-      throw APIError.challengeFailed(reason: .alreadyUploadFeed)
-    }
-  }
-  
-  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
-    let api = ChallengeAPI.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
-    )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.userNotFound
-    }
+    try await executeSingle(single)
   }
 }
 
 // MARK: - Delete Methods
 public extension ChallengeRepositoryImpl {
-  func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws {
-    let api = ChallengeAPI.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
-    let provider = Provider<ChallengeAPI>(
-      stubBehavior: .immediate,
-      session: .init(interceptor: AuthenticationInterceptor())
+  func leaveChallenge(id: Int) -> Single<Void> {
+    return requestAuthorizableAPI(
+      api: .leaveChallenge(challengeId: id),
+      responseType: SuccessResponseDTO.self,
+      behavior: .immediate
     )
-    
-    guard let result = try? await provider.request(api).value else {
-      throw APIError.serverError
-    }
-    
-    if result.statusCode == 401 || result.statusCode == 403 {
-      throw APIError.authenticationFailed
-    } else if result.statusCode == 404 {
-      throw APIError.challengeFailed(reason: .challengeNotFound)
-    }
+    .map { _ in }
   }
 }
 
@@ -261,7 +158,7 @@ private extension ChallengeRepositoryImpl {
   func requestAuthorizableAPI<T: Decodable>(
     api: ChallengeAPI,
     responseType: T.Type,
-    behavior: StubBehavior = .immediate
+    behavior: StubBehavior = .never
   ) -> Single<T> {
     return Single.create { single in
       Task {
@@ -272,17 +169,55 @@ private extension ChallengeRepositoryImpl {
           )
           
           let result = try await provider.request(api, type: responseType.self).value
+          if (200..<300).contains(result.statusCode), let data = result.data {
+            single(.success(data))
+          } else if result.statusCode == 400 {
+            single(.failure(map400ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
+          } else if result.statusCode == 404 {
+            single(.failure(map404ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 409 {
+            single(.failure(map409ToAPIError(result.code, result.message)))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+            single(.failure(APIError.authenticationFailed))
+          } else {
+            single(.failure(error))
+          }
+        }
+      }
+      return Disposables.create()
+    }
+  }
+  
+  func requestUnAuthorizableAPI<T: Decodable>(
+    api: ChallengeAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .never
+  ) -> Single<T> {
+    Single.create { single in
+      Task {
+        do {
+          let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
+          let result = try await provider
+            .request(api, type: responseType.self).value
           
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
           } else if result.statusCode == 400 {
-            single(.failure(APIError.challengeFailed(reason: .invalidInvitationCode)))
-          } else if result.statusCode == 401 || result.statusCode == 403 {
-            single(.failure(APIError.authenticationFailed))
+            single(.failure(map400ToAPIError(result.code, result.message)))
           } else if result.statusCode == 404 {
-            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
+            single(.failure(map404ToAPIError(result.code, result.message)))
           } else if result.statusCode == 409 {
-            single(.failure(APIError.challengeFailed(reason: .alreadyJoinedChallenge)))
+            single(.failure(map409ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.challengeFailed(reason: .fileTooLarge)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.challengeFailed(reason: .invalidFileFormat)))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -294,31 +229,40 @@ private extension ChallengeRepositoryImpl {
     }
   }
   
-  func requestUnAuthorizableAPI<T: Decodable>(
-    api: ChallengeAPI,
-    responseType: T.Type,
-    behavior: StubBehavior = .immediate
-  ) -> Single<T> {
-    Single.create { single in
-      Task {
-        do {
-          let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
-          let result = try await provider
-            .request(api, type: responseType.self).value
-          
-          if (200..<300).contains(result.statusCode), let data = result.data {
-            single(.success(data))
-          } else if result.statusCode == 404 {
-            single(.failure(APIError.challengeFailed(reason: .challengeNotFound)))
-          } else {
-            single(.failure(APIError.serverError))
-          }
-        } catch {
-          single(.failure(error))
-        }
-      }
-      
-      return Disposables.create()
+  func map400ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "CHALLENGE_INVITATION_CODE_INVALID" {
+      return APIError.challengeFailed(reason: .invalidInvitationCode)
+    } else if code == "CHALLENGE_LIMIT_EXCEED" {
+      return APIError.challengeFailed(reason: .challengeLimitExceed)
+    } else {
+      return APIError.clientError(code: code, message: message)
     }
+  }
+  
+  func map404ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "USER_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .userNotFound)
+    } else if code == "CHALLENGE_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .challengeNotFound)
+    } else if code == "CHALLENGE_MEMBER_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .notChallengeMemeber)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
+  func map409ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "EXISTING_CHALLENGE_MEMBER" {
+      return APIError.challengeFailed(reason: .alreadyJoinedChallenge)
+    } else if code == "EXISTING_FEED" {
+      return APIError.challengeFailed(reason: .alreadyUploadFeed)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
+  @discardableResult
+  func executeSingle<T>(_ single: Single<T>) async throws -> T {
+    return try await single.value
   }
 }

@@ -23,6 +23,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   var keyboardShowNotification: NSObjectProtocol?
   var keyboardHideNotification: NSObjectProtocol?
 
+  private let dropDownOptions = ["공유하기", "피드 삭제하기"]
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
@@ -31,6 +32,8 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let requestDataRelay = PublishRelay<Void>()
   private let requestDeleteCommentRelay = PublishRelay<Int>()
   private let uploadCommentRelay = PublishRelay<String>()
+  private let didTapShareButton = PublishRelay<Void>()
+  private let didTapDeleteFeedButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let blurView: UIView = {
@@ -63,6 +66,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
     return tableView
   }()
   private let commentTextField = FeedCommentTextField()
+  private lazy var dropDownView = DropDownView(anchorView: topView.optionButton)
   
   // MARK: - Initializers
   init(viewModel: FeedCommentViewModel) {
@@ -188,6 +192,8 @@ private extension FeedCommentViewController {
       requestComments: requestComments.asSignal(),
       requestData: requestDataRelay.asSignal(),
       didTapLikeButton: topView.rx.didTapLikeButton.asSignal(),
+      didTapShareButton: didTapShareButton.asSignal(),
+      didTapDeleteButton: didTapDeleteFeedButton.asSignal(),
       requestDeleteComment: requestDeleteCommentRelay.asSignal(),
       requestUploadComment: uploadCommentRelay.asSignal()
     )
@@ -274,6 +280,13 @@ private extension FeedCommentViewController {
     
     output.isLike
       .drive(topView.rx.isLike)
+      .disposed(by: disposeBag)
+    
+    output.isEditable
+      .drive(with: self) { owner, isEditable in
+        owner.topView.isEnbledOptionButton = isEditable
+        if isEditable { owner.configureDropDown() }
+      }
       .disposed(by: disposeBag)
   }
   
@@ -450,6 +463,17 @@ private extension FeedCommentViewController {
   }
 }
 
+// MARK: - DropDownDelegate
+extension FeedCommentViewController: DropDownDelegate {
+  func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
+    if didSelectRowAt == 0 {
+      didTapShareButton.accept(())
+    } else {
+      presentDeleteWaringAlert()
+    }
+  }
+}
+
 // MARK: - Private Methods
 private extension FeedCommentViewController {
   func configureRefreshControl() {
@@ -516,6 +540,20 @@ private extension FeedCommentViewController {
     toastView.present(to: self)
   }
   
+  func presentDeleteWaringAlert() {
+    let alert = AlertViewController(
+      alertType: .canCancel,
+      title: "피드를 삭제할까요?",
+      subTitle: "삭제한 피드는 복구할 수 없으며,\n오늘 더 이상 피드를 올릴 수 없어요."
+    )
+    alert.present(to: self, animted: true)
+    alert.cancelButtonTitle = "취소할게요"
+    alert.confirmButtonTitle = "삭제할게요"
+    alert.rx.didTapConfirmButton
+      .bind(to: didTapDeleteFeedButton)
+      .disposed(by: disposeBag)
+  }
+  
   func deleteToastViewBottomInset() -> CGFloat {
     guard let dataSource else { return 0.0 }
     let count = dataSource.snapshot().numberOfItems
@@ -539,6 +577,18 @@ private extension FeedCommentViewController {
       self.mainContainerView.frame.origin = origin
       self.mainContainerView.layoutIfNeeded()
     }
+  }
+  
+  func configureDropDown() {
+    view.addSubviews(dropDownView)
+    dropDownView.setConstraints { [weak self] make in
+      guard let self else { return }
+      make.top.equalTo(topView.optionButton.snp.bottom).offset(8)
+      make.trailing.equalTo(topView.optionButton)
+      make.width.equalTo(130)
+    }
+    dropDownView.delegate = self
+    dropDownView.dataSource = dropDownOptions
   }
   
   func keepAliveBlurView() {

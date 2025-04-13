@@ -225,7 +225,7 @@ private extension FeedViewController {
     
     output.isUploadSuccess
       .emit(with: self) { owner, _ in
-        LoadingAnimation.default.stop()
+        LoadingAnimation.logo.stop()
         owner.isProve = .didProve
         owner.cameraShutterButton.isHidden = true
       }
@@ -277,7 +277,16 @@ private extension FeedViewController {
 }
 
 // MARK: - FeedPresentable
-extension FeedViewController: FeedPresentable { }
+extension FeedViewController: FeedPresentable {
+  func deleteFeed(feedId: Int) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    guard let model = snapshot.itemIdentifiers.first(where: { $0.id == feedId }) else { return }
+    snapshot.deleteItems([model])
+    dataSource.apply(snapshot)
+  }
+}
 
 // MARK: - UICollectionViewDiffableDataSource
 extension FeedViewController {
@@ -415,7 +424,7 @@ extension FeedViewController: UIImagePickerControllerDelegate, UINavigationContr
 extension FeedViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
     uploadImageRelay.accept(.init(image: image))
-    LoadingAnimation.default.start()
+    LoadingAnimation.logo.start()
   }
 }
 

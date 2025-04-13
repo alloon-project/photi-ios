@@ -138,7 +138,13 @@ private extension LogInViewController {
       didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,
       didTapSignUpButton: signUpButton.rx.tap
     )
-    
+   
+    let output = viewModel.transform(input: input)
+    viewBind()
+    bind(for: output)
+  }
+  
+  func viewBind() {
     idTextField.rx.text
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
@@ -160,9 +166,6 @@ private extension LogInViewController {
         owner.view.endEditing(true)
       }
       .disposed(by: disposeBag)
-    
-    let output = viewModel.transform(input: input)
-    bind(for: output)
   }
   
   func bind(for output: LogInViewModel.Output) {
@@ -187,9 +190,16 @@ private extension LogInViewController {
       }
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
-        owner.displayAlertPopUp()
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.loadingAnmiation
+      .emit(with: self) { owner, isStart in
+        isStart ? owner.loginButton.startLoadingAnimation() : owner.loginButton.stopLoadingAnimation()
+        owner.view.isUserInteractionEnabled = !isStart
       }
       .disposed(by: disposeBag)
     }
@@ -202,10 +212,5 @@ extension LogInViewController: LogInPresentable { }
 private extension LogInViewController {
   func displayToastView() {
     warningToastView.present(to: self)
-  }
-  
-  func displayAlertPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "오류", subTitle: "잠시 후에 다시 시도해주세요.")
-    alertVC.present(to: self, animted: false)
   }
 }

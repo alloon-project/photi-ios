@@ -39,8 +39,9 @@ final class LogInViewModel: LogInViewModelType {
   weak var coordinator: LogInCoordinatable?
   
   private let useCase: LogInUseCase
+  private let loadingAnimationRelay = PublishRelay<Bool>()
   private let invalidIdOrPasswordRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -55,9 +56,10 @@ final class LogInViewModel: LogInViewModelType {
   
   // MARK: - Output
   struct Output {
-    var emptyIdOrPassword: Signal<Void>
-    var invalidIdOrPassword: Signal<Void>
-    var requestFailed: Signal<Void>
+    let loadingAnmiation: Signal<Bool>
+    let emptyIdOrPassword: Signal<Void>
+    let invalidIdOrPassword: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -106,9 +108,10 @@ final class LogInViewModel: LogInViewModelType {
       .disposed(by: disposeBag)
     
     return Output(
+      loadingAnmiation: loadingAnimationRelay.asSignal(),
       emptyIdOrPassword: emptyIdOrPassword.asSignal(onErrorJustReturn: ()),
       invalidIdOrPassword: invalidIdOrPasswordRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -116,6 +119,7 @@ final class LogInViewModel: LogInViewModelType {
 // MARK: - Private Methods
 private extension LogInViewModel {
   func requestLogin(userName: String, password: String) {
+    loadingAnimationRelay.accept(true)
     useCase.login(username: userName, password: password)
       .observe(on: MainScheduler.instance)
       .subscribe(
@@ -124,6 +128,7 @@ private extension LogInViewModel {
           owner.coordinator?.didFinishLogIn(userName: userName)
         },
         onFailure: { owner, error in
+          owner.loadingAnimationRelay.accept(false)
           owner.requestFailed(with: error)
         }
       )
@@ -131,10 +136,15 @@ private extension LogInViewModel {
   }
   
   func requestFailed(with error: Error) {
-    if let error = error as? APIError, case .loginFailed = error {
-      invalidIdOrPasswordRelay.accept(())
-    } else {
-      requestFailedRelay.accept(())
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(())
+    }
+    
+    switch error {
+      case .loginFailed:
+        invalidIdOrPasswordRelay.accept(())
+      default:
+        networkUnstableRelay.accept(())
     }
   }
 }

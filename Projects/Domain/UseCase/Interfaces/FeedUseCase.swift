@@ -7,6 +7,7 @@
 //
 
 import Entity
+import RxSwift
 
 public enum FeedCommentsPage {
   case `default`([FeedComment])
@@ -19,4 +20,6 @@ public protocol FeedUseCase {
   func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> FeedCommentsPage
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
+  func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void>
+  func fetchFeeds(page: Int, size: Int) -> Single<[FeedHistory]>
 }
