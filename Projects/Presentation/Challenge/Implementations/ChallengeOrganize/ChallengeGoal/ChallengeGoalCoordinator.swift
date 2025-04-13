@@ -32,13 +32,19 @@ final class ChallengeGoalCoordinator: ViewableCoordinator<ChallengeGoalPresentab
 }
 
 extension ChallengeGoalCoordinator: ChallengeGoalCoordinatable {
-  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date) {
-    listener?.didFisishChallengeGoal(challengeGoal: challengeGoal, proveTime: proveTime, endDate: endDate)
+  func didFinishChallengeGoal(
+    challengeGoal: String,
+    proveTime: String,
+    endDate: Date
+  ) {
+    listener?.didFisishChallengeGoal(
+      challengeGoal: challengeGoal,
+      proveTime: proveTime,
+      endDate: endDate
+    )
   }
   
   func didTapBackButtonAtChallengeGoal() {
     listener?.didTapBackButtonAtChallengeGoal()
   }
 }
-
-
