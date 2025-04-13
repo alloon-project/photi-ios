@@ -90,15 +90,17 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       let endDate = $0.endDate.toDate() ?? Date()
       let hasTags = $0.hashtags.map { $0.hashtag }
       let proveTime = $0.proveTime.toDate("HH:mm") ?? Date()
+      let imageUrl = URL(string: $0.challengeImageUrl ?? "")
+      let feedImageUrl = URL(string: $0.feedImageUrl ?? "")
       
       return .init(
         id: $0.id,
         name: $0.name,
-        imageUrl: $0.challengeImageUrl,
+        imageUrl: imageUrl,
         endDate: endDate,
         hashTags: hasTags,
         proveTime: proveTime,
-        feedImageURL: $0.feedImageUrl,
+        feedImageURL: feedImageUrl,
         isProve: $0.isProve
       )
     }
