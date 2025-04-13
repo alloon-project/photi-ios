@@ -33,12 +33,15 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   struct Input {
     var didTapBackButton: ControlEvent<Void>
     var challengeGoal: ControlProperty<String>
-    var isPublicChallenge: Observable<Bool>
+    var proveTime: ControlProperty<String>
+    var date: Observable<Date>
     var didTapNextButton: ControlEvent<Void>
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output {
+    var isEnabledNextButton: Driver<Bool>
+  }
   
   // MARK: - Initializers
   init() {}
@@ -50,6 +53,32 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
       }
       .disposed(by: disposeBag)
   
-    return Output()
+    let infos = Observable.combineLatest(
+      input.challengeGoal,
+      input.proveTime,
+      input.date
+    )
+    
+    input.didTapNextButton
+      .withLatestFrom(infos)
+      .bind(with: self) { owner, infos in
+        owner.coordinator?.didFinishChallengeGoal(
+          challengeGoal: infos.0,
+          proveTime: infos.1,
+          endDate: infos.2
+        )
+      }
+      .disposed(by: disposeBag)
+    
+    let isEnabledNextButton = Observable.combineLatest(
+      input.challengeGoal.asObservable(),
+      input.proveTime.asObservable(),
+      input.date) { goal, time, date in
+        !goal.isEmpty && !time.isEmpty && date > Date()
+      }
+    
+    return Output(
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+    )
   }
 }
