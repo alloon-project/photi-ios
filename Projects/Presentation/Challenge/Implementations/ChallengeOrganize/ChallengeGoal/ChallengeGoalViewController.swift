@@ -16,12 +16,13 @@ import DesignSystem
 final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeGoalViewModel
-  private var isPublicRelay: BehaviorRelay<Bool> = BehaviorRelay(value: true)
+  private let proveTimeRelay = PublishRelay<String>()
+  private let endDateRelay = PublishRelay<Date>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
-  private let progressBar = LargeProgressBar(step: .one)
+  private let progressBar = LargeProgressBar(step: .two)
   
   private let titleLabel: UILabel = {
     let label = UILabel()
@@ -48,34 +49,42 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
     return label
   }()
   
-  private let publicComment = CommentView(
-    .condition,
-    text: "다양한 사람들과 챌린지를 즐겨요",
-    icon: .postitBlue,
-    isActivate: true
-  )
-  
-  private let privateComment = CommentView(
-    .condition,
-    text: "친한 친구들과 챌린지를 즐겨요",
-    icon: .peopleBlue,
-    isActivate: true
-  )
-  
-  private let publicSwitch = {
-    let publicSwitch = UISwitch()
-    publicSwitch.isOn = true
-    publicSwitch.onTintColor = .blue400
-    publicSwitch.addTarget(self, action: #selector(toggleSwitch), for: .touchUpInside)
+  private let downImageView = UIImageView(image: .chevronDownGray400)
+
+  private let proveTimeTextField: LineTextField = {
+    let textField = LineTextField(placeholder: "00:00", type: .default)
     
-    return publicSwitch
+    return textField
   }()
   
-  private let nextButton = FilledRoundButton(
-    type: .primary,
-    size: .xLarge,
-    text: "다음"
+  private let proveComment = CommentView(
+    .condition,
+    text: "매일 이시간에 인증 사진을 올려요",
+    icon: .timeGray400,
+    isActivate: false
   )
+  
+  private let setEndDateLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = "챌린지 종료 날짜를 정해주세요".attributedString(
+      font: .heading4,
+      color: .gray900
+    )
+    
+    return label
+  }()
+  private let dateTextField = DateTextField(startDate: Date(), type: .default)
+  
+  private let nextButton =  {
+    let button = FilledRoundButton(
+      type: .primary,
+      size: .xLarge,
+      text: "다음"
+    )
+    button.isEnabled = false
+    
+    return button
+  }()
   
   // MARK: - Initialziers
   init(viewModel: ChallengeGoalViewModel) {
@@ -107,8 +116,14 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension ChallengeGoalViewController {
   func setupUI() {
+    proveTimeTextField.textField.setRightView(
+      downImageView,
+      size: CGSize(width: 24.0, height: 24.0),
+      leftPdding: 4,
+      rightPadding: 16
+    )
+    
     view.backgroundColor = .white
-    challengeGoalTextField.setKeyboardType(.emailAddress)
     setViewHierarchy()
     setConstraints()
   }
@@ -118,13 +133,15 @@ private extension ChallengeGoalViewController {
       navigationBar,
       progressBar,
       titleLabel,
-      challengeGoalTextField,
-      publicLabel,
-      publicComment,
-      privateComment,
-      publicSwitch,
+      challengeGoalTextView,
+      setProveTimeLabel,
+      proveTimeTextField,
+      setEndDateLabel,
+      dateTextField,
       nextButton
     )
+    
+    proveTimeTextField.commentViews = [proveComment]
   }
   
   func setConstraints() {
@@ -144,25 +161,32 @@ private extension ChallengeGoalViewController {
       $0.leading.equalToSuperview().offset(24)
     }
     
-    challengeGoalTextField.snp.makeConstraints {
+    challengeGoalTextView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.leading.trailing.equalToSuperview().inset(24)
     }
     
-    publicLabel.snp.makeConstraints {
-      $0.top.equalTo(challengeGoalTextField.snp.bottom).offset(53)
-      $0.leading.equalTo(challengeGoalTextField)
+    setProveTimeLabel.snp.makeConstraints {
+      $0.top.equalTo(challengeGoalTextView.snp.bottom).offset(53)
+      $0.leading.equalTo(challengeGoalTextView)
     }
     
-    publicComment.snp.makeConstraints {
-      $0.leading.equalTo(publicLabel)
-      $0.top.equalTo(publicLabel.snp.bottom).offset(16)
+    proveTimeTextField.snp.makeConstraints {
+      $0.leading.equalToSuperview().offset(24)
+      $0.trailing.equalToSuperview().inset(24)
+      $0.top.equalTo(setProveTimeLabel.snp.bottom).offset(16)
     }
     
-    privateComment.snp.makeConstraints {
-      $0.leading.equalTo(publicLabel)
-      $0.top.equalTo(publicLabel.snp.bottom).offset(16)
+    setEndDateLabel.snp.makeConstraints {
+      $0.leading.equalTo(proveTimeTextField)
+      $0.top.equalTo(proveTimeTextField.snp.bottom).offset(16)
+    }
+    
+    dateTextField.snp.makeConstraints {
+      $0.leading.equalTo(setEndDateLabel)
+      $0.trailing.equalTo(challengeGoalTextView)
+      $0.top.equalTo(setEndDateLabel.snp.bottom).offset(16)
     }
     
     nextButton.snp.makeConstraints {
@@ -177,16 +201,37 @@ private extension ChallengeGoalViewController {
   func bind() {
     let input = ChallengeGoalViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      challengeGoal: challengeGoalTextField.rx.text,
-      isPublicChallenge: isPublicRelay.asObservable(),
+      challengeGoal: challengeGoalTextView.rx.text,
+      proveTime: proveTimeTextField.rx.text,
+      date: endDateRelay.asObservable(),
       didTapNextButton: nextButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
     bind(for: output)
+    
+    viewBind()
   }
   
-  func bind(for output: ChallengeGoalViewModel.Output) { }
+  func bind(for output: ChallengeGoalViewModel.Output) {
+    output.isEnabledNextButton
+      .drive(with: self) { owner, isEnabled in
+        owner.nextButton.isEnabled = isEnabled
+      }.disposed(by: disposeBag)
+  }
+  
+  func viewBind() {
+    downImageView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.showTimePickerBottomSheet()
+      }.disposed(by: disposeBag)
+    
+    dateTextField.rx.didTapButton
+      .bind(with: self) { owner, _ in
+        owner.showCalendar()
+      }.disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengeGoalPresentable
@@ -194,9 +239,31 @@ extension ChallengeGoalViewController: ChallengeGoalPresentable { }
 
 // MARK: - Private Methods
 private extension ChallengeGoalViewController {
-  @objc
-  func toggleSwitch() {
-    publicSwitch.isOn.toggle()
-    isPublicRelay.accept(publicSwitch.isOn)
+  func showTimePickerBottomSheet() {
+    let timePicker = TimePickerBottomSheet(
+      buttonText: "인증시간 정하기"
+    )
+    timePicker.delegate = self
+    timePicker.present(to: self, animated: true)
+  }
+  
+  func showCalendar() {
+    let calendar = DatePickerBottomSheetViewController(startDate: Date())
+    
+    calendar.delegate = self
+    calendar.present(to: self, animated: true)
+  }
+}
+
+extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
+  func didSelect(hour: Int) {
+    proveTimeTextField.text = hour.hourToTimeString()
+  }
+}
+
+extension ChallengeGoalViewController: DatePickerBottomSheetDelegate {
+  func didSelect(date: Date) {
+    endDateRelay.accept(date)
+    dateTextField.endDate = date
   }
 }
