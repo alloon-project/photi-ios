@@ -45,6 +45,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
     let didTapLoginButton: Signal<Void>
   }

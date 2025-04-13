@@ -138,6 +138,7 @@ private extension ChallengeHomeViewController {
   func bind() {
     let input = ChallengeHomeViewModel.Input(
       requestData: requestData.asSignal(),
+      didTapChallenge: bottomView.didTapChallenge,
       uploadChallengeFeed: uploadChallengeFeed.asSignal(),
       didTapLoginButton: didTapLoginButton.asSignal()
     )
