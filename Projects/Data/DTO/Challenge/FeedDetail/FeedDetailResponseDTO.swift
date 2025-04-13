@@ -10,8 +10,8 @@ import Foundation
 
 public struct FeedDetailResponseDTO: Decodable {
   public let username: String
-  public let userImageUrl: URL
-  public let feedImageUrl: URL
+  public let userImageUrl: String?
+  public let feedImageUrl: String?
   public let createdDateTime: String
   public let likeCnt: Int
 }

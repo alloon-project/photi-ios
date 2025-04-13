@@ -108,10 +108,11 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
 
   public func mapToFeed(dto: FeedResponseDTO) -> Feed {
     let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    let imageUrl = URL(string: dto.imageUrl ?? "") ?? defaultURL()
     return .init(
       id: dto.id,
       author: dto.username,
-      imageURL: dto.imageUrl,
+      imageURL: imageUrl,
       isLike: dto.isLike,
       updateTime: updateTime
     )
@@ -119,11 +120,14 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
   
   public func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed {
     let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    let imageURL = URL(string: dto.feedImageUrl ?? "") ?? defaultURL()
+    let authorImageURL = URL(string: dto.userImageUrl ?? "")
+    
     return .init(
       id: id,
       author: dto.username,
-      imageURL: dto.feedImageUrl,
-      authorImageURL: dto.userImageUrl,
+      imageURL: imageURL,
+      authorImageURL: authorImageURL,
       updateTime: updateTime,
       likeCount: dto.likeCnt
     )
@@ -175,5 +179,12 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         name: $0.name
       )
     }
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeDataMapperImpl {
+  func defaultURL() -> URL {
+    return URL(string: "")!
   }
 }

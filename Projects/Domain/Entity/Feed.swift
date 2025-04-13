@@ -38,7 +38,7 @@ public struct Feed {
     id: Int,
     author: String,
     imageURL: URL,
-    authorImageURL: URL,
+    authorImageURL: URL?,
     updateTime: Date,
     likeCount: Int
   ) {

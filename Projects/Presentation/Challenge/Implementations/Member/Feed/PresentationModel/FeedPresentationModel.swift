@@ -24,7 +24,7 @@ enum FeedsAlignMode: String, CaseIterable {
   
   var toOrderType: ChallengeFeedsOrderType {
     switch self {
-      case .recent: return .recent
+      case .recent: return .latest
       case .popular: return .popular
     }
   }
