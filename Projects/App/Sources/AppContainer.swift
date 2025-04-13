@@ -39,6 +39,7 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency,
+  ChallengeDependency,
   NoneMemberChallengeDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
@@ -62,6 +63,10 @@ final class AppContainer:
     
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
+  }()
+  
+  lazy var challengeContainable: ChallengeContainable = {
+    return ChallengeContainer(dependency: self)
   }()
   
   lazy var noneMemberChallengeContainable: NoneMemberChallengeContainable = {
