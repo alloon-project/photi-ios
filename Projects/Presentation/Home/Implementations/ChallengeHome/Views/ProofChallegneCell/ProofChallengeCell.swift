@@ -66,7 +66,7 @@ private extension ProofChallengeCell {
     seperatorView.snp.makeConstraints {
       $0.leading.equalTo(deadLineChip.snp.trailing).offset(14)
       $0.trailing.equalToSuperview()
-      $0.height.equalTo(1)
+      $0.height.equalTo(2)
       $0.centerY.equalTo(deadLineChip)
     }
     
@@ -78,7 +78,8 @@ private extension ProofChallengeCell {
     
     challengeImageView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.height.width.equalTo(184)
+      $0.leading.trailing.equalToSuperview().inset(52)
+      $0.height.equalTo(challengeImageView.snp.width)
       $0.top.equalTo(titleView).offset(48)
     }
   }

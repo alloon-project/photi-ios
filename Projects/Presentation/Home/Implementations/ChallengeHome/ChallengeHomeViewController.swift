@@ -15,8 +15,9 @@ import Core
 
 final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllerable {
   enum Constants {
-    static let itemWidth: CGFloat = 288
     static let groupSpacing: CGFloat = 16
+    static let itemLeading: CGFloat = 24
+    static let itemTrailing: CGFloat = 45
   }
   
   typealias MyChallengeFeedDataSourceType = UICollectionViewDiffableDataSource<Int, MyChallengeFeedPresentationModel>
@@ -46,8 +47,8 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     return label
   }()
   
-  private let proofChallengeCollectionView: UICollectionView = {
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+  private let proofChallengeCollectionView: SelfVerticalSizingCollectionView = {
+    let collectionView = SelfVerticalSizingCollectionView(layout: UICollectionViewLayout())
     collectionView.registerCell(ProofChallengeCell.self)
     collectionView.decelerationRate = .fast
     collectionView.isPagingEnabled = true
@@ -123,7 +124,7 @@ private extension ChallengeHomeViewController {
     proofChallengeCollectionView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
-      $0.height.equalTo(298)
+      $0.height.equalTo(proofChallengeCollectionView.snp.width).multipliedBy(0.83)
     }
     
     bottomView.snp.makeConstraints {
@@ -279,7 +280,9 @@ extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
 // MARK: - Private Methods
 private extension ChallengeHomeViewController {
   func compositionalLayout() -> UICollectionViewCompositionalLayout {
-    return .init { _, _ in
+    return .init { _, environment in
+      let containerWidth = environment.container.effectiveContentSize.width
+      let availableWidth = containerWidth - Constants.itemLeading - Constants.itemTrailing
       let itemSize = NSCollectionLayoutSize(
         widthDimension: .fractionalWidth(1),
         heightDimension: .fractionalHeight(1)
@@ -287,7 +290,7 @@ private extension ChallengeHomeViewController {
       let item = NSCollectionLayoutItem(layoutSize: itemSize)
       
       let groupSize = NSCollectionLayoutSize(
-        widthDimension: .absolute(Constants.itemWidth),
+        widthDimension: .absolute(availableWidth),
         heightDimension: .fractionalHeight(1)
       )
       let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
@@ -295,7 +298,12 @@ private extension ChallengeHomeViewController {
       let section = NSCollectionLayoutSection(group: group)
       section.orthogonalScrollingBehavior = .groupPagingCentered
       section.interGroupSpacing = Constants.groupSpacing
-      
+      section.contentInsets = NSDirectionalEdgeInsets(
+        top: 0,
+        leading: Constants.itemLeading,
+        bottom: 0,
+        trailing: Constants.itemTrailing
+      )
       return section
     }
   }
