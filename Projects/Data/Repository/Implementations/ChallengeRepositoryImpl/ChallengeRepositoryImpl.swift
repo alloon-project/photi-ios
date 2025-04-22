@@ -118,15 +118,15 @@ public extension ChallengeRepositoryImpl {
     .map { _ in }
   }
   
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
+  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws -> Feed {
     let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
     
-    let single = requestAuthorizableAPI(
+    let result = try await requestAuthorizableAPI(
       api: api,
-      responseType: SuccessResponseDTO.self
-    )
+      responseType: FeedResponseDTO.self
+    ).value
     
-    try await executeSingle(single)
+    return dataMapper.mapToFeed(dto: result) 
   }
 }
 
