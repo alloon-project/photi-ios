@@ -94,7 +94,7 @@ public extension FeedRepositoryImpl {
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {
     do {
       let api = FeedAPI.uploadFeedComment(challengeId: challengeId, feedId: feedId, comment: comment)
-      let result = try await requestAuthorizableAPI(api: api, responseType: FeedCommentResponseDTO.self).value
+      let result = try await requestAuthorizableAPI(api: api, responseType: IDResponseDTO.self).value
       return result.id
     } catch {
       throw error
