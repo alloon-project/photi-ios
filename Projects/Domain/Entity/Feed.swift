@@ -40,7 +40,8 @@ public struct Feed {
     imageURL: URL,
     authorImageURL: URL?,
     updateTime: Date,
-    likeCount: Int
+    likeCount: Int,
+    isLike: Bool
   ) {
     self.id = id
     self.author = author
@@ -48,7 +49,6 @@ public struct Feed {
     self.authorImageURL = authorImageURL
     self.updateTime = updateTime
     self.likeCount = likeCount
-    
-    self.isLike = false
+    self.isLike = isLike
   }
 }
