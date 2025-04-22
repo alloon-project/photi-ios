@@ -17,7 +17,9 @@ protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
   func deleteFeed(id: Int)
   func authenticatedFailed()
+  func requestReport(id: Int)
   func networkUnstable(reason: String?)
+  func updateLikeState(feedId: Int, isLiked: Bool)
 }
 
 protocol FeedCommentViewModelType: AnyObject {
@@ -51,7 +53,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
   private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
   private let uploadCommentFailedRelay = PublishRelay<String>()
-
+  
   // MARK: - Input
   struct Input {
     let didTapBackground: Signal<Void>
@@ -95,7 +97,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   
   func transform(input: Input) -> Output {
     bindRequest(input: input)
-
+    
     input.didTapBackground
       .emit(with: self) { owner, _ in
         owner.coordinator?.requestDismiss()
@@ -245,16 +247,18 @@ private extension FeedCommentViewModel {
 
 // MARK: - Private Methods
 private extension FeedCommentViewModel {
-  func updateLikeState(isLike: Bool) {
-    Task {
-      guard isLikeRelay.value != isLike else { return }
-      let count = likeCountRelay.value
-      let adder = isLike ? 1 : -1
-      likeCountRelay.accept(count + adder)
-      isLikeRelay.accept(isLike)
-      
-      await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-    }
+  @MainActor
+  func updateLikeState(isLike: Bool) async {
+    guard isLikeRelay.value != isLike else { return }
+    let count = likeCountRelay.value
+    let adder = isLike ? 1 : -1
+    likeCountRelay.accept(count + adder)
+    isLikeRelay.accept(isLike)
+    
+    do {
+      try await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+      coordinator?.updateLikeState(feedId: feedId, isLiked: isLike)
+    } catch { }
   }
   
   @MainActor
