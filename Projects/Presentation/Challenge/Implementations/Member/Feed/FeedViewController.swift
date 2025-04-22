@@ -40,7 +40,8 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
       guard viewWillAppear else { return }
       configureTodayHeaderView(for: isProve)
       cameraShutterButton.isHidden = (isProve == .didProve)
-      if isProve != .didProve { presentPoofTipView() }
+      
+      if viewDidAppear, isProve != .didProve { presentPoofTipView() }
     }
   }
   private var feedsAlign: FeedsAlignMode = .recent {
@@ -114,7 +115,6 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewWillAppear = true
     if case let .didNotProve(time) = isProve, time.isEmpty { return }
     cameraShutterButton.isHidden = (isProve == .didProve)
-    if isProve != .didProve { presentPoofTipView() }
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -123,6 +123,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewDidAppear = true
     progressBar.percent = currentPercent
     updateTagViewContraints(percent: currentPercent)
+    if isProve != .didProve { presentPoofTipView() }
   }
 }
 
@@ -215,7 +216,6 @@ private extension FeedViewController {
         owner.feedCollectionView.refreshControl?.endRefreshing()
         switch feeds {
           case let .initialPage(models):
-            owner.deleteAllFeeds()
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
@@ -227,7 +227,6 @@ private extension FeedViewController {
       .emit(with: self) { owner, _ in
         LoadingAnimation.logo.stop()
         owner.isProve = .didProve
-        owner.cameraShutterButton.isHidden = true
       }
       .disposed(by: disposeBag)
     
@@ -525,7 +524,7 @@ private extension FeedViewController {
   
   func updateTagViewContraints(percent: PhotiProgressPercent) {
     let tagViewLeading = tagViewLeading(for: percent.rawValue)
-    
+
     UIView.animate(withDuration: 0.4) {
       self.tagView.snp.updateConstraints {
         $0.leading.equalToSuperview().offset(tagViewLeading)
