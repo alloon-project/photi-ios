@@ -18,6 +18,7 @@ protocol FeedListener: AnyObject {
 
 protocol FeedPresentable {
   func deleteFeed(feedId: Int)
+  func updateLikeState(feedId: Int, isLiked: Bool)
 }
 
 final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {

@@ -283,7 +283,34 @@ extension FeedViewController: FeedPresentable {
     var snapshot = dataSource.snapshot()
     
     guard let model = snapshot.itemIdentifiers.first(where: { $0.id == feedId }) else { return }
+    
+    if
+      let section = snapshot.sectionIdentifier(containingItem: model),
+      snapshot.numberOfItems(inSection: section) == 1 {
+      snapshot.deleteSections([section])
+    }
+    
     snapshot.deleteItems([model])
+    dataSource.apply(snapshot)
+  }
+  
+  func updateLikeState(feedId: Int, isLiked: Bool) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    guard
+      let oldItem = snapshot.itemIdentifiers.first(where: { $0.id == feedId }),
+      oldItem.isLike != isLiked,
+      let section = snapshot.sectionIdentifier(containingItem: oldItem),
+      let index = snapshot.indexOfItem(oldItem)
+    else { return }
+    
+    var updatedItem = oldItem
+    updatedItem.isLike = isLiked
+    
+    snapshot.insertItems([updatedItem], afterItem: oldItem)
+    snapshot.deleteItems([oldItem])
+    
     dataSource.apply(snapshot)
   }
 }
