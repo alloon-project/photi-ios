@@ -60,6 +60,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let didTapLikeButton: Signal<Bool>
     let didTapShareButton: Signal<Void>
     let didTapDeleteButton: Signal<Void>
+    let didTapReportButton: Signal<Void>
     let requestDeleteComment: Signal<Int>
     let requestUploadComment: Signal<String>
   }
@@ -73,6 +74,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let likeCount: Driver<Int>
     let isLike: Driver<Bool>
     let comments: Driver<FeedCommentType>
+    let dropDownOptions: Driver<[String]>
     let stopLoadingAnimation: Signal<Void>
     let deleteComment: Signal<Int>
     let comment: Signal<FeedCommentPresentationModel>
@@ -103,7 +105,13 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     input.didTapLikeButton
       .debounce(.milliseconds(500))
       .emit(with: self) { owner, isLike in
-        owner.updateLikeState(isLike: isLike)
+        Task { await owner.updateLikeState(isLike: isLike) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapReportButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestReport(id: owner.feedId)
       }
       .disposed(by: disposeBag)
     
@@ -172,7 +180,7 @@ private extension FeedCommentViewModel {
       try await fetchFeedWithThrowing()
       try await fetchFeedCommentsWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -180,7 +188,7 @@ private extension FeedCommentViewModel {
     do {
       try await fetchFeedWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -203,7 +211,7 @@ private extension FeedCommentViewModel {
     do {
       try await fetchFeedCommentsWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -283,6 +291,7 @@ private extension FeedCommentViewModel {
     }
   }
   
+  @MainActor
   func requestFailed(with error: Error, reasonWhenNetworkUnstable: String?) {
     guard let error = error as? APIError else {
       coordinator?.networkUnstable(reason: reasonWhenNetworkUnstable); return
