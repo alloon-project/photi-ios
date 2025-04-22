@@ -22,8 +22,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   var keyboardShowNotification: NSObjectProtocol?
   var keyboardHideNotification: NSObjectProtocol?
-
-  private let dropDownOptions = ["공유하기", "피드 삭제하기"]
+  private var dropDownOptions = [String]()
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
   private var dataSource: DataSourceType?
@@ -34,6 +33,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let uploadCommentRelay = PublishRelay<String>()
   private let didTapShareButton = PublishRelay<Void>()
   private let didTapDeleteFeedButton = PublishRelay<Void>()
+  private let didTapReportButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let blurView: UIView = {
@@ -187,13 +187,18 @@ private extension FeedCommentViewController {
       .map { _ in () }
       .asSignal(onErrorJustReturn: ())
     
+    let didTapLikeButton = topView.rx.didTapLikeButton
+      .debounce(.milliseconds(500), scheduler: MainScheduler.instance)
+      .asSignal(onErrorJustReturn: false)
+
     let input = FeedCommentViewModel.Input(
       didTapBackground: didTapBackground,
       requestComments: requestComments.asSignal(),
       requestData: requestDataRelay.asSignal(),
-      didTapLikeButton: topView.rx.didTapLikeButton.asSignal(),
+      didTapLikeButton: didTapLikeButton,
       didTapShareButton: didTapShareButton.asSignal(),
       didTapDeleteButton: didTapDeleteFeedButton.asSignal(),
+      didTapReportButton: didTapReportButton.asSignal(),
       requestDeleteComment: requestDeleteCommentRelay.asSignal(),
       requestUploadComment: uploadCommentRelay.asSignal()
     )
@@ -282,6 +287,10 @@ private extension FeedCommentViewController {
       .drive(topView.rx.isLike)
       .disposed(by: disposeBag)
     
+    output.dropDownOptions
+      .drive(rx.dropDownOptions)
+      .disposed(by: disposeBag)
+    
     output.isEditable
       .drive(with: self) { owner, isEditable in
         owner.topView.isEnbledOptionButton = isEditable
@@ -327,9 +336,9 @@ extension FeedCommentViewController: UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    guard section != 0 else { return nil }
     let view = UIView()
     view.backgroundColor = .clear
+    if section == 0 { view.isHidden = true }
     return view
   }
 }
@@ -466,8 +475,10 @@ private extension FeedCommentViewController {
 // MARK: - DropDownDelegate
 extension FeedCommentViewController: DropDownDelegate {
   func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
-    if didSelectRowAt == 0 {
-      didTapShareButton.accept(())
+    if dropDownOptions.count == 1 {
+      didTapReportButton.accept(())
+    } else if didSelectRowAt == 0 {
+      didTapReportButton.accept(())
     } else {
       presentDeleteWaringAlert()
     }

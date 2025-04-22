@@ -41,6 +41,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   
   private let authorRelay = BehaviorRelay<AuthorPresentationModel>(value: .default)
   private let updateTimeRelay = BehaviorRelay<String>(value: "")
+  private let dropDownOptionsRelay = BehaviorRelay<[String]>(value: [])
   private let likeCountRelay = BehaviorRelay<Int>(value: 0)
   private let isLikeRelay = BehaviorRelay<Bool>(value: false)
   private let feedImageURLRelay = BehaviorRelay<URL?>(value: nil)
@@ -116,6 +117,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       likeCount: likeCountRelay.asDriver(),
       isLike: isLikeRelay.asDriver(),
       comments: commentsRelay.asDriver(),
+      dropDownOptions: dropDownOptionsRelay.asDriver(),
       stopLoadingAnimation: stopLoadingAnimation.asSignal(),
       deleteComment: deleteCommentRelay.asSignal(),
       comment: commentRelay.asSignal(),
@@ -186,6 +188,9 @@ private extension FeedCommentViewModel {
     let result = try await useCase.fetchFeed(challengeId: challengeId, feedId: feedId)
     let updateTime = modelMapper.mapToUpdateTimeString(result.updateTime)
     let author = modelMapper.mapToAuthorPresentaionModel(author: result.author, url: result.authorImageURL)
+    
+    let options = author.name == ServiceConfiguration.shared.userName ? ["공유하기", "피드 삭제하기"] : ["신고하기"]
+    dropDownOptionsRelay.accept(options)
     
     feedImageURLRelay.accept(result.imageURL)
     authorRelay.accept(author)
