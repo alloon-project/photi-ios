@@ -54,6 +54,7 @@ final class FeedViewModel: FeedViewModelType {
   private let proveMemberCountRelay = BehaviorRelay<Int>(value: 0)
   private let provePercentRelay = BehaviorRelay<Double>(value: 0)
   private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
+  private let proveFeedRelay = BehaviorRelay<[FeedPresentationModel]>(value: [])
   private let startFetchingRelay = PublishRelay<Void>()
   private let stopFetchingRelay = PublishRelay<Void>()
   private let alreadyVerifyFeedRelay = PublishRelay<Void>()
@@ -77,6 +78,7 @@ final class FeedViewModel: FeedViewModelType {
     let proveMemberCount: Driver<Int>
     let provePercent: Driver<Double>
     let proofRelay: Driver<ProveType>
+    let proveFeed: Driver<[FeedPresentationModel]>
     let feeds: Driver<FeedsType>
     let startFetching: Signal<Void>
     let stopFetching: Signal<Void>
@@ -117,6 +119,7 @@ final class FeedViewModel: FeedViewModelType {
       proveMemberCount: proveMemberCountRelay.asDriver(),
       provePercent: provePercentRelay.asDriver(),
       proofRelay: proofRelay.asDriver(),
+      proveFeed: proveFeedRelay.asDriver(),
       feeds: feedsRelay.asDriver(),
       startFetching: startFetchingRelay.asSignal(),
       stopFetching: stopFetchingRelay.asSignal(),
@@ -208,7 +211,7 @@ private extension FeedViewModel {
       )
       .disposed(by: disposeBag)
   }
-    
+  
   @MainActor func fetchFeeds() async {
     guard !isFetching else { return }
     isFetching = true

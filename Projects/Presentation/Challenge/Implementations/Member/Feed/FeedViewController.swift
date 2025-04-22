@@ -211,6 +211,12 @@ private extension FeedViewController {
       .drive(rx.isProve)
       .disposed(by: disposeBag)
     
+    output.proveFeed
+      .drive(with: self) { owner, feed in
+        owner.appendFront(models: feed)
+      }
+      .disposed(by: disposeBag)
+    
     output.feeds
       .drive(with: self) { owner, feeds in
         owner.feedCollectionView.refreshControl?.endRefreshing()
@@ -385,6 +391,24 @@ extension FeedViewController {
     snapshot.deleteAllItems()
     
     snapshot = append(models: models, to: snapshot)
+    dataSource.apply(snapshot)
+  }
+  
+  func appendFront(models: [FeedPresentationModel]) {
+    guard let dataSource, let firstModel = models.first else { return }
+    var snapshot = dataSource.snapshot()
+    
+    let updateGroup = firstModel.updateGroup
+    
+    if !snapshot.sectionIdentifiers.contains(updateGroup) {
+      if let firstSection = snapshot.sectionIdentifiers.first {
+        snapshot.insertSections([updateGroup], beforeSection: firstSection)
+      } else {
+        snapshot.appendSections([updateGroup])
+      }
+    }
+    
+    snapshot.appendItems(models, toSection: firstModel.updateGroup)
     dataSource.apply(snapshot)
   }
   
