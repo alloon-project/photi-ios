@@ -381,8 +381,12 @@ extension FeedViewController {
   }
   
   func initialize(models: [FeedPresentationModel]) {
-    let snapshot = append(models: models, to: SnapShot())
-    dataSource?.apply(snapshot)
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    snapshot.deleteAllItems()
+    
+    snapshot = append(models: models, to: snapshot)
+    dataSource.apply(snapshot)
   }
   
   func append(models: [FeedPresentationModel]) {

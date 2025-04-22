@@ -15,7 +15,7 @@ struct FeedPresentationModel: Hashable {
   let userName: String
   let updateTime: String
   let updateGroup: String
-  let isLike: Bool
+  var isLike: Bool
 }
 
 enum FeedsAlignMode: String, CaseIterable {
