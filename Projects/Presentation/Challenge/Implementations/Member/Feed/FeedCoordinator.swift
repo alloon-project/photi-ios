@@ -13,6 +13,7 @@ protocol FeedListener: AnyObject {
   func authenticatedFailedAtFeed()
   func networkUnstableAtFeed(reason: String?)
   func challengeNotFoundAtFeed()
+  func requestReportAtFeed(feedId: Int)
 }
 
 protocol FeedPresentable {
@@ -97,13 +98,28 @@ extension FeedCoordinator: FeedCommentListener {
     detachFeedDetail { [weak self] in
       self?.presenter.deleteFeed(feedId: id)
     }
+    viewModel.updateIsProveIfNeeded()
   }
   
   func authenticatedFailedAtFeedComment() {
-    listener?.authenticatedFailedAtFeed()
+    detachFeedDetail { [weak self] in
+      self?.listener?.authenticatedFailedAtFeed()
+    }
   }
   
   func networkUnstableAtFeedComment(reason: String?) {
-    listener?.networkUnstableAtFeed(reason: reason)
+    detachFeedDetail { [weak self] in
+      self?.listener?.networkUnstableAtFeed(reason: reason)
+    }
+  }
+  
+  func requestReportAtFeedComment(feedId: Int) {
+    detachFeedDetail { [weak self] in
+      self?.listener?.requestReportAtFeed(feedId: feedId)
+    }
+  }
+  
+  func updateLikeState(feedId: Int, isLiked: Bool) {
+    presenter.updateLikeState(feedId: feedId, isLiked: isLiked)
   }
 }
