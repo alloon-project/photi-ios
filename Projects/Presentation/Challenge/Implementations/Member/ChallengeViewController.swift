@@ -201,9 +201,17 @@ extension ChallengeViewController: ChallengePresentable {
     
     let offset = offset.bound(lower: minOffset, upper: maxOffset)
     let mainContainerOffset = minOffset + maxOffset - offset
-    
+      
     mainView.snp.updateConstraints {
       $0.top.equalToSuperview().offset(mainContainerOffset)
+    }
+    
+    UIView.animate(
+      withDuration: 0.1,
+      delay: 0,
+      options: [.beginFromCurrentState, .curveEaseOut]
+    ) {
+      self.view.layoutIfNeeded()
     }
   }
   
