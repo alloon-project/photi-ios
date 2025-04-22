@@ -54,7 +54,6 @@ extension FeedAPI: TargetType {
     }
   }
   
-  // TODO: - API 들 수정
   public var task: TaskType {
     switch self {
       case let .feeds(_, page, size, ordered):
@@ -64,12 +63,8 @@ extension FeedAPI: TargetType {
           encoding: URLEncoding.queryString
         )
         
-      case .updateLikeState, .feedDetail, .deleteFeedComment:
+      case .updateLikeState, .feedDetail, .deleteFeedComment, .deleteFeed:
         return .requestPlain
-        
-      case let .deleteFeed(challengeId, feedId):
-        let parameters = ["challengeId": challengeId, "feedId": feedId]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
       case let .feedComments(_, page, size):
         let parameters = ["page": "\(page)", "size": "\(size)"]
@@ -102,7 +97,7 @@ extension FeedAPI: TargetType {
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
       case .uploadFeedComment:
-        let data = FeedCommentResponseDTO.stubData
+        let data = IDResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

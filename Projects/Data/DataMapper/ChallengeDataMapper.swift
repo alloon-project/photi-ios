@@ -129,7 +129,8 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       imageURL: imageURL,
       authorImageURL: authorImageURL,
       updateTime: updateTime,
-      likeCount: dto.likeCnt
+      likeCount: dto.likeCnt,
+      isLike: dto.isLike
     )
   }
   

@@ -14,6 +14,7 @@ public struct FeedDetailResponseDTO: Decodable {
   public let feedImageUrl: String?
   public let createdDateTime: String
   public let likeCnt: Int
+  public let isLike: Bool
 }
 
 public extension FeedDetailResponseDTO {
@@ -26,7 +27,8 @@ public extension FeedDetailResponseDTO {
     "userImageUrl": "https://fastly.picsum.photos/id/370/200/200.jpg?hmac=HT9dVkM8BnOVYNnQU3Kiehyb9hJUPrehSqcOHXrq_y0",
     "feedImageUrl": "https://fastly.picsum.photos/id/370/200/200.jpg?hmac=HT9dVkM8BnOVYNnQU3Kiehyb9hJUPrehSqcOHXrq_y0",
     "createdDateTime": "2025-02-25T17:11:12.098Z",
-    "likeCnt": 10
+    "likeCnt": 10,
+    "isLike": true
   }
 }
 """
