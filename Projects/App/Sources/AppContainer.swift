@@ -110,17 +110,17 @@ final class AppContainer:
     return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
   
-  lazy var challengeUseCase: ChallengeUseCase = {
+  var challengeUseCase: ChallengeUseCase {
     return ChallengeUseCaseImpl(
       challengeRepository: challengeRepository,
       feedRepository: feedRepository,
       authRepository: authRepository
     )
-  }()
+  }
   
-  lazy var feedUseCase: FeedUseCase = {
+  var feedUseCase: FeedUseCase {
     return FeedUseCaseImpl(repository: feedRepository)
-  }()
+  }
   
   lazy var reportUseCase: ReportUseCase = {
     return ReportUseCaseImpl(repository: reportRepository)
