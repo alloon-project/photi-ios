@@ -16,7 +16,7 @@ public enum FeedCommentsPage {
 
 public protocol FeedUseCase {
   func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
-  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async
+  func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> FeedCommentsPage
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws

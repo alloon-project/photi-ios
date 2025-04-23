@@ -9,10 +9,12 @@
 import Core
 
 protocol FeedCommentListener: AnyObject {
+  func requestReportAtFeedComment(feedId: Int)
   func requestDismissAtFeedComment()
   func deleteFeed(id: Int)
   func authenticatedFailedAtFeedComment()
   func networkUnstableAtFeedComment(reason: String?)
+  func updateLikeState(feedId: Int, isLiked: Bool)
 }
 
 protocol FeedCommentPresentable { }
@@ -48,5 +50,13 @@ extension FeedCommentCoordinator: FeedCommentCoordinatable {
   
   func networkUnstable(reason: String?) {
     listener?.networkUnstableAtFeedComment(reason: reason)
+  }
+  
+  func requestReport(id: Int) {
+    listener?.requestReportAtFeedComment(feedId: id)
+  }
+  
+  func updateLikeState(feedId: Int, isLiked: Bool) {
+    listener?.updateLikeState(feedId: feedId, isLiked: isLiked)
   }
 }

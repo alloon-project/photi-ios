@@ -19,7 +19,10 @@ final class FeedCommentTextField: UIView {
   // MARK: - Properties
   var text: String {
     get { textField.text ?? "" }
-    set { textField.text = newValue }
+    set {
+      setTextCountLabel(newValue.count)
+      textField.text = newValue
+    }
   }
   
   // MARK: - UI Components

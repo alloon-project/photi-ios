@@ -15,11 +15,11 @@ public struct MyChallengesResponseDTO: Decodable {
 public struct MyChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let challengeImageUrl: URL?
+  public let challengeImageUrl: String?
   public let proveTime: String
   public let endDate: String
   public let hashtags: [HashTagResponseDTO]
-  public let feedImageUrl: URL?
+  public let feedImageUrl: String?
   public let isProve: Bool
 }
 

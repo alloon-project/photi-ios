@@ -17,7 +17,9 @@ protocol FeedCommentCoordinatable: AnyObject {
   func requestDismiss()
   func deleteFeed(id: Int)
   func authenticatedFailed()
+  func requestReport(id: Int)
   func networkUnstable(reason: String?)
+  func updateLikeState(feedId: Int, isLiked: Bool)
 }
 
 protocol FeedCommentViewModelType: AnyObject {
@@ -41,6 +43,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   
   private let authorRelay = BehaviorRelay<AuthorPresentationModel>(value: .default)
   private let updateTimeRelay = BehaviorRelay<String>(value: "")
+  private let dropDownOptionsRelay = BehaviorRelay<[String]>(value: [])
   private let likeCountRelay = BehaviorRelay<Int>(value: 0)
   private let isLikeRelay = BehaviorRelay<Bool>(value: false)
   private let feedImageURLRelay = BehaviorRelay<URL?>(value: nil)
@@ -50,7 +53,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
   private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
   private let uploadCommentFailedRelay = PublishRelay<String>()
-
+  
   // MARK: - Input
   struct Input {
     let didTapBackground: Signal<Void>
@@ -59,6 +62,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let didTapLikeButton: Signal<Bool>
     let didTapShareButton: Signal<Void>
     let didTapDeleteButton: Signal<Void>
+    let didTapReportButton: Signal<Void>
     let requestDeleteComment: Signal<Int>
     let requestUploadComment: Signal<String>
   }
@@ -72,6 +76,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let likeCount: Driver<Int>
     let isLike: Driver<Bool>
     let comments: Driver<FeedCommentType>
+    let dropDownOptions: Driver<[String]>
     let stopLoadingAnimation: Signal<Void>
     let deleteComment: Signal<Int>
     let comment: Signal<FeedCommentPresentationModel>
@@ -92,7 +97,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   
   func transform(input: Input) -> Output {
     bindRequest(input: input)
-
+    
     input.didTapBackground
       .emit(with: self) { owner, _ in
         owner.coordinator?.requestDismiss()
@@ -102,7 +107,13 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     input.didTapLikeButton
       .debounce(.milliseconds(500))
       .emit(with: self) { owner, isLike in
-        owner.updateLikeState(isLike: isLike)
+        Task { await owner.updateLikeState(isLike: isLike) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapReportButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestReport(id: owner.feedId)
       }
       .disposed(by: disposeBag)
     
@@ -116,6 +127,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
       likeCount: likeCountRelay.asDriver(),
       isLike: isLikeRelay.asDriver(),
       comments: commentsRelay.asDriver(),
+      dropDownOptions: dropDownOptionsRelay.asDriver(),
       stopLoadingAnimation: stopLoadingAnimation.asSignal(),
       deleteComment: deleteCommentRelay.asSignal(),
       comment: commentRelay.asSignal(),
@@ -170,7 +182,7 @@ private extension FeedCommentViewModel {
       try await fetchFeedWithThrowing()
       try await fetchFeedCommentsWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -178,7 +190,7 @@ private extension FeedCommentViewModel {
     do {
       try await fetchFeedWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -186,6 +198,9 @@ private extension FeedCommentViewModel {
     let result = try await useCase.fetchFeed(challengeId: challengeId, feedId: feedId)
     let updateTime = modelMapper.mapToUpdateTimeString(result.updateTime)
     let author = modelMapper.mapToAuthorPresentaionModel(author: result.author, url: result.authorImageURL)
+    
+    let options = author.name == ServiceConfiguration.shared.userName ? ["공유하기", "피드 삭제하기"] : ["신고하기"]
+    dropDownOptionsRelay.accept(options)
     
     feedImageURLRelay.accept(result.imageURL)
     authorRelay.accept(author)
@@ -198,7 +213,7 @@ private extension FeedCommentViewModel {
     do {
       try await fetchFeedCommentsWithThrowing()
     } catch {
-      requestFailed(with: error, reasonWhenNetworkUnstable: nil)
+      await requestFailed(with: error, reasonWhenNetworkUnstable: nil)
     }
   }
   
@@ -232,16 +247,18 @@ private extension FeedCommentViewModel {
 
 // MARK: - Private Methods
 private extension FeedCommentViewModel {
-  func updateLikeState(isLike: Bool) {
-    Task {
-      guard isLikeRelay.value != isLike else { return }
-      let count = likeCountRelay.value
-      let adder = isLike ? 1 : -1
-      likeCountRelay.accept(count + adder)
-      isLikeRelay.accept(isLike)
-      
-      await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
-    }
+  @MainActor
+  func updateLikeState(isLike: Bool) async {
+    guard isLikeRelay.value != isLike else { return }
+    let count = likeCountRelay.value
+    let adder = isLike ? 1 : -1
+    likeCountRelay.accept(count + adder)
+    isLikeRelay.accept(isLike)
+    
+    do {
+      try await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
+      coordinator?.updateLikeState(feedId: feedId, isLiked: isLike)
+    } catch { }
   }
   
   @MainActor
@@ -278,6 +295,7 @@ private extension FeedCommentViewModel {
     }
   }
   
+  @MainActor
   func requestFailed(with error: Error, reasonWhenNetworkUnstable: String?) {
     guard let error = error as? APIError else {
       coordinator?.networkUnstable(reason: reasonWhenNetworkUnstable); return

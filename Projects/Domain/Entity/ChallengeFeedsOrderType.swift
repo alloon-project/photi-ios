@@ -7,6 +7,6 @@
 //
 
 public enum ChallengeFeedsOrderType: String {
-  case recent
+  case latest
   case popular
 }

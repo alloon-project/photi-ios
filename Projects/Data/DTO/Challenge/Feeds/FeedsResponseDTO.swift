@@ -25,7 +25,7 @@ public struct ContentResponseDTO: Decodable {
 public struct FeedResponseDTO: Decodable {
   public let id: Int
   public let username: String
-  public let imageUrl: URL
+  public let imageUrl: String?
   public let createdDateTime: String
   public let proveTime: String
   public let isLike: Bool

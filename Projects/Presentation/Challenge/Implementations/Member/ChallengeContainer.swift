@@ -8,11 +8,13 @@
 
 import Challenge
 import Core
+import LogIn
 import Report
 import UseCase
 
 public protocol ChallengeDependency: Dependency {
   var reportContainable: ReportContainable { get }
+  var loginContainable: LogInContainable { get }
   var challengeUseCase: ChallengeUseCase { get }
   var feedUseCase: FeedUseCase { get }
 }
@@ -37,6 +39,7 @@ public final class ChallengeContainer:
       feedContainer: feedContainer,
       descriptionContainer: descriptionContainer,
       participantContainer: participantContainer,
+      logInContainer: dependency.loginContainable,
       reportContainer: dependency.reportContainable
     )
     coordinator.listener = listener
