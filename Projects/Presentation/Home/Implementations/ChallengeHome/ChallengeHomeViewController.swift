@@ -81,6 +81,10 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     self.datasource = dataSource
     setupUI()
     bind()
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
     requestData.accept(())
   }
 }
