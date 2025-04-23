@@ -98,7 +98,7 @@ private extension HomeBottomView {
     }
     
     tableView.snp.makeConstraints {
-      $0.width.equalTo(330)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().inset(40)
