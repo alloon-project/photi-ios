@@ -73,16 +73,18 @@ public extension ChallengeUseCaseImpl {
     return challengeRepository.joinPublicChallenge(id: id)
   }
   
-  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws {
+  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
     guard let (data, type) = imageToData(image, maxMB: 8) else {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
-    
-    try await challengeRepository.uploadChallengeFeedProof(
+    let result = try await challengeRepository.uploadChallengeFeedProof(
       id: id,
       image: data,
       imageType: type
     )
+    challengeProveMemberCountRelay.accept(challengeProveMemberCountRelay.value + 1)
+    
+    return result
   }
   
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {

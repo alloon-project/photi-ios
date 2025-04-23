@@ -53,9 +53,11 @@ extension APIError {
 // MARK: - Challenge
 extension APIError {
   public enum ChallengeFailedReason {
+    case feedNotFound
+    case feedCommentNotFound
     case challengeNotFound
-    case notChallengeMemeber
     case userNotFound
+    case notChallengeMemeber
     case alreadyJoinedChallenge
     case invalidInvitationCode
     case alreadyUploadFeed

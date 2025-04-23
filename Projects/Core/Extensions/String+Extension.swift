@@ -49,7 +49,7 @@ public extension String {
   
   func toDateFromISO8601() -> Date? {
     let dateFormatter = ISO8601DateFormatter()
-    dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    dateFormatter.formatOptions = [.withFullDate, .withTime, .withColonSeparatorInTime, .withFractionalSeconds]
     return dateFormatter.date(from: self)
   }
   

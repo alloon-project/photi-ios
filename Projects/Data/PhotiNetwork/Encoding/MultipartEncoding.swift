@@ -16,7 +16,7 @@ public protocol MultipartUploadable {
 }
 
 public struct MultipartEncoding: MultipartUploadable {
-  fileprivate let crlf = "\n\r"
+  fileprivate let crlf = "\r\n"
   
   public static let `default` = MultipartEncoding()
 
@@ -38,7 +38,7 @@ public struct MultipartEncoding: MultipartUploadable {
 private extension MultipartEncoding {
   func encodeBodyParts(multiParts: MultipartFormData) -> Data {
     var data = Data()
-    
+    data.appendString("--\(multiParts.boundary)\(crlf)")
     multiParts.bodyParts.forEach { bodyPart in
       switch bodyPart.type {
         case let .parameters(dictionaries):
@@ -58,6 +58,7 @@ private extension MultipartEncoding {
           }
       }
     }
+    data.appendString("--\(multiParts.boundary)--\(crlf)")
     
     return data
   }
@@ -65,7 +66,7 @@ private extension MultipartEncoding {
   func encodeParameter(key: String, value: Any) -> Data {
     var endcodedData = Data()
     endcodedData.appendString("Content-Disposition: form-data; name=\"\(key)\"")
-    endcodedData.appendString(crlf)
+    endcodedData.appendString("\(crlf)\(crlf)")
     endcodedData.appendString("\(value)")
     endcodedData.appendString(crlf)
     
