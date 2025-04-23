@@ -423,8 +423,14 @@ extension FeedViewController {
     models.forEach {
       if !snapshot.sectionIdentifiers.contains($0.updateGroup) {
         snapshot.appendSections([$0.updateGroup])
+        snapshot.appendItems([$0], toSection: $0.updateGroup)
       }
-      snapshot.appendItems([$0], toSection: $0.updateGroup)
+      
+      if let firstItem = snapshot.itemIdentifiers(inSection: $0.updateGroup).first {
+        snapshot.insertItems(models, beforeItem: firstItem)
+      } else {
+        snapshot.appendItems([$0], toSection: $0.updateGroup)
+      }
     }
     
     return snapshot
