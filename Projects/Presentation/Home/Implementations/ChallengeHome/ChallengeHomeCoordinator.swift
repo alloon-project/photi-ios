@@ -9,7 +9,9 @@
 import Challenge
 import Core
 
-protocol ChallengeHomeListener: AnyObject { }
+protocol ChallengeHomeListener: AnyObject {
+  func requestLogInAtChallengeHome()
+}
 
 protocol ChallengeHomePresentable { }
 
@@ -31,11 +33,10 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
-}
-
-// MARK: - LogIn
-extension ChallengeHomeCoordinator {
-  func attachLogin() { }
+  
+  func requestLogIn() {
+    listener?.requestLogInAtChallengeHome()
+  }
 }
 
 // MARK: - Challenge
@@ -70,7 +71,7 @@ extension ChallengeHomeCoordinator: ChallengeListener {
     detachChallenge()
   }
   
-  func requestLoginAtChallenge() { }
+  // 이거 제대로 삭제되는지 확인해봐야겠다~!
   
   func leaveChallenge(isDelete: Bool) { }
 }

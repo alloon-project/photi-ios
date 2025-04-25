@@ -140,7 +140,11 @@ private extension HomeCoordinator {
 }
 
 // MARK: - ChallengeHome Listener
-extension HomeCoordinator: ChallengeHomeListener { }
+extension HomeCoordinator: ChallengeHomeListener {
+  func requestLogInAtChallengeHome() {
+    Task { await attachLogIn() }
+  }
+}
 
 // MARK: - NoneMemberHome Listener
 extension HomeCoordinator: NoneMemberHomeListener {
