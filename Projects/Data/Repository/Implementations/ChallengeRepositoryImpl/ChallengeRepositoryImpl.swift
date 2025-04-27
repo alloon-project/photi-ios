@@ -97,6 +97,16 @@ public extension ChallengeRepositoryImpl {
     )
     .map { dataMapper.mapToChallengeMembers(dto: $0) }
   }
+
+  func fetchChallengeSampleImage() async throws -> [String] {
+    let result = try await requestAuthorizableAPI(
+        api: ChallengeAPI.sampleImages,
+        responseType: ChallengeSampleImageResponseDTO.self,
+        behavior: .never
+      ).value
+      
+    return result.list
+  }
 }
 
 // MARK: - Upload Methods
