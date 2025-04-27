@@ -33,7 +33,7 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   struct Input {
     var didTapBackButton: ControlEvent<Void>
     var challengeGoal: ControlProperty<String>
-    var proveTime: ControlProperty<String>
+    var proveTime: Observable<String>
     var date: Observable<Date>
     var didTapNextButton: ControlEvent<Void>
   }

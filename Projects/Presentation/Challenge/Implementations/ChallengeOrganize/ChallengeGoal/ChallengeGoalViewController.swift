@@ -122,7 +122,8 @@ private extension ChallengeGoalViewController {
       leftPdding: 4,
       rightPadding: 16
     )
-    
+    proveTimeTextField.textField.delegate = self
+
     view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
@@ -168,7 +169,7 @@ private extension ChallengeGoalViewController {
     }
     
     setProveTimeLabel.snp.makeConstraints {
-      $0.top.equalTo(challengeGoalTextView.snp.bottom).offset(53)
+      $0.top.equalTo(challengeGoalTextView.snp.bottom).offset(51)
       $0.leading.equalTo(challengeGoalTextView)
     }
     
@@ -202,7 +203,7 @@ private extension ChallengeGoalViewController {
     let input = ChallengeGoalViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       challengeGoal: challengeGoalTextView.rx.text,
-      proveTime: proveTimeTextField.rx.text,
+      proveTime: proveTimeRelay.asObservable(),
       date: endDateRelay.asObservable(),
       didTapNextButton: nextButton.rx.tap
     )
@@ -241,6 +242,7 @@ extension ChallengeGoalViewController: ChallengeGoalPresentable { }
 private extension ChallengeGoalViewController {
   func showTimePickerBottomSheet() {
     let timePicker = TimePickerBottomSheet(
+      selectedHour: 12,
       buttonText: "인증시간 정하기"
     )
     timePicker.delegate = self
@@ -257,7 +259,10 @@ private extension ChallengeGoalViewController {
 
 extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
   func didSelect(hour: Int) {
-    proveTimeTextField.text = hour.hourToTimeString()
+    let timeString = hour.hourToTimeString()
+    proveTimeTextField.text = timeString
+    proveTimeRelay.accept(timeString)
+    proveComment.isActivate = true
   }
 }
 
@@ -265,5 +270,15 @@ extension ChallengeGoalViewController: DatePickerBottomSheetDelegate {
   func didSelect(date: Date) {
     endDateRelay.accept(date)
     dateTextField.endDate = date
+  }
+}
+
+extension ChallengeGoalViewController: UITextFieldDelegate {
+  func textField(
+    _ textField: UITextField,
+    shouldChangeCharactersIn range: NSRange,
+    replacementString string: String
+  ) -> Bool {
+    return false
   }
 }
