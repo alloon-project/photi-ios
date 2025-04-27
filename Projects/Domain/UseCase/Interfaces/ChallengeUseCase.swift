@@ -36,4 +36,5 @@ public protocol ChallengeUseCase {
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func leaveChallenge(id: Int) -> Single<Void>
+  func fetchChallengeSampleImages() async throws -> [String]
 }
