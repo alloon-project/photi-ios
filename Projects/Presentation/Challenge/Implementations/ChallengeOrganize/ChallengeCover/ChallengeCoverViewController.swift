@@ -194,6 +194,8 @@ extension ChallengeCoverViewController: UICollectionViewDelegate {
     
     if indexPath.item == 0 { // 기본일경우
       requestOpenLibrary(delegate: self)
+    } else {
+      // TODO: 실서버 이미지 요청 확인 후 구현예정
     }
   }
 }
