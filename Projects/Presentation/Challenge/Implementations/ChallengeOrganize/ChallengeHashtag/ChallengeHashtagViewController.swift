@@ -165,7 +165,11 @@ private extension ChallengeHashtagViewController {
     addHashtagTextField.rx.didTapButton
       .withLatestFrom(addHashtagTextField.rx.text)
       .bind(with: self) { owner, newHashtag in
-        owner.hashtagsDataSource.append(newHashtag)
+        if owner.hashtagsDataSource.count >= 3 {
+          owner.presentHashtagLimitToastView()
+        } else {
+          owner.hashtagsDataSource.append(newHashtag)
+        }
       }.disposed(by: disposeBag)
   }
   
@@ -184,7 +188,18 @@ private extension ChallengeHashtagViewController {
 extension ChallengeHashtagViewController: ChallengeHashtagPresentable { }
 
 // MARK: - Private Methods
-private extension ChallengeHashtagViewController { }
+private extension ChallengeHashtagViewController {
+  func presentHashtagLimitToastView() {
+    let toastText = "해시태그는 3개까지 등록 가능해요"
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
+  }
+}
 
 // MARK: - UICollectionView Delegate
 extension ChallengeHashtagViewController: UICollectionViewDelegate {}
