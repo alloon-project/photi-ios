@@ -25,6 +25,7 @@ public enum ChallengeAPI {
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
   case leaveChallenge(challengeId: Int)
+  case sampleImages
 }
 
 extension ChallengeAPI: TargetType {
@@ -46,6 +47,7 @@ extension ChallengeAPI: TargetType {
       case let .challengeDescription(id): return "api/challenges/\(id)/info"
       case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
       case .challengeCount: return "api/users/challenges"
+      case .sampleImages: return "api/challenges/example-images"
     }
   }
   
@@ -61,6 +63,7 @@ extension ChallengeAPI: TargetType {
       case .challengeDescription: return .get
       case .challengeMember: return .get
       case .leaveChallenge: return .delete
+      case .sampleImages: return .get
     }
   }
   
@@ -116,6 +119,8 @@ extension ChallengeAPI: TargetType {
       case let .challengeMember(challengeId), let .leaveChallenge(challengeId):
         let parameters = ["challengeId": challengeId]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+      case .sampleImages:
+        return .requestPlain
     }
   }
   
@@ -179,6 +184,12 @@ extension ChallengeAPI: TargetType {
         
       case .challengeCount:
         let data = ChallengeCountResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      
+      case .sampleImages:
+        let data = ChallengeSampleImageResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
