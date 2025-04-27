@@ -181,6 +181,10 @@ private extension ChallengeHashtagViewController {
     output.isValidHashtag
       .drive(commentView.rx.isActivate)
       .disposed(by: disposeBag)
+    
+    output.isEnabledNextButton
+      .drive(nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
   }
 }
 

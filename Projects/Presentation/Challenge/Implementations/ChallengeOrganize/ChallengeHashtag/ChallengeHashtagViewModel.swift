@@ -39,6 +39,7 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   // MARK: - Output
   struct Output {
     let isValidHashtag: Driver<Bool>
+    let isEnabledNextButton: Driver<Bool>
   }
   
   // MARK: - Initializers
@@ -52,7 +53,8 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       .disposed(by: disposeBag)
     
     let isHashtagEntered = input.enteredHashtag.map { !$0.isEmpty && $0.count <= 6 }
-    
+    let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
+
     input.didTapNextButton
       .withLatestFrom(input.selectedHashtags)
       .bind(with: self) { owner, hashtags in
@@ -60,7 +62,8 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       }.disposed(by: disposeBag)
     
     return Output(
-      isValidHashtag: isHashtagEntered.asDriver(onErrorJustReturn: false)
+      isValidHashtag: isHashtagEntered.asDriver(onErrorJustReturn: false),
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
     )
   }
 }
