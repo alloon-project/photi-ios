@@ -169,6 +169,7 @@ private extension ChallengeHashtagViewController {
           owner.presentHashtagLimitToastView()
         } else {
           owner.hashtagsDataSource.append(newHashtag)
+          owner.addHashtagTextField.text = nil
         }
       }.disposed(by: disposeBag)
   }

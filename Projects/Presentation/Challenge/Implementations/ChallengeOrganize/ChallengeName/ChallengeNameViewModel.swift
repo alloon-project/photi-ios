@@ -51,8 +51,8 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
   
     input.didTapNextButton
       .withLatestFrom(
-        Observable.zip(input.challengeName, input.isPublicChallenge)
-      )
+        Observable.combineLatest(input.challengeName, input.isPublicChallenge)
+        )
       .bind(with: self) { owner, pieceOfChallenge in
         owner.coordinator?.attachChallengeGoal(
           challengeName: pieceOfChallenge.0,
