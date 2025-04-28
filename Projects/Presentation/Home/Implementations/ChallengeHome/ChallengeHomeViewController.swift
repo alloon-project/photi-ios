@@ -167,6 +167,7 @@ private extension ChallengeHomeViewController {
         LoadingAnimation.logo.stop()
         if case let .success(challengeId, image) = result {
           owner.update(challengeId: challengeId, image: image.image)
+          owner.presentVerificationSuccessToast()
         }
       }
       .disposed(by: disposeBag)
@@ -317,6 +318,21 @@ private extension ChallengeHomeViewController {
     
     let snapshot = datasource.snapshot()
     return snapshot.numberOfItems - 1 == row
+  }
+  
+  func presentVerificationSuccessToast() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "인증 완료! 오늘도 수고했어요!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
+    
+    toastView.present(at: self.view.window ?? self.view)
   }
   
   func presentFileTooLargeAlert() {
