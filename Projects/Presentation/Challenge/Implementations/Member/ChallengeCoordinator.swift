@@ -23,6 +23,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   weak var listener: ChallengeListener?
 
   private let viewModel: ChallengeViewModel
+  private let presentType: ChallengePresentType
   
   private let feedContainer: FeedContainable
   private var feedCoordinator: ViewableCoordinating?
@@ -42,6 +43,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
+    initialPresentType: ChallengePresentType,
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
@@ -49,6 +51,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     reportContainer: ReportContainable
   ) {
     self.viewModel = viewModel
+    self.presentType = initialPresentType
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
@@ -65,7 +68,11 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   func attachSegments() {
     let challengeId = viewModel.challengeId
     let challengeName = viewModel.challengeName
-    let feedCoordinator = feedContainer.coordinator(challengeId: challengeId, listener: self)
+    let feedCoordinator = feedContainer.coordinator(
+      challengeId: challengeId,
+      listener: self,
+      presentType: presentType
+    )
     let descriptionCoordinator = descriptionContainer.coordinator(challengeId: challengeId, listener: self)
     let participantCoordinator = participantContainer.coordinator(
       challengeId: challengeId,

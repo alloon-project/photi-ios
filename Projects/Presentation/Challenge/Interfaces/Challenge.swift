@@ -8,8 +8,17 @@
 
 import Core
 
+public enum ChallengePresentType {
+  case `default`
+  case presentWithFeed(_ feedId: Int)
+}
+
 public protocol ChallengeContainable: Containable {
-  func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating
+  func coordinator(
+    listener: ChallengeListener,
+    challengeId: Int,
+    presentType: ChallengePresentType
+  ) -> ViewableCoordinating
 }
 
 public protocol ChallengeListener: AnyObject {
