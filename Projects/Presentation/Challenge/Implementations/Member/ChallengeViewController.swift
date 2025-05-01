@@ -286,7 +286,7 @@ private extension ChallengeViewController {
     let alert = AlertViewController(
       alertType: .canCancel,
       title: "챌린지를 탈퇴할까요?",
-      attributedSubTitle: leaveChallengeString(memberCount: 1)
+      attributedSubTitle: leaveChallengeString(memberCount: memberCount)
     )
     alert.confirmButtonTitle = "탈퇴할게요"
     alert.cancelButtonTitle = "취소할게요"

@@ -11,6 +11,7 @@ import Core
 
 protocol ChallengeHomeListener: AnyObject {
   func requestLogInAtChallengeHome()
+  func requestNoneChallengeHomeAtChallengeHome()
 }
 
 protocol ChallengeHomePresentable { }
@@ -37,6 +38,10 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
   func requestLogIn() {
     listener?.requestLogInAtChallengeHome()
   }
+  
+  func requestNoneChallengeHome() {
+    listener?.requestNoneChallengeHomeAtChallengeHome()
+  }
 }
 
 // MARK: - Challenge
@@ -44,7 +49,25 @@ extension ChallengeHomeCoordinator {
   func attachChallenge(id: Int) {
     guard challengeCoordinator == nil else { return }
     
-    let coordinator = challengeContainer.coordinator(listener: self, challengeId: id)
+    let coordinator = challengeContainer.coordinator(
+      listener: self,
+      challengeId: id,
+      presentType: .default
+    )
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    
+    self.challengeCoordinator = coordinator
+  }
+  
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainer.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      presentType: .presentWithFeed(feedId)
+    )
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     
@@ -70,8 +93,9 @@ extension ChallengeHomeCoordinator: ChallengeListener {
   func shouldDismissChallenge() {
     detachChallenge()
   }
-  
-  // 이거 제대로 삭제되는지 확인해봐야겠다~!
-  
-  func leaveChallenge(isDelete: Bool) { }
+
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+    viewModel.reloadData()
+  }
 }

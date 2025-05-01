@@ -136,8 +136,8 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
     listener?.didTapBackButtonAtChallenge()
   }
   
-  func leaveChallenge(isLastMember: Bool) {
-    listener?.leaveChallenge(isDelete: isLastMember)
+  func leaveChallenge(challengeId: Int) {
+    listener?.leaveChallenge(challengeId: challengeId)
   }
   
   func attachChallengeReport() {

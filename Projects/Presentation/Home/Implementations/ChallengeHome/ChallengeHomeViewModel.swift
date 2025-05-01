@@ -15,6 +15,7 @@ import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject {
   func requestLogIn()
+  func requestNoneChallengeHome()
   func attachChallenge(id: Int)
   func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
@@ -69,6 +70,10 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     self.useCase = useCase
   }
   
+  func reloadData() {
+    fetchInitialData()
+  }
+  
   func transform(input: Input) -> Output {
     input.requestData
       .emit(with: self) { owner, _ in
@@ -118,6 +123,11 @@ private extension ChallengeHomeViewModel {
     useCase.fetchMyChallenges()
       .observe(on: MainScheduler.instance)
       .subscribe(with: self) { owner, challenges in
+        guard !challenges.isEmpty else {
+          owner.coordinator?.requestNoneChallengeHome()
+          return
+        }
+        
         let feedModels = owner.mapToMyChallengeFeeds(challenges)
         let challengeModels = owner.mapToMyChallenges(challenges)
         owner.myChallengeFeedsRelay.accept(feedModels)

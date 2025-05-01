@@ -15,7 +15,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
   func attachLogIn()
-  func leaveChallenge(isLastMember: Bool)
+  func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
 }
 
@@ -98,6 +98,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapConfirmButtonAtAlert()
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       challengeInfo: challengeModelRelay.asDriver(),
       memberCount: memberCount.asDriver(),
@@ -128,7 +134,7 @@ private extension ChallengeViewModel {
     useCase.leaveChallenge(id: challengeId)
       .observe(on: MainScheduler.instance)
       .subscribe(with: self) { owner, _ in
-        owner.coordinator?.leaveChallenge(isLastMember: owner.memberCount.value == 1)
+        owner.coordinator?.leaveChallenge(challengeId: owner.challengeId)
       } onFailure: { owner, error in
         owner.requestFailed(with: error)
       }
