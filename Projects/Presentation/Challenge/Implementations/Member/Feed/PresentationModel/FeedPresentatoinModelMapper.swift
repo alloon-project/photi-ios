@@ -55,14 +55,14 @@ struct FeedPresentatoinModelMapper {
 
 extension FeedPresentatoinModelMapper {
   func mapToUpdateTimeString(_ date: Date) -> String {
-    let date = date
+    let date = date.convertTimezone(from: .kst)
     let current = Date()
     guard current.year == date.year else {
       return "\(abs(current.year - date.year))년 전"
     }
   
     guard current.month == date.month else {
-      return "\(abs(current.month - date.month))년 전"
+      return "\(abs(current.month - date.month))달 전"
     }
   
     guard current.day == date.day else {
@@ -85,7 +85,7 @@ extension FeedPresentatoinModelMapper {
   }
   
   func mapToUpdateGroup(_ date: Date) -> String {
-    let date = date
+    let date = date.convertTimezone(from: .kst)
     let current = Date()
   
     guard current.year == date.year else {
@@ -93,7 +93,7 @@ extension FeedPresentatoinModelMapper {
     }
   
     guard current.month == date.month else {
-      return "\(abs(current.month - date.month))년 전"
+      return "\(abs(current.month - date.month))달 전"
     }
   
     let temp = abs(current.day - date.day)
