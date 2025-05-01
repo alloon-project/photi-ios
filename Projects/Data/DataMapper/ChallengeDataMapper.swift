@@ -101,6 +101,7 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         hashTags: hasTags,
         proveTime: proveTime,
         feedImageURL: feedImageUrl,
+        feedId: $0.feedId,
         isProve: $0.isProve
       )
     }
@@ -162,10 +163,10 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       return .init(
         id: $0.id,
         name: $0.username,
-        imageUrl: $0.imageUrl,
+        imageUrl: URL(string: $0.imageUrl ?? ""),
         isOwner: $0.isCreator,
         duration: $0.duration,
-        goal: $0.goal
+        goal: $0.goal ?? ""
       )
     }
   }
