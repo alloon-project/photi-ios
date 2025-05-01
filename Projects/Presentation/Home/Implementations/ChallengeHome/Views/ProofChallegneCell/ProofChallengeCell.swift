@@ -107,8 +107,17 @@ private extension ProofChallengeCell {
     switch type {
       case .didNotProof:
         seperatorView.backgroundColor = .blue100
-      case .proofURL, .proofImage:
+      case .didProof:
         seperatorView.backgroundColor = .green0
+    }
+  }
+  
+  func configureDeadLineChip(_ deadLine: String) {
+    switch type {
+      case .didNotProof:
+        deadLineChip.text = deadLine
+      case .didProof:
+        deadLineChip.text = "인증완료!"
     }
   }
 }
