@@ -167,8 +167,8 @@ private extension ChallengeHomeViewController {
     output.didUploadChallengeFeed
       .emit(with: self) { owner, result in
         LoadingAnimation.logo.stop()
-        if case let .success(challengeId, image) = result {
-          owner.update(challengeId: challengeId, image: image.image)
+        if case let .success(challengeId, feedId, url) = result {
+          owner.update(challengeId: challengeId, feedId: feedId, url: url)
           owner.presentVerificationSuccessToast()
         }
       }
@@ -247,15 +247,15 @@ extension ChallengeHomeViewController {
     datasource.apply(snapshot)
   }
   
-  func update(challengeId: Int, image: UIImage) {
+  func update(challengeId: Int, feedId: Int, url: URL?) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
     
-    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.id == challengeId }) else { return }
+    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.challengeId == challengeId }) else { return }
 
     let existingModel = snapshot.itemIdentifiers[index]
     var updatedModel = existingModel
-    updatedModel.type = .proofImage(image)
+    updatedModel.type = .didProof(url, feedId: feedId)
     
     snapshot.deleteItems([existingModel])
     snapshot.appendItems([updatedModel])

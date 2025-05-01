@@ -27,7 +27,7 @@ protocol ChallengeHomeViewModelType: AnyObject {
 }
 
 enum UploadChallnegeFeedResult {
-  case success(id: Int, image: UIImageWrapper)
+  case success(challengeId: Int, feedId: Int, url: URL?)
   case failure
 }
 
@@ -130,8 +130,8 @@ private extension ChallengeHomeViewModel {
   
   func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {
     do {
-      try await useCase.uploadChallengeFeed(challengeId: id, image: image)
-      didUploadChallengeFeed.accept(.success(id: id, image: image))
+      let feed = try await useCase.uploadChallengeFeed(challengeId: id, image: image)
+      didUploadChallengeFeed.accept(.success(challengeId: id, feedId: feed.id, url: feed.imageURL))
     } catch {
       didUploadChallengeFeed.accept(.failure)
       requestFailed(with: error, message: "네트워크가 불안정해, 챌린지 인증에 실패했어요.\n다시 시도해주세요.")
