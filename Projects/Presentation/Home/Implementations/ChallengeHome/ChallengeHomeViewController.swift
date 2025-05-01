@@ -32,6 +32,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
   private let didTapLoginButton = PublishRelay<Void>()
+  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -145,7 +146,8 @@ private extension ChallengeHomeViewController {
       requestData: requestData.asSignal(),
       didTapChallenge: bottomView.didTapChallenge,
       uploadChallengeFeed: uploadChallengeFeed.asSignal(),
-      didTapLoginButton: didTapLoginButton.asSignal()
+      didTapLoginButton: didTapLoginButton.asSignal(),
+      didTapFeed: didTapFeed.asSignal()
     )
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
@@ -193,11 +195,16 @@ private extension ChallengeHomeViewController {
   }
   
   func bind(for cell: ProofChallengeCell, isNotProof: Bool) {
-    cell.rx.didTapImage
-      .filter { _ in isNotProof }
+    cell.rx.didTapCameraButton
       .bind(with: self) { owner, _ in
         owner.uploadChallengeId = cell.challengeId
         owner.requestOpenCamera(delegate: owner)
+      }
+      .disposed(by: disposeBag)
+    
+    cell.rx.didTapFeed
+      .bind(with: self) { owner, infos in
+        owner.didTapFeed.accept(infos)
       }
       .disposed(by: disposeBag)
   }

@@ -16,6 +16,7 @@ import UseCase
 protocol ChallengeHomeCoordinatable: AnyObject {
   func requestLogIn()
   func attachChallenge(id: Int)
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
 
 protocol ChallengeHomeViewModelType: AnyObject {
@@ -49,6 +50,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     let didTapChallenge: Signal<Int>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
     let didTapLoginButton: Signal<Void>
+    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
   }
   
   // MARK: - Output
@@ -89,6 +91,12 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     input.didTapChallenge
       .emit(with: self) { owner, id in
         owner.coordinator?.attachChallenge(id: id)
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapFeed
+      .emit(with: self) { owner, infos in
+        owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1)
       }
       .disposed(by: disposeBag)
     
@@ -161,12 +169,19 @@ private extension ChallengeHomeViewModel {
   
   func mapToMyChallengeFeed(_ challenge: ChallengeSummary) -> MyChallengeFeedPresentationModel {
     let proveTime = challenge.proveTime?.toString("H시까지") ?? ""
+    let model: MyChallengeFeedPresentationModel.ModelType
+    
+    if let id = challenge.feedId, challenge.isProve {
+      model = .didProof(challenge.feedImageURL, feedId: id)
+    } else {
+      model = .didNotProof
+    }
     
     return .init(
-      id: challenge.id,
+      challengeId: challenge.id,
       title: challenge.name,
       deadLine: proveTime,
-      type: challenge.isProve ? .proofURL(challenge.feedImageURL) : .didNotProof
+      type: model
     )
   }
   

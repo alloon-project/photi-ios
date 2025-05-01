@@ -23,6 +23,8 @@ final class ProofChallengeCell: UICollectionViewCell {
   private let deadLineChip = TextChip(type: .green, size: .large)
   private let titleView = ChallengeTitleView()
   private let seperatorView = UIView()
+  fileprivate var type: ModelType = .didNotProof
+  fileprivate var feedId: Int = -1
   fileprivate let challengeImageView = ChallengeImageView()
   
   // MARK: - Initializers
@@ -38,8 +40,14 @@ final class ProofChallengeCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with model: MyChallengeFeedPresentationModel, isLast: Bool) {
-    self.challengeId = model.id
-    deadLineChip.text = model.deadLine
+    self.challengeId = model.challengeId
+    self.type = model.type
+
+    if case let .didProof(_, feedId) = type {
+      self.feedId = feedId
+    }
+    
+    configureDeadLineChip(model.deadLine)
     setupUI(type: model.type, isLast: isLast)
     titleView.configure(title: model.title, type: model.type)
     challengeImageView.configure(with: model.type)
@@ -91,7 +99,7 @@ private extension ProofChallengeCell {
     configureSeperatorView(type: type, isLast: isLast)
     
     switch type {
-      case .proofURL, .proofImage:
+      case .didProof:
         deadLineChip.type = .green
       case .didNotProof:
         deadLineChip.type = .blue
@@ -123,9 +131,18 @@ private extension ProofChallengeCell {
 }
 
 extension Reactive where Base: ProofChallengeCell {
-  var didTapImage: ControlEvent<Int> {
+  var didTapCameraButton: ControlEvent<Int> {
     let source = base.challengeImageView.rx.didTapImage
+      .filter { _ in base.type == .didNotProof }
       .map { _ in base.challengeId }
+    return .init(events: source)
+  }
+  
+  var didTapFeed: ControlEvent<(challengeId: Int, feedId: Int)> {
+    let source = base.challengeImageView.rx.didTapImage
+      .filter { _ in base.type != .didNotProof }
+      .map { _ in (challengeId: base.challengeId, feedId: base.feedId) }
+    
     return .init(events: source)
   }
 }
