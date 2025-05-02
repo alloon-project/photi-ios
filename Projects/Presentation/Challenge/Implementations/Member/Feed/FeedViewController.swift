@@ -40,6 +40,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
       guard viewWillAppear else { return }
       configureTodayHeaderView(for: isProve)
       cameraShutterButton.isHidden = (isProve == .didProve)
+      cameraView.isHidden = (isProve == .didProve)
       
       if viewDidAppear, isProve != .didProve { presentPoofTipView() }
     }
@@ -70,6 +71,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     collectionView.registerCell(FeedCell.self)
     collectionView.registerHeader(FeedsHeaderView.self)
     collectionView.registerFooter(FeedsLoadingFooterView.self)
+    collectionView.backgroundColor = .clear
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
@@ -77,6 +79,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     
     return collectionView
   }()
+  private let cameraView = FeedCameraGradientView()
   private let cameraShutterButton: UIButton = {
     let button = UIButton()
     button.setImage(.shutterWhite, for: .normal)
@@ -116,6 +119,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewWillAppear = true
     if case let .didNotProve(time) = isProve, time.isEmpty { return }
     cameraShutterButton.isHidden = (isProve == .didProve)
+    cameraView.isHidden = (isProve == .didProve)
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -139,6 +143,7 @@ private extension FeedViewController {
     view.addSubviews(
       progressBar,
       orderButton,
+      cameraView,
       feedCollectionView,
       emptyFeedsImageView,
       tagView,
@@ -168,6 +173,11 @@ private extension FeedViewController {
       $0.top.equalTo(orderButton.snp.bottom).offset(30)
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalToSuperview()
+    }
+
+    cameraView.snp.makeConstraints {
+      $0.bottom.leading.trailing.equalToSuperview()
+      $0.height.equalTo(161)
     }
 
     cameraShutterButton.snp.makeConstraints {
