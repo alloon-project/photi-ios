@@ -66,6 +66,17 @@ public extension ChallengeRepositoryImpl {
       
     return result.challengeCnt
   }
+  
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int {
+    let result = try await requestAuthorizableAPI(
+      api: ChallengeAPI.challengeProveMemberCount(challengeId: challengeId),
+      responseType: ChallengeProveMemberCountResponseDTO.self
+    ).value
+    
+    print(result.feedMemberCnt)
+    
+    return result.feedMemberCnt
+  }
     
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
