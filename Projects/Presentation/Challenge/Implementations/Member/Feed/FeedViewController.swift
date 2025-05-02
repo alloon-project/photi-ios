@@ -64,6 +64,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let progressBar = MediumProgressBar(percent: .percent0)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
   private let tagView = TagView(image: .peopleWhite)
+  private let emptyFeedsImageView = UIImageView(image: .challengeEmptyFeed)
   private let feedCollectionView: SelfVerticalSizingCollectionView = {
     let collectionView = SelfVerticalSizingCollectionView(layout: UICollectionViewLayout())
     collectionView.registerCell(FeedCell.self)
@@ -139,6 +140,7 @@ private extension FeedViewController {
       progressBar,
       orderButton,
       feedCollectionView,
+      emptyFeedsImageView,
       tagView,
       cameraShutterButton
     )
@@ -172,6 +174,12 @@ private extension FeedViewController {
       $0.centerX.equalToSuperview()
       $0.width.height.equalTo(64)
       $0.bottom.equalToSuperview().inset(22)
+    }
+    
+    emptyFeedsImageView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(23)
+      $0.top.equalToSuperview().offset(74)
     }
   }
 }
@@ -220,11 +228,13 @@ private extension FeedViewController {
     output.feeds
       .drive(with: self) { owner, feeds in
         owner.feedCollectionView.refreshControl?.endRefreshing()
+        owner.emptyFeedsImageView.isHidden = (feeds != .empty)
         switch feeds {
           case let .initialPage(models):
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
+          default: break
         }
       }
       .disposed(by: disposeBag)
