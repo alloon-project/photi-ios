@@ -140,7 +140,18 @@ private extension HomeCoordinator {
 }
 
 // MARK: - ChallengeHome Listener
-extension HomeCoordinator: ChallengeHomeListener { }
+extension HomeCoordinator: ChallengeHomeListener {
+  func requestLogInAtChallengeHome() {
+    Task { await attachLogIn() }
+  }
+  
+  func requestNoneChallengeHomeAtChallengeHome() {
+    Task {
+      await detachChallengeHome()
+      await attachNoneChallengeHome()
+    }
+  }
+}
 
 // MARK: - NoneMemberHome Listener
 extension HomeCoordinator: NoneMemberHomeListener {
@@ -156,7 +167,10 @@ extension HomeCoordinator: NoneChallengeHomeListener {
   }
   
   func requstConvertInitialHome() {
-    Task { await attachInitialScreenIfNeeded() }
+    Task {
+      await detachNoneChallengeHome()
+      await attachInitialScreenIfNeeded()
+    }
   }
 }
 

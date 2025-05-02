@@ -20,6 +20,7 @@ public struct MyChallengeResponseDTO: Decodable {
   public let endDate: String
   public let hashtags: [HashTagResponseDTO]
   public let feedImageUrl: String?
+  public let feedId: Int?
   public let isProve: Bool
 }
 

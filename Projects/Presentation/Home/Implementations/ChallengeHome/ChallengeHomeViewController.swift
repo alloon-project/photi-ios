@@ -15,8 +15,9 @@ import Core
 
 final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllerable {
   enum Constants {
-    static let itemWidth: CGFloat = 288
     static let groupSpacing: CGFloat = 16
+    static let itemLeading: CGFloat = 24
+    static let itemTrailing: CGFloat = 45
   }
   
   typealias MyChallengeFeedDataSourceType = UICollectionViewDiffableDataSource<Int, MyChallengeFeedPresentationModel>
@@ -31,6 +32,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
   private let didTapLoginButton = PublishRelay<Void>()
+  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -46,8 +48,8 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     return label
   }()
   
-  private let proofChallengeCollectionView: UICollectionView = {
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
+  private let proofChallengeCollectionView: SelfVerticalSizingCollectionView = {
+    let collectionView = SelfVerticalSizingCollectionView(layout: UICollectionViewLayout())
     collectionView.registerCell(ProofChallengeCell.self)
     collectionView.decelerationRate = .fast
     collectionView.isPagingEnabled = true
@@ -80,6 +82,10 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     self.datasource = dataSource
     setupUI()
     bind()
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
     requestData.accept(())
   }
 }
@@ -123,7 +129,7 @@ private extension ChallengeHomeViewController {
     proofChallengeCollectionView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
-      $0.height.equalTo(298)
+      $0.height.equalTo(proofChallengeCollectionView.snp.width).multipliedBy(0.83)
     }
     
     bottomView.snp.makeConstraints {
@@ -138,8 +144,10 @@ private extension ChallengeHomeViewController {
   func bind() {
     let input = ChallengeHomeViewModel.Input(
       requestData: requestData.asSignal(),
+      didTapChallenge: bottomView.didTapChallenge,
       uploadChallengeFeed: uploadChallengeFeed.asSignal(),
-      didTapLoginButton: didTapLoginButton.asSignal()
+      didTapLoginButton: didTapLoginButton.asSignal(),
+      didTapFeed: didTapFeed.asSignal()
     )
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
@@ -159,8 +167,9 @@ private extension ChallengeHomeViewController {
     output.didUploadChallengeFeed
       .emit(with: self) { owner, result in
         LoadingAnimation.logo.stop()
-        if case let .success(challengeId, image) = result {
-          owner.update(challengeId: challengeId, image: image.image)
+        if case let .success(challengeId, feedId, url) = result {
+          owner.update(challengeId: challengeId, feedId: feedId, url: url)
+          owner.presentVerificationSuccessToast()
         }
       }
       .disposed(by: disposeBag)
@@ -186,11 +195,16 @@ private extension ChallengeHomeViewController {
   }
   
   func bind(for cell: ProofChallengeCell, isNotProof: Bool) {
-    cell.rx.didTapImage
-      .filter { _ in isNotProof }
+    cell.rx.didTapCameraButton
       .bind(with: self) { owner, _ in
         owner.uploadChallengeId = cell.challengeId
         owner.requestOpenCamera(delegate: owner)
+      }
+      .disposed(by: disposeBag)
+    
+    cell.rx.didTapFeed
+      .bind(with: self) { owner, infos in
+        owner.didTapFeed.accept(infos)
       }
       .disposed(by: disposeBag)
   }
@@ -233,15 +247,15 @@ extension ChallengeHomeViewController {
     datasource.apply(snapshot)
   }
   
-  func update(challengeId: Int, image: UIImage) {
+  func update(challengeId: Int, feedId: Int, url: URL?) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
     
-    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.id == challengeId }) else { return }
+    guard let index = snapshot.itemIdentifiers.firstIndex(where: { $0.challengeId == challengeId }) else { return }
 
     let existingModel = snapshot.itemIdentifiers[index]
     var updatedModel = existingModel
-    updatedModel.type = .proofImage(image)
+    updatedModel.type = .didProof(url, feedId: feedId)
     
     snapshot.deleteItems([existingModel])
     snapshot.appendItems([updatedModel])
@@ -278,7 +292,9 @@ extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
 // MARK: - Private Methods
 private extension ChallengeHomeViewController {
   func compositionalLayout() -> UICollectionViewCompositionalLayout {
-    return .init { _, _ in
+    return .init { _, environment in
+      let containerWidth = environment.container.effectiveContentSize.width
+      let availableWidth = containerWidth - Constants.itemLeading - Constants.itemTrailing
       let itemSize = NSCollectionLayoutSize(
         widthDimension: .fractionalWidth(1),
         heightDimension: .fractionalHeight(1)
@@ -286,7 +302,7 @@ private extension ChallengeHomeViewController {
       let item = NSCollectionLayoutItem(layoutSize: itemSize)
       
       let groupSize = NSCollectionLayoutSize(
-        widthDimension: .absolute(Constants.itemWidth),
+        widthDimension: .absolute(availableWidth),
         heightDimension: .fractionalHeight(1)
       )
       let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
@@ -294,7 +310,12 @@ private extension ChallengeHomeViewController {
       let section = NSCollectionLayoutSection(group: group)
       section.orthogonalScrollingBehavior = .groupPagingCentered
       section.interGroupSpacing = Constants.groupSpacing
-      
+      section.contentInsets = NSDirectionalEdgeInsets(
+        top: 0,
+        leading: Constants.itemLeading,
+        bottom: 0,
+        trailing: Constants.itemTrailing
+      )
       return section
     }
   }
@@ -304,6 +325,21 @@ private extension ChallengeHomeViewController {
     
     let snapshot = datasource.snapshot()
     return snapshot.numberOfItems - 1 == row
+  }
+  
+  func presentVerificationSuccessToast() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "인증 완료! 오늘도 수고했어요!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-64)
+    }
+    
+    toastView.present(at: self.view.window ?? self.view)
   }
   
   func presentFileTooLargeAlert() {

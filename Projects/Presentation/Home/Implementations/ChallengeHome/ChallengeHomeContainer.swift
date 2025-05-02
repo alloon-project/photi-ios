@@ -6,11 +6,13 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 import UseCase
 
 protocol ChallengeHomeDependency: Dependency {
   var homeUseCase: HomeUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
 }
 
 protocol ChallengeHomeContainable: Containable {
@@ -24,7 +26,8 @@ final class ChallengeHomeContainer: Container<ChallengeHomeDependency>, Challeng
     
     let coordinator = ChallengeHomeCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      challengeContainer: dependency.challengeContainable
     )
     coordinator.listener = listener
     return coordinator

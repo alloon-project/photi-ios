@@ -6,28 +6,96 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
-protocol ChallengeHomeListener: AnyObject { }
+protocol ChallengeHomeListener: AnyObject {
+  func requestLogInAtChallengeHome()
+  func requestNoneChallengeHomeAtChallengeHome()
+}
 
 protocol ChallengeHomePresentable { }
 
-final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentable> {
+final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentable>, ChallengeHomeCoordinatable {
   weak var listener: ChallengeHomeListener?
 
   private let viewModel: ChallengeHomeViewModel
   
+  private let challengeContainer: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: ChallengeHomeViewModel
+    viewModel: ChallengeHomeViewModel,
+    challengeContainer: ChallengeContainable
   ) {
     self.viewModel = viewModel
+    self.challengeContainer = challengeContainer 
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
+  
+  func requestLogIn() {
+    listener?.requestLogInAtChallengeHome()
+  }
+  
+  func requestNoneChallengeHome() {
+    listener?.requestNoneChallengeHomeAtChallengeHome()
+  }
 }
 
-// MARK: - Coordinatable
-extension ChallengeHomeCoordinator: ChallengeHomeCoordinatable {
-  func attachLogin() { }
+// MARK: - Challenge
+extension ChallengeHomeCoordinator {
+  func attachChallenge(id: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainer.coordinator(
+      listener: self,
+      challengeId: id,
+      presentType: .default
+    )
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    
+    self.challengeCoordinator = coordinator
+  }
+  
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainer.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      presentType: .presentWithFeed(feedId)
+    )
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    
+    self.challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
+    self.challengeCoordinator = nil
+  }
+}
+
+// MARK: - ChallengeListener
+extension ChallengeHomeCoordinator: ChallengeListener {
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
+  
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+    viewModel.reloadData()
+  }
 }

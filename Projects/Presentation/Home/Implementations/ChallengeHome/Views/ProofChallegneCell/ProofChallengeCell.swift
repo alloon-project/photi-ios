@@ -23,6 +23,8 @@ final class ProofChallengeCell: UICollectionViewCell {
   private let deadLineChip = TextChip(type: .green, size: .large)
   private let titleView = ChallengeTitleView()
   private let seperatorView = UIView()
+  fileprivate var type: ModelType = .didNotProof
+  fileprivate var feedId: Int = -1
   fileprivate let challengeImageView = ChallengeImageView()
   
   // MARK: - Initializers
@@ -38,8 +40,14 @@ final class ProofChallengeCell: UICollectionViewCell {
   
   // MARK: - Configure Methods
   func configure(with model: MyChallengeFeedPresentationModel, isLast: Bool) {
-    self.challengeId = model.id
-    deadLineChip.text = model.deadLine
+    self.challengeId = model.challengeId
+    self.type = model.type
+
+    if case let .didProof(_, feedId) = type {
+      self.feedId = feedId
+    }
+    
+    configureDeadLineChip(model.deadLine)
     setupUI(type: model.type, isLast: isLast)
     titleView.configure(title: model.title, type: model.type)
     challengeImageView.configure(with: model.type)
@@ -66,7 +74,7 @@ private extension ProofChallengeCell {
     seperatorView.snp.makeConstraints {
       $0.leading.equalTo(deadLineChip.snp.trailing).offset(14)
       $0.trailing.equalToSuperview()
-      $0.height.equalTo(1)
+      $0.height.equalTo(2)
       $0.centerY.equalTo(deadLineChip)
     }
     
@@ -78,7 +86,8 @@ private extension ProofChallengeCell {
     
     challengeImageView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.height.width.equalTo(184)
+      $0.leading.trailing.equalToSuperview().inset(52)
+      $0.height.equalTo(challengeImageView.snp.width)
       $0.top.equalTo(titleView).offset(48)
     }
   }
@@ -90,7 +99,7 @@ private extension ProofChallengeCell {
     configureSeperatorView(type: type, isLast: isLast)
     
     switch type {
-      case .proofURL, .proofImage:
+      case .didProof:
         deadLineChip.type = .green
       case .didNotProof:
         deadLineChip.type = .blue
@@ -106,16 +115,34 @@ private extension ProofChallengeCell {
     switch type {
       case .didNotProof:
         seperatorView.backgroundColor = .blue100
-      case .proofURL, .proofImage:
+      case .didProof:
         seperatorView.backgroundColor = .green0
+    }
+  }
+  
+  func configureDeadLineChip(_ deadLine: String) {
+    switch type {
+      case .didNotProof:
+        deadLineChip.text = deadLine
+      case .didProof:
+        deadLineChip.text = "인증완료!"
     }
   }
 }
 
 extension Reactive where Base: ProofChallengeCell {
-  var didTapImage: ControlEvent<Int> {
+  var didTapCameraButton: ControlEvent<Int> {
     let source = base.challengeImageView.rx.didTapImage
+      .filter { _ in base.type == .didNotProof }
       .map { _ in base.challengeId }
+    return .init(events: source)
+  }
+  
+  var didTapFeed: ControlEvent<(challengeId: Int, feedId: Int)> {
+    let source = base.challengeImageView.rx.didTapImage
+      .filter { _ in base.type != .didNotProof }
+      .map { _ in (challengeId: base.challengeId, feedId: base.feedId) }
+    
     return .init(events: source)
   }
 }

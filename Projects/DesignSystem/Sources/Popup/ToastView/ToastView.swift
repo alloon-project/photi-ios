@@ -143,15 +143,14 @@ public extension ToastView {
   }
   
   func present(
-    to viewController: UIViewController,
+    at view: UIView,
     duration: CGFloat = 3.0,
     completion: (() -> Void)? = nil
   ) {
     guard let constraint = toastViewConstraints else { return }
-    let superView = viewController.view
     workItem?.cancel()
     self.isRemoved = false
-    superView?.addSubview(self)
+    view.addSubview(self)
     self.snp.makeConstraints(constraint)
     
     let workItem = DispatchWorkItem { [weak self] in
@@ -160,6 +159,15 @@ public extension ToastView {
 
     self.workItem = workItem
     DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
+  }
+  
+  func present(
+    to viewController: UIViewController,
+    duration: CGFloat = 3.0,
+    completion: (() -> Void)? = nil
+  ) {
+    guard let view = viewController.view else { return }
+    present(at: view, duration: duration, completion: completion)
   }
 }
 

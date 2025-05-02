@@ -305,9 +305,7 @@ extension FeedViewController: FeedPresentable {
     
     guard
       let oldItem = snapshot.itemIdentifiers.first(where: { $0.id == feedId }),
-      oldItem.isLike != isLiked,
-      let section = snapshot.sectionIdentifier(containingItem: oldItem),
-      let index = snapshot.indexOfItem(oldItem)
+      oldItem.isLike != isLiked
     else { return }
     
     var updatedItem = oldItem
@@ -408,7 +406,12 @@ extension FeedViewController {
       }
     }
     
-    snapshot.appendItems(models, toSection: firstModel.updateGroup)
+    if let firstItem = snapshot.itemIdentifiers(inSection: firstModel.updateGroup).first {
+      snapshot.insertItems(models, beforeItem: firstItem)
+    } else {
+      snapshot.appendItems(models, toSection: firstModel.updateGroup)
+    }
+    
     dataSource.apply(snapshot)
   }
   
@@ -425,12 +428,7 @@ extension FeedViewController {
         snapshot.appendSections([$0.updateGroup])
         snapshot.appendItems([$0], toSection: $0.updateGroup)
       }
-      
-      if let firstItem = snapshot.itemIdentifiers(inSection: $0.updateGroup).first {
-        snapshot.insertItems(models, beforeItem: firstItem)
-      } else {
-        snapshot.appendItems([$0], toSection: $0.updateGroup)
-      }
+      snapshot.appendItems([$0], toSection: $0.updateGroup)
     }
     
     return snapshot
