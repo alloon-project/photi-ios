@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 import UseCase
 
@@ -15,7 +16,11 @@ protocol FeedDependency: Dependency {
 }
 
 protocol FeedContainable: Containable {
-  func coordinator(challengeId: Int, listener: FeedListener) -> ViewableCoordinating
+  func coordinator(
+    challengeId: Int,
+    listener: FeedListener,
+    presentType: ChallengePresentType
+  ) -> ViewableCoordinating
 }
 
 final class FeedContainer:
@@ -24,15 +29,21 @@ final class FeedContainer:
   FeedCommentDependency {
   var feedUseCase: FeedUseCase { dependency.feedUseCase }
 
-  func coordinator(challengeId: Int, listener: FeedListener) -> ViewableCoordinating {
+  func coordinator(
+    challengeId: Int,
+    listener: FeedListener,
+    presentType: ChallengePresentType
+  ) -> ViewableCoordinating {
     let viewModel = FeedViewModel(challengeId: challengeId, useCase: dependency.challengeUseCase)
     let viewControllerable = FeedViewController(viewModel: viewModel)
     
     let feedCommentContainer = FeedCommentContainer(dependency: self)
     
     let coordinator = FeedCoordinator(
+      challengeId: challengeId,
       viewControllerable: viewControllerable,
       viewModel: viewModel,
+      initialPresentType: presentType,
       feedCommentContainer: feedCommentContainer
     )
     coordinator.listener = listener

@@ -14,7 +14,10 @@ import Entity
 import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject {
-  func attachLogin()
+  func requestLogIn()
+  func requestNoneChallengeHome()
+  func attachChallenge(id: Int)
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
 
 protocol ChallengeHomeViewModelType: AnyObject {
@@ -25,7 +28,7 @@ protocol ChallengeHomeViewModelType: AnyObject {
 }
 
 enum UploadChallnegeFeedResult {
-  case success(id: Int, image: UIImageWrapper)
+  case success(challengeId: Int, feedId: Int, url: URL?)
   case failure
 }
 
@@ -45,8 +48,10 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
     let didTapLoginButton: Signal<Void>
+    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
   }
   
   // MARK: - Output
@@ -65,6 +70,10 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     self.useCase = useCase
   }
   
+  func reloadData() {
+    fetchInitialData()
+  }
+  
   func transform(input: Input) -> Output {
     input.requestData
       .emit(with: self) { owner, _ in
@@ -80,7 +89,19 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     
     input.didTapLoginButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachLogin()
+        owner.coordinator?.requestLogIn()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachChallenge(id: id)
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapFeed
+      .emit(with: self) { owner, infos in
+        owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1)
       }
       .disposed(by: disposeBag)
     
@@ -102,6 +123,11 @@ private extension ChallengeHomeViewModel {
     useCase.fetchMyChallenges()
       .observe(on: MainScheduler.instance)
       .subscribe(with: self) { owner, challenges in
+        guard !challenges.isEmpty else {
+          owner.coordinator?.requestNoneChallengeHome()
+          return
+        }
+        
         let feedModels = owner.mapToMyChallengeFeeds(challenges)
         let challengeModels = owner.mapToMyChallenges(challenges)
         owner.myChallengeFeedsRelay.accept(feedModels)
@@ -114,8 +140,8 @@ private extension ChallengeHomeViewModel {
   
   func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {
     do {
-      try await useCase.uploadChallengeFeed(challengeId: id, image: image)
-      didUploadChallengeFeed.accept(.success(id: id, image: image))
+      let feed = try await useCase.uploadChallengeFeed(challengeId: id, image: image)
+      didUploadChallengeFeed.accept(.success(challengeId: id, feedId: feed.id, url: feed.imageURL))
     } catch {
       didUploadChallengeFeed.accept(.failure)
       requestFailed(with: error, message: "네트워크가 불안정해, 챌린지 인증에 실패했어요.\n다시 시도해주세요.")
@@ -153,12 +179,19 @@ private extension ChallengeHomeViewModel {
   
   func mapToMyChallengeFeed(_ challenge: ChallengeSummary) -> MyChallengeFeedPresentationModel {
     let proveTime = challenge.proveTime?.toString("H시까지") ?? ""
+    let model: MyChallengeFeedPresentationModel.ModelType
+    
+    if let id = challenge.feedId, challenge.isProve {
+      model = .didProof(challenge.feedImageURL, feedId: id)
+    } else {
+      model = .didNotProof
+    }
     
     return .init(
-      id: challenge.id,
+      challengeId: challenge.id,
       title: challenge.name,
       deadLine: proveTime,
-      type: challenge.isProve ? .proofURL(challenge.feedImageURL) : .didNotProof
+      type: model
     )
   }
   

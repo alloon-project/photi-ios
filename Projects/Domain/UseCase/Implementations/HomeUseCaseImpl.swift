@@ -32,12 +32,12 @@ public struct HomeUseCaseImpl: HomeUseCase {
     return challengeRepository.fetchMyChallenges(page: 0, size: 20)
   }
   
-  public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws {
+  public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws -> Feed {
     guard let (data, type) = imageToData(image, maxMB: 8) else {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
     
-    try await challengeRepository.uploadChallengeFeedProof(
+    return try await challengeRepository.uploadChallengeFeedProof(
       id: challengeId,
       image: data,
       imageType: type

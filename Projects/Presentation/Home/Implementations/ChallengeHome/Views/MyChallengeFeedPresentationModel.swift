@@ -10,17 +10,16 @@ import UIKit
 
 struct MyChallengeFeedPresentationModel: Hashable {
   enum ModelType: Equatable {
-    case proofURL(_ url: URL?)
-    case proofImage(_ image: UIImage)
+    case didProof(_ url: URL?, feedId: Int)
     case didNotProof
   }
   
-  let id: Int
+  let challengeId: Int
   let title: String
   let deadLine: String
   var type: ModelType
   
   func hash(into hasher: inout Hasher) {
-    hasher.combine(id)
+    hasher.combine(challengeId)
   }
 }

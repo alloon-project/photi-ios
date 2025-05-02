@@ -39,6 +39,7 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency,
+  ChallengeDependency,
   NoneMemberChallengeDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
@@ -62,6 +63,10 @@ final class AppContainer:
     
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
+  }()
+  
+  lazy var challengeContainable: ChallengeContainable = {
+    return ChallengeContainer(dependency: self)
   }()
   
   lazy var noneMemberChallengeContainable: NoneMemberChallengeContainable = {
@@ -105,17 +110,17 @@ final class AppContainer:
     return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
   
-  lazy var challengeUseCase: ChallengeUseCase = {
+  var challengeUseCase: ChallengeUseCase {
     return ChallengeUseCaseImpl(
       challengeRepository: challengeRepository,
       feedRepository: feedRepository,
       authRepository: authRepository
     )
-  }()
+  }
   
-  lazy var feedUseCase: FeedUseCase = {
+  var feedUseCase: FeedUseCase {
     return FeedUseCaseImpl(repository: feedRepository)
-  }()
+  }
   
   lazy var reportUseCase: ReportUseCase = {
     return ReportUseCaseImpl(repository: reportRepository)
