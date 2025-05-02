@@ -44,7 +44,8 @@ enum ProveType: Equatable {
   }
 }
 
-enum FeedsType {
+enum FeedsType: Equatable {
   case initialPage([FeedPresentationModel])
   case `default`([FeedPresentationModel])
+  case empty
 }
