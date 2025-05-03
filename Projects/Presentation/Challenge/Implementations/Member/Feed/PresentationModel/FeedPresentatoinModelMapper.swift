@@ -62,7 +62,7 @@ extension FeedPresentatoinModelMapper {
     
     guard days < 365 else { return "\(days / 365)년 전" }
     guard days < 30 else { return "\(days / 30)달 전" }
-    guard days < 1 else { return "\(days)일 전"}
+    guard date.day == current.day else { return "\(days)일 전" }
     
     let hours = Int(interval / 3600)
     let minutes = Int(interval / 60)
@@ -88,8 +88,12 @@ extension FeedPresentatoinModelMapper {
       return "\(days / 365)년 전"
     } else if days >= 30 {
       return "\(days / 30)달 전"
+    }
+    
+    if date.day != current.day {
+      return "\(days)일 전"
     } else {
-      return days == 0 ? "오늘" : "\(days)일 전"
+      return "오늘"
     }
   }
 }

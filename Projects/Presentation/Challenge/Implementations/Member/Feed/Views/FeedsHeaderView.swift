@@ -51,7 +51,7 @@ final class FeedsHeaderView: UICollectionReusableView {
 // MARK: - UI Methods
 private extension FeedsHeaderView {
   func setupUI() {
-    backgroundColor = .clear
+    backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }

@@ -143,8 +143,8 @@ private extension FeedViewController {
     view.addSubviews(
       progressBar,
       orderButton,
-      cameraView,
       feedCollectionView,
+      cameraView,
       emptyFeedsImageView,
       tagView,
       cameraShutterButton
