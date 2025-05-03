@@ -11,7 +11,7 @@ import DesignSystem
 
 final class FeedCameraGradientView: UIView {
   private let cameraGraidentLayer: GradientLayer = {
-    let color = UIColor(red: 0.09, green: 0.09, blue: 0.098, alpha: 1)
+    let color = UIColor(red: 0.09, green: 0.09, blue: 0.098, alpha: 0.2)
     return .init(mode: .bottomToTop, maxColor: color)
   }()
 
