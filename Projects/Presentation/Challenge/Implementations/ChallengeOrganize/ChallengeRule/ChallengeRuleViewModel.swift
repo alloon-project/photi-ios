@@ -28,6 +28,7 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
   
   weak var coordinator: ChallengeRuleCoordinatable?
     
+  private let isRuleSelected = BehaviorRelay<Bool>(value: false)
   // MARK: - Input
   struct Input {
     var didTapBackButton: ControlEvent<Void>
@@ -36,7 +37,9 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output {
+    let isRuleSelected: Driver<Bool>
+  }
   
   // MARK: - Initializers
   init() {}
@@ -48,6 +51,18 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.challengeRules
+      .asObservable()
+      .map { rules in
+        let hasAtLeastOne = !rules.isEmpty
+        let underLimit = rules.count <= 5
+        return hasAtLeastOne && underLimit
+      }
+      .bind(with: self, onNext: { owner, isSelected in
+        owner.isRuleSelected.accept(isSelected)
+      })
+      .disposed(by: disposeBag)
+    
     input.didTapNextButton
       .withLatestFrom(input.challengeRules)
       .bind(with: self) { owner, rules in
@@ -55,6 +70,8 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    return Output(
+      isRuleSelected: isRuleSelected.asDriver(onErrorJustReturn: false)
+    )
   }
 }

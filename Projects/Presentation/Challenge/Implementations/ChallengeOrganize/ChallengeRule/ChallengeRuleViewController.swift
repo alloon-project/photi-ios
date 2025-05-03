@@ -173,7 +173,11 @@ private extension ChallengeRuleViewController {
     bind(for: output)
   }
   
-  func bind(for output: ChallengeRuleViewModel.Output) { }
+  func bind(for output: ChallengeRuleViewModel.Output) {
+    output.isRuleSelected
+      .drive(nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengeRulePresentable
