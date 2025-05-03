@@ -191,7 +191,7 @@ private extension ChallengePreviewViewController {
       didTapOrganizeButton: organizeButton.rx.tap
     )
     let output = viewModel.transform(input: input)
-    
+    bind(for: output)
     viewBind()
   }
   
@@ -201,6 +201,28 @@ private extension ChallengePreviewViewController {
         owner.displayRuleDetailViewController(rules)
       }
       .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: ChallengePreviewViewModel.Output) {
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }.disposed(by: disposeBag)
+    
+    output.emptyFileError
+      .emit(with: self) { owner, message in
+        owner.presentEmptyImageAlert(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.imageTypeError
+      .emit(with: self) { owner, message in
+        owner.presentImageTypeError(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.fileTooLargeError
+      .emit(with: self) { owner, message in
+        owner.presentFileTooLargeAlert(message: message)
+      }.disposed(by: disposeBag)
   }
 }
 
@@ -269,5 +291,32 @@ private extension ChallengePreviewViewController {
     }
     
     toastView.present(to: self)
+  }
+  
+  func presentEmptyImageAlert(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "이미지를 찾을 수 없습니다.",
+      subTitle: message
+    )
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentFileTooLargeAlert(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "용량이 너무 커요",
+      subTitle: message
+    )
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentImageTypeError(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "이미지 타입 에러",
+      subTitle: message
+    )
+    alert.present(to: self, animted: true)
   }
 }
