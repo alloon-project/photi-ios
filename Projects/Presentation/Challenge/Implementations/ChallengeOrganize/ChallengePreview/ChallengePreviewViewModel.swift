@@ -99,7 +99,7 @@ private extension ChallengePreviewViewModel {
       case let .organazieFailed(reason) where reason == .emptyFileInvalid:
         let message = "비어있는 파일은 저장할 수 없습니다."
         emptyFileErrorRelay.accept(message)
-      case let .organazieFailed(reason) where reason == .imageTypeUnsupported:
+      case let .challengeFailed(reason) where reason == .invalidFileFormat:
         let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
         imageTypeErrorRelay.accept(message)
       case let .challengeFailed(reason) where reason == .fileTooLarge:
