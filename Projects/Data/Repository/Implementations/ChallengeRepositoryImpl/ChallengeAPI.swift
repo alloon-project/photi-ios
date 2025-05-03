@@ -26,6 +26,7 @@ public enum ChallengeAPI {
   case challengeMember(challengeId: Int)
   case leaveChallenge(challengeId: Int)
   case sampleImages
+  case organizeChallenge(dto: ChallengeOrganizeRequestDTO)
 }
 
 extension ChallengeAPI: TargetType {
@@ -48,6 +49,7 @@ extension ChallengeAPI: TargetType {
       case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
       case .challengeCount: return "api/users/challenges"
       case .sampleImages: return "api/challenges/example-images"
+      case .organizeChallenge: return "api/challenges"
     }
   }
   
@@ -64,6 +66,7 @@ extension ChallengeAPI: TargetType {
       case .challengeMember: return .get
       case .leaveChallenge: return .delete
       case .sampleImages: return .get
+      case .organizeChallenge: return .post
     }
   }
   
@@ -121,6 +124,25 @@ extension ChallengeAPI: TargetType {
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
       case .sampleImages:
         return .requestPlain
+      case let .organizeChallenge(dto):
+      let multiPartBody = MultipartFormDataBodyPart(.parameters([
+        "name": dto.name,
+        "isPublic": dto.isPublic,
+        "goal": dto.goal,
+        "proveTime": dto.proveTime,
+        "endDate": dto.endDate,
+        "rules": dto.rules,
+        "hashtags": dto.hashtags
+      ]))
+      let multiPartDataBody = MultipartFormDataBodyPart(
+        .data(["imageFile": dto.image]),
+        fileExtension: dto.imageType,
+        mimeType: "image/\(dto.imageType)"
+      )
+      
+      let multipart = MultipartFormData(bodyParts: [multiPartBody, multiPartDataBody])
+      
+      return .uploadMultipartFormData(multipart: multipart)
     }
   }
   
@@ -192,6 +214,11 @@ extension ChallengeAPI: TargetType {
         let data = ChallengeSampleImageResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      case .organizeChallenge:
+        let data = ChallengeOrganizeResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+      
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
   }
