@@ -44,6 +44,7 @@ final class SampleImageCell: UICollectionViewCell {
     imageView.layer.borderColor = UIColor.white.cgColor
     imageView.contentMode = .center
     imageView.backgroundColor = .gray500
+    imageView.contentMode = .scaleAspectFill
     return imageView
   }()
   

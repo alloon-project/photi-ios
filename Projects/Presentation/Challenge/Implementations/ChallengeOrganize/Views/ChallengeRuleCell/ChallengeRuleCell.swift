@@ -15,7 +15,7 @@ final class ChallengeRuleCell: UICollectionViewCell {
     let view = UIStackView()
     view.axis = .horizontal
     view.spacing = 6
-    view.distribution = .equalSpacing
+    view.distribution = .fill
 
     return view
   }()
@@ -27,7 +27,6 @@ final class ChallengeRuleCell: UICollectionViewCell {
       font: .caption1,
       color: .gray600
     )
-    label.textAlignment = .center
     
     return label
   }()
@@ -64,7 +63,7 @@ final class ChallengeRuleCell: UICollectionViewCell {
       font: .caption1,
       color: isSelected ? .blue500 : .gray600
     )
-
+    challengeRuleLabel.textAlignment = .center
     self.contentView.backgroundColor = isSelected ? .blue0 : .white
     self.layer.borderColor = isSelected ? UIColor.blue400.cgColor : UIColor.gray200.cgColor
 
@@ -92,9 +91,7 @@ private extension ChallengeRuleCell {
   
   func setConstraints() {
     stackView.snp.makeConstraints {
-      $0.top.bottom.equalToSuperview()
-      $0.width.lessThanOrEqualToSuperview().inset(14)
-      $0.centerX.equalToSuperview()
+      $0.edges.equalToSuperview()
     }
     
     challengeRuleLabel.snp.makeConstraints {
