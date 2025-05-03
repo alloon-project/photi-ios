@@ -78,6 +78,11 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
     setupUI()
     bind()
   }
+  
+  // MARK: - UI Responder
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    view.endEditing(true)
+  }
 }
 
 // MARK: - UI Methods

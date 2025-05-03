@@ -179,7 +179,6 @@ extension FeedViewModel {
         guard isProve != self.isProve else { return }
         self.isProve = isProve
         isProve ? proofRelay.accept(.didProve) : proofRelay.accept(.didNotProve(proveTime))
-        
       } catch { }
     }
   }
@@ -188,7 +187,10 @@ extension FeedViewModel {
 // MARK: - Fetch Methods
 private extension FeedViewModel {
   func fetchData() {
-    Task { await fetchFeeds() }
+    Task {
+      await fetchFeeds()
+      await fetchProveMemberCount()
+    }
     fetchChallengeInfo()
     fetchIsProof()
   }
@@ -212,6 +214,14 @@ private extension FeedViewModel {
       .disposed(by: disposeBag)
   }
   
+  func fetchProveMemberCount() async {
+    let count = try? await useCase.challengeProveMemberCount(challengeId: challengeId)
+    
+    guard let count else { return }
+    proveMemberCountRelay.accept(count)
+    updateProvePercent(total: totalMemberCount, prove: count)
+  }
+  
   @MainActor func fetchFeeds() async {
     guard !isFetching else { return }
     isFetching = true
@@ -229,15 +239,13 @@ private extension FeedViewModel {
       
       switch result {
         case let .defaults(feeds):
-          let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
-          let feedsType: FeedsType = currentPage == 0 ? .initialPage(models) : .default(models)
-          feedsRelay.accept(feedsType)
+          let items = convertToFeedsType(from: feeds)
+          feedsRelay.accept(items)
           
         case let .lastPage(feeds):
-          let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
           isLastFeedPage = true
-          let feedsType: FeedsType = currentPage == 0 ? .initialPage(models) : .default(models)
-          feedsRelay.accept(feedsType)
+          let items = convertToFeedsType(from: feeds)
+          feedsRelay.accept(items)
       }
     } catch {
       requestFailed(with: error)
@@ -261,6 +269,7 @@ private extension FeedViewModel {
         let model = modelMapper.mapToFeedPresentationModels([feed])
         isUploadSuccessRelay.accept(true)
         proveFeedRelay.accept(model)
+        await fetchProveMemberCount()
       } catch {
         isUploadSuccessRelay.accept(false)
         await requestFailed(with: error)
@@ -278,13 +287,6 @@ private extension FeedViewModel {
 // MARK: - Private Methods
 private extension FeedViewModel {
   func bind() {
-    useCase.challengeProveMemberCount
-      .subscribe(with: self) { owner, count in
-        owner.proveMemberCountRelay.accept(count)
-        owner.updateProvePercent(total: owner.totalMemberCount, prove: count)
-      }
-      .disposed(by: disposeBag)
-    
     proveTimeRelay
       .skip(1)
       .subscribe(with: self) { owner, time in
@@ -299,6 +301,14 @@ private extension FeedViewModel {
     guard total != 0 else { return provePercentRelay.accept(0) }
     let percent = Double(prove) / Double(total)
     provePercentRelay.accept(percent)
+  }
+  
+  func convertToFeedsType(from feeds: [[Feed]]) -> FeedsType {
+    let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
+    
+    guard !models.isEmpty else { return .empty }
+    
+    return currentPage == 0 ? .initialPage(models) : .default(models)
   }
   
   @MainActor func requestFailed(with error: Error) {
