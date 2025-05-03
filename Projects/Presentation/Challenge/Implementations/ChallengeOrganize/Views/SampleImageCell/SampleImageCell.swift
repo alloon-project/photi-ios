@@ -31,6 +31,7 @@ final class SampleImageCell: UICollectionViewCell {
   private let imageBackgroundView = {
     let view = UIView()
     view.layer.cornerRadius = 12
+    view.layer.borderColor  = UIColor.white.cgColor
     view.layer.borderWidth = 2
     
     return view
