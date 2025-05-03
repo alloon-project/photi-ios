@@ -6,15 +6,13 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct ChallengeMemberResponseDTO: Decodable {
   public let id: Int
   public let username: String
-  public let imageUrl: URL?
+  public let imageUrl: String?
   public let isCreator: Bool
   public let duration: Int
-  public let goal: String
+  public let goal: String?
 }
 
 public extension ChallengeMemberResponseDTO {

@@ -18,9 +18,7 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
-  private let challengeProveMemberCountRelay = BehaviorRelay<Int>(value: 0)
-  public let challengeProveMemberCount: Infallible<Int>
-  
+
   public init(
     challengeRepository: ChallengeRepository,
     feedRepository: FeedRepository,
@@ -29,8 +27,6 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
     self.challengeRepository = challengeRepository
     self.feedRepository = feedRepository
     self.authRepository = authRepository
-    
-    self.challengeProveMemberCount = challengeProveMemberCountRelay.asInfallible()
   }
 }
 
@@ -47,10 +43,6 @@ public extension ChallengeUseCaseImpl {
   func fetchFeeds(id: Int, page: Int, size: Int, orderType: ChallengeFeedsOrderType) async throws -> PageFeeds {
     let result = try await feedRepository.fetchFeeds(id: id, page: page, size: size, orderType: orderType)
     
-    if challengeProveMemberCountRelay.value != result.memberCount {
-      challengeProveMemberCountRelay.accept(result.memberCount)
-    }
-    
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
   }
   
@@ -60,6 +52,10 @@ public extension ChallengeUseCaseImpl {
   
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
     return challengeRepository.fetchChallengeMembers(challengeId: challengeId)
+  }
+  
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int {
+    return try await challengeRepository.challengeProveMemberCount(challengeId: challengeId)
   }
 }
 
@@ -82,8 +78,7 @@ public extension ChallengeUseCaseImpl {
       image: data,
       imageType: type
     )
-    challengeProveMemberCountRelay.accept(challengeProveMemberCountRelay.value + 1)
-    
+
     return result
   }
   

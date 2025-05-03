@@ -40,6 +40,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
       guard viewWillAppear else { return }
       configureTodayHeaderView(for: isProve)
       cameraShutterButton.isHidden = (isProve == .didProve)
+      cameraView.isHidden = (isProve == .didProve)
       
       if viewDidAppear, isProve != .didProve { presentPoofTipView() }
     }
@@ -64,11 +65,13 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let progressBar = MediumProgressBar(percent: .percent0)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
   private let tagView = TagView(image: .peopleWhite)
+  private let emptyFeedsImageView = UIImageView(image: .challengeEmptyFeed)
   private let feedCollectionView: SelfVerticalSizingCollectionView = {
     let collectionView = SelfVerticalSizingCollectionView(layout: UICollectionViewLayout())
     collectionView.registerCell(FeedCell.self)
     collectionView.registerHeader(FeedsHeaderView.self)
     collectionView.registerFooter(FeedsLoadingFooterView.self)
+    collectionView.backgroundColor = .clear
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
@@ -76,6 +79,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     
     return collectionView
   }()
+  private let cameraView = FeedCameraGradientView()
   private let cameraShutterButton: UIButton = {
     let button = UIButton()
     button.setImage(.shutterWhite, for: .normal)
@@ -115,6 +119,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewWillAppear = true
     if case let .didNotProve(time) = isProve, time.isEmpty { return }
     cameraShutterButton.isHidden = (isProve == .didProve)
+    cameraView.isHidden = (isProve == .didProve)
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -139,6 +144,8 @@ private extension FeedViewController {
       progressBar,
       orderButton,
       feedCollectionView,
+      cameraView,
+      emptyFeedsImageView,
       tagView,
       cameraShutterButton
     )
@@ -168,10 +175,21 @@ private extension FeedViewController {
       $0.bottom.equalToSuperview()
     }
 
+    cameraView.snp.makeConstraints {
+      $0.bottom.leading.trailing.equalToSuperview()
+      $0.height.equalTo(161)
+    }
+
     cameraShutterButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.width.height.equalTo(64)
       $0.bottom.equalToSuperview().inset(22)
+    }
+    
+    emptyFeedsImageView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(23)
+      $0.top.equalToSuperview().offset(74)
     }
   }
 }
@@ -220,11 +238,14 @@ private extension FeedViewController {
     output.feeds
       .drive(with: self) { owner, feeds in
         owner.feedCollectionView.refreshControl?.endRefreshing()
+        owner.emptyFeedsImageView.isHidden = (feeds != .empty)
+        if feeds == .empty { owner.cameraView.isHidden = true }
         switch feeds {
           case let .initialPage(models):
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
+          default: break
         }
       }
       .disposed(by: disposeBag)

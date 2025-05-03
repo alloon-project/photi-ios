@@ -17,8 +17,6 @@ public enum PageFeeds {
 }
 
 public protocol ChallengeUseCase {
-  var challengeProveMemberCount: Infallible<Int> { get }
-  
   func isLogIn() async throws -> Bool
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
   func joinPrivateChallnege(id: Int, code: String) async throws
@@ -36,4 +34,5 @@ public protocol ChallengeUseCase {
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func leaveChallenge(id: Int) -> Single<Void>
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int
 }

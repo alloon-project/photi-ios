@@ -21,6 +21,7 @@ public enum ChallengeAPI {
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case isProve(challengeId: Int)
   case challengeCount
+  case challengeProveMemberCount(challengeId: Int)
   case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
@@ -46,6 +47,7 @@ extension ChallengeAPI: TargetType {
       case let .challengeDescription(id): return "api/challenges/\(id)/info"
       case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
       case .challengeCount: return "api/users/challenges"
+      case let .challengeProveMemberCount(challengeId): return "api/challenges/\(challengeId)/feed-members"
     }
   }
   
@@ -56,7 +58,7 @@ extension ChallengeAPI: TargetType {
       case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .uploadChallengeProof: return .post
-      case .isProve, .challengeCount: return .get
+      case .isProve, .challengeCount, .challengeProveMemberCount: return .get
       case .updateChallengeGoal: return .patch
       case .challengeDescription: return .get
       case .challengeMember: return .get
@@ -66,12 +68,8 @@ extension ChallengeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges, .challengeCount:
+      case .popularChallenges, .challengeCount, .challengeDetail, .challengeProveMemberCount:
         return .requestPlain
-        
-      case let .challengeDetail(challengeId):
-        let parameters = ["challengeId": challengeId]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
       case let .endedChallenges(page, size), let .myChallenges(page, size):
         let parameters = ["page": page, "size": size]
@@ -86,36 +84,24 @@ extension ChallengeAPI: TargetType {
         let bodyParameters = ["invitationCode": code]
         return .requestCompositeParameters(bodyParameters: bodyParameters, urlParameters: urlParameters)
                 
-      case let .uploadChallengeProof(challengeId, image, imageType):
-        let parameters = ["challengeId": challengeId]
-
+      case let .uploadChallengeProof(_, image, imageType):
         let multiPartBody = MultipartFormDataBodyPart(
           .data(["imageFile": image]),
           fileExtension: imageType,
           mimeType: "image/\(imageType)"
         )
         
-        return .uploadCompositeMultipart(
-          multipart: .init(bodyParts: [multiPartBody]),
-          urlParameters: parameters
-        )
+        return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
 
-      case let .isProve(challengeId):
-        let parameters = ["challengeId": challengeId]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+      case .isProve:
+        return .requestPlain
         
-      case let .updateChallengeGoal(goal, challengeId):
-        let urlParameters = ["challengeId": challengeId]
-        let bodyParameters = ["goal": goal]
-        return .requestCompositeParameters(bodyParameters: bodyParameters, urlParameters: urlParameters)
+      case let .updateChallengeGoal(goal, _):
+        let parameters = ["goal": goal]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
         
-      case let .challengeDescription(challengeId):
-        let parameters = ["challengeId": challengeId]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
-        
-      case let .challengeMember(challengeId), let .leaveChallenge(challengeId):
-        let parameters = ["challengeId": challengeId]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+      case .challengeDescription, .challengeMember, .leaveChallenge:
+        return .requestPlain
     }
   }
   
@@ -179,6 +165,12 @@ extension ChallengeAPI: TargetType {
         
       case .challengeCount:
         let data = ChallengeCountResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .challengeProveMemberCount:
+        let data = ChallengeProveMemberCountResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

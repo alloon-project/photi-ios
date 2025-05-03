@@ -54,7 +54,11 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private let imageView = UIImageView()
   private let topView = FeedCommentTopView()
   private let bottomView = UIView()
-  private let bottomGradientLayer = FeedCommentGradientLayer(mode: .bottomToTop, maxAlpha: 0.8)
+  private let bottomGradientLayer: GradientLayer = {
+    let color = UIColor(red: 0.118, green: 0.137, blue: 0.149, alpha: 0.8)
+    return .init(mode: .bottomToTop, maxColor: color)
+  }()
+  
   private let tableView: UITableView = {
     let tableView = UITableView()
     tableView.registerCell(FeedCommentCell.self)
