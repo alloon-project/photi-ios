@@ -239,6 +239,7 @@ private extension FeedViewController {
       .drive(with: self) { owner, feeds in
         owner.feedCollectionView.refreshControl?.endRefreshing()
         owner.emptyFeedsImageView.isHidden = (feeds != .empty)
+        if feeds == .empty { owner.cameraView.isHidden = true }
         switch feeds {
           case let .initialPage(models):
             owner.initialize(models: models)
