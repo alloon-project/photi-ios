@@ -22,6 +22,18 @@ public protocol ChallengeDataMapper {
   func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription
   func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember]
   func mapToFeedHistory(dto: FeedHistoryResponseDTO) -> [FeedHistory]
+  func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
+  func mapToOrganizedChallenge(
+    name: String,
+    isPublic: Bool,
+    goal: String,
+    proveTime: String,
+    endDate: String,
+    rules: [[String: String]],
+    hashtags: [[String: String]],
+    image: Data,
+    imageType: String
+  ) -> ChallengeOrganizeRequestDTO
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -173,5 +185,33 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         name: $0.name
       )
     }
+  }
+  
+  public func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String] {
+    return dto.list.map { $0 }
+  }
+  
+  public func mapToOrganizedChallenge(
+    name: String,
+    isPublic: Bool,
+    goal: String,
+    proveTime: String,
+    endDate: String,
+    rules: [[String: String]],
+    hashtags: [[String: String]],
+    image: Data,
+    imageType: String
+  ) -> ChallengeOrganizeRequestDTO {
+    return ChallengeOrganizeRequestDTO(
+      name: name,
+      isPublic: isPublic,
+      goal: goal,
+      proveTime: proveTime,
+      endDate: endDate,
+      rules: rules,
+      hashtags: hashtags,
+      image: image,
+      imageType: imageType
+    )
   }
 }
