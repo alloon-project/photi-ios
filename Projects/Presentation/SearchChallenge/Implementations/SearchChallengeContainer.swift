@@ -7,9 +7,12 @@
 //
 
 import Core
+import Challenge
 import SearchChallenge
 
-public protocol SearchChallengeDependency: Dependency { }
+public protocol SearchChallengeDependency: Dependency {
+  var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
+}
 
 public final class SearchChallengeContainer:
   Container<SearchChallengeDependency>,
@@ -20,7 +23,8 @@ public final class SearchChallengeContainer:
     
     let coordinator = SearchChallengeCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      challengeOrganizeContainable: dependency.challengeOrganizeContainable
     )
     coordinator.listener = listener
     return coordinator
