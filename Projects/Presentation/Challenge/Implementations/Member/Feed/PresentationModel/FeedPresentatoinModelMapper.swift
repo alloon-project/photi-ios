@@ -57,47 +57,40 @@ extension FeedPresentatoinModelMapper {
   func mapToUpdateTimeString(_ date: Date) -> String {
     let date = date.convertTimezone(from: .kst)
     let current = Date()
-    guard current.year == date.year else {
-      return "\(abs(current.year - date.year))년 전"
-    }
+    let interval = current.timeIntervalSince(date)
+    let days = Int(interval / 86400) // 24 * 60 * 60
+    
+    guard days < 365 else { return "\(days / 365)년 전" }
+    guard days < 30 else { return "\(days / 30)달 전" }
+    guard days < 1 else { return "\(days)일 전"}
+    
+    let hours = Int(interval / 3600)
+    let minutes = Int(interval / 60)
   
-    guard current.month == date.month else {
-      return "\(abs(current.month - date.month))달 전"
-    }
-  
-    guard current.day == date.day else {
-      return "\(abs(current.day - date.day))일 전"
-    }
-  
-    guard current.hour == date.hour else {
-      return "\(abs(current.hour - date.hour))시간 전"
-    }
-  
-    guard current.minute != date.minute else {
+    guard hours < 1 else { return "\(hours)시간 전" }
+    
+    if minutes <= 0 {
       return "방금"
-    }
-  
-    let temp = abs(current.minute - date.minute)
-    switch temp {
-      case 0...10: return "\(temp)분 전"
-      default: return "\(temp / 10 * 10)분 전"
+    } else if minutes <= 10 {
+      return "\(minutes)분 전"
+    } else {
+      return "\(minutes / 10 * 10)분 전"
     }
   }
   
   func mapToUpdateGroup(_ date: Date) -> String {
     let date = date.convertTimezone(from: .kst)
     let current = Date()
-  
-    guard current.year == date.year else {
-      return "\(abs(current.year - date.year))년 전"
+    let interval = current.timeIntervalSince(date)
+    let days = Int(interval / 86400)
+
+    if days >= 365 {
+      return "\(days / 365)년 전"
+    } else if days >= 30 {
+      return "\(days / 30)달 전"
+    } else {
+      return days == 0 ? "오늘" : "\(days)일 전"
     }
-  
-    guard current.month == date.month else {
-      return "\(abs(current.month - date.month))달 전"
-    }
-  
-    let temp = abs(current.day - date.day)
-    return temp == 0 ? "오늘" : "\(temp)일 전"
   }
 }
 
