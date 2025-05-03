@@ -13,7 +13,7 @@ public enum APIError: Error {
   case loginFailed(reason: LogInFailedReason)
   case signUpFailed(reason: SignUpFailedReason)
   case challengeFailed(reason: ChallengeFailedReason)
-  
+  case organazieFailed(reason: OrganizedFailedReason)
   case tokenUnauthenticated
   /// 권한이 없는 요청입니다. 로그인 후에 다시 시도 해주세요.
   case tokenUnauthorized
@@ -62,5 +62,12 @@ extension APIError {
     case fileTooLarge
     case challengeLimitExceed
     case invalidFileFormat
+  }
+}
+
+// MARK: - Organize
+extension APIError {
+  public enum OrganizedFailedReason {
+    case emptyFileInvalid
   }
 }
