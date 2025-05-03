@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxRelay
 import RxSwift
 import Core
@@ -36,5 +37,6 @@ public protocol ChallengeUseCase {
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func leaveChallenge(id: Int) -> Single<Void>
-  func fetchChallengeSampleImages() async throws -> [String]
+  func fetchChallengeSampleImages() -> Single<[String]>
+  func organizeChallenge() -> Single<Void>
 }
