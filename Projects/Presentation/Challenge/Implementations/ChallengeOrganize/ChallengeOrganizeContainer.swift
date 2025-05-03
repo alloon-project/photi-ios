@@ -7,17 +7,14 @@
 //
 
 import Core
+import Challenge
+import UseCase
 
-protocol ChallengeOrganizeDependency: Dependency { }
-
-protocol ChallengeOrganizeContainable: Containable {
-  func coordinator(
-    navigationControllerable: NavigationControllerable,
-    listener: ChallengeOrganizeListener
-  ) -> ViewableCoordinating
+public protocol ChallengeOrganizeDependency: Dependency {
+  var challengeUseCase: ChallengeUseCase { get }
 }
 
-final class ChallengeOrganizeContainer:
+public final class ChallengeOrganizeContainer:
   Container<ChallengeOrganizeDependency>,
     ChallengeOrganizeContainable,
     ChallengeStartDependency,
@@ -25,23 +22,23 @@ final class ChallengeOrganizeContainer:
     ChallengeGoalDependency,
     ChallengeCoverDependency,
     ChallengeRuleDependency,
-    ChallengeHashTagDependency,
-    ChallengePreviewDependency
-{
+    ChallengeHashtagDependency,
+    ChallengePreviewDependency {
+  var challengeUseCase: ChallengeUseCase {
+    dependency.challengeUseCase
+  }
   
-  
-  func coordinator(
+  public func coordinator(
     navigationControllerable: NavigationControllerable,
     listener: ChallengeOrganizeListener
-  ) -> ViewableCoordinating {
+  ) -> Coordinator {
     let challengeStartContainable = ChallengeStartContainer(dependency: self)
     let challengeNameContainable = ChallengeNameContainer(dependency: self)
     let challengeGoalContainable = ChallengeGoalContainer(dependency: self)
     let challengeCoverContainable = ChallengeCoverContainer(dependency: self)
     let challengeRuleContainable = ChallengeRuleContainer(dependency: self)
-    let challengeHashTagContainable = ChallengeHashTagContainer(dependency: self)
+    let challengeHashtagContainable = ChallengeHashtagContainer(dependency: self)
     let challengePreviewContainable = ChallengePreviewContainer(dependency: self)
-    
     
     let coordinator = ChallengeOrganizeCoordinator(
       navigationControllerable: navigationControllerable,
@@ -50,11 +47,10 @@ final class ChallengeOrganizeContainer:
       challengeGoalContainable: challengeGoalContainable,
       challengeCoverContainable: challengeCoverContainable,
       challengeRuleContainable: challengeRuleContainable,
-      challengeHashTagContainable: challengeHashTagContainable,
+      challengeHashtagContainable: challengeHashtagContainable,
       challengePreviewContainable: challengePreviewContainable
     )
     coordinator.listener = listener
     return coordinator
   }
 }
-

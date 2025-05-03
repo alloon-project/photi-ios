@@ -8,30 +8,25 @@
 
 import Foundation
 import Core
-
-protocol ChallengeOrganizeListener: AnyObject {
-  func didTapBackButtonAtChallengeOrganize()
-  func didTapBackButtonAtChallenge()
-}
+import Challenge
 
 protocol ChallengeOrganizePresentable { }
 
 final class ChallengeOrganizeCoordinator: Coordinator {
-
   private var challengeName: String?
   private var isPublic: Bool = true
   private var challengeGoal: String?
   private var challengeProveTime: String?
   private var challengeEndDate: Date?
   private var challengeCover: UIImageWrapper?
-  private var challengeRule: [[String: String]]
-  private var challengeHashtags: [[String: String]]
+  private var challengeRule: [[String: String]] = []
+  private var challengeHashtags: [[String: String]] = []
   
   weak var listener: ChallengeOrganizeListener?
   
   private let navigationControllerable: NavigationControllerable
 
-  private let challengeStartContainable: ChallengeNameContainable
+  private let challengeStartContainable: ChallengeStartContainable
   private var challengeStartCoordinator: Coordinating?
   
   private let challengeNameContainable: ChallengeNameContainable
@@ -46,8 +41,8 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   private let challengeRuleContainable: ChallengeRuleContainable
   private var challengeRuleCoordinator: Coordinating?
   
-  private let challengeHashTagContainable: ChallengeHashTagContainable
-  private var challengeHashTagCoordinator: Coordinating?
+  private let challengeHashtagContainable: ChallengeHashtagContainable
+  private var challengeHashtagCoordinator: Coordinating?
   
   private let challengePreviewContainable: ChallengePreviewContainable
   private var challengePreviewCoordinator: Coordinating?
@@ -59,7 +54,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     challengeGoalContainable: ChallengeGoalContainable,
     challengeCoverContainable: ChallengeCoverContainable,
     challengeRuleContainable: ChallengeRuleContainable,
-    challengeHashTagContainable: ChallengeHashTagContainable,
+    challengeHashtagContainable: ChallengeHashtagContainable,
     challengePreviewContainable: ChallengePreviewContainable
   ) {
     self.navigationControllerable = navigationControllerable
@@ -68,10 +63,9 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     self.challengeGoalContainable = challengeGoalContainable
     self.challengeCoverContainable = challengeCoverContainable
     self.challengeRuleContainable = challengeRuleContainable
-    self.challengeHashTagContainable = challengeHashTagContainable
+    self.challengeHashtagContainable = challengeHashtagContainable
     self.challengePreviewContainable = challengePreviewContainable
     super.init()
-    
   }
   
   override func start() {
@@ -80,7 +74,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   
   override func stop() {
     detachChallengePreview(animated: false)
-    detachChallengeHashTag(animated: false)
+    detachChallengeHashtag(animated: false)
     detachChallengeRule(animated: false)
     detachChallengeCover(animated: false)
     detachChallengeGoal(animated: false)
@@ -134,7 +128,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.challengeCoverCoordinator = coordinater
+    self.challengeGoalCoordinator = coordinater
   }
   
   func detachChallengeGoal(animated: Bool) {
@@ -185,28 +179,48 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   
   // MARK: - ChallengeHashtag
   func attachChallengeHashtag() {
-    guard challengeHashTagCoordinator == nil else { return }
+    guard challengeHashtagCoordinator == nil else { return }
     
-    let coordinater = challengeHashTagContainable.coordinator(listener: self)
+    let coordinater = challengeHashtagContainable.coordinator(listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.challengeHashTagCoordinator = coordinater
+    self.challengeHashtagCoordinator = coordinater
   }
   
-  func detachChallengeHashTag(animated: Bool) {
-    guard let coordinater = challengeHashTagCoordinator else { return }
+  func detachChallengeHashtag(animated: Bool) {
+    guard let coordinater = challengeHashtagCoordinator else { return }
     
     removeChild(coordinater)
     navigationControllerable.popViewController(animated: animated)
-    self.challengeHashTagCoordinator = nil
+    self.challengeHashtagCoordinator = nil
   }
   
   // MARK: - ChallengePreview
   func attachChallengePreview() {
     guard challengePreviewCoordinator == nil else { return }
     
-    let coordinater = challengePreviewContainable.coordinator(listener: self)
+    guard
+      let title = self.challengeName,
+      let verificationTime = self.challengeProveTime,
+      let challengeGoal = self.challengeGoal,
+      let image = challengeCover,
+      let deadline = self.challengeEndDate
+    else { return }
+    
+    let viewPresentaionModel = PreviewPresentationModel(
+      title: title,
+      hashtags: challengeHashtags.compactMap { $0["hashtag"] },
+      verificationTime: verificationTime,
+      goal: challengeGoal,
+      image: image,
+      rules: challengeRule.compactMap({ $0["rule"] }),
+      deadLine: deadline.toString("yyyy. MM. dd")
+    )
+    let coordinater = challengePreviewContainable.coordinator(
+      listener: self,
+      viewPresentationModel: viewPresentaionModel
+    )
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -235,7 +249,7 @@ extension ChallengeOrganizeCoordinator: ChallengeStartListener {
 }
 
 // MARK: ChallengeNameListener
-extension ChallengeOrganizeCoordinator: ChallengeNameListener  {
+extension ChallengeOrganizeCoordinator: ChallengeNameListener {
   func didTapBackButtonAtChallengeName() {
     detachChallengeName(animated: true)
   }
@@ -243,12 +257,15 @@ extension ChallengeOrganizeCoordinator: ChallengeNameListener  {
   func didFisishChallengeName(challengeName: String, isPublic: Bool) {
     self.challengeName = challengeName
     self.isPublic = isPublic
+    print("challengeName : \(challengeName)")
+    print("isPublic : \(isPublic)")
+    print("didFinsh")
     attachChallengeGoal()
   }
 }
 
 // MARK: ChallengeGoalListener
-extension ChallengeOrganizeCoordinator: ChallengeGoalListener  {
+extension ChallengeOrganizeCoordinator: ChallengeGoalListener {
   func didTapBackButtonAtChallengeGoal() {
     detachChallengeGoal(animated: true)
   }
@@ -257,26 +274,57 @@ extension ChallengeOrganizeCoordinator: ChallengeGoalListener  {
     self.challengeGoal = challengeGoal
     self.challengeProveTime = proveTime
     self.challengeEndDate = endDate
+    print("challengeGoal : \(challengeGoal)")
+    print("proveTime : \(proveTime)")
+    print("endDate : \(endDate)")
+    print("didFinsh")
     attachChallengeCover()
   }
 }
 
 // MARK: ChallengeCoverListener
-extension ChallengeOrganizeCoordinator: ChallengeCoverListener  {
-
+extension ChallengeOrganizeCoordinator: ChallengeCoverListener {
+  func didTapBackButtonAtChallengeCover() {
+    detachChallengeCover(animated: true)
+  }
+  
+  func didFinishedChallengeCover(coverImage: UIImageWrapper) {
+    self.challengeCover = coverImage
+    attachChallengeRule()
+  }
 }
 
 // MARK: ChallengeRuleListener
-extension ChallengeOrganizeCoordinator: ChallengeRuleListener  {
-
+extension ChallengeOrganizeCoordinator: ChallengeRuleListener {
+  func didTapBackButtonAtChallengeRule() {
+    detachChallengeRule(animated: true)
+  }
+  
+  func didFinishChallengeRules(challengeRules: [String]) {
+    self.challengeRule = challengeRules.map { ["rule": $0] }
+    attachChallengeHashtag()
+  }
 }
 
 // MARK: ChallengeHashTagListener
-extension ChallengeOrganizeCoordinator: ChallengeHashTagListener  {
-
+extension ChallengeOrganizeCoordinator: ChallengeHashtagListener {
+  func didTapBackButtonAtChallengeHashtag() {
+    detachChallengeHashtag(animated: true)
+  }
+  
+  func didFinishChallengeHashtags(challengeHashtags: [String]) {
+    self.challengeHashtags = challengeHashtags.map { ["hashtag": $0] }
+    attachChallengePreview()
+  }
 }
 
 // MARK: ChallengePreviewListener
-extension ChallengeOrganizeCoordinator: ChallengePreviewListener  {
-
+extension ChallengeOrganizeCoordinator: ChallengePreviewListener {
+  func didTapBackButtonAtChallengePreview() {
+    detachChallengePreview(animated: true)
+  }
+  
+  func didFinishOrganizeChallenge() {
+    // TODO: 챌린지화면으로 넘어가기
+  }
 }
