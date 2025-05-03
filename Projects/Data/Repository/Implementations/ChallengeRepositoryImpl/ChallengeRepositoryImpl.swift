@@ -98,14 +98,9 @@ public extension ChallengeRepositoryImpl {
     .map { dataMapper.mapToChallengeMembers(dto: $0) }
   }
 
-  func fetchChallengeSampleImage() async throws -> [String] {
-    let result = try await requestAuthorizableAPI(
-        api: ChallengeAPI.sampleImages,
-        responseType: ChallengeSampleImageResponseDTO.self,
-        behavior: .never
-      ).value
-      
-    return result.list
+  func fetchChallengeSampleImage() -> Single<[String]> {
+    return requestUnAuthorizableAPI(api: ChallengeAPI.sampleImages, responseType: ChallengeSampleImageResponseDTO.self)
+      .map { dataMapper.mapToSampleImages(dto: $0) }
   }
 }
 
@@ -149,6 +144,36 @@ public extension ChallengeRepositoryImpl {
     
     try await executeSingle(single)
   }
+  
+  func challengeOrganize(
+    name: String,
+    isPublic: Bool,
+    goal: String,
+    proveTime: String,
+    endDate: String,
+    rules: [[String: String]],
+    hashtags: [[String: String]],
+    image: Data,
+    imageType: String
+  ) -> Single<Void> {
+    let requestDTO = dataMapper.mapToOrganizedChallenge(
+      name: name,
+      isPublic: isPublic,
+      goal: goal,
+      proveTime: proveTime,
+      endDate: endDate,
+      rules: rules,
+      hashtags: hashtags,
+      image: image,
+      imageType: imageType
+    )
+    
+    return requestAuthorizableAPI(
+      api: ChallengeAPI.organizeChallenge(dto: requestDTO),
+      responseType: ChallengeOrganizeResponseDTO.self
+    )
+    .map { _ in () }
+  }
 }
 
 // MARK: - Delete Methods
@@ -189,6 +214,10 @@ private extension ChallengeRepositoryImpl {
             single(.failure(map404ToAPIError(result.code, result.message)))
           } else if result.statusCode == 409 {
             single(.failure(map409ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.challengeFailed(reason: .fileTooLarge)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.challengeFailed(reason: .invalidFileFormat)))
           } else {
             single(.failure(APIError.serverError))
           }
@@ -244,6 +273,8 @@ private extension ChallengeRepositoryImpl {
       return APIError.challengeFailed(reason: .invalidInvitationCode)
     } else if code == "CHALLENGE_LIMIT_EXCEED" {
       return APIError.challengeFailed(reason: .challengeLimitExceed)
+    } else if code == "EMPTY_FILE_INVALID" {
+      return APIError.organazieFailed(reason: .emptyFileInvalid)
     } else {
       return APIError.clientError(code: code, message: message)
     }

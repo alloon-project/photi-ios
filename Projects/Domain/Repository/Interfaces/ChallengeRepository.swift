@@ -24,5 +24,16 @@ public protocol ChallengeRepository {
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func leaveChallenge(id: Int) -> Single<Void>
-  func fetchChallengeSampleImage() async throws -> [String]
+  func fetchChallengeSampleImage() -> Single<[String]>
+  func challengeOrganize(
+    name: String,
+    isPublic: Bool,
+    goal: String,
+    proveTime: String,
+    endDate: String,
+    rules: [[String: String]],
+    hashtags: [[String: String]],
+    image: Data,
+    imageType: String
+  ) -> Single<Void>
 }
