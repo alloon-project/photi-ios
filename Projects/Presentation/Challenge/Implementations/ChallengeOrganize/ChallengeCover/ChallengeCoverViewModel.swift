@@ -33,18 +33,20 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   weak var coordinator: ChallengeCoverCoordinatable?
   
   private let sampleImagesRelay = PublishRelay<[String]>()
+  private let requestFailedRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
     let viewDidLoad: Signal<Void>
     let didTapBackButton: ControlEvent<Void>
-    let challengeCoverImage: Signal<UIImageWrapper>
+    let challengeCoverImage: Observable<UIImageWrapper>
     let didTapNextButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
     let sampleImages: Signal<[String]>
+    let requestFailed: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -72,7 +74,8 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
       .disposed(by: disposeBag)
     
     return Output(
-      sampleImages: sampleImagesRelay.asSignal()
+      sampleImages: sampleImagesRelay.asSignal(),
+      requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
@@ -80,9 +83,21 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
 // MARK: - Private Methods
 private extension ChallengeCoverViewModel {
   func fetchCoverImages() {
-    Task {
-      let sampleImageInfos = (try? await useCase.fetchChallengeSampleImages()) ?? []
-      sampleImagesRelay.accept(sampleImageInfos)
+    useCase.fetchChallengeSampleImages()
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self) { owner, images in
+        owner.sampleImagesRelay.accept(images)
+      } onFailure: { owner, error in
+        owner.fetchImagesFailed(with: error)
+      }.disposed(by: disposeBag)
+  }
+  
+  func fetchImagesFailed(with error: Error) {
+    guard let error = error as? APIError else { return }
+    
+    switch error {
+      default:
+        requestFailedRelay.accept(())
     }
   }
 }

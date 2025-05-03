@@ -166,7 +166,7 @@ private extension ChallengeCoverViewController {
     let input = ChallengeCoverViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      challengeCoverImage: coverImageRelay.asSignal(onErrorJustReturn: .init(image: .challengeOrganizeLuckyday)),
+      challengeCoverImage: coverImageRelay.asObservable(),
       didTapNextButton: nextButton.rx.tap
     )
     
@@ -194,8 +194,11 @@ extension ChallengeCoverViewController: UICollectionViewDelegate {
     
     if indexPath.item == 0 { // 기본일경우
       requestOpenLibrary(delegate: self)
-    } else {
-      // TODO: 실서버 이미지 요청 확인 후 구현예정
+    } else { // 서버에서 받아온 이미지
+      guard let url = URL(string: cellDataSources[indexPath.item].imageUrlString) else { return }
+      mainImageView.kf.setImage(with: url)
+      guard let coverImage = mainImageView.image else { return }
+      coverImageRelay.accept(UIImageWrapper(image: coverImage))
     }
   }
 }
@@ -225,5 +228,6 @@ extension ChallengeCoverViewController: UIImagePickerControllerDelegate, UINavig
     picker.dismiss(animated: true)
     
     self.mainImageView.image = image
+    coverImageRelay.accept(UIImageWrapper(image: image))
   }
 }
