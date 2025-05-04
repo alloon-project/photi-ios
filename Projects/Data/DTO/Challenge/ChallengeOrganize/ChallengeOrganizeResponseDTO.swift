@@ -17,26 +17,6 @@ public struct ChallengeOrganizeResponseDTO: Decodable {
   public let imageUrl: String
   public let rules: [String]
   public let hashtags: [String]
-  
-  public init(
-    id: Int,
-    name: String,
-    goal: String,
-    proveTime: String,
-    endDate: String,
-    imageUrl: String,
-    rules: [String],
-    hashtags: [String]
-  ) {
-    self.id = id
-    self.name = name
-    self.goal = goal
-    self.proveTime = proveTime
-    self.endDate = endDate
-    self.imageUrl = imageUrl
-    self.rules = rules
-    self.hashtags = hashtags
-  }
 }
 
 public extension ChallengeOrganizeResponseDTO {
