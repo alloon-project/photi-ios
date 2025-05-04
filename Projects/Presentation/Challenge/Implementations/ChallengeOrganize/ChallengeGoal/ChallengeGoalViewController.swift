@@ -18,7 +18,7 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   private let viewModel: ChallengeGoalViewModel
   private let proveTimeRelay = PublishRelay<String>()
   private let endDateRelay = PublishRelay<Date>()
-  
+  private var selectedHour: Int = 13
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
@@ -242,7 +242,7 @@ extension ChallengeGoalViewController: ChallengeGoalPresentable { }
 private extension ChallengeGoalViewController {
   func showTimePickerBottomSheet() {
     let timePicker = TimePickerBottomSheet(
-      selectedHour: 12,
+      selectedHour: selectedHour,
       buttonText: "인증시간 정하기"
     )
     timePicker.delegate = self
@@ -263,6 +263,7 @@ extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
     proveTimeTextField.text = timeString
     proveTimeRelay.accept(timeString)
     proveComment.isActivate = true
+    selectedHour = hour
   }
 }
 
