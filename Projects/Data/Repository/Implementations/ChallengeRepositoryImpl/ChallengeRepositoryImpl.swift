@@ -97,11 +97,6 @@ public extension ChallengeRepositoryImpl {
     )
     .map { dataMapper.mapToChallengeMembers(dto: $0) }
   }
-
-  func fetchChallengeSampleImage() -> Single<[String]> {
-    return requestUnAuthorizableAPI(api: ChallengeAPI.sampleImages, responseType: ChallengeSampleImageResponseDTO.self)
-      .map { dataMapper.mapToSampleImages(dto: $0) }
-  }
 }
 
 // MARK: - Upload Methods
@@ -143,36 +138,6 @@ public extension ChallengeRepositoryImpl {
     )
     
     try await executeSingle(single)
-  }
-  
-  func challengeOrganize(
-    name: String,
-    isPublic: Bool,
-    goal: String,
-    proveTime: String,
-    endDate: String,
-    rules: [[String: String]],
-    hashtags: [[String: String]],
-    image: Data,
-    imageType: String
-  ) -> Single<Void> {
-    let requestDTO = dataMapper.mapToOrganizedChallenge(
-      name: name,
-      isPublic: isPublic,
-      goal: goal,
-      proveTime: proveTime,
-      endDate: endDate,
-      rules: rules,
-      hashtags: hashtags,
-      image: image,
-      imageType: imageType
-    )
-    
-    return requestAuthorizableAPI(
-      api: ChallengeAPI.organizeChallenge(dto: requestDTO),
-      responseType: ChallengeOrganizeResponseDTO.self
-    )
-    .map { _ in () }
   }
 }
 
@@ -273,8 +238,6 @@ private extension ChallengeRepositoryImpl {
       return APIError.challengeFailed(reason: .invalidInvitationCode)
     } else if code == "CHALLENGE_LIMIT_EXCEED" {
       return APIError.challengeFailed(reason: .challengeLimitExceed)
-    } else if code == "EMPTY_FILE_INVALID" {
-      return APIError.organazieFailed(reason: .emptyFileInvalid)
     } else {
       return APIError.clientError(code: code, message: message)
     }
