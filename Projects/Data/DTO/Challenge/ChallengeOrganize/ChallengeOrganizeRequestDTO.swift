@@ -14,8 +14,8 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
   public let goal: String
   public let proveTime: String
   public let endDate: String
-  public let rules: [[String: String]]
-  public let hashtags: [[String: String]]
+  public let rules: [String]
+  public let hashtags: [String]
   public let image: Data
   public let imageType: String
   
@@ -25,8 +25,8 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
     goal: String,
     proveTime: String,
     endDate: String,
-    rules: [[String: String]],
-    hashtags: [[String: String]],
+    rules: [String],
+    hashtags: [String],
     image: Data,
     imageType: String
   ) {
@@ -48,8 +48,8 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
       "goal": self.goal,
       "proveTime": self.proveTime,
       "endDate": self.endDate,
-      "rules": self.rules,
-      "hashtags": self.hashtags
+      "rules": self.rules.map { ["rules": $0] },
+      "hashtags": self.hashtags.map { ["hashtags": $0] }
     ]
   }
 }
