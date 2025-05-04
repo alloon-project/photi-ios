@@ -251,7 +251,7 @@ private extension ChallengeGoalViewController {
   
   func showCalendar() {
     let calendar = DatePickerBottomSheetViewController(startDate: Date())
-    
+    calendar.buttonText = "종료일 고르기"
     calendar.delegate = self
     calendar.present(to: self, animated: true)
   }
