@@ -123,7 +123,7 @@ private extension ChallengeGoalViewController {
       rightPadding: 16
     )
     proveTimeTextField.textField.delegate = self
-
+    dateTextField.delegate = self
     view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
@@ -274,11 +274,7 @@ extension ChallengeGoalViewController: DatePickerBottomSheetDelegate {
 }
 
 extension ChallengeGoalViewController: UITextFieldDelegate {
-  func textField(
-    _ textField: UITextField,
-    shouldChangeCharactersIn range: NSRange,
-    replacementString string: String
-  ) -> Bool {
-    return false
+  func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+      return false
   }
 }
