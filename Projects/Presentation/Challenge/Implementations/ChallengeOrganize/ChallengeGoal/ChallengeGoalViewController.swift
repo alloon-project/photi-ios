@@ -259,7 +259,7 @@ private extension ChallengeGoalViewController {
 
 extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
   func didSelect(hour: Int) {
-    let timeString = hour.hourToTimeString()
+    guard let timeString = hour.hourToTimeString() else { return }
     proveTimeTextField.text = timeString
     proveTimeRelay.accept(timeString)
     proveComment.isActivate = true

@@ -9,18 +9,12 @@
 import Foundation
 
 public extension Int {
-  func hourToTimeString() -> String {
-      var components = DateComponents()
-      components.hour = self
-      components.minute = 0
-      
-      let calendar = Calendar.current
-      if let date = calendar.date(from: components) {
-          let formatter = DateFormatter()
-          formatter.dateFormat = "HH:mm"
-          return formatter.string(from: date)
-      }
-      
-      return "Invalid"
+  func hourToTimeString() -> String? {
+    if self < 0 && self > 24 { return nil }
+    if self < 10 {
+      return "0\(self):00"
+    } else {
+      return "\(self):00"
+    }
   }
 }
