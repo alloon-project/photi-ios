@@ -125,15 +125,7 @@ extension ChallengeAPI: TargetType {
       case .sampleImages:
         return .requestPlain
       case let .organizeChallenge(dto):
-      let multiPartBody = MultipartFormDataBodyPart(.parameters([
-        "name": dto.name,
-        "isPublic": dto.isPublic,
-        "goal": dto.goal,
-        "proveTime": dto.proveTime,
-        "endDate": dto.endDate,
-        "rules": dto.rules,
-        "hashtags": dto.hashtags
-      ]))
+      let multiPartBody = MultipartFormDataBodyPart(.parameters(dto.toParameters()))
       let multiPartDataBody = MultipartFormDataBodyPart(
         .data(["imageFile": dto.image]),
         fileExtension: dto.imageType,

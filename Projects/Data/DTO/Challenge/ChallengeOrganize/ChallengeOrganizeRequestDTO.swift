@@ -40,4 +40,16 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
     self.image = image
     self.imageType = imageType
   }
+  
+  public func toParameters() -> [String: Any] {
+    return [
+      "name": self.name,
+      "isPublic": self.isPublic,
+      "goal": self.goal,
+      "proveTime": self.proveTime,
+      "endDate": self.endDate,
+      "rules": self.rules,
+      "hashtags": self.hashtags
+    ]
+  }
 }
