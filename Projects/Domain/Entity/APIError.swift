@@ -69,5 +69,7 @@ extension APIError {
 extension APIError {
   public enum OrganizedFailedReason {
     case emptyFileInvalid
+    case fileSizeExceed
+    case imageTypeUnsurported
   }
 }
