@@ -27,8 +27,7 @@ public extension ChallengeRepositoryImpl {
   func fetchPopularChallenges() -> Single<[ChallengeDetail]> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.popularChallenges,
-      responseType: [PopularChallengeResponseDTO].self,
-      behavior: .never
+      responseType: [PopularChallengeResponseDTO].self
     )
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
@@ -44,8 +43,7 @@ public extension ChallengeRepositoryImpl {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.challengeDetail(id: id),
-      responseType: ChallengeDetailResponseDTO.self,
-      behavior: .never
+      responseType: ChallengeDetailResponseDTO.self
     )
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
@@ -54,8 +52,7 @@ public extension ChallengeRepositoryImpl {
     let api = ChallengeAPI.isProve(challengeId: challengeId)
     let result = try await requestAuthorizableAPI(
       api: api,
-      responseType: ChallengeProveResponseDTO.self,
-      behavior: .immediate
+      responseType: ChallengeProveResponseDTO.self
     ).value
     
     return result.isProve
@@ -64,18 +61,27 @@ public extension ChallengeRepositoryImpl {
   func challengeCount() async throws -> Int {
     let result = try await requestAuthorizableAPI(
         api: ChallengeAPI.challengeCount,
-        responseType: ChallengeCountResponseDTO.self,
-        behavior: .never
+        responseType: ChallengeCountResponseDTO.self
       ).value
       
     return result.challengeCnt
+  }
+  
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int {
+    let result = try await requestAuthorizableAPI(
+      api: ChallengeAPI.challengeProveMemberCount(challengeId: challengeId),
+      responseType: ChallengeProveMemberCountResponseDTO.self
+    ).value
+    
+    print(result.feedMemberCnt)
+    
+    return result.feedMemberCnt
   }
     
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.myChallenges(page: page, size: size),
-      responseType: MyChallengesResponseDTO.self,
-      behavior: .never
+      responseType: MyChallengesResponseDTO.self
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
@@ -83,8 +89,7 @@ public extension ChallengeRepositoryImpl {
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.challengeDescription(id: challengeId),
-      responseType: ChallengeDescriptionResponseDTO.self,
-      behavior: .never
+      responseType: ChallengeDescriptionResponseDTO.self
     )
     .map { dataMapper.mapToChallengeDescription(dto: $0, id: challengeId) }
   }
@@ -92,8 +97,7 @@ public extension ChallengeRepositoryImpl {
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.challengeMember(challengeId: challengeId),
-      responseType: [ChallengeMemberResponseDTO].self,
-      behavior: .immediate
+      responseType: [ChallengeMemberResponseDTO].self
     )
     .map { dataMapper.mapToChallengeMembers(dto: $0) }
   }
@@ -104,8 +108,7 @@ public extension ChallengeRepositoryImpl {
   func joinPrivateChallnege(id: Int, code: String) -> Single<Void> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.joinPrivateChallenge(id: id, code: code),
-      responseType: SuccessResponseDTO.self,
-      behavior: .immediate
+      responseType: SuccessResponseDTO.self
     )
     .map { _ in () }
   }
@@ -113,8 +116,7 @@ public extension ChallengeRepositoryImpl {
   func joinPublicChallenge(id: Int) -> Single<Void> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.joinChallenge(id: id),
-      responseType: SuccessResponseDTO.self,
-      behavior: .immediate
+      responseType: SuccessResponseDTO.self
     )
     .map { _ in () }
   }
@@ -122,22 +124,20 @@ public extension ChallengeRepositoryImpl {
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.updateChallengeGoal(goal, challengeId: challengeId),
-      responseType: SuccessResponseDTO.self,
-      behavior: .delayed(seconds: 3)
+      responseType: SuccessResponseDTO.self
     )
     .map { _ in }
   }
   
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws {
+  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws -> Feed {
     let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
     
-    let single = requestAuthorizableAPI(
+    let result = try await requestAuthorizableAPI(
       api: api,
-      responseType: SuccessResponseDTO.self,
-      behavior: .never
-    )
+      responseType: FeedResponseDTO.self
+    ).value
     
-    try await executeSingle(single)
+    return dataMapper.mapToFeed(dto: result) 
   }
 }
 
@@ -146,8 +146,7 @@ public extension ChallengeRepositoryImpl {
   func leaveChallenge(id: Int) -> Single<Void> {
     return requestAuthorizableAPI(
       api: .leaveChallenge(challengeId: id),
-      responseType: SuccessResponseDTO.self,
-      behavior: .immediate
+      responseType: SuccessResponseDTO.self
     )
     .map { _ in }
   }

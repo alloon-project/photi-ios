@@ -14,9 +14,9 @@ import UseCase
 protocol ChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
-  func didTapLoginButtonAtAlert()
-  func leaveChallenge(isLastMember: Bool)
-  func attachReport()
+  func attachLogIn()
+  func leaveChallenge(challengeId: Int)
+  func attachChallengeReport()
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -82,19 +82,25 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapLoginButtonAtAlert
       .emit(with: self) { owner, _ in
-        owner.coordinator?.didTapLoginButtonAtAlert()
+        owner.coordinator?.attachLogIn()
       }
       .disposed(by: disposeBag)
     
     input.didTapReportButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachReport()
+        owner.coordinator?.attachChallengeReport()
       }
       .disposed(by: disposeBag)
     
     input.didTapLeaveButton
       .emit(with: self) { owner, _ in
         owner.leaveChallenge()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapConfirmButtonAtAlert()
       }
       .disposed(by: disposeBag)
     
@@ -128,7 +134,7 @@ private extension ChallengeViewModel {
     useCase.leaveChallenge(id: challengeId)
       .observe(on: MainScheduler.instance)
       .subscribe(with: self) { owner, _ in
-        owner.coordinator?.leaveChallenge(isLastMember: owner.memberCount.value == 1)
+        owner.coordinator?.leaveChallenge(challengeId: owner.challengeId)
       } onFailure: { owner, error in
         owner.requestFailed(with: error)
       }

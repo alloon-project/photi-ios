@@ -90,15 +90,18 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       let endDate = $0.endDate.toDate() ?? Date()
       let hasTags = $0.hashtags.map { $0.hashtag }
       let proveTime = $0.proveTime.toDate("HH:mm") ?? Date()
+      let imageUrl = URL(string: $0.challengeImageUrl ?? "")
+      let feedImageUrl = URL(string: $0.feedImageUrl ?? "")
       
       return .init(
         id: $0.id,
         name: $0.name,
-        imageUrl: $0.challengeImageUrl,
+        imageUrl: imageUrl,
         endDate: endDate,
         hashTags: hasTags,
         proveTime: proveTime,
-        feedImageURL: $0.feedImageUrl,
+        feedImageURL: feedImageUrl,
+        feedId: $0.feedId,
         isProve: $0.isProve
       )
     }
@@ -106,10 +109,11 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
 
   public func mapToFeed(dto: FeedResponseDTO) -> Feed {
     let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    let imageUrl = URL(string: dto.imageUrl ?? "") ?? defaultURL()
     return .init(
       id: dto.id,
       author: dto.username,
-      imageURL: dto.imageUrl,
+      imageURL: imageUrl,
       isLike: dto.isLike,
       updateTime: updateTime
     )
@@ -117,13 +121,17 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
   
   public func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed {
     let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    let imageURL = URL(string: dto.feedImageUrl ?? "") ?? defaultURL()
+    let authorImageURL = URL(string: dto.userImageUrl ?? "")
+    
     return .init(
       id: id,
       author: dto.username,
-      imageURL: dto.feedImageUrl,
-      authorImageURL: dto.userImageUrl,
+      imageURL: imageURL,
+      authorImageURL: authorImageURL,
       updateTime: updateTime,
-      likeCount: dto.likeCnt
+      likeCount: dto.likeCnt,
+      isLike: dto.isLike
     )
   }
   
@@ -155,10 +163,10 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
       return .init(
         id: $0.id,
         name: $0.username,
-        imageUrl: $0.imageUrl,
+        imageUrl: URL(string: $0.imageUrl ?? ""),
         isOwner: $0.isCreator,
         duration: $0.duration,
-        goal: $0.goal
+        goal: $0.goal ?? ""
       )
     }
   }
@@ -173,5 +181,12 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         name: $0.name
       )
     }
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeDataMapperImpl {
+  func defaultURL() -> URL {
+    return URL(string: "")!
   }
 }

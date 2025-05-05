@@ -8,11 +8,13 @@
 
 import Challenge
 import Core
+import LogIn
 import Report
 import UseCase
 
 public protocol ChallengeDependency: Dependency {
   var reportContainable: ReportContainable { get }
+  var loginContainable: LogInContainable { get }
   var challengeUseCase: ChallengeUseCase { get }
   var feedUseCase: FeedUseCase { get }
 }
@@ -23,7 +25,11 @@ public final class ChallengeContainer:
   FeedDependency,
   DescriptionDependency,
   ParticipantDependency {
-  public func coordinator(listener: ChallengeListener, challengeId: Int) -> ViewableCoordinating {
+  public func coordinator(
+    listener: ChallengeListener,
+    challengeId: Int,
+    presentType: ChallengePresentType
+  ) -> ViewableCoordinating {
     let viewModel = ChallengeViewModel(useCase: dependency.challengeUseCase, challengeId: challengeId)
     let viewControllerable = ChallengeViewController(viewModel: viewModel)
     
@@ -34,9 +40,11 @@ public final class ChallengeContainer:
     let coordinator = ChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
+      initialPresentType: presentType,
       feedContainer: feedContainer,
       descriptionContainer: descriptionContainer,
       participantContainer: participantContainer,
+      logInContainer: dependency.loginContainable,
       reportContainer: dependency.reportContainable
     )
     coordinator.listener = listener

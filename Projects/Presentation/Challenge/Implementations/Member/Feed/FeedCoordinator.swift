@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol FeedListener: AnyObject {
@@ -13,30 +14,42 @@ protocol FeedListener: AnyObject {
   func authenticatedFailedAtFeed()
   func networkUnstableAtFeed(reason: String?)
   func challengeNotFoundAtFeed()
+  func requestReportAtFeed(feedId: Int)
 }
 
 protocol FeedPresentable {
   func deleteFeed(feedId: Int)
+  func updateLikeState(feedId: Int, isLiked: Bool)
 }
 
 final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
 
+  private let challengeId: Int
   private let viewModel: FeedViewModel
+  private let initialPresentType: ChallengePresentType
   
   private let feedCommentContainer: FeedCommentContainable
   private var feedCommentCoordinator: ViewableCoordinating?
   
   init(
+    challengeId: Int,
     viewControllerable: ViewControllerable,
     viewModel: FeedViewModel,
+    initialPresentType: ChallengePresentType,
     feedCommentContainer: FeedCommentContainable
   ) {
+    self.challengeId = challengeId
     self.viewModel = viewModel
+    self.initialPresentType = initialPresentType
     self.feedCommentContainer = feedCommentContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
-    print(viewModel.coordinator == nil)
+  }
+  
+  override func viewDidAppear() {
+    guard case let .presentWithFeed(feedId) = initialPresentType else { return }
+    attachFeedDetail(challengeId: challengeId, feedId: feedId)
   }
 }
 
@@ -97,13 +110,28 @@ extension FeedCoordinator: FeedCommentListener {
     detachFeedDetail { [weak self] in
       self?.presenter.deleteFeed(feedId: id)
     }
+    viewModel.updateIsProveIfNeeded()
   }
   
   func authenticatedFailedAtFeedComment() {
-    listener?.authenticatedFailedAtFeed()
+    detachFeedDetail { [weak self] in
+      self?.listener?.authenticatedFailedAtFeed()
+    }
   }
   
   func networkUnstableAtFeedComment(reason: String?) {
-    listener?.networkUnstableAtFeed(reason: reason)
+    detachFeedDetail { [weak self] in
+      self?.listener?.networkUnstableAtFeed(reason: reason)
+    }
+  }
+  
+  func requestReportAtFeedComment(feedId: Int) {
+    detachFeedDetail { [weak self] in
+      self?.listener?.requestReportAtFeed(feedId: feedId)
+    }
+  }
+  
+  func updateLikeState(feedId: Int, isLiked: Bool) {
+    presenter.updateLikeState(feedId: feedId, isLiked: isLiked)
   }
 }

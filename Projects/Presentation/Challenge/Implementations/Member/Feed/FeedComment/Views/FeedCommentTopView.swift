@@ -39,7 +39,10 @@ final class FeedCommentTopView: UIView {
   }
   
   // MARK: - UI Components
-  private let topGradientLayer = FeedCommentGradientLayer(mode: .topToBottom, maxAlpha: 0.7)
+  private let topGradientLayer: GradientLayer = {
+    let color = UIColor(red: 0.118, green: 0.137, blue: 0.149, alpha: 0.7)
+    return .init(mode: .topToBottom, maxColor: color)
+  }()
   private let avatarImageView = AvatarImageView(size: .xSmall)
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()

@@ -18,6 +18,7 @@ public struct ChallengeSummary {
   // MARK: - Extra Properties
   public let proveTime: Date?
   public let feedImageURL: URL?
+  public let feedId: Int?
   public let memberCount: Int?
   public let memberImages: [URL]?
   public let isProve: Bool
@@ -41,6 +42,7 @@ public extension ChallengeSummary {
     self.feedImageURL = nil
     self.memberCount = nil
     self.memberImages = nil
+    self.feedId = nil
     self.isProve = false
   }
   
@@ -52,6 +54,7 @@ public extension ChallengeSummary {
     hashTags: [String],
     proveTime: Date,
     feedImageURL: URL?,
+    feedId: Int?,
     isProve: Bool = false
   ) {
     self.id = id
@@ -61,6 +64,7 @@ public extension ChallengeSummary {
     self.hashTags = hashTags
     self.proveTime = proveTime
     self.feedImageURL = feedImageURL
+    self.feedId = feedId
     self.memberCount = nil
     self.memberImages = nil
     self.isProve = isProve
@@ -84,6 +88,7 @@ public extension ChallengeSummary {
     self.feedImageURL = nil
     self.memberCount = memberCount
     self.memberImages = memberImages
+    self.feedId = nil
     self.isProve = false
   }
 }

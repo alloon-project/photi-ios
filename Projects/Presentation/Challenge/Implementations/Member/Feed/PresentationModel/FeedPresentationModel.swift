@@ -15,7 +15,7 @@ struct FeedPresentationModel: Hashable {
   let userName: String
   let updateTime: String
   let updateGroup: String
-  let isLike: Bool
+  var isLike: Bool
 }
 
 enum FeedsAlignMode: String, CaseIterable {
@@ -24,7 +24,7 @@ enum FeedsAlignMode: String, CaseIterable {
   
   var toOrderType: ChallengeFeedsOrderType {
     switch self {
-      case .recent: return .recent
+      case .recent: return .latest
       case .popular: return .popular
     }
   }
@@ -44,7 +44,8 @@ enum ProveType: Equatable {
   }
 }
 
-enum FeedsType {
+enum FeedsType: Equatable {
   case initialPage([FeedPresentationModel])
   case `default`([FeedPresentationModel])
+  case empty
 }

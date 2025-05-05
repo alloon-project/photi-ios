@@ -62,16 +62,12 @@ private extension ChallengeImageView {
   
   func setupUI(for type: ModelType) {
     switch type {
-      case let .proofURL(url):
+      case let .didProof(url, _):
         setupDidProofUI()
         imageView.kf.setImage(with: url) { [weak self] _ in
           guard let self else { return }
           bringSubviewToFront(cornerView)
         }
-        
-      case let .proofImage(image):
-        setupDidProofUI()
-        imageView.image = image
         
       case .didNotProof:
         setupNotProofUI(image: .cameraPlusLightBlue)
@@ -122,8 +118,8 @@ private extension ChallengeImageView {
 
 extension Reactive where Base: ChallengeImageView {
   var didTapImage: ControlEvent<Void> {
-    let observable = base.imageView.rx.tapGesture().when(.recognized)
-      .filter { _ in base.modelType == .didNotProof }
+    let observable = base.imageView.rx.tapGesture()
+      .when(.recognized)
       .map { _ in }
     return ControlEvent(events: observable)
   }

@@ -201,9 +201,17 @@ extension ChallengeViewController: ChallengePresentable {
     
     let offset = offset.bound(lower: minOffset, upper: maxOffset)
     let mainContainerOffset = minOffset + maxOffset - offset
-    
+      
     mainView.snp.updateConstraints {
       $0.top.equalToSuperview().offset(mainContainerOffset)
+    }
+    
+    UIView.animate(
+      withDuration: 0.1,
+      delay: 0,
+      options: [.beginFromCurrentState, .curveEaseOut]
+    ) {
+      self.view.layoutIfNeeded()
     }
   }
   
@@ -278,7 +286,7 @@ private extension ChallengeViewController {
     let alert = AlertViewController(
       alertType: .canCancel,
       title: "챌린지를 탈퇴할까요?",
-      attributedSubTitle: leaveChallengeString(memberCount: 1)
+      attributedSubTitle: leaveChallengeString(memberCount: memberCount)
     )
     alert.confirmButtonTitle = "탈퇴할게요"
     alert.cancelButtonTitle = "취소할게요"

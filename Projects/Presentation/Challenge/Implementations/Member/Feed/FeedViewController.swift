@@ -14,6 +14,13 @@ import Core
 import DesignSystem
 
 final class FeedViewController: UIViewController, ViewControllerable, CameraRequestable {
+  enum Constants {
+    static let feedSpacing = 7.0
+    static let feedLineSpacing = 10.0
+    static let feedHeaderHeight = 44.0
+    static let feedFooterHeight = 6.0
+  }
+  
   typealias DataSourceType = UICollectionViewDiffableDataSource<String, FeedPresentationModel>
   typealias SnapShot = NSDiffableDataSourceSnapshot<String, FeedPresentationModel>
 
@@ -32,7 +39,10 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     didSet {
       guard viewWillAppear else { return }
       configureTodayHeaderView(for: isProve)
-      cameraShutterButton.isHidden = (isProve != .didProve)
+      cameraShutterButton.isHidden = (isProve == .didProve)
+      cameraView.isHidden = (isProve == .didProve)
+      
+      if viewDidAppear, isProve != .didProve { presentPoofTipView() }
     }
   }
   private var feedsAlign: FeedsAlignMode = .recent {
@@ -55,21 +65,13 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private let progressBar = MediumProgressBar(percent: .percent0)
   private let orderButton = IconTextButton(text: "최신순", icon: .chevronDownGray700, size: .xSmall)
   private let tagView = TagView(image: .peopleWhite)
+  private let emptyFeedsImageView = UIImageView(image: .challengeEmptyFeed)
   private let feedCollectionView: SelfVerticalSizingCollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.scrollDirection = .vertical
-    layout.minimumLineSpacing = 10
-    layout.minimumInteritemSpacing = 7
-    layout.headerReferenceSize = .init(width: 0, height: 44)
-    layout.footerReferenceSize = .init(width: 0, height: 6)
-    layout.sectionInset = .init(top: 8, left: 0, bottom: 18, right: 0)
-    layout.itemSize = .init(width: 160, height: 160)
-    layout.sectionHeadersPinToVisibleBounds = true
-    
-    let collectionView = SelfVerticalSizingCollectionView(layout: layout)
+    let collectionView = SelfVerticalSizingCollectionView(layout: UICollectionViewLayout())
     collectionView.registerCell(FeedCell.self)
     collectionView.registerHeader(FeedsHeaderView.self)
     collectionView.registerFooter(FeedsLoadingFooterView.self)
+    collectionView.backgroundColor = .clear
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     collectionView.showsHorizontalScrollIndicator = false
@@ -77,6 +79,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     
     return collectionView
   }()
+  private let cameraView = FeedCameraGradientView()
   private let cameraShutterButton: UIButton = {
     let button = UIButton()
     button.setImage(.shutterWhite, for: .normal)
@@ -103,6 +106,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     let dataSource = diffableDataSource()
     self.dataSource = dataSource
     feedCollectionView.dataSource = dataSource
+    feedCollectionView.collectionViewLayout = compositionalLayout()
     dataSource.supplementaryViewProvider = supplementaryViewProvider()
     feedCollectionView.delegate = self
     configureRefreshControl()
@@ -113,8 +117,9 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     super.viewWillAppear(animated)
     guard !viewWillAppear else { return }
     self.viewWillAppear = true
+    if case let .didNotProve(time) = isProve, time.isEmpty { return }
     cameraShutterButton.isHidden = (isProve == .didProve)
-    if isProve != .didProve { presentPoofTipView() }
+    cameraView.isHidden = (isProve == .didProve)
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -123,6 +128,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewDidAppear = true
     progressBar.percent = currentPercent
     updateTagViewContraints(percent: currentPercent)
+    if isProve != .didProve { presentPoofTipView() }
   }
 }
 
@@ -138,6 +144,8 @@ private extension FeedViewController {
       progressBar,
       orderButton,
       feedCollectionView,
+      cameraView,
+      emptyFeedsImageView,
       tagView,
       cameraShutterButton
     )
@@ -163,14 +171,25 @@ private extension FeedViewController {
     
     feedCollectionView.snp.makeConstraints {
       $0.top.equalTo(orderButton.snp.bottom).offset(30)
-      $0.centerX.bottom.equalToSuperview()
-      $0.width.equalTo(327)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview()
+    }
+
+    cameraView.snp.makeConstraints {
+      $0.bottom.leading.trailing.equalToSuperview()
+      $0.height.equalTo(161)
     }
 
     cameraShutterButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.width.height.equalTo(64)
       $0.bottom.equalToSuperview().inset(22)
+    }
+    
+    emptyFeedsImageView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(23)
+      $0.top.equalToSuperview().offset(74)
     }
   }
 }
@@ -210,15 +229,23 @@ private extension FeedViewController {
       .drive(rx.isProve)
       .disposed(by: disposeBag)
     
+    output.proveFeed
+      .drive(with: self) { owner, feed in
+        owner.appendFront(models: feed)
+      }
+      .disposed(by: disposeBag)
+    
     output.feeds
       .drive(with: self) { owner, feeds in
+        owner.feedCollectionView.refreshControl?.endRefreshing()
+        owner.emptyFeedsImageView.isHidden = (feeds != .empty)
+        if feeds == .empty { owner.cameraView.isHidden = true }
         switch feeds {
           case let .initialPage(models):
-            owner.feedCollectionView.refreshControl?.endRefreshing()
-            owner.deleteAllFeeds()
             owner.initialize(models: models)
           case let .default(models):
             owner.append(models: models)
+          default: break
         }
       }
       .disposed(by: disposeBag)
@@ -227,7 +254,6 @@ private extension FeedViewController {
       .emit(with: self) { owner, _ in
         LoadingAnimation.logo.stop()
         owner.isProve = .didProve
-        owner.cameraShutterButton.isHidden = true
       }
       .disposed(by: disposeBag)
     
@@ -283,7 +309,32 @@ extension FeedViewController: FeedPresentable {
     var snapshot = dataSource.snapshot()
     
     guard let model = snapshot.itemIdentifiers.first(where: { $0.id == feedId }) else { return }
+    
+    if
+      let section = snapshot.sectionIdentifier(containingItem: model),
+      snapshot.numberOfItems(inSection: section) == 1 {
+      snapshot.deleteSections([section])
+    }
+    
     snapshot.deleteItems([model])
+    dataSource.apply(snapshot)
+  }
+  
+  func updateLikeState(feedId: Int, isLiked: Bool) {
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    
+    guard
+      let oldItem = snapshot.itemIdentifiers.first(where: { $0.id == feedId }),
+      oldItem.isLike != isLiked
+    else { return }
+    
+    var updatedItem = oldItem
+    updatedItem.isLike = isLiked
+    
+    snapshot.insertItems([updatedItem], afterItem: oldItem)
+    snapshot.deleteItems([oldItem])
+    
     dataSource.apply(snapshot)
   }
 }
@@ -354,8 +405,35 @@ extension FeedViewController {
   }
   
   func initialize(models: [FeedPresentationModel]) {
-    let snapshot = append(models: models, to: SnapShot())
-    dataSource?.apply(snapshot)
+    guard let dataSource else { return }
+    var snapshot = dataSource.snapshot()
+    snapshot.deleteAllItems()
+    
+    snapshot = append(models: models, to: snapshot)
+    dataSource.apply(snapshot)
+  }
+  
+  func appendFront(models: [FeedPresentationModel]) {
+    guard let dataSource, let firstModel = models.first else { return }
+    var snapshot = dataSource.snapshot()
+    
+    let updateGroup = firstModel.updateGroup
+    
+    if !snapshot.sectionIdentifiers.contains(updateGroup) {
+      if let firstSection = snapshot.sectionIdentifiers.first {
+        snapshot.insertSections([updateGroup], beforeSection: firstSection)
+      } else {
+        snapshot.appendSections([updateGroup])
+      }
+    }
+    
+    if let firstItem = snapshot.itemIdentifiers(inSection: firstModel.updateGroup).first {
+      snapshot.insertItems(models, beforeItem: firstItem)
+    } else {
+      snapshot.appendItems(models, toSection: firstModel.updateGroup)
+    }
+    
+    dataSource.apply(snapshot)
   }
   
   func append(models: [FeedPresentationModel]) {
@@ -369,6 +447,7 @@ extension FeedViewController {
     models.forEach {
       if !snapshot.sectionIdentifiers.contains($0.updateGroup) {
         snapshot.appendSections([$0.updateGroup])
+        snapshot.appendItems([$0], toSection: $0.updateGroup)
       }
       snapshot.appendItems([$0], toSection: $0.updateGroup)
     }
@@ -439,6 +518,50 @@ extension FeedViewController: AlignBottomSheetDelegate {
 
 // MARK: - Private Methods
 private extension FeedViewController {
+  func compositionalLayout() -> UICollectionViewCompositionalLayout {
+    return .init { _, environment in
+      let itemSpacing = Constants.feedSpacing
+      let availableWidth = environment.container.effectiveContentSize.width
+      let itemWidth = (availableWidth - itemSpacing) / 2
+      
+      let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(itemWidth), heightDimension: .absolute(itemWidth))
+      let item = NSCollectionLayoutItem(layoutSize: itemSize)
+      
+      let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(itemWidth))
+      let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
+      group.interItemSpacing = .fixed(itemSpacing)
+      
+      let section = NSCollectionLayoutSection(group: group)
+      section.interGroupSpacing = 10
+      section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 18, trailing: 0)
+      
+      let headerSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .absolute(Constants.feedHeaderHeight)
+      )
+      
+      let header = NSCollectionLayoutBoundarySupplementaryItem(
+        layoutSize: headerSize,
+        elementKind: UICollectionView.elementKindSectionHeader,
+        alignment: .top
+      )
+      header.pinToVisibleBounds = true
+      
+      let footerSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1.0),
+        heightDimension: .absolute(Constants.feedFooterHeight)
+      )
+      let footer = NSCollectionLayoutBoundarySupplementaryItem(
+        layoutSize: footerSize,
+        elementKind: UICollectionView.elementKindSectionFooter,
+        alignment: .bottom
+      )
+
+      section.boundarySupplementaryItems = [header, footer]
+      return section
+    }
+  }
+  
   func configureRefreshControl() {
     feedCollectionView.refreshControl = UIRefreshControl()
     feedCollectionView.refreshControl?.addTarget(self, action: #selector(refreshStart), for: .valueChanged)
@@ -450,7 +573,7 @@ private extension FeedViewController {
   
   func updateTagViewContraints(percent: PhotiProgressPercent) {
     let tagViewLeading = tagViewLeading(for: percent.rawValue)
-    
+
     UIView.animate(withDuration: 0.4) {
       self.tagView.snp.updateConstraints {
         $0.leading.equalToSuperview().offset(tagViewLeading)

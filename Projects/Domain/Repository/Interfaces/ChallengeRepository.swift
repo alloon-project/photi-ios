@@ -16,8 +16,9 @@ public protocol ChallengeRepository {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
   func joinPublicChallenge(id: Int) -> Single<Void>
   func joinPrivateChallnege(id: Int, code: String) -> Single<Void>
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws
+  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws -> Feed
   func isProve(challengeId: Int) async throws -> Bool
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int
   func challengeCount() async throws -> Int
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>

@@ -33,6 +33,6 @@ extension RefreshTokenAPI: TargetType {
   }
   
   var task: TaskType {
-    return .requestParameters(parameters: [:], encoding: URLEncoding.queryString)
+    return .requestPlain
   }
 }
