@@ -19,7 +19,7 @@ public protocol TimePickerBottomSheetDelegate: AnyObject {
 public final class TimePickerBottomSheet: BottomSheetViewController {
   private let disposeBag = DisposeBag()
   
-  weak var delegate: TimePickerBottomSheetDelegate?
+  public weak var delegate: TimePickerBottomSheetDelegate?
   
   private var dataSource: [Int] = [] {
     didSet { pickerView.reloadAllComponents() }
@@ -130,6 +130,7 @@ extension TimePickerBottomSheet {
     self.button.rx.tap
       .bind(with: self) { owner, _ in
         owner.delegate?.didSelect(hour: owner.selectedHour)
+        owner.dismissBottomSheet()
       }
       .disposed(by: disposeBag)
   }
