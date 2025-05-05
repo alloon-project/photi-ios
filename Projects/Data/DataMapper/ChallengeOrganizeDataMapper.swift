@@ -16,6 +16,8 @@ public protocol ChallengeOrganizeDataMapper {
 }
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
+  public init() {}
+  
   public func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String] {
     return dto.list.map { $0 }
   }
