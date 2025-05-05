@@ -9,7 +9,9 @@
 import RxCocoa
 import RxSwift
 
-protocol SearchChallengeCoordinatable: AnyObject { }
+protocol SearchChallengeCoordinatable: AnyObject {
+  func didTapChallengeOrganize()
+}
 
 protocol SearchChallengeViewModelType: AnyObject {
   associatedtype Input
@@ -25,7 +27,9 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   weak var coordinator: SearchChallengeCoordinatable?
   
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    var didTapChallengeOrganizeButton: ControlEvent<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -34,6 +38,11 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapChallengeOrganizeButton
+      .bind(with: self) { owner, _ in
+        owner.coordinator?.didTapChallengeOrganize()
+      }.disposed(by: disposeBag)
+    
     return Output()
   }
 }

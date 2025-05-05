@@ -3,6 +3,9 @@ disabled_rules:
 # 라인의 마지막에는 빈 여백이 있으면 안 됨
 - trailing_whitespace
 
+# 파라미터 개수 제한
+- function_parameter_count
+
 # 타입은 최대 1단계로 중첩되어야 함
 - nesting
 
