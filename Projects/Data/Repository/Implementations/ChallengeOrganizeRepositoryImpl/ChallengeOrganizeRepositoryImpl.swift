@@ -15,9 +15,9 @@ import PhotiNetwork
 import Repository
 
 public struct ChallengeOrganizeRepositoryImpl: ChallengeOrganizeRepository {
-  private let dataMapper: ChallengeDataMapper
+  private let dataMapper: ChallengeOrganizeDataMapper
   
-  public init(dataMapper: ChallengeDataMapper) {
+  public init(dataMapper: ChallengeOrganizeDataMapper) {
     self.dataMapper = dataMapper
   }
 }
