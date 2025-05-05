@@ -18,8 +18,6 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
-  private let challengeProveMemberCountRelay = BehaviorRelay<Int>(value: 0)
-  public let challengeProveMemberCount: Infallible<Int>
     
   public init(
     challengeRepository: ChallengeRepository,

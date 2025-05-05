@@ -39,6 +39,7 @@ final class AppContainer:
   SearchChallengeDependency,
   MyPageDependency,
   ReportDependency,
+  ChallengeDependency,
   NoneMemberChallengeDependency,
   ChallengeOrganizeDependency {
   func coordinator() -> ViewableCoordinating {
