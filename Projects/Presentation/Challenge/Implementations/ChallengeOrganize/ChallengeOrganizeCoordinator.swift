@@ -45,7 +45,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   private var challengeHashtagCoordinator: Coordinating?
   
   private let challengePreviewContainable: ChallengePreviewContainable
-  private var challengePreviewCoordinator: Coordinating?
+  private var challengePreviewCoordinator: ViewableCoordinating?
   
   init(
     navigationControllerable: NavigationControllerable,

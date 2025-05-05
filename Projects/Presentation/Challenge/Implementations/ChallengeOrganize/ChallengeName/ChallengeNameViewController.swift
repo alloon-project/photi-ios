@@ -70,7 +70,6 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
     let publicSwitch = UISwitch()
     publicSwitch.isOn = true
     publicSwitch.onTintColor = .blue400
-    publicSwitch.addTarget(ChallengeNameViewController.self, action: #selector(toggleSwitch), for: .touchUpInside)
     
     return publicSwitch
   }()
@@ -95,7 +94,8 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cylces
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+    publicSwitch.addTarget(self, action: #selector(toggleSwitch), for: .valueChanged)
+
     setupUI()
     bind()
   }
