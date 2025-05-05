@@ -19,8 +19,8 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   private var challengeProveTime: String?
   private var challengeEndDate: Date?
   private var challengeCover: UIImageWrapper?
-  private var challengeRule: [[String: String]] = []
-  private var challengeHashtags: [[String: String]] = []
+  private var challengeRule: [String] = []
+  private var challengeHashtags: [String] = []
   
   weak var listener: ChallengeOrganizeListener?
   
@@ -210,11 +210,11 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     
     let viewPresentaionModel = PreviewPresentationModel(
       title: title,
-      hashtags: challengeHashtags.compactMap { $0["hashtag"] },
+      hashtags: challengeHashtags,
       verificationTime: verificationTime,
       goal: challengeGoal,
       image: image,
-      rules: challengeRule.compactMap({ $0["rule"] }),
+      rules: challengeRule,
       deadLine: deadline.toString("yyyy. MM. dd")
     )
     let coordinater = challengePreviewContainable.coordinator(
@@ -301,7 +301,7 @@ extension ChallengeOrganizeCoordinator: ChallengeRuleListener {
   }
   
   func didFinishChallengeRules(challengeRules: [String]) {
-    self.challengeRule = challengeRules.map { ["rule": $0] }
+    self.challengeRule = challengeRules
     attachChallengeHashtag()
   }
 }
@@ -313,7 +313,7 @@ extension ChallengeOrganizeCoordinator: ChallengeHashtagListener {
   }
   
   func didFinishChallengeHashtags(challengeHashtags: [String]) {
-    self.challengeHashtags = challengeHashtags.map { ["hashtag": $0] }
+    self.challengeHashtags = challengeHashtags
     attachChallengePreview()
   }
 }
