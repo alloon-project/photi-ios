@@ -20,18 +20,7 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let authRepository: AuthRepository
   private let challengeProveMemberCountRelay = BehaviorRelay<Int>(value: 0)
   public let challengeProveMemberCount: Infallible<Int>
-  
-  // ChallengeOrganize
-  private var name: String?
-  private var isPublic: Bool?
-  private var goal: String?
-  private var proveTime: String?
-  private var endDate: String?
-  private var rules: [[String: String]]?
-  private var hashtags: [[String: String]]?
-  private var image: Data?
-  private var imageType: String?
-  
+    
   public init(
     challengeRepository: ChallengeRepository,
     feedRepository: FeedRepository,
@@ -72,10 +61,6 @@ public extension ChallengeUseCaseImpl {
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
     return challengeRepository.fetchChallengeMembers(challengeId: challengeId)
   }
-  
-  func fetchChallengeSampleImages() -> Single<[String]> {
-    return challengeRepository.fetchChallengeSampleImage()
-  }
 }
 
 // MARK: - Upload & Update Methods
@@ -110,31 +95,6 @@ public extension ChallengeUseCaseImpl {
   
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
     return challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
-  }
-  
-  func organizeChallenge() -> Single<Void> {
-    guard
-      let name,
-      let isPublic,
-      let goal,
-      let proveTime,
-      let endDate,
-      let rules,
-      let hashtags,
-      let image,
-      let imageType
-    else { return singleWithError(APIError.serverError) }
-    return challengeRepository.challengeOrganize(
-      name: name,
-      isPublic: isPublic,
-      goal: goal,
-      proveTime: proveTime,
-      endDate: endDate,
-      rules: rules,
-      hashtags: hashtags,
-      image: image,
-      imageType: imageType
-    )
   }
 }
 
