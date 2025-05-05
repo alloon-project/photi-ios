@@ -26,7 +26,7 @@ protocol ChallengeCoverViewModelType: AnyObject {
 }
 
 final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
-  private let useCase: ChallengeUseCase
+  private let useCase: OrganizeUseCase
   
   let disposeBag = DisposeBag()
   
@@ -50,7 +50,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: ChallengeUseCase) {
+  init(useCase: OrganizeUseCase) {
     self.useCase = useCase
   }
   

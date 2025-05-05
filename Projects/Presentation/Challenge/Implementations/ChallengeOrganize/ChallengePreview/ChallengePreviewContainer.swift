@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol ChallengePreviewDependency: Dependency {
-  var challengeUseCase: ChallengeUseCase { get }
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 protocol ChallengePreviewContainable: Containable {
@@ -25,7 +25,7 @@ final class ChallengePreviewContainer: Container<ChallengePreviewDependency>, Ch
     listener: ChallengePreviewListener,
     viewPresentationModel: PreviewPresentationModel
   ) -> ViewableCoordinating {
-    let viewModel = ChallengePreviewViewModel(useCase: dependency.challengeUseCase)
+    let viewModel = ChallengePreviewViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengePreviewViewController(viewModel: viewModel)
     
     let coordinator = ChallengePreviewCoordinator(

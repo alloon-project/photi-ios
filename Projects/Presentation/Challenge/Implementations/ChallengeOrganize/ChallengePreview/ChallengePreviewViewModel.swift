@@ -29,7 +29,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   weak var coordinator: ChallengePreviewCoordinatable?
   private let disposeBag = DisposeBag()
   
-  private let useCase: ChallengeUseCase
+  private let useCase: OrganizeUseCase
   private let networkUnstableRelay = PublishRelay<Void>()
   private let emptyFileErrorRelay = PublishRelay<String>()
   private let imageTypeErrorRelay = PublishRelay<String>()
@@ -49,7 +49,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   }
   
   // MARK: - Initializers
-  init(useCase: ChallengeUseCase) {
+  init(useCase: OrganizeUseCase) {
     self.useCase = useCase
   }
   

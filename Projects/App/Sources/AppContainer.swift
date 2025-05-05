@@ -134,6 +134,10 @@ final class AppContainer:
     return ResignUseCaseImpl(repository: resignRepository)
   }()
   
+  lazy var organizeUseCase: OrganizeUseCase = {
+    return OrganizeUseCaseImpl(repository: organizeRepository)
+  }()
+  
   // MARK: - Repository
   lazy var authRepository: AuthRepository = {
     return AuthRepositoryImpl()
@@ -185,5 +189,9 @@ final class AppContainer:
 
   lazy var resignRepository: ResignRepository = {
     return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
+  }()
+  
+  lazy var organizeRepository: ChallengeOrganizeRepository = {
+    return ChallengeOrganizeRepositoryImpl(dataMapper: ChallengeOrganizeDataMapperImpl())
   }()
 }

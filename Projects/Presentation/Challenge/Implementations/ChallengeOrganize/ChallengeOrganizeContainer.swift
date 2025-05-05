@@ -11,7 +11,7 @@ import Challenge
 import UseCase
 
 public protocol ChallengeOrganizeDependency: Dependency {
-  var challengeUseCase: ChallengeUseCase { get }
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 public final class ChallengeOrganizeContainer:
@@ -24,8 +24,8 @@ public final class ChallengeOrganizeContainer:
     ChallengeRuleDependency,
     ChallengeHashtagDependency,
     ChallengePreviewDependency {
-  var challengeUseCase: ChallengeUseCase {
-    dependency.challengeUseCase
+  var organizeUseCase: OrganizeUseCase {
+    dependency.organizeUseCase
   }
   
   public func coordinator(

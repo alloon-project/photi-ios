@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol ChallengeCoverDependency: Dependency {
-  var challengeUseCase: ChallengeUseCase { get }
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 protocol ChallengeCoverContainable: Containable {
@@ -19,7 +19,7 @@ protocol ChallengeCoverContainable: Containable {
 
 final class ChallengeCoverContainer: Container<ChallengeCoverDependency>, ChallengeCoverContainable {
   func coordinator(listener: ChallengeCoverListener) -> ViewableCoordinating {
-    let viewModel = ChallengeCoverViewModel(useCase: dependency.challengeUseCase)
+    let viewModel = ChallengeCoverViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeCoverViewController(viewModel: viewModel)
     
     let coordinator = ChallengeCoverCoordinator(
