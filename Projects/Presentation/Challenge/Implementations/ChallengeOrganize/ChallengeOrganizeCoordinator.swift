@@ -257,9 +257,6 @@ extension ChallengeOrganizeCoordinator: ChallengeNameListener {
   func didFisishChallengeName(challengeName: String, isPublic: Bool) {
     self.challengeName = challengeName
     self.isPublic = isPublic
-    print("challengeName : \(challengeName)")
-    print("isPublic : \(isPublic)")
-    print("didFinsh")
     attachChallengeGoal()
   }
 }
@@ -274,10 +271,6 @@ extension ChallengeOrganizeCoordinator: ChallengeGoalListener {
     self.challengeGoal = challengeGoal
     self.challengeProveTime = proveTime
     self.challengeEndDate = endDate
-    print("challengeGoal : \(challengeGoal)")
-    print("proveTime : \(proveTime)")
-    print("endDate : \(endDate)")
-    print("didFinsh")
     attachChallengeCover()
   }
 }
