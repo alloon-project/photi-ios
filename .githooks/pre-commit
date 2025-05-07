@@ -22,27 +22,29 @@ if [ -z "$targets" ]; then
 fi
 
 # lint rule 정의 파일
-RESULT=$($LINT lint --quiet --config ${PWD}/.swiftlint.yml -- $targets)
+RESULT=$(echo "$targets" | xargs $LINT lint --quiet --config ${PWD}/.swiftlint.yml)
 if [ "$RESULT" == '' ]; then
 	printf "✨  SwiftLint 적용을 완료했습니다!! 고생하셨습니다:)\n"
   exit 0
 fi
 echo ""
-printf "✔ SwiftLint Failed 아래 내용을 확인해주세요:\n"
-while read -r line; do
-  FILEPATH=$(echo $line | cut -d : -f 1)
-  L=$(echo $line | cut -d : -f 2)
-  C=$(echo $line | cut -d : -f 3)
-  TYPE=$(echo $line | cut -d : -f 4 | cut -c 2-)
-  MESSAGE=$(echo $line | cut -d : -f 5 | cut -c 2-)
-  DESCRIPTION=$(echo $line | cut -d : -f 6 | cut -c 2-)
-  if [ $TYPE == 'warning' ]; then
-    printf "\n 🚧  $TYPE\n"
-    printf "    $FILEPATH:$L:$C\n"
-    printf "    📌  $MESSAGE: - $DESCRIPTION\n"
-  elif [ $TYPE == 'error' ]; then
-    printf "\n 🚨  $TYPE\n"
+printf "🚫 SwiftLint Failed 아래 내용을 확인해주세요:\n"
+echo "$RESULT" | while IFS= read -r line; do
+  FILE=$(echo "$line" | cut -d ":" -f 1)
+  LINE_NO=$(echo "$line" | cut -d ":" -f 2)
+  COLUMN=$(echo "$line" | cut -d ":" -f 3)
+  TYPE=$(echo "$line" | awk -F ": " '{print $2}' | awk '{print $1}')
+  MESSAGE=$(echo "$line" | awk -F ": " '{print $2}' | cut -d "(" -f 1)
+  RULE=$(echo "$line" | awk -F "(" '{print $2}' | tr -d ")")
+
+  if [ "$TYPE" = "warning" ]; then
+    echo "🚧 [WARNING] $FILE:$LINE_NO:$COLUMN"
+    echo "    📌 $MESSAGE ($RULE)"
+  elif [ "$TYPE" = "error" ]; then
+    echo "🚨 [ERROR] $FILE:$LINE_NO:$COLUMN"
+    echo "    📌 $MESSAGE ($RULE)"
   fi
-done <<< "$RESULT"
+  echo ""
+done
 printf "\n 🚑  커밋실패!! Swiftlint rule에 맞게 코드를 변경해주세요:)\n"
 exit 1
