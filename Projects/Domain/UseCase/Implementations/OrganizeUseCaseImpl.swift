@@ -19,7 +19,7 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
   private var isPublic: Bool?
   private var goal: String?
   private var proveTime: String?
-  private var endDate: String?
+  private var endDate: Date?
   private var rules: [String] = []
   private var hashtags: [String] = []
   private var image: Data?
@@ -64,7 +64,7 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
     case .proveTime:
       self.proveTime = value as? String
     case .endDate:
-      self.endDate = value as? String
+      self.endDate = value as? Date
     case .rules:
       self.rules = value as? [String] ?? []
     case .hashtags:
@@ -87,9 +87,11 @@ public extension OrganizeUseCaseImpl {
 // MARK: - Upload Methods
 public extension OrganizeUseCaseImpl {
   func organizeChallenge() -> Single<Void> {
-    guard let payload else {
-      return singleWithError(APIError.serverError)
+    guard
+      let payload else {
+      return singleWithError(APIError.organazieFailed(reason: .payloadIsNil))
     }
+
     return repository.challengeOrganize(payload: payload)
   }
 }

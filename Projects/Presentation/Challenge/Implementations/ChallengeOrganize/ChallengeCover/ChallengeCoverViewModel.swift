@@ -69,7 +69,12 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
     input.didTapNextButton
       .withLatestFrom(input.challengeCoverImage)
       .bind(with: self) { owner, image in
+        guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
+          return
+        }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
+        owner.useCase.configureChallengePayload(.image, value: data)
+        owner.useCase.configureChallengePayload(.imageType, value: type)
       }
       .disposed(by: disposeBag)
     
@@ -99,5 +104,16 @@ private extension ChallengeCoverViewModel {
       default:
         requestFailedRelay.accept(())
     }
+  }
+  
+  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+    let maxSizeBytes = maxMB * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      return (data, "png")
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      return (data, "jpeg")
+    }
+    return nil
   }
 }

@@ -25,6 +25,7 @@ protocol ChallengeNameViewModelType: AnyObject {
 
 final class ChallengeNameViewModel: ChallengeNameViewModelType {
   let disposeBag = DisposeBag()
+  private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeNameCoordinatable?
     
@@ -40,7 +41,9 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
   struct Output {}
   
   // MARK: - Initializers
-  init() {}
+  init(useCase: OrganizeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -58,6 +61,8 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
           challengeName: pieceOfChallenge.0,
           isPublic: pieceOfChallenge.1
         )
+        owner.useCase.configureChallengePayload(.name, value: pieceOfChallenge.0)
+        owner.useCase.configureChallengePayload(.isPublic, value: pieceOfChallenge.1)
       }
       .disposed(by: disposeBag)
     
