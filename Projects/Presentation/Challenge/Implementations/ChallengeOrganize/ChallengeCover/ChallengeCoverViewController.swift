@@ -181,12 +181,27 @@ private extension ChallengeCoverViewController {
         newDataSources.append(contentsOf: imageList.map { SampleImageCellPresentaionModel(imageUrlString: $0) })
         owner.cellDataSources = newDataSources
       }.disposed(by: disposeBag)
+    
+    output.imageSizeError
+      .emit(with: self) { owner, _ in
+        owner.presentFileTooLargeAlert()
+      }.disposed(by: disposeBag)
   }
 }
 
 // MARK: - ChallengeCoverPresentable
 extension ChallengeCoverViewController: ChallengeCoverPresentable { }
 
+// MARK: - Private Methods
+private extension ChallengeCoverViewController {
+  func presentFileTooLargeAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "용량이 너무 커요"
+    )
+    alert.present(to: self, animted: true)
+  }
+}
 // MARK: - UICollectionView Delegate
 extension ChallengeCoverViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

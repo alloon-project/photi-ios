@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Core
@@ -34,6 +35,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   
   private let sampleImagesRelay = PublishRelay<[String]>()
   private let requestFailedRelay = PublishRelay<Void>()
+  private let imageSizeErrorRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -47,6 +49,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   struct Output {
     let sampleImages: Signal<[String]>
     let requestFailed: Signal<Void>
+    let imageSizeError: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -70,6 +73,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
       .withLatestFrom(input.challengeCoverImage)
       .bind(with: self) { owner, image in
         guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
+          owner.imageSizeErrorRelay.accept(())
           return
         }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
@@ -80,7 +84,8 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
     
     return Output(
       sampleImages: sampleImagesRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      requestFailed: requestFailedRelay.asSignal(),
+      imageSizeError: imageSizeErrorRelay.asSignal()
     )
   }
 }
