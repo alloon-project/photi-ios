@@ -32,7 +32,7 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   
   private let titleLabel: UILabel = {
     let label = UILabel()
-    label.attributedText = "인증 룰을 정해볼까요?".attributedString(
+    label.attributedText = "챌린지를 표현하는 해시태그를 정해주세요".attributedString(
       font: .heading4,
       color: .gray900
     )
