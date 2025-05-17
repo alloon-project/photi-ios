@@ -13,7 +13,7 @@ public struct ChallengeOrganizePayload {
   public let isPublic: Bool
   public let goal: String
   public let proveTime: String
-  public let endDate: Date
+  public let endDate: String
   public let rules: [String]
   public let hashtags: [String]
   public let image: Data
@@ -24,7 +24,7 @@ public struct ChallengeOrganizePayload {
     isPublic: Bool,
     goal: String,
     proveTime: String,
-    endDate: Date,
+    endDate: String,
     rules: [String],
     hashtags: [String],
     image: Data,

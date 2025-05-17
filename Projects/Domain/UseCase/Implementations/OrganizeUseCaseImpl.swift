@@ -19,7 +19,7 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
   private var isPublic: Bool?
   private var goal: String?
   private var proveTime: String?
-  private var endDate: Date?
+  private var endDate: String?
   private var rules: [String] = []
   private var hashtags: [String] = []
   private var image: Data?
@@ -64,7 +64,7 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
     case .proveTime:
       self.proveTime = value as? String
     case .endDate:
-      self.endDate = value as? Date
+      self.endDate = value as? String
     case .rules:
       self.rules = value as? [String] ?? []
     case .hashtags:

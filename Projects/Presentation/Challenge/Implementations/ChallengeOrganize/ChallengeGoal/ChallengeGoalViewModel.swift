@@ -13,7 +13,7 @@ import UseCase
 
 protocol ChallengeGoalCoordinatable: AnyObject {
   func didTapBackButtonAtChallengeGoal()
-  func didFinishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date)
+  func didFinishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String)
 }
 
 protocol ChallengeGoalViewModelType: AnyObject {
@@ -68,11 +68,11 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
         owner.coordinator?.didFinishChallengeGoal(
           challengeGoal: infos.0,
           proveTime: infos.1,
-          endDate: infos.2
+          endDate: infos.2.toString("YYYY-MM-dd")
         )
         owner.useCase.configureChallengePayload(.goal, value: infos.0)
         owner.useCase.configureChallengePayload(.proveTime, value: infos.1)
-        owner.useCase.configureChallengePayload(.endDate, value: infos.2)
+        owner.useCase.configureChallengePayload(.endDate, value: infos.2.toString("YYYY-MM-dd"))
       }
       .disposed(by: disposeBag)
     
