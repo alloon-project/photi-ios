@@ -8,7 +8,6 @@
 
 import Core
 import Challenge
-import LogIn
 import Report
 
 protocol ChallengePresentable {
@@ -16,7 +15,6 @@ protocol ChallengePresentable {
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
   func presentChallengeNotFoundWaring()
   func presentNetworkWarning(reason: String?)
-  func presentLoginTrrigerWarning()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -34,9 +32,6 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let descriptionContainer: DescriptionContainable
   private var descriptionCoordinator: ViewableCoordinating?
   
-  private let logInContainer: LogInContainable
-  private var logInCoordinator: ViewableCoordinating?
-  
   private let reportContainer: ReportContainable
   private var reportCoordinator: ViewableCoordinating?
   
@@ -47,7 +42,6 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
-    logInContainer: LogInContainable,
     reportContainer: ReportContainable
   ) {
     self.viewModel = viewModel
@@ -55,7 +49,6 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     self.feedContainer = feedContainer
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
-    self.logInContainer = logInContainer
     self.reportContainer = reportContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -91,26 +84,6 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     self.feedCoordinator = feedCoordinator
     self.descriptionCoordinator = descriptionCoordinator
     self.participantCoordinator = participantCoordinator
-  }
-}
-
-// MARK: - LogIn
-extension ChallengeCoordinator {
-  func attachLogIn() {
-    guard logInCoordinator == nil else { return }
-    
-    let coordinator = logInContainer.coordinator(listener: self)
-    addChild(coordinator)
-    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-    self.logInCoordinator = coordinator
-  }
-  
-  func detachLogIn() {
-    guard let coordinator = logInCoordinator else { return }
-    
-    removeChild(coordinator)
-    viewControllerable.popViewController(animated: true)
-    self.logInCoordinator = nil
   }
 }
 
@@ -195,21 +168,7 @@ extension ChallengeCoordinator: ParticipantListener {
   
   func networkUnstableAtParticipant() {
     presenter.presentNetworkWarning(reason: nil)
-  }
-  
-  func requestLoginAtPariticipant() { }
 }
-
-// MARK: - LogInListener
-extension ChallengeCoordinator: LogInListener {
-  // TODO: 로그인 여부에 따른 환영합니다.
-  func didFinishLogIn(userName: String) {
-    detachLogIn()
-  }
-  
-  func didTapBackButtonAtLogIn() {
-    detachLogIn()
-  }
 }
 
 // MARK: - ReportListener

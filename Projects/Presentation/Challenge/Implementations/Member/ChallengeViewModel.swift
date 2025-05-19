@@ -14,7 +14,7 @@ import UseCase
 protocol ChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
-  func attachLogIn()
+  func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
 }
