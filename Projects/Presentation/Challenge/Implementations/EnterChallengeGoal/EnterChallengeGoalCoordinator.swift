@@ -11,7 +11,7 @@ import Core
 protocol EnterChallengeGoalListener: AnyObject {
   func didTapBackButtonAtEnterChallengeGoal()
   func didFinishEnterChallengeGoal(_ goal: String)
-  func requestLoginAtEnterChallengeGoal()
+  func authenticatedFailedAtEnterChallengeGoal()
 }
 
 protocol EnterChallengeGoalPresentable { }
@@ -45,7 +45,7 @@ extension EnterChallengeGoalCoordinator: EnterChallengeGoalCoordinatable {
     listener?.didFinishEnterChallengeGoal("")
   }
   
-  func requestLogin() {
-    listener?.requestLoginAtEnterChallengeGoal()
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtEnterChallengeGoal()
   }
 }
