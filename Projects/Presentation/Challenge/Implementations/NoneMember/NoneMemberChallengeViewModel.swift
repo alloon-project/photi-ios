@@ -193,7 +193,7 @@ private extension NoneMemberChallengeViewModel {
   }
   
   func requestJoinChallengeFailed(with error: Error) {
-    guard let error = error as? APIError else { return }
+    guard let error = error as? APIError else { return requestFailedRelay.accept(()) }
     print(error)
     switch error {
       case let .challengeFailed(reason) where reason == .invalidInvitationCode:

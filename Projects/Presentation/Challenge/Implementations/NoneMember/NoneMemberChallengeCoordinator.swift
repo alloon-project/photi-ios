@@ -10,7 +10,9 @@ import Challenge
 import Core
 import LogIn
 
-protocol NoneMemberChallengePresentable { }
+@MainActor protocol NoneMemberChallengePresentable {
+  func presentWelcomeToastView(_ username: String)
+}
 
 final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChallengePresentable> {
   weak var listener: NoneMemberChallengeListener?
@@ -140,6 +142,7 @@ extension NoneMemberChallengeCoordinator: LogInListener {
   func didFinishLogIn(userName: String) {
     detachLogIn(animted: false)
     detachLogInGuide(animted: true)
+    Task { await presenter.presentWelcomeToastView(userName) }
   }
   
   func didTapBackButtonAtLogIn() {

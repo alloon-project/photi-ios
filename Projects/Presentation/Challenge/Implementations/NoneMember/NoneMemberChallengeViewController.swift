@@ -279,7 +279,22 @@ private extension NoneMemberChallengeViewController {
 }
 
 // MARK: - NoneMemberChallengePresentable
-extension NoneMemberChallengeViewController: NoneMemberChallengePresentable { }
+extension NoneMemberChallengeViewController: NoneMemberChallengePresentable {
+  func presentWelcomeToastView(_ username: String) {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "\(username)님 환영합니다!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
+  }
+}
 
 // MARK: - UICollectionViewDataSource
 extension NoneMemberChallengeViewController: UICollectionViewDataSource {
