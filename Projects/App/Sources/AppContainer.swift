@@ -53,7 +53,8 @@ final class AppContainer:
       viewControllerable: viewControllerable,
       homeContainable: home,
       searchChallengeContainable: searchChallenge,
-      myPageContainable: myPage
+      myPageContainable: myPage,
+      loginContainable: loginContainable
     )
   }
   

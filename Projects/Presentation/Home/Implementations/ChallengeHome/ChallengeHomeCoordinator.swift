@@ -10,7 +10,7 @@ import Challenge
 import Core
 
 protocol ChallengeHomeListener: AnyObject {
-  func requestLogInAtChallengeHome()
+  func authenticatedFailedAtChallengeHome()
   func requestNoneChallengeHomeAtChallengeHome()
 }
 
@@ -35,8 +35,8 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
     viewModel.coordinator = self
   }
   
-  func requestLogIn() {
-    listener?.requestLogInAtChallengeHome()
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtChallengeHome()
   }
   
   func requestNoneChallengeHome() {
@@ -86,6 +86,10 @@ extension ChallengeHomeCoordinator {
 
 // MARK: - ChallengeListener
 extension ChallengeHomeCoordinator: ChallengeListener {
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticatedFailedAtChallengeHome()
+  }
+  
   func didTapBackButtonAtChallenge() {
     detachChallenge()
   }

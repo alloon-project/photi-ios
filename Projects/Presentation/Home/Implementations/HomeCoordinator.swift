@@ -10,7 +10,6 @@ import RxSwift
 import Core
 import Entity
 import Home
-import LogIn
 import UseCase
 
 final class HomeCoordinator: Coordinator {
@@ -28,20 +27,15 @@ final class HomeCoordinator: Coordinator {
   private let noneChallengeHomeContainer: NoneChallengeHomeContainable
   private var noneChallengeHomeCoordinator: ViewableCoordinating?
   
-  private let loginContainer: LogInContainable
-  private var loginCoordinator: ViewableCoordinating?
-  
   init(
     useCase: HomeUseCase,
     navigationControllerable: NavigationControllerable,
-    loginContainer: LogInContainable,
     challengeHomeContainer: ChallengeHomeContainable,
     noneMemberHomeContainer: NoneMemberHomeContainable,
     noneChallengeHomeContainer: NoneChallengeHomeContainable
   ) {
     self.useCase = useCase
     self.navigationControllerable = navigationControllerable
-    self.loginContainer = loginContainer
     self.challengeHomeContainer = challengeHomeContainer
     self.noneMemberHomeContainer = noneMemberHomeContainer
     self.noneChallengeHomeContainer = noneChallengeHomeContainer
@@ -49,7 +43,10 @@ final class HomeCoordinator: Coordinator {
   }
   
   override func start() {
-    Task { await attachInitialScreenIfNeeded() }
+    Task {
+      await detachAll()
+      await attachInitialScreenIfNeeded()
+    }
   }
 }
 
@@ -69,7 +66,6 @@ private extension HomeCoordinator {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
-    navigationControllerable.popViewController(animated: false)
     self.noneChallengeHomeCoordinator = nil
   }
 }
@@ -90,7 +86,6 @@ private extension HomeCoordinator {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
-    coordinator.viewControllerable.dismiss()
     self.noneChallengeHomeCoordinator = nil
   }
 }
@@ -103,7 +98,6 @@ private extension HomeCoordinator {
     addChild(coordinator)
     
     navigationControllerable.setViewControllers([coordinator.viewControllerable])
-    
     self.noneMemberHomeCoordinator = coordinator
   }
   
@@ -111,38 +105,14 @@ private extension HomeCoordinator {
     guard let coordinator = noneMemberHomeCoordinator else { return }
     
     removeChild(coordinator)
-    navigationControllerable.popViewController(animated: false)
     self.noneMemberHomeCoordinator = nil
-  }
-}
-
-// MARK: - LogIn
-private extension HomeCoordinator {
-  @MainActor func attachLogIn() {
-    guard loginCoordinator == nil else { return }
-    
-    let coordinator = loginContainer.coordinator(listener: self)
-    addChild(coordinator)
-    navigationControllerable.navigationController.hideTabBar(animated: true)
-    navigationControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-    self.loginCoordinator = coordinator
-  }
-  
-  @MainActor func detachLogIn() {
-    guard let coordinator = loginCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.loginCoordinator = nil
-    
-    navigationControllerable.navigationController.showTabBar(animted: true)
-    navigationControllerable.popViewController(animated: true)
   }
 }
 
 // MARK: - ChallengeHome Listener
 extension HomeCoordinator: ChallengeHomeListener {
-  func requestLogInAtChallengeHome() {
-    Task { await attachLogIn() }
+  func authenticatedFailedAtChallengeHome() {
+    listener?.authenticatedFailedAtHome()
   }
   
   func requestNoneChallengeHomeAtChallengeHome() {
@@ -155,34 +125,21 @@ extension HomeCoordinator: ChallengeHomeListener {
 
 // MARK: - NoneMemberHome Listener
 extension HomeCoordinator: NoneMemberHomeListener {
-  func didTapLogInButtonAtNoneMemberHome() {
-    Task { await attachLogIn() }
+  func requestLogInAtNoneMemberHome() {
+    listener?.requestLogInAtHome()
   }
 }
 
 // MARK: - NoneChallengeHomeListener
 extension HomeCoordinator: NoneChallengeHomeListener {
-  func requestLoginAtNoneChallengeHome() {
-    Task { await attachLogIn() }
+  func authenticatedFailedAtNoneChallengeHome() {
+    listener?.authenticatedFailedAtHome()
   }
-  
+
   func requstConvertInitialHome() {
+    navigationControllerable.navigationController.showTabBar(animted: true)
     Task {
       await detachNoneChallengeHome()
-      await attachInitialScreenIfNeeded()
-    }
-  }
-}
-
-// MARK: - LogInListener
-extension HomeCoordinator: LogInListener {
-  func didTapBackButtonAtLogIn() {
-    Task { await detachLogIn() }
-  }
-  
-  func didFinishLogIn(userName: String) {
-    Task {
-      await detachLogIn()
       await attachInitialScreenIfNeeded()
     }
   }
@@ -193,7 +150,7 @@ private extension HomeCoordinator {
   func attachInitialScreenIfNeeded() async {
     do {
       let count = try await useCase.challengeCount()
-
+      
       count == 0 ? await attachNoneChallengeHome() : await attachChallengeHome()
     } catch {
       if let error = error as? APIError, case .authenticationFailed = error {
@@ -202,6 +159,12 @@ private extension HomeCoordinator {
         await presentNetworkUnstableAlert()
       }
     }
+  }
+  
+  func detachAll() async {
+    await detachChallengeHome()
+    await detachNoneMemberHome()
+    await detachNoneChallengeHome()
   }
   
   @MainActor func presentNetworkUnstableAlert() {

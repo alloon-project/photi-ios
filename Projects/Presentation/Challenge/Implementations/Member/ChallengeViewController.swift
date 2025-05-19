@@ -29,7 +29,6 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
-  private let didTapLoginButtonAtAlert = PublishRelay<Void>()
   private let didTapReportButton = PublishRelay<Void>()
   private let didTapLeaveButton = PublishRelay<Void>()
   
@@ -138,7 +137,6 @@ private extension ChallengeViewController {
       viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      didTapLoginButtonAtAlert: didTapLoginButtonAtAlert.asSignal(),
       didTapLeaveButton: didTapLeaveButton.asSignal(),
       didTapReportButton: didTapReportButton.asSignal()
     )
@@ -176,12 +174,6 @@ private extension ChallengeViewController {
     output.networnUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkWarning(reason: nil)
-      }
-      .disposed(by: disposeBag)
-    
-    output.loginTrigger
-      .emit(with: self) { owner, _ in
-        owner.presentLoginTrrigerWarning()
       }
       .disposed(by: disposeBag)
   }
@@ -227,16 +219,6 @@ extension ChallengeViewController: ChallengePresentable {
   
   func presentNetworkWarning(reason: String?) {
     presentNetworkUnstableAlert(reason: reason)
-  }
-  
-  func presentLoginTrrigerWarning() {
-    let alert = self.presentLoginTriggerAlert()
-    
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
   }
 }
 

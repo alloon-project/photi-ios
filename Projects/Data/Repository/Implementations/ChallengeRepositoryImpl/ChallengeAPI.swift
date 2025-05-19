@@ -75,14 +75,12 @@ extension ChallengeAPI: TargetType {
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
-      case let .joinChallenge(challengeId):
-        let parameters = ["challengeId": "\(challengeId)"]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+      case .joinChallenge:
+        return .requestPlain
 
-      case let .joinPrivateChallenge(challengeId, code):
-        let urlParameters = ["challengeId": challengeId]
-        let bodyParameters = ["invitationCode": code]
-        return .requestCompositeParameters(bodyParameters: bodyParameters, urlParameters: urlParameters)
+      case let .joinPrivateChallenge(_, code):
+        let parameters = ["invitationCode": code]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
                 
       case let .uploadChallengeProof(_, image, imageType):
         let multiPartBody = MultipartFormDataBodyPart(

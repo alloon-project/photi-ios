@@ -22,6 +22,7 @@ public protocol ChallengeContainable: Containable {
 }
 
 public protocol ChallengeListener: AnyObject {
+  func authenticatedFailedAtChallenge()
   func didTapBackButtonAtChallenge()
   func shouldDismissChallenge()
   func leaveChallenge(challengeId: Int)

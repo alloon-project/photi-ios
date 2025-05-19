@@ -10,7 +10,9 @@ import Challenge
 import Core
 import LogIn
 
-protocol NoneMemberChallengePresentable { }
+@MainActor protocol NoneMemberChallengePresentable {
+  func presentWelcomeToastView(_ username: String)
+}
 
 final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChallengePresentable> {
   weak var listener: NoneMemberChallengeListener?
@@ -52,20 +54,20 @@ private extension NoneMemberChallengeCoordinator {
     viewControllerable.popViewController(animated: true)
   }
   
-  func detachLogInGuide() {
+  func detachLogInGuide(animted: Bool) {
     guard let coordinator = logInGuideCoordinator else { return }
     
     removeChild(coordinator)
     self.logInGuideCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+    viewControllerable.popViewController(animated: animted)
   }
   
-  func detachLogIn() {
+  func detachLogIn(animted: Bool) {
     guard let coordinator = logInCoordinator else { return }
     
     removeChild(coordinator)
     self.logInCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+    viewControllerable.popViewController(animated: animted)
   }
 }
 
@@ -116,19 +118,18 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   }
   
   func didFinishEnterChallengeGoal(_ goal: String) {
-    detachEnterChallengeGoal()
     listener?.didJoinChallenge()
   }
   
-  func requestLoginAtEnterChallengeGoal() {
-    attachLogIn()
+  func authenticatedFailedAtEnterChallengeGoal() {
+    listener?.authenticatedFailedAtNoneMemberChallenge()
   }
 }
 
 // MARK: - LogInGuideListener
 extension NoneMemberChallengeCoordinator: LogInGuideListener {
   func didTapBackButtonAtLogInGuide() {
-    detachLogInGuide()
+    detachLogInGuide(animted: true)
   }
   
   func didTapLogInButtonAtLogInGuide() {
@@ -139,11 +140,12 @@ extension NoneMemberChallengeCoordinator: LogInGuideListener {
 // MARK: - LogInListener
 extension NoneMemberChallengeCoordinator: LogInListener {
   func didFinishLogIn(userName: String) {
-    detachLogIn()
-    detachLogInGuide()
+    detachLogIn(animted: false)
+    detachLogInGuide(animted: true)
+    Task { await presenter.presentWelcomeToastView(userName) }
   }
   
   func didTapBackButtonAtLogIn() {
-    detachLogIn()
+    detachLogIn(animted: true)
   }
 }

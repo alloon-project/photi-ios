@@ -31,7 +31,6 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
-  private let didTapLoginButton = PublishRelay<Void>()
   private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   
   // MARK: - UI Components
@@ -93,6 +92,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
 // MARK: - UI Methods
 private extension ChallengeHomeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     scrollView.showsVerticalScrollIndicator = false
     setViewHierarchy()
     setConstraints()
@@ -146,7 +146,6 @@ private extension ChallengeHomeViewController {
       requestData: requestData.asSignal(),
       didTapChallenge: bottomView.didTapChallenge,
       uploadChallengeFeed: uploadChallengeFeed.asSignal(),
-      didTapLoginButton: didTapLoginButton.asSignal(),
       didTapFeed: didTapFeed.asSignal()
     )
     let output = viewModel.transform(input: input)
@@ -180,13 +179,6 @@ private extension ChallengeHomeViewController {
       }
       .disposed(by: disposeBag)
     
-    output.loginTrigger
-      .emit(with: self) { owner, _ in
-        let alert = owner.presentLoginTriggerAlert()
-        owner.bind(alert: alert)
-      }
-      .disposed(by: disposeBag)
-    
     output.fileTooLarge
       .emit(with: self) { owner, _ in
         owner.presentFileTooLargeAlert()
@@ -205,14 +197,6 @@ private extension ChallengeHomeViewController {
     cell.rx.didTapFeed
       .bind(with: self) { owner, infos in
         owner.didTapFeed.accept(infos)
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func bind(alert: AlertViewController) {
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButton.accept(())
       }
       .disposed(by: disposeBag)
   }

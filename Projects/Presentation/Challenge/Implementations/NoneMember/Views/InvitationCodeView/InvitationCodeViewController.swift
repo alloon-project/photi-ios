@@ -78,8 +78,8 @@ final class InvitationCodeViewController: UIViewController {
     keyboardHideNotification = registerKeyboardHideNotification()
   }
   
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
+  override func viewIsAppearing(_ animated: Bool) {
+    super.viewIsAppearing(animated)
     presentWithAnimation()
   }
   
@@ -87,11 +87,24 @@ final class InvitationCodeViewController: UIViewController {
     super.viewDidDisappear(animated)
     removeKeyboardNotification(keyboardShowNotification, keyboardHideNotification)
   }
+  
+  // MARK: - UIResponder
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    view.endEditing(true)
+  }
+}
+
+// MARK: - Internal Methods
+extension InvitationCodeViewController {
+  func present(to viewController: UIViewController) {
+    viewController.present(self, animated: true)
+  }
 }
 
 // MARK: - UI Methods
 private extension InvitationCodeViewController {
   func setupUI() {
+    mainContentView.isHidden = true
     setViewHierarchy()
     setConstraints()
   }
@@ -212,6 +225,7 @@ extension InvitationCodeViewController: KeyboardListener {
 private extension InvitationCodeViewController {
   func presentWithAnimation() {
     mainContentView.frame.origin.y = view.frame.height
+    mainContentView.isHidden = false
     UIView.animate(withDuration: 0.4) {
       self.mainContentView.center.y = self.view.center.y
       self.mainContentView.layoutIfNeeded()

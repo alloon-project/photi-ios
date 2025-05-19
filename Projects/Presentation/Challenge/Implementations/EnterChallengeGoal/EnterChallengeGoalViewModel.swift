@@ -15,7 +15,7 @@ protocol EnterChallengeGoalCoordinatable: AnyObject {
   func didTapBackButton()
   func didChangeChallengeGoal(goal: String)
   func didSkipEnterChallengeGoal()
-  func requestLogin()
+  func authenticatedFailed()
 }
 
 protocol EnterChallengeGoalViewModelType: AnyObject {
@@ -32,7 +32,6 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
   private let challengeID: Int
   
   private let networkUnstableRelay = PublishRelay<Void>()
-  private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -40,14 +39,12 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
     let goalText: ControlProperty<String>
     let didTapSaveButton: ControlEvent<Void>
     let didTapSkipButton: Signal<Void>
-    let didTapLoginButton: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let saveButtonisEnabled: Driver<Bool>
     let networkUnstable: Signal<Void>
-    let loginTrigger: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -75,17 +72,10 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
         owner.coordinator?.didSkipEnterChallengeGoal()
       }
       .disposed(by: disposeBag)
-    
-    input.didTapLoginButton
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.requestLogin()
-      }
-      .disposed(by: disposeBag)
-    
+
     return Output(
       saveButtonisEnabled: input.goalText.map { !$0.isEmpty }.asDriver(onErrorJustReturn: false),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      loginTrigger: loginTriggerRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -106,7 +96,7 @@ private extension EnterChallengeGoalViewModel {
     guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
     
     switch error {
-      case .authenticationFailed: loginTriggerRelay.accept(())
+      case .authenticationFailed: coordinator?.authenticatedFailed()
       default: networkUnstableRelay.accept(())
     }
   }

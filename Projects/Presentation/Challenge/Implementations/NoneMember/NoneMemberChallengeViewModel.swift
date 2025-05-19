@@ -192,6 +192,24 @@ private extension NoneMemberChallengeViewModel {
     }
   }
   
+  func requestJoinChallengeFailed(with error: Error) {
+    guard let error = error as? APIError else { return requestFailedRelay.accept(()) }
+    print(error)
+    switch error {
+      case let .challengeFailed(reason) where reason == .invalidInvitationCode:
+        verifyCodeResultRelay.accept(false)
+      case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
+        alreadyJoinedRelay.accept(())
+      case .authenticationFailed:
+        coordinator?.attachLogInGuide()
+      default:
+        requestFailedRelay.accept(())
+    }
+  }
+}
+
+// MARK: - Internal Methods
+extension NoneMemberChallengeViewModel {
   func requestJoinPublicChallenge() async {
     do {
       try await useCase.joinPublicChallenge(id: challengeId).value
@@ -210,21 +228,6 @@ private extension NoneMemberChallengeViewModel {
       verifyCodeResultRelay.accept(true)
     } catch {
       requestJoinChallengeFailed(with: error)
-    }
-  }
-  
-  func requestJoinChallengeFailed(with error: Error) {
-    guard let error = error as? APIError else { return }
-    
-    switch error {
-      case let .challengeFailed(reason) where reason == .invalidInvitationCode:
-        verifyCodeResultRelay.accept(false)
-      case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
-        alreadyJoinedRelay.accept(())
-      case .authenticationFailed:
-        coordinator?.attachLogInGuide()
-      default:
-        requestFailedRelay.accept(())
     }
   }
 }

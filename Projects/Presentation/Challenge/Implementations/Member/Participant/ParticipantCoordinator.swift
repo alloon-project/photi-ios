@@ -10,7 +10,6 @@ import Core
 
 protocol ParticipantListener: AnyObject {
   func didChangeContentOffsetAtParticipant(_ offset: Double)
-  func requestLoginAtPariticipant()
   func authenticatedFailedAtParticipant()
   func networkUnstableAtParticipant()
 }
@@ -98,7 +97,7 @@ extension ParticipantCoordinator: EnterChallengeGoalListener {
     }
   }
   
-  func requestLoginAtEnterChallengeGoal() {
-    listener?.requestLoginAtPariticipant()
+  func authenticatedFailedAtEnterChallengeGoal() {
+    listener?.authenticatedFailedAtParticipant()
   }
 }

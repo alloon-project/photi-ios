@@ -31,7 +31,7 @@ final class ChallengeImageCell: UICollectionViewCell {
     imageView.layer.masksToBounds = true
     return imageView
   }()
-  private let pinImageView = UIImageView(image: .pinBlue)
+  private let pinImageView = UIImageView(image: .pinBlue.withRenderingMode(.alwaysOriginal))
   private let gradientLayer: CAGradientLayer = {
     let layer = CAGradientLayer()
     layer.colors = [
@@ -85,6 +85,7 @@ private extension ChallengeImageCell {
     contentView.addSubviews(imageView, pinImageView)
     imageView.layer.addSublayer(gradientLayer)
     gradientLayer.frame = .init(x: 0, y: 0, width: 160, height: 160)
+    
     imageView.snp.makeConstraints {
       $0.width.height.equalTo(160)
       $0.bottom.equalToSuperview()
