@@ -12,11 +12,12 @@ import LogIn
 import SearchChallenge
 import MyPage
 
-protocol AppPresentable {
+@MainActor protocol AppPresentable {
   func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
   func changeNavigationControllerToHome()
   func changeNavigationControllerToChallenge()
   func changeNavigationControllerToMyPage()
+  func presentWelcomeToastView(_ username: String)
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -175,7 +176,7 @@ extension AppCoordinator: SearchChallengeListener { }
 // MARK: - MyPageListener
 extension AppCoordinator: MyPageListener {
   func isUserResigned() {
-    presenter.changeNavigationControllerToHome()
+    Task { await presenter.changeNavigationControllerToHome() }
   }
 }
 
@@ -186,6 +187,9 @@ extension AppCoordinator: LogInListener {
     Task {
       await detachLogIn(willPopViewConroller: false)
       await reloadAllTab()
+
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentWelcomeToastView(ServiceConfiguration.shared.userName)
     }
   }
   
