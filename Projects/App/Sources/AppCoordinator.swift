@@ -8,6 +8,7 @@
 
 import Core
 import Home
+import LogIn
 import SearchChallenge
 import MyPage
 
@@ -26,16 +27,21 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
   private let homeContainable: HomeContainable
   private let searchChallengeContainable: SearchChallengeContainable
   private let myPageContainable: MyPageContainable
+  private let loginContainer: LogInContainable
+  private var loginCoordinator: ViewableCoordinating?
+  private var loginPresentNavigationControllerable: NavigationControllerable?
   
   init(
     viewControllerable: ViewControllerable,
     homeContainable: HomeContainable,
     searchChallengeContainable: SearchChallengeContainable,
-    myPageContainable: MyPageContainable
+    myPageContainable: MyPageContainable,
+    loginContainable: LogInContainable
   ) {
-    self.homeContainable = homeContainable
-    self.searchChallengeContainable = searchChallengeContainable
-    self.myPageContainable = myPageContainable
+    self.homeContainer = homeContainable
+    self.searchChallengeContainer = searchChallengeContainable
+    self.myPageContainer = myPageContainable
+    self.loginContainer = loginContainable
     super.init(viewControllerable)
   }
   
