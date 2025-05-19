@@ -9,7 +9,7 @@
 import Core
 
 protocol NoneMemberHomeListener: AnyObject {
-  func didTapLogInButtonAtNoneMemberHome()
+  func requestLogInAtNoneMemberHome()
 }
 
 protocol NoneMemberHomePresentable: AnyObject { }
@@ -32,6 +32,6 @@ final class NoneMemberHomeCoordinator: ViewableCoordinator<NoneMemberHomePresent
 // MARK: - NoneMemberHomeCoordinatable
 extension NoneMemberHomeCoordinator: NoneMemberHomeCoordinatable {
   func didTapLogInButton() {
-    listener?.didTapLogInButtonAtNoneMemberHome()
+    listener?.requestLogInAtNoneMemberHome()
   }
 }

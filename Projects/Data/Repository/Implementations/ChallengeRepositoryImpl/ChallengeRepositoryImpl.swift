@@ -72,9 +72,7 @@ public extension ChallengeRepositoryImpl {
       api: ChallengeAPI.challengeProveMemberCount(challengeId: challengeId),
       responseType: ChallengeProveMemberCountResponseDTO.self
     ).value
-    
-    print(result.feedMemberCnt)
-    
+        
     return result.feedMemberCnt
   }
     

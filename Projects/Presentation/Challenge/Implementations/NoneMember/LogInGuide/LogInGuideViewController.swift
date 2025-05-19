@@ -56,6 +56,7 @@ final class LogInGuideViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension LogInGuideViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
