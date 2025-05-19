@@ -16,13 +16,12 @@ final class ChallengeThumbnailView: UIView, ChallengeInformationPresentable {
   private let dimmedLayer: CALayer = {
     let layer = CALayer()
     layer.backgroundColor = UIColor(red: 0.118, green: 0.136, blue: 0.149, alpha: 0.4).cgColor
-    layer.cornerRadius = 10
     
     return layer
   }()
   private let countLabel = UILabel()
-  private let thumbnailImageView = UIImageView(image: .challengeNonMemberDefaultCard)
-  
+  private let thumbnailImageView = UIImageView()
+
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
@@ -76,8 +75,8 @@ final class ChallengeThumbnailView: UIView, ChallengeInformationPresentable {
 // MARK: - UI Methods
 private extension ChallengeThumbnailView {
   func setupUI() {
-    thumbnailImageView.layer.cornerRadius = 10
-    thumbnailImageView.clipsToBounds = true
+    self.layer.cornerRadius = 10
+    self.clipsToBounds = true
     setViewHierarchy()
     setConstraints()
   }
