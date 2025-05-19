@@ -116,6 +116,10 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   func attachChallengeReport() {
     attachReport(reportType: .challenge)
   }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtChallenge()
+  }
 }
 
 // MARK: - FeedListener
@@ -125,7 +129,7 @@ extension ChallengeCoordinator: FeedListener {
   }
   
   func authenticatedFailedAtFeed() {
-    presenter.presentLoginTrrigerWarning()
+    listener?.authenticatedFailedAtChallenge()
   }
   
   func networkUnstableAtFeed(reason: String?) {
@@ -144,7 +148,7 @@ extension ChallengeCoordinator: FeedListener {
 // MARK: - DescriptionListener
 extension ChallengeCoordinator: DescriptionListener {
   func authenticatedFailedAtDescription() {
-    presenter.presentLoginTrrigerWarning()
+    listener?.authenticatedFailedAtChallenge()
   }
   
   func networkUnstableAtDescription() {
@@ -163,12 +167,12 @@ extension ChallengeCoordinator: ParticipantListener {
   }
 
   func authenticatedFailedAtParticipant() {
-    presenter.presentLoginTrrigerWarning()
+    listener?.authenticatedFailedAtChallenge()
   }
   
   func networkUnstableAtParticipant() {
     presenter.presentNetworkWarning(reason: nil)
-}
+  }
 }
 
 // MARK: - ReportListener

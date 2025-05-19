@@ -40,14 +40,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
   private let memberCount = BehaviorRelay<Int>(value: 0)
   private let challengeNotFoundRelay = PublishRelay<Void>()
   private let networkUnstable = PublishRelay<Void>()
-  private let loginTriggerRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let viewDidLoad: Signal<Void>
     let didTapBackButton: Signal<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
-    let didTapLoginButtonAtAlert: Signal<Void>
     let didTapLeaveButton: Signal<Void>
     let didTapReportButton: Signal<Void>
   }
@@ -58,7 +56,6 @@ final class ChallengeViewModel: ChallengeViewModelType {
     let memberCount: Driver<Int>
     let challengeNotFound: Signal<Void>
     let networnUnstable: Signal<Void>
-    let loginTrigger: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -77,12 +74,6 @@ final class ChallengeViewModel: ChallengeViewModelType {
     input.didTapBackButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-    
-    input.didTapLoginButtonAtAlert
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.attachLogIn()
       }
       .disposed(by: disposeBag)
     
@@ -108,8 +99,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
       challengeInfo: challengeModelRelay.asDriver(),
       memberCount: memberCount.asDriver(),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networnUnstable: networkUnstable.asSignal(),
-      loginTrigger: loginTriggerRelay.asSignal()
+      networnUnstable: networkUnstable.asSignal()
     )
   }
 }
@@ -154,7 +144,7 @@ private extension ChallengeViewModel {
     
     switch error {
       case .authenticationFailed:
-        loginTriggerRelay.accept(())
+        coordinator?.authenticatedFailed()
       case let .challengeFailed(reason) where reason == .challengeNotFound:
         challengeNotFoundRelay.accept(())
       default: networkUnstable.accept(())
