@@ -110,9 +110,4 @@ private extension ChallengeOrganizeRepositoryImpl {
       return Disposables.create()
     }
   }
-  
-  @discardableResult
-  func executeSingle<T>(_ single: Single<T>) async throws -> T {
-    return try await single.value
-  }
 }
