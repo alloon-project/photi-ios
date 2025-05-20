@@ -41,8 +41,8 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
     self.imageType = imageType
   }
   
-  public func toParameters() -> [String: Any] {
-    return [
+  public func toJSONString() -> String? {
+    let dict: [String: Any] = [
       "name": self.name,
       "isPublic": self.isPublic,
       "goal": self.goal,
@@ -51,5 +51,12 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
       "rules": self.rules.map { ["rule": $0] },
       "hashtags": self.hashtags.map { ["hashtag": $0] }
     ]
+    
+    guard let data = try? JSONSerialization.data(withJSONObject: dict),
+          let jsonString = String(data: data, encoding: .utf8) else {
+      return nil
+    }
+    
+    return jsonString
   }
 }
