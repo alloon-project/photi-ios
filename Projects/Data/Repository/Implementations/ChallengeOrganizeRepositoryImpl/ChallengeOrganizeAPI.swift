@@ -39,16 +39,26 @@ extension ChallengeOrganizeAPI: TargetType {
     switch self {
       case .sampleImages:
         return .requestPlain
-      case let .organizeChallenge(dto):
-      let multiPartBody = MultipartFormDataBodyPart(.parameters(dto.toParameters()))
-      let multiPartDataBody = MultipartFormDataBodyPart(
-        .data(["imageFile": dto.image]),
+    case let .organizeChallenge(dto):
+      guard let jsonString = dto.toJSONString() else {
+        assertionFailure("ChallengeOrganizeRequestDTO JSON 변환 실패")
+        return .requestPlain
+      }
+
+      let requestDataPart = MultipartFormDataBodyPart(
+        .parameters(["request": jsonString])
+      )
+
+      let imageDataPart = MultipartFormDataBodyPart(
+        .data([
+          "imageFile": dto.image
+        ]),
         fileExtension: dto.imageType,
         mimeType: "image/\(dto.imageType)"
       )
       
-      let multipart = MultipartFormData(bodyParts: [multiPartBody, multiPartDataBody])
-      
+      let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
+            
       return .uploadMultipartFormData(multipart: multipart)
     }
   }
