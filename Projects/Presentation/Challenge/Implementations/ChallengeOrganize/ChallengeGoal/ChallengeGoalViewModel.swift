@@ -80,7 +80,7 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
       input.challengeGoal.asObservable(),
       input.proveTime.asObservable(),
       input.date) { goal, time, date in
-        !goal.isEmpty && !time.isEmpty && date > Date()
+        !goal.isEmpty && goal.count >= 10 && !time.isEmpty && date > Date()
       }
     
     return Output(
