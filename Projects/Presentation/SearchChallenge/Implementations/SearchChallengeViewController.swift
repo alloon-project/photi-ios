@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
@@ -21,7 +23,9 @@ final class SearchChallengeViewController: UIViewController, ViewControllerable 
   private let challengeOrganizeButton = FloatingButton(type: .primary, size: .xLarge)
   private let searchBar = PhotiSearchBar(placeholder: "챌린지, 해시태그를 검색해보세요")
   private let segmentControl = CenterSegmentControl(items: ["추천순", "최신순"])
+  private let mainContentView = UIView()
   
+  // MARK: - Initializers
   init(viewModel: SearchChallengeViewModel) {
     self.viewModel = viewModel
     
@@ -48,7 +52,7 @@ extension SearchChallengeViewController: SearchChallengePresentable {
     
     attachViewController(segmentIndex: segmentIndex)
   }
-  }
+}
 
 // MARK: - Private methods
 private extension SearchChallengeViewController {
@@ -59,14 +63,37 @@ private extension SearchChallengeViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubview(challengeOrganizeButton)
+    view.addSubviews(
+      searchBar,
+      segmentControl,
+      mainContentView,
+      challengeOrganizeButton
+    )
   }
   
   func setConstraints() {
+    let tabBarMinY = tabBarController?.tabBar.frame.minY ?? 0
+    let tabBarHeight = view.frame.height - tabBarMinY
+    searchBar.snp.makeConstraints {
+      $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(6)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    segmentControl.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(searchBar.snp.bottom).offset(6)
+      $0.height.equalTo(48)
+    }
+    
+    mainContentView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.top.equalTo(segmentControl.snp.bottom)
+      $0.bottom.equalToSuperview().inset(tabBarHeight)
+    }
+    
     challengeOrganizeButton.snp.makeConstraints {
       $0.trailing.equalToSuperview().inset(24)
-      $0.bottom.equalTo(self.view.safeAreaLayoutGuide.snp.bottom).inset(24)
-      $0.width.height.equalTo(56)
+      $0.bottom.equalToSuperview().inset(tabBarHeight + 24)
     }
   }
 }
@@ -80,6 +107,15 @@ private extension SearchChallengeViewController {
     
     let output = viewModel.transform(input: input)
     bind(output: output)
+    viewBind()
+  }
+  
+  func viewBind() {
+    segmentControl.rx.selectedSegment
+      .bind(with: self) { owner, index in
+        owner.updateSegmentViewController(to: index)
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(output: SearchChallengeViewModel.Output) {}
