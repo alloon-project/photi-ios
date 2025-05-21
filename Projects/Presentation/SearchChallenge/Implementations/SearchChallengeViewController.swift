@@ -12,14 +12,15 @@ import Core
 import DesignSystem
 
 final class SearchChallengeViewController: UIViewController, ViewControllerable {
+  private let disposeBag = DisposeBag()
   private let viewModel: SearchChallengeViewModel
+  private var segmentIndex: Int = 0
   
-  private let challengeOrganizeButton = {
-    let button = FloatingButton(type: .primary, size: .xLarge)
-    button.setImage(.plusWhite.resize(CGSize(width: 24, height: 24)), for: .normal)
-    button.backgroundColor = .blue500
-    return button
-  }()
+  // MARK: - UI Components
+  private var segmentViewControllers = [UIViewController]()
+  private let challengeOrganizeButton = FloatingButton(type: .primary, size: .xLarge)
+  private let searchBar = PhotiSearchBar(placeholder: "챌린지, 해시태그를 검색해보세요")
+  private let segmentControl = CenterSegmentControl(items: ["추천순", "최신순"])
   
   init(viewModel: SearchChallengeViewModel) {
     self.viewModel = viewModel
@@ -35,18 +36,24 @@ final class SearchChallengeViewController: UIViewController, ViewControllerable 
   // MARK: - View LifeCycle
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     setupUI()
     bind()
   }
 }
 
 // MARK: - SearchChallengePresentable
-extension SearchChallengeViewController: SearchChallengePresentable { }
+extension SearchChallengeViewController: SearchChallengePresentable {
+  func attachViewControllerables(_ viewControllerables: ViewControllerable...) {
+    segmentViewControllers = viewControllerables.map(\.uiviewController)
+    
+    attachViewController(segmentIndex: segmentIndex)
+  }
+  }
 
 // MARK: - Private methods
 private extension SearchChallengeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
@@ -76,4 +83,36 @@ private extension SearchChallengeViewController {
   }
   
   func bind(output: SearchChallengeViewModel.Output) {}
+}
+
+// MARK: - Private Methods
+private extension SearchChallengeViewController {
+  func updateSegmentViewController(to index: Int) {
+    defer { segmentIndex = index }
+    removeViewController(segmentIndex: segmentIndex)
+    attachViewController(segmentIndex: index)
+  }
+  
+  func removeViewController(segmentIndex: Int) {
+    guard segmentViewControllers.count > segmentIndex else { return }
+    
+    let viewController = segmentViewControllers[segmentIndex]
+    viewController.willMove(toParent: nil)
+    viewController.view.removeFromSuperview()
+    viewController.removeFromParent()
+    viewController.didMove(toParent: nil)
+  }
+  
+  func attachViewController(segmentIndex: Int) {
+    guard segmentViewControllers.count > segmentIndex else { return }
+    
+    let viewController = segmentViewControllers[segmentIndex]
+    viewController.willMove(toParent: self)
+    addChild(viewController)
+    viewController.didMove(toParent: self)
+    mainContentView.addSubview(viewController.view)
+    viewController.view.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+    }
+  }
 }
