@@ -112,6 +112,7 @@ public final class TextFieldBottomSheetViewController: BottomSheetViewController
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     removeKeyboardNotification()
+    textFieldText = nil
   }
 }
 

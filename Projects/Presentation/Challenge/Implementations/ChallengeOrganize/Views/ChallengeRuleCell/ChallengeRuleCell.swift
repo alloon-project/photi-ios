@@ -8,6 +8,8 @@
 
 import UIKit
 import DesignSystem
+import RxCocoa
+import RxSwift
 
 final class ChallengeRuleCell: UICollectionViewCell {
   // MARK: - UI Components
@@ -31,14 +33,17 @@ final class ChallengeRuleCell: UICollectionViewCell {
     return label
   }()
   
-  // TODO: - 아이콘이 안보이는 문제 있음
-  private let deleteButton = {
-    let button = IconButton(
-      selectedIcon: .closeCircleBlue,
-      unSelectedIcon: .closeCircleGray400,
-      size: .xSmall
-    )
+  let deleteButton = {
+    let button = IconButton(size: .xSmall)
     
+    button.selectedTintColor = .blue200
+    button.unSelectedTintColor = .gray400
+
+    button.unSelectedIcon = .closeCircleWhite
+    button.selectedIcon = .closeCircleWhite
+    button.invalidateIntrinsicContentSize()
+
+    button.backgroundColor = .clear
     return button
   }()
   
@@ -66,7 +71,7 @@ final class ChallengeRuleCell: UICollectionViewCell {
     challengeRuleLabel.textAlignment = .center
     self.contentView.backgroundColor = isSelected ? .blue0 : .white
     self.layer.borderColor = isSelected ? UIColor.blue400.cgColor : UIColor.gray200.cgColor
-
+    deleteButton.isSelected = isSelected
     deleteButton.isHidden = (rule == "+" || isDefault)
   }
 }
@@ -91,7 +96,8 @@ private extension ChallengeRuleCell {
   
   func setConstraints() {
     stackView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(16)
+      $0.top.bottom.equalToSuperview()
     }
     
     challengeRuleLabel.snp.makeConstraints {
