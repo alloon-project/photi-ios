@@ -11,29 +11,50 @@ import SnapKit
 import Core
 
 /// Photi의 searchBar입니다.
-public final class PhotiSearchBar: UISearchBar {
+public final class PhotiSearchBar: UITextField {
   public override var intrinsicContentSize: CGSize {
-    CGSize(width: 296, height: 44)
+    CGSize(width: 327, height: 44)
   }
   
   /// searchBar의 placeholder입니다.
   public override var placeholder: String? {
-    didSet {
-      self.setPlaceholder(placeholder)
-    }
+    didSet { setPlaceholder(placeholder) }
   }
   
   /// searchBar의 text입니다.
   public override var text: String? {
+    didSet { setText(text) }
+  }
+   
+  private var currentRightButtonImage = UIImage.searchGray400 {
     didSet {
-      setText(text)
+      guard currentRightButtonImage != oldValue else { return }
+      rightButton.setImage(currentRightButtonImage, for: .normal)
+      rightButton.setImage(currentRightButtonImage, for: .highlighted)
     }
   }
+  private let bookmarkImage = UIImage.searchGray400
+  private let closeImage = UIImage.closeCircleGray400
+  
+  // MARK: - UI Components
+  private let rightButton = UIButton()
   
   // MARK: - Initializers
   public init() {
     super.init(frame: .zero)
     setupUI()
+    
+    self.addTarget(
+      self,
+      action: #selector(textDidChange),
+      for: .editingChanged
+    )
+    
+    rightButton.addTarget(
+      self,
+      action: #selector(rightButtonDidTapped),
+      for: .touchUpInside
+    )
   }
   
   public convenience init(placeholder: String, text: String = "") {
@@ -50,63 +71,71 @@ public final class PhotiSearchBar: UISearchBar {
   // MARK: - layoutSubviews
   public override func layoutSubviews() {
     super.layoutSubviews()
-    searchTextField.clipsToBounds = true
-    searchTextField.layer.cornerRadius = intrinsicContentSize.height / 2
+    layer.cornerRadius = intrinsicContentSize.height / 2
   }
-  
-  // MARK: - Setup UI
+}
+
+// MARK: - UI Methods
+private extension PhotiSearchBar {
   func setupUI() {
-    searchBarStyle = .minimal
-    searchTextField.backgroundColor = .gray0
-   
-    searchTextField.snp.remakeConstraints { $0.edges.equalToSuperview() }
-    
-    let offset = UIOffset(horizontal: -12, vertical: 0)
-    setPositionAdjustment(offset, for: .clear)
-    setPositionAdjustment(offset, for: .bookmark)
-    
+    backgroundColor = .gray0
     addLeftPadding()
-    setBookmarkButton()
-    setClearButton()
-    setText(text)
-    setPlaceholder(placeholder)
+    addRightButton()
   }
 }
 
 // MARK: - Private Methods
 private extension PhotiSearchBar {
   func addLeftPadding() {
-    setImage(nil, for: .search, state: .normal)
-    let paddingView = UIView(
-      frame: CGRect(x: 0, y: 0, width: 16, height: self.frame.height)
+    let paddingView = UIView()
+    let viewSize = CGSize(width: 16, height: 0)
+    setLeftView(
+      paddingView,
+      size: viewSize,
+      leftPdding: 0,
+      rightPadding: 0
     )
-    searchTextField.leftView = paddingView
-    searchTextField.leftViewMode = .always
   }
-  
-  func setClearButton() {
-    let image = UIImage.closeGray400.resize(.init(width: 24, height: 24))
-    setImage(image, for: .clear, state: .normal)
-  }
-  
-  func setBookmarkButton() {
-    self.showsBookmarkButton = true
-    let image = UIImage.searchGray400.resize(CGSize(width: 24, height: 24))
 
-    setImage(image, for: .bookmark, state: .normal)
+  func addRightButton() {
+    let buttonSize = CGSize(width: 24, height: 24)
+    rightButton.setImage(bookmarkImage, for: .normal)
+    rightButton.setImage(bookmarkImage, for: .highlighted)
+    
+    setRightView(rightButton, size: buttonSize, leftPdding: 39, rightPadding: 16)
   }
   
   func setText(_ text: String?) {
-    searchTextField.attributedText = (text ?? "").attributedString(
+    attributedText = (text ?? "").attributedString(
       font: .body2,
       color: .photiBlack
     )
   }
   
   func setPlaceholder(_ placeholder: String?) {
-    searchTextField.attributedPlaceholder = (placeholder ?? "").attributedString(
+    attributedPlaceholder = (placeholder ?? "").attributedString(
       font: .body2,
       color: .gray400
     )
+  }
+}
+
+// MARK: - Actions
+@objc private extension PhotiSearchBar {
+  func textDidChange() {
+    setText(text)
+    
+    if let text = text, !text.isEmpty {
+      currentRightButtonImage = closeImage
+      rightButton.isEnabled = true
+    } else {
+      currentRightButtonImage = bookmarkImage
+      rightButton.isEnabled = false
+    }
+  }
+  
+  func rightButtonDidTapped() {
+    text = ""
+    sendActions(for: .editingChanged)
   }
 }
