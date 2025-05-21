@@ -181,6 +181,12 @@ private extension TextFieldBottomSheetViewController {
         owner.dismissBottomSheet()
       }
       .disposed(by: disposeBag)
+    
+    textField.rx.text
+      .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+      .distinctUntilChanged()
+      .bind(to: button.rx.isEnabled)
+      .disposed(by: disposeBag)
   }
 }
 
