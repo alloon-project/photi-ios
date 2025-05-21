@@ -37,7 +37,6 @@ final class DashLineSegmentButton: SegmentButton {
     
     backgroundColor = .white.withAlphaComponent(alphaComponent)
     dashLine.isHidden = !isSelected
-    
   }
 }
 
