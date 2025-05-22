@@ -22,6 +22,9 @@ final class HashTagView: UIView {
   var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
+  var isSticky: Bool = false {
+    didSet { underDashLine.isHidden = !isSticky }
+  }
   
   fileprivate var currentSelectedHashTag: String = Constants.total
   
@@ -68,6 +71,7 @@ final class HashTagView: UIView {
 // MARK: - UI Methods
 private extension HashTagView {
   func setupUI() {
+    backgroundColor = .white
     underDashLine.isHidden = true
     dividerView.backgroundColor = .blue300
     setViewHierarchy()
@@ -80,7 +84,8 @@ private extension HashTagView {
   
   func setConstraints() {
     allChip.snp.makeConstraints {
-      $0.leading.centerY.equalToSuperview()
+      $0.leading.equalToSuperview().inset(24)
+      $0.centerY.equalToSuperview()
     }
     
     dividerView.snp.makeConstraints {

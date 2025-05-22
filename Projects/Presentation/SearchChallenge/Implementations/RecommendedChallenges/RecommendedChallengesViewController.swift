@@ -17,6 +17,13 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   // MARK: - Properties
   private let viewModel: RecommendedChallengesViewModel
   private let disposeBag = DisposeBag()
+  private var hashTagIsSticky = false {
+    didSet {
+      guard hashTagIsSticky != oldValue else { return }
+      hashTagIsSticky ? stickHashTagView() : unStickHashTagView()
+      popularHashTagView.isSticky = hashTagIsSticky
+    }
+  }
   
   // MARK: - UI Components
   private let scrollView = UIScrollView()
@@ -43,6 +50,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     image: .rocketGray700,
     title: "해시태그 모아보기"
   )
+  private let popularHashTagPlaceholder = UIView()
   private let popularHashTagView = HashTagView()
   private let hashtagChallengeTableView: SelfSizingTableView = {
     let tableView = SelfSizingTableView()
@@ -69,6 +77,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+    scrollView.delegate = self
     popularChallengesCollectionView.dataSource = self
     hashtagChallengeTableView.dataSource = self
     hashtagChallengeTableView.delegate = self
@@ -89,7 +98,8 @@ private extension RecommendedChallengesViewController {
     view.addSubview(scrollView)
     scrollView.addSubview(contentView)
     contentView.addSubviews(popularChallengesHeaderView, popularChallengesCollectionView, dashLineView)
-    contentView.addSubviews(hashTagHeaderView, popularHashTagView, hashtagChallengeTableView)
+    contentView.addSubviews(hashTagHeaderView, popularHashTagPlaceholder, hashtagChallengeTableView)
+    view.addSubview(popularHashTagView)
   }
   
   func setConstraints() {
@@ -121,12 +131,18 @@ private extension RecommendedChallengesViewController {
       $0.leading.trailing.equalToSuperview().inset(24)
     }
     
-    popularHashTagView.snp.makeConstraints {
-      $0.leading.equalToSuperview().inset(24)
-      $0.trailing.equalToSuperview()
+    popularHashTagView.hashTags = ["러닝", "취뽀", "맛집", "코딩코딩", "헤헤헤헤"]
+    popularHashTagPlaceholder.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(hashTagHeaderView.snp.bottom)
       $0.height.equalTo(64)
     }
+    
+    popularHashTagView.snp.makeConstraints {
+      $0.edges.equalTo(popularHashTagPlaceholder)
+    }
+    
+    popularHashTagView.hashTags = ["러닝", "취뽀", "맛집", "코딩코딩", "헤헤헤헤"]
     
     hashtagChallengeTableView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
@@ -153,6 +169,14 @@ private extension RecommendedChallengesViewController {
 
 // MARK: - RecommendedChallengesPresentable
 extension RecommendedChallengesViewController: RecommendedChallengesPresentable { }
+
+// MARK: - UIScrollViewDelegate
+extension RecommendedChallengesViewController: UIScrollViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let placeholderFrame = popularHashTagPlaceholder.convert(popularHashTagPlaceholder.bounds, to: view)
+    hashTagIsSticky = placeholderFrame.minY <= 0
+  }
+}
 
 // MARK: - UICollectionViewDataSource
 extension RecommendedChallengesViewController: UICollectionViewDataSource {
@@ -188,5 +212,21 @@ extension RecommendedChallengesViewController: UITableViewDataSource {
 extension RecommendedChallengesViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return UIView()
+  }
+}
+
+// MARK: - Private Methods
+private extension RecommendedChallengesViewController {
+  func stickHashTagView() {
+    popularHashTagView.snp.remakeConstraints {
+      $0.leading.trailing.height.equalTo(popularHashTagPlaceholder)
+      $0.top.equalToSuperview()
+    }
+  }
+  
+  func unStickHashTagView() {
+    popularHashTagView.snp.remakeConstraints {
+      $0.edges.equalTo(popularHashTagPlaceholder)
+    }
   }
 }
