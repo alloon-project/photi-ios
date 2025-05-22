@@ -39,6 +39,20 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   }()
   private let dashLineView = DashLineView(lineDashPattern: [4, 4], lineColor: .gray400)
   private let dummyView = UIView()
+  private let hashTagHeaderView = SearchChallengeHeaderView(
+    image: .rocketGray700,
+    title: "해시태그 모아보기"
+  )
+  private let popularHashTagView = HashTagView()
+  private let hashtagChallengeTableView: SelfSizingTableView = {
+    let tableView = SelfSizingTableView()
+    tableView.sectionFooterHeight = 20
+    tableView.registerCell(HashTagChallengeCell.self)
+    tableView.rowHeight = 160
+    tableView.separatorStyle = .none
+    
+    return tableView
+  }()
   
   // MARK: - Initializers
   init(viewModel: RecommendedChallengesViewModel) {
@@ -56,6 +70,8 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     super.viewDidLoad()
     setupUI()
     popularChallengesCollectionView.dataSource = self
+    hashtagChallengeTableView.dataSource = self
+    hashtagChallengeTableView.delegate = self
   }
 }
 
@@ -63,6 +79,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
 private extension RecommendedChallengesViewController {
   func setupUI() {
     view.backgroundColor = .white
+    scrollView.contentInset = .init(top: 0, left: 0, bottom: 40, right: 0)
     
     setViewHierarchy()
     setConstraints()
@@ -72,7 +89,7 @@ private extension RecommendedChallengesViewController {
     view.addSubview(scrollView)
     scrollView.addSubview(contentView)
     contentView.addSubviews(popularChallengesHeaderView, popularChallengesCollectionView, dashLineView)
-    contentView.addSubview(dummyView)
+    contentView.addSubviews(hashTagHeaderView, popularHashTagView, hashtagChallengeTableView)
   }
   
   func setConstraints() {
@@ -98,11 +115,23 @@ private extension RecommendedChallengesViewController {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(popularChallengesCollectionView.snp.bottom).offset(32)
     }
-    dummyView.snp.makeConstraints {
-      $0.top.equalTo(dashLineView.snp.bottom)
-      $0.leading.trailing.equalToSuperview()
+    
+    hashTagHeaderView.snp.makeConstraints {
+      $0.top.equalTo(dashLineView.snp.bottom).offset(32)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    popularHashTagView.snp.makeConstraints {
+      $0.leading.equalToSuperview().inset(24)
+      $0.trailing.equalToSuperview()
+      $0.top.equalTo(hashTagHeaderView.snp.bottom)
+      $0.height.equalTo(64)
+    }
+    
+    hashtagChallengeTableView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalToSuperview()
-      $0.height.equalTo(400)
+      $0.top.equalTo(dashLineView.snp.bottom).offset(120)
     }
   }
 }
@@ -135,5 +164,29 @@ extension RecommendedChallengesViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(ChallengeCardCell.self, for: indexPath)
     cell.configure(with: popularChallenges[indexPath.row])
     return cell
+  }
+}
+
+// MARK: - UITableViewDataSource
+extension RecommendedChallengesViewController: UITableViewDataSource {
+  func numberOfSections(in tableView: UITableView) -> Int {
+    return hashTagChallenges.count
+  }
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return 1
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueCell(HashTagChallengeCell.self, for: indexPath)
+    cell.configure(with: hashTagChallenges[indexPath.section])
+    return cell
+  }
+}
+
+// MARK: - UITableViewDelegate
+extension RecommendedChallengesViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    return UIView()
   }
 }
