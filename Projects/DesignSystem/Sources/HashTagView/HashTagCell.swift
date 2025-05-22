@@ -16,10 +16,10 @@ public enum HashTagType {
   case icon(size: ChipSize, type: IconChipType)
   case text(size: ChipSize, type: TextChipType)
   
-  func make(with text: String) -> UIView {
+  func make(with text: String, iconImage: UIImage? = nil) -> UIView {
     switch self {
       case let .icon(size, type):
-        return IconChip(text: text, icon: .closeWhite, type: type, size: size)
+      return IconChip(text: text, icon: iconImage ?? .closeWhite, type: type, size: size)
       case let .text(size, type):
         return TextChip(text: text, type: type, size: size)
     }
@@ -29,8 +29,8 @@ public enum HashTagType {
 public final class HashTagCell: UICollectionViewCell {
   fileprivate var chip: UIView = UIView()
   
-  public func configure(type: HashTagType, text: String) {
-    self.chip = type.make(with: text)
+  public func configure(type: HashTagType, text: String, iconImage: UIImage? = nil) {
+    self.chip = type.make(with: text, iconImage: iconImage)
     
     setupUI(with: chip)
   }

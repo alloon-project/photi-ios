@@ -80,7 +80,7 @@ public final class IconChip: UIView {
       case .line: icon = .closeGray700
       case .gray: icon = .closeGray400
       case .darkGray: icon = .closeGray400.color(.gray500)
-      case .blue: icon = .closeBlue
+      case .blue: icon = .closeBlue.color(.blue400)
       case .green: icon = .closeGreen
     }
     
