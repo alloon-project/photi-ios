@@ -25,6 +25,14 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     }
   }
   
+  private let requestData = PublishRelay<Void>()
+  
+  private var popularChallenges = [ChallengeCardPresentationModel]() {
+    didSet { popularChallengesCollectionView.reloadData() }
+  }
+  
+  private let hashTagChallenges = [ChallengeCardPresentationModel]()
+  
   // MARK: - UI Components
   private let scrollView = UIScrollView()
   private let contentView = UIView()
@@ -81,6 +89,8 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     popularChallengesCollectionView.dataSource = self
     hashtagChallengeTableView.dataSource = self
     hashtagChallengeTableView.delegate = self
+    
+    requestData.accept(())
   }
 }
 
@@ -131,7 +141,6 @@ private extension RecommendedChallengesViewController {
       $0.leading.trailing.equalToSuperview().inset(24)
     }
     
-    popularHashTagView.hashTags = ["러닝", "취뽀", "맛집", "코딩코딩", "헤헤헤헤"]
     popularHashTagPlaceholder.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(hashTagHeaderView.snp.bottom)
@@ -141,9 +150,7 @@ private extension RecommendedChallengesViewController {
     popularHashTagView.snp.makeConstraints {
       $0.edges.equalTo(popularHashTagPlaceholder)
     }
-    
-    popularHashTagView.hashTags = ["러닝", "취뽀", "맛집", "코딩코딩", "헤헤헤헤"]
-    
+        
     hashtagChallengeTableView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalToSuperview()
@@ -155,7 +162,7 @@ private extension RecommendedChallengesViewController {
 // MARK: - Bind Methods
 private extension RecommendedChallengesViewController {
   func bind() {
-    let input = RecommendedChallengesViewModel.Input()
+    let input = RecommendedChallengesViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -164,7 +171,15 @@ private extension RecommendedChallengesViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: RecommendedChallengesViewModel.Output) { }
+  func viewModelBind(for output: RecommendedChallengesViewModel.Output) {
+    output.popularChallenges
+      .drive(rx.popularChallenges)
+      .disposed(by: disposeBag)
+    
+    output.hashTags
+      .drive(popularHashTagView.rx.hashTags)
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - RecommendedChallengesPresentable
