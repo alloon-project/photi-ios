@@ -97,19 +97,6 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     bind()
     viewDidLoadRelay.accept(())
   }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(animated)
-    configureUserName(ServiceConfiguration.shared.userName)
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    
-    guard !dataSource.isEmpty else { return }
-    scrollToPage(currentPage)
-    challengeInformationView.configure(with: dataSource[currentPage])
-  }
 }
 
 // MARK: - UI Methods
@@ -153,9 +140,8 @@ private extension NoneChallengeHomeViewController {
 
     challengeInformationView.snp.makeConstraints {
       $0.top.equalTo(challengeImageCollectionView.snp.bottom).offset(24)
-      $0.centerX.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.height.equalTo(244)
-      $0.width.equalTo(327)
     }
     
     createChallengeInformationView.snp.makeConstraints {
@@ -187,6 +173,8 @@ private extension NoneChallengeHomeViewController {
     output.challenges
       .emit(with: self) { owner, challenges in
         owner.dataSource = challenges
+        guard !challenges.isEmpty else { return }
+        owner.challengeInformationView.configure(with: challenges[owner.currentPage])
       }
       .disposed(by: disposeBag)
     
@@ -199,7 +187,14 @@ private extension NoneChallengeHomeViewController {
 }
 
 // MARK: - NoneChallengeHomePresentable
-extension NoneChallengeHomeViewController: NoneChallengeHomePresentable { }
+extension NoneChallengeHomeViewController: NoneChallengeHomePresentable {
+  func configureUserName(_ username: String) {
+    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
+      font: .heading1,
+      color: .gray900
+    )
+  }
+}
 
 // MARK: - UICollectionViewDataSource
 extension NoneChallengeHomeViewController: UICollectionViewDataSource {
@@ -256,7 +251,8 @@ private extension NoneChallengeHomeViewController {
   }
   
   func configureInformatoinView(for page: Int) {
-    guard page <= dataSource.count && page >= 0 else { return }
+    guard !dataSource.isEmpty else { return }
+    guard page <= dataSource.count, page >= 0 else { return }
     guard
       let beforeCell = cellForPage(currentPage),
       let currentCell = cellForPage(page)
@@ -299,20 +295,17 @@ private extension NoneChallengeHomeViewController {
       self.challengeImageCollectionView.scrollToItem(at: indexPath, at: .top, animated: animated)
     }
   }
-  
-  func configureUserName(_ username: String) {
-    titleLabel.attributedText = "\(username)님의\n열정을 보여주세요!".attributedString(
-      font: .heading1,
-      color: .gray900
-    )
-  }
 
   func presentChallengeInformationView() {
+    guard challengeInformationView.isHidden else { return }
+    
     challengeInformationView.isHidden = false
     createChallengeInformationView.isHidden = true
   }
 
   func presentCreateChallengeInformationView() {
+    guard createChallengeInformationView.isHidden else { return }
+    
     challengeInformationView.isHidden = true
     createChallengeInformationView.isHidden = false
   }

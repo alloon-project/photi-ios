@@ -80,6 +80,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
 // MARK: - UI Methods
 private extension NoneMemberChallengeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
@@ -106,26 +107,25 @@ private extension NoneMemberChallengeViewController {
     
     mainContainerView.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(13)
-      $0.centerX.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
     }
     
     leftView.snp.makeConstraints {
       $0.leading.equalToSuperview()
       $0.top.bottom.equalTo(rightView)
-      $0.width.equalTo(175)
+      $0.width.equalToSuperview().multipliedBy(0.535)
     }
     
     rightView.snp.makeConstraints {
       $0.leading.equalTo(leftView.snp.trailing).offset(16)
       $0.trailing.top.bottom.equalToSuperview()
-      $0.width.equalTo(136)
     }
     
     setLeftViewsConstraints()
     setRightViewsConstraints()
     
     joinButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalToSuperview().inset(48)
     }
   }
@@ -279,7 +279,22 @@ private extension NoneMemberChallengeViewController {
 }
 
 // MARK: - NoneMemberChallengePresentable
-extension NoneMemberChallengeViewController: NoneMemberChallengePresentable { }
+extension NoneMemberChallengeViewController: NoneMemberChallengePresentable {
+  func presentWelcomeToastView(_ username: String) {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "\(username)님 환영합니다!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
+  }
+}
 
 // MARK: - UICollectionViewDataSource
 extension NoneMemberChallengeViewController: UICollectionViewDataSource {

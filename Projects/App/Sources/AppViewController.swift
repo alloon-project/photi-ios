@@ -44,7 +44,7 @@ extension AppViewController: AppPresentable {
   }
   
   func changeNavigationControllerToHome() {
-    guard let _ = viewControllers else { return }
+    guard viewControllers != nil else { return }
     selectedIndex = 0 // 첫 번째 탭으로 전환
   }
   
@@ -57,6 +57,21 @@ extension AppViewController: AppPresentable {
   func changeNavigationControllerToMyPage() {
     guard let viewControllers, viewControllers.count > 2 else { return }
     selectedIndex = 2 // 세 번째 탭으로 전환
+  }
+  
+  func presentWelcomeToastView(_ username: String) {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "\(username)님 환영합니다!",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
   }
 }
 

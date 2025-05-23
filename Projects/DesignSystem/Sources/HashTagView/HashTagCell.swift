@@ -29,11 +29,12 @@ public enum HashTagType: Equatable {
 public final class HashTagCell: UICollectionViewCell {
   fileprivate var chip: UIView = UIView()
   private var type: HashTagType?
-  
+
   public func configure(type: HashTagType, text: String, iconImage: UIImage? = nil) {
     guard self.type != type else { return configureText(text) }
     self.type = type
     self.chip = type.make(with: text, iconImage: iconImage)
+
     setupUI(with: chip)
   }
 }

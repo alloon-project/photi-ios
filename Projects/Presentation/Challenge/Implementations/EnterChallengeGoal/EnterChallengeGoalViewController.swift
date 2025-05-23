@@ -27,8 +27,7 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
   private let challengeName: String
 
   private let didTapSkipButtonRelay = PublishRelay<Void>()
-  private let didTapLoginButtonRelay = PublishRelay<Void>()
-  
+
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let imageView = UIImageView(image: .challengeEditGoal)
@@ -88,6 +87,7 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
 // MARK: - UI Methods
 private extension EnterChallengeGoalViewController {
   func setupUI() {
+    view.backgroundColor = .white
     navigationBar.title = challengeName
     
     setViewHierarchy()
@@ -161,8 +161,7 @@ private extension EnterChallengeGoalViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       goalText: textField.rx.text,
       didTapSaveButton: saveButton.rx.tap,
-      didTapSkipButton: didTapSkipButtonRelay.asSignal(),
-      didTapLoginButton: didTapLoginButtonRelay.asSignal()
+      didTapSkipButton: didTapSkipButtonRelay.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -200,21 +199,6 @@ private extension EnterChallengeGoalViewController {
     output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
-    
-    output.loginTrigger
-      .emit(with: self) { owner, _ in
-        let alert = owner.presentLoginTriggerAlert()
-        owner.bind(alert: alert)
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func bind(alert: AlertViewController) {
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLoginButtonRelay.accept(())
       }
       .disposed(by: disposeBag)
   }
