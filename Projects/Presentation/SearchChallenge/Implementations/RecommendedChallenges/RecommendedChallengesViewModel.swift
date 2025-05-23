@@ -20,7 +20,19 @@ protocol RecommendedChallengesViewModelType: AnyObject {
 
 final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   weak var coordinator: RecommendedChallengesCoordinatable?
+  
   private let disposeBag = DisposeBag()
+  private var isFetching = false
+  private var isLastPage = false
+  private var currentPage = 0
+  private var selectedHashTag = "전체" {
+    didSet {
+      guard selectedHashTag != oldValue else { return }
+      isLastPage = false
+      currentPage = 0
+      Task { await fetchHashTagChallenge(hashTag: selectedHashTag) }
+    }
+  }
   
   private let popularChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
   private let hashTagsRelay = BehaviorRelay<[String]>(value: [])
@@ -30,6 +42,8 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let requestHashTagChallenge: Signal<Void>
+    let didSelectHashTag: Signal<String>
   }
   
   // MARK: - Output
@@ -50,6 +64,18 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didSelectHashTag
+      .emit(with: self) { owner, hashTag in
+        owner.selectedHashTag = hashTag
+      }
+      .disposed(by: disposeBag)
+    
+    input.requestHashTagChallenge
+      .emit(with: self) { owner, _ in
+        Task { await owner.fetchHashTagChallenge(hashTag: owner.selectedHashTag) }
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       popularChallenges: popularChallenges.asDriver(),
       hashTags: hashTagsRelay.asDriver(),
@@ -64,11 +90,20 @@ private extension RecommendedChallengesViewModel {
   func fetchAllData() {
     fetchPopularChallenges()
     fetchHastags()
+    Task { await fetchHashTagChallenge(hashTag: selectedHashTag) }
   }
   
   func fetchPopularChallenges() { }
   
   func fetchHastags() { }
   
-  func fetchHashTagChallenge(hashTag: String) { }
+  func fetchHashTagChallenge(hashTag: String) async {
+    guard !isLastPage && !isFetching else { return }
+    isFetching = true
+    
+    defer {
+      isFetching = false
+      currentPage += 1
+    }
+    }
 }
