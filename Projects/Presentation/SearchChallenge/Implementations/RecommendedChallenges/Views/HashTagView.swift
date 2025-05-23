@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import RxCocoa
 import RxGesture
 import RxSwift
 import SnapKit
@@ -26,7 +27,7 @@ final class HashTagView: UIView {
     didSet { underDashLine.isHidden = !isSticky }
   }
   
-  fileprivate var currentSelectedHashTag: String = Constants.total
+  fileprivate var selectedHashTagRelay = BehaviorRelay<String>(value: Constants.total)
   
   private var selectedCell: SearchChallengeHashTagCell? {
     didSet { configureSelectedHashTag(current: selectedCell, before: oldValue) }
@@ -115,7 +116,7 @@ private extension HashTagView {
     allChip.rx.tapGesture()
       .when(.recognized)
       .bind(with: self) { owner, _ in
-        owner.currentSelectedHashTag = Constants.total
+        owner.selectedHashTagRelay.accept(Constants.total)
         owner.selectedCell = nil
       }
       .disposed(by: disposeBag)
@@ -131,7 +132,7 @@ extension HashTagView: UICollectionViewDataSource {
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(SearchChallengeHashTagCell.self, for: indexPath)
     cell.configure(with: hashTags[indexPath.row])
-    cell.isSelectedCell = hashTags[indexPath.row] == currentSelectedHashTag
+    cell.isSelectedCell = hashTags[indexPath.row] == selectedHashTagRelay.value
     return cell
   }
 }
@@ -141,8 +142,7 @@ extension HashTagView: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let item = hashTags[indexPath.row]
     let cell = collectionView.cellForItem(at: indexPath)
-    
-    currentSelectedHashTag = item
+    selectedHashTagRelay.accept(item)
     selectedCell = cell as? SearchChallengeHashTagCell
   }
 }
@@ -176,5 +176,14 @@ private extension HashTagView {
     } else {
       current?.isSelectedCell = true
     }
+  }
+}
+
+// MARK: - Reactive Extension
+extension Reactive where Base: HashTagView {
+  var didSelectHasTag: ControlEvent<String> {
+    let source = base.selectedHashTagRelay.distinctUntilChanged()
+    
+    return .init(events: source)
   }
 }

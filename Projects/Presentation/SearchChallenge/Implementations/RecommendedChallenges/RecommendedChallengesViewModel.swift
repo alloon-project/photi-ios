@@ -22,15 +22,14 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   weak var coordinator: RecommendedChallengesCoordinatable?
   
   private let disposeBag = DisposeBag()
+  private var fetchingHashTagChallengeTask: Task<Void, Never>?
   private var isFetching = false
   private var isLastPage = false
   private var currentPage = 0
   private var selectedHashTag = "전체" {
     didSet {
       guard selectedHashTag != oldValue else { return }
-      isLastPage = false
-      currentPage = 0
-      Task { await fetchHashTagChallenge(hashTag: selectedHashTag) }
+      selectedHashTagDidChange(selectedHashTag)
     }
   }
   
@@ -105,5 +104,11 @@ private extension RecommendedChallengesViewModel {
       isFetching = false
       currentPage += 1
     }
+  func selectedHashTagDidChange(_ hashTag: String) {
+    isLastPage = false
+    isFetching = false
+    currentPage = 0
+    fetchingHashTagChallengeTask?.cancel()
+    fetchingHashTagChallengeTask = Task { await fetchHashTagChallenge(hashTag: hashTag) }
     }
 }
