@@ -40,13 +40,8 @@ extension ChallengeOrganizeAPI: TargetType {
       case .sampleImages:
         return .requestPlain
     case let .organizeChallenge(dto):
-      guard let jsonString = dto.toJSONString() else {
-        assertionFailure("ChallengeOrganizeRequestDTO JSON 변환 실패")
-        return .requestPlain
-      }
-
       let requestDataPart = MultipartFormDataBodyPart(
-        .parameters(["request": jsonString])
+        .jsonString(key: "request", json: dto.jsonString)
       )
 
       let imageDataPart = MultipartFormDataBodyPart(
