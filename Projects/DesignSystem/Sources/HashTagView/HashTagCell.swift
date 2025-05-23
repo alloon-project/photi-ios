@@ -12,7 +12,7 @@ import RxSwift
 import SnapKit
 import Core
 
-public enum HashTagType {
+public enum HashTagType: Equatable {
   case icon(size: ChipSize, type: IconChipType)
   case text(size: ChipSize, type: TextChipType)
   
@@ -28,10 +28,12 @@ public enum HashTagType {
 
 public final class HashTagCell: UICollectionViewCell {
   fileprivate var chip: UIView = UIView()
+  private var type: HashTagType?
   
   public func configure(type: HashTagType, text: String, iconImage: UIImage? = nil) {
+    guard self.type != type else { return configureText(text) }
+    self.type = type
     self.chip = type.make(with: text, iconImage: iconImage)
-    
     setupUI(with: chip)
   }
 }
@@ -44,6 +46,14 @@ private extension HashTagCell {
     
     contentView.addSubview(chip)
     chip.snp.makeConstraints { $0.edges.equalToSuperview() }
+  }
+  
+  func configureText(_ text: String) {
+    if let view = chip as? TextChip {
+      view.text = text
+    } else if let view = chip as? IconChip {
+      view.text = text
+    }
   }
 }
 
