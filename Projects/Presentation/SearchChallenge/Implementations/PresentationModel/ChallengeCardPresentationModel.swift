@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct ChallengeCardPresentationModel {
+struct ChallengeCardPresentationModel: Hashable {
   let id: Int
   let hashTags: [String]
   let title: String

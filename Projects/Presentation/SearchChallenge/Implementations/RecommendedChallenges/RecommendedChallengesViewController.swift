@@ -14,9 +14,13 @@ import Core
 import DesignSystem
 
 final class RecommendedChallengesViewController: UIViewController, ViewControllerable {
+  typealias DataSourceType = UITableViewDiffableDataSource<Int, ChallengeCardPresentationModel>
+  typealias SnapShot = NSDiffableDataSourceSnapshot<Int, ChallengeCardPresentationModel>
+  
   // MARK: - Properties
   private let viewModel: RecommendedChallengesViewModel
   private let disposeBag = DisposeBag()
+  private var datasource: DataSourceType?
   private var hashTagIsSticky = false {
     didSet {
       guard hashTagIsSticky != oldValue else { return }
@@ -26,6 +30,8 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   }
   
   private let requestData = PublishRelay<Void>()
+  private let requestHashTagChallenge = PublishRelay<Void>()
+  private let didSelectHashTag = PublishRelay<String>()
   
   private var popularChallenges = [ChallengeCardPresentationModel]() {
     didSet { popularChallengesCollectionView.reloadData() }
@@ -85,9 +91,13 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+    bind()
     scrollView.delegate = self
     popularChallengesCollectionView.dataSource = self
-    hashtagChallengeTableView.dataSource = self
+    
+    let hashTagDataSource = diffableDatasource()
+    datasource = hashTagDataSource
+    hashtagChallengeTableView.dataSource = hashTagDataSource
     hashtagChallengeTableView.delegate = self
     
     requestData.accept(())
@@ -162,14 +172,23 @@ private extension RecommendedChallengesViewController {
 // MARK: - Bind Methods
 private extension RecommendedChallengesViewController {
   func bind() {
-    let input = RecommendedChallengesViewModel.Input(requestData: requestData.asSignal())
+    let input = RecommendedChallengesViewModel.Input(
+      requestData: requestData.asSignal(),
+      requestHashTagChallenge: requestHashTagChallenge.asSignal(),
+      didSelectHashTag: didSelectHashTag.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
     viewModelBind(for: output)
   }
   
-  func viewBind() { }
+  func viewBind() {
+    popularHashTagView.rx.didSelectHasTag
+      .skip(1)
+      .bind(to: didSelectHashTag)
+      .disposed(by: disposeBag)
+  }
   
   func viewModelBind(for output: RecommendedChallengesViewModel.Output) {
     output.popularChallenges
@@ -178,6 +197,18 @@ private extension RecommendedChallengesViewController {
     
     output.hashTags
       .drive(popularHashTagView.rx.hashTags)
+      .disposed(by: disposeBag)
+    
+    output.hashTagInitialChallenges
+      .drive(with: self) { owner, models in
+        owner.initialize(with: models)
+      }
+      .disposed(by: disposeBag)
+    
+    output.hashTagChallenges
+      .drive(with: self) { owner, models in
+        owner.append(models: models)
+      }
       .disposed(by: disposeBag)
   }
 }
@@ -190,6 +221,12 @@ extension RecommendedChallengesViewController: UIScrollViewDelegate {
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     let placeholderFrame = popularHashTagPlaceholder.convert(popularHashTagPlaceholder.bounds, to: view)
     hashTagIsSticky = placeholderFrame.minY <= 0
+    
+    let yOffset = scrollView.contentOffset.y
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestHashTagChallenge.accept(())
   }
 }
 
@@ -207,19 +244,41 @@ extension RecommendedChallengesViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UITableViewDataSource
-extension RecommendedChallengesViewController: UITableViewDataSource {
-  func numberOfSections(in tableView: UITableView) -> Int {
-    return hashTagChallenges.count
+extension RecommendedChallengesViewController {
+  func diffableDatasource() -> DataSourceType {
+    return .init(tableView: hashtagChallengeTableView) { tableView, indexPath, model in
+      let cell = tableView.dequeueCell(HashTagChallengeCell.self, for: indexPath)
+      cell.configure(with: model)
+      return cell
+    }
+  }
+ 
+  func initialize(with models: [ChallengeCardPresentationModel]) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    snapshot.deleteAllItems()
+
+    snapshot = append(models: models, to: snapshot)
+    datasource.apply(snapshot) { [weak self] in
+      self?.scrollToTopHashTagChallenges()
+    }
   }
   
-  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return 1
+  func append(models: [ChallengeCardPresentationModel]) {
+    guard let datasource else { return }
+    let snapshot = append(models: models, to: datasource.snapshot())
+    datasource.apply(snapshot)
   }
   
-  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueCell(HashTagChallengeCell.self, for: indexPath)
-    cell.configure(with: hashTagChallenges[indexPath.section])
-    return cell
+  func append(models: [ChallengeCardPresentationModel], to snapshot: SnapShot) -> SnapShot {
+    var snapshot = snapshot
+    models.forEach {
+      guard !snapshot.sectionIdentifiers.contains($0.id) else { return }
+      snapshot.appendSections([$0.id])
+      snapshot.appendItems([$0], toSection: $0.id)
+    }
+    
+    return snapshot
   }
 }
 
@@ -243,5 +302,13 @@ private extension RecommendedChallengesViewController {
     popularHashTagView.snp.remakeConstraints {
       $0.edges.equalTo(popularHashTagPlaceholder)
     }
+  }
+  
+  func scrollToTopHashTagChallenges() {
+    guard hashTagIsSticky else { return }
+
+    let hashtagTableViewPosition = hashtagChallengeTableView.convert(hashtagChallengeTableView.bounds, to: scrollView)
+    let contentYPosition = hashtagTableViewPosition.minY - popularHashTagView.frame.height
+    scrollView.setContentOffset(CGPoint(x: 0, y: contentYPosition), animated: true)
   }
 }
