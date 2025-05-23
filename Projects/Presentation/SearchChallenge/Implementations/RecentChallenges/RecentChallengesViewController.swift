@@ -27,6 +27,7 @@ final class RecentChallengesViewController: UIViewController, ViewControllerable
   private var datasource: DataSourceType?
   
   private let requestData = PublishRelay<Void>()
+  private let didTapChallenge = PublishRelay<Int>()
   
   // MARK: - UI Components
   private let challengeCollectionView: UICollectionView = {
@@ -92,7 +93,10 @@ private extension RecentChallengesViewController {
 // MARK: - Bind Methods
 private extension RecentChallengesViewController {
   func bind() {
-    let input = RecentChallengesViewModel.Input(requestData: requestData.asSignal())
+    let input = RecentChallengesViewModel.Input(
+      requestData: requestData.asSignal(),
+      didTapChallenge: didTapChallenge.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -101,7 +105,19 @@ private extension RecentChallengesViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: RecentChallengesViewModel.Output) { }
+  func viewModelBind(for output: RecentChallengesViewModel.Output) {
+    output.initialChallenges
+      .drive(with: self) { owner, challengs in
+        owner.initialize(with: challengs)
+      }
+      .disposed(by: disposeBag)
+    
+    output.challenges
+      .drive(with: self) { owner, challengs in
+        owner.append(models: challengs)
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - RecentChallengesPresentable
@@ -197,5 +213,10 @@ extension RecentChallengesViewController: UICollectionViewDelegate {
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
     requestData.accept(())
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapChallenge.accept(item.id)
   }
 }

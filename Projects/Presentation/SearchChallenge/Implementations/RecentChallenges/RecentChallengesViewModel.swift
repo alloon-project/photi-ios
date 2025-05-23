@@ -9,7 +9,9 @@
 import RxCocoa
 import RxSwift
 
-protocol RecentChallengesCoordinatable: AnyObject { }
+protocol RecentChallengesCoordinatable: AnyObject {
+  func didTapChallenge(challengeId: Int)
+}
 
 protocol RecentChallengesViewModelType: AnyObject {
   associatedtype Input
@@ -32,6 +34,7 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
   }
   
   // MARK: - Output
@@ -44,6 +47,18 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.requestData
+      .emit(with: self) { owner, _ in
+        Task { await owner.fetchChallenges() }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.didTapChallenge(challengeId: id)
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       initialChallenges: initialChallenges.asDriver(),
       challenges: challenges.asDriver()
