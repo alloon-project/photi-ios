@@ -26,6 +26,8 @@ final class RecentChallengesViewController: UIViewController, ViewControllerable
   private let disposeBag = DisposeBag()
   private var datasource: DataSourceType?
   
+  private let requestData = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let challengeCollectionView: UICollectionView = {
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
@@ -62,6 +64,9 @@ final class RecentChallengesViewController: UIViewController, ViewControllerable
     self.datasource = datasource
     datasource.supplementaryViewProvider = supplementaryViewProvider()
     challengeCollectionView.dataSource = datasource
+    challengeCollectionView.delegate = self
+    
+    requestData.accept(())
   }
 }
 
@@ -87,7 +92,7 @@ private extension RecentChallengesViewController {
 // MARK: - Bind Methods
 private extension RecentChallengesViewController {
   func bind() {
-    let input = RecentChallengesViewModel.Input()
+    let input = RecentChallengesViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -181,5 +186,16 @@ private extension RecentChallengesViewController {
     models.forEach { snapshot.appendItems([$0]) }
     
     return snapshot
+  }
+}
+
+// MARK: - UICollectionViewDelegate
+extension RecentChallengesViewController: UICollectionViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let yOffset = scrollView.contentOffset.y
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestData.accept(())
   }
 }
