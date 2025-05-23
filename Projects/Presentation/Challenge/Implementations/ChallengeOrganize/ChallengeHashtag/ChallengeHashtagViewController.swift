@@ -224,7 +224,8 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
     cell.configure(
       type: .icon(size: .large, type: .blue),
       text: hashtagsDataSource[indexPath.item],
-      iconImage: .closeBlue)
+      iconImage: .closeBlue
+    )
     
     cell.rx.didTapCloseButton
       .bind(with: self) { owner, _ in
