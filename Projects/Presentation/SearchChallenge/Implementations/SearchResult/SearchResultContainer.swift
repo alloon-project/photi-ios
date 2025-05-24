@@ -14,14 +14,23 @@ protocol SearchResultContainable: Containable {
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating
 }
 
-final class SearchResultContainer: Container<SearchResultDependency>, SearchResultContainable {
+final class SearchResultContainer:
+  Container<SearchResultDependency>,
+  SearchResultContainable,
+  ChallengeTitleResultDependency,
+  HashTagResultDependency {
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating {
     let viewModel = SearchResultViewModel()
     let viewControllerable = SearchResultViewController(viewModel: viewModel)
     
+    let challengeTitleResult = ChallengeTitleResultContainer(dependency: self)
+    let hashTagResult = HashTagResultContainer(dependency: self)
+    
     let coordinator = SearchResultCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      challengeTitleReulstContainable: challengeTitleResult,
+      hashTagResultContainable: hashTagResult
     )
     coordinator.listener = listener
     return coordinator
