@@ -14,7 +14,7 @@ import Entity
 import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject {
-  func requestLogIn()
+  func authenticatedFailed()
   func requestNoneChallengeHome()
   func attachChallenge(id: Int)
   func attachChallengeWithFeed(challengeId: Int, feedId: Int)
@@ -43,14 +43,12 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   private let networkUnstableRelay = PublishRelay<String?>()
   private let fileTooLargeRelay = PublishRelay<Void>()
   private let alreadProveChallengeRelay = PublishRelay<Void>()
-  private let loginTriggerRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
     let didTapChallenge: Signal<Int>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
-    let didTapLoginButton: Signal<Void>
     let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
   }
   
@@ -61,7 +59,6 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     let didUploadChallengeFeed: Signal<UploadChallnegeFeedResult>
     let networkUnstable: Signal<String?>
     let fileTooLarge: Signal<Void>
-    let loginTrigger: Signal<Void>
     let alreadProveChallenge: Signal<Void>
   }
   
@@ -87,12 +84,6 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
       }
       .disposed(by: disposeBag)
     
-    input.didTapLoginButton
-      .emit(with: self) { owner, _ in
-        owner.coordinator?.requestLogIn()
-      }
-      .disposed(by: disposeBag)
-    
     input.didTapChallenge
       .emit(with: self) { owner, id in
         owner.coordinator?.attachChallenge(id: id)
@@ -111,7 +102,6 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
       didUploadChallengeFeed: didUploadChallengeFeed.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal(),
       fileTooLarge: fileTooLargeRelay.asSignal(),
-      loginTrigger: loginTriggerRelay.asSignal(),
       alreadProveChallenge: alreadProveChallengeRelay.asSignal()
     )
   }
@@ -153,7 +143,7 @@ private extension ChallengeHomeViewModel {
     
     switch error {
       case .authenticationFailed:
-        loginTriggerRelay.accept(())
+        coordinator?.authenticatedFailed()
       case let .challengeFailed(reason) where reason == .fileTooLarge:
         fileTooLargeRelay.accept(())
       case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
