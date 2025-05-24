@@ -16,15 +16,22 @@ public protocol SearchChallengeDependency: Dependency {
 
 public final class SearchChallengeContainer:
   Container<SearchChallengeDependency>,
-  SearchChallengeContainable {
+  SearchChallengeContainable,
+  RecommendedChallengesDependency,
+  RecentChallengesDependency {
   public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
     let viewModel = SearchChallengeViewModel()
     let viewControllerable = SearchChallengeViewController(viewModel: viewModel)
     
+    let recommendedChallenges = RecommendedChallengesContainer(dependency: self)
+    let recentChallenges = RecentChallengesContainer(dependency: self)
+    
     let coordinator = SearchChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      challengeOrganizeContainable: dependency.challengeOrganizeContainable
+      challengeOrganizeContainable: dependency.challengeOrganizeContainable,
+      recommendedChallengesContainable: recommendedChallenges,
+      recentChallengesContainable: recentChallenges
     )
     coordinator.listener = listener
     return coordinator

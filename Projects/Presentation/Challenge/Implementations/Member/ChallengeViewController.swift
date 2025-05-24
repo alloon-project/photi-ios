@@ -41,7 +41,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     displayMode: .white
   )
   private let titleView = ChallengeTitleView()
-  private let segmentControl = PhotiSegmentControl(items: ["피드", "소개", "파티원"])
+  private let segmentControl = DashLineSegmentControl(items: ["피드", "소개", "파티원"])
   private lazy var dropDownView = DropDownView(anchorView: navigationOptionButton)
   private let mainView = UIView()
   private let mainContentView: UIView = {
