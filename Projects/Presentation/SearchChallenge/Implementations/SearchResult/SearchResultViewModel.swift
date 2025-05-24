@@ -37,6 +37,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
   struct Input {
     let didTapBackButton: Signal<Void>
     let searchText: Driver<String>
+    let didEnterSearchText: Signal<String>
     let deleteAllRecentSearchInputs: Signal<Void>
     let deleteRecentSearchInput: Signal<String>
   }
@@ -59,6 +60,12 @@ final class SearchResultViewModel: SearchResultViewModelType {
     input.searchText
       .drive(with: self) { owner, text in
         owner.updateSearchResultMode(text)
+      }
+      .disposed(by: disposeBag)
+    
+    input.didEnterSearchText
+      .emit(with: self) { owner, text in
+        owner.enterSearchInput(text)
       }
       .disposed(by: disposeBag)
     
@@ -86,6 +93,10 @@ private extension SearchResultViewModel {
     let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: recentSearchInputs) : .searchResult
     
     searchResultModeRelay.accept(mode)
+  }
+  
+  func enterSearchInput(_ input: String) {
+    recentSearchInputs = [input] + recentSearchInputs
   }
   
   func deleteAllRecentSearchInputs() {

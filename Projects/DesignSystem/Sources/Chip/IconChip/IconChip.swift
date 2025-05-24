@@ -94,7 +94,6 @@ public final class IconChip: UIView {
 private extension IconChip {
   func setupUI() {
     self.backgroundColor = backgroundColor(for: type)
-    iconView.backgroundColor = .red0
     setViewHierarchy()
     setConstraints(for: size)
     setBorderLine(for: type)

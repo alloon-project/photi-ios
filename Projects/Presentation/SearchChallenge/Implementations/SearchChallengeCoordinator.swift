@@ -107,6 +107,7 @@ private extension SearchChallengeCoordinator {
   func detachSearchResult() {
     guard let coordinater = searchResultCoordinator else { return }
     viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
     removeChild(coordinater)
     self.searchResultCoordinator = nil
   }

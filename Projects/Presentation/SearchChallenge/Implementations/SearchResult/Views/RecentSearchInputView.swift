@@ -132,8 +132,17 @@ private extension RecentSearchInputView {
   func append(items: [String]) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
-    let newItems = items.filter { !snapshot.itemIdentifiers.contains($0) }
-    snapshot.appendItems(newItems)
+    
+    let duplicateItems = items.filter { snapshot.itemIdentifiers.contains($0) }
+    snapshot.deleteItems(duplicateItems)
+    
+    if let first = snapshot.itemIdentifiers.first {
+      print(snapshot.itemIdentifiers)
+      snapshot.insertItems(items, beforeItem: first)
+    } else {
+      snapshot.appendItems(items)
+    }
+    
     datasource.apply(snapshot)
   }
   

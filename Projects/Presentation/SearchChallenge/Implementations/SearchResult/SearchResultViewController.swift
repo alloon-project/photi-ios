@@ -164,9 +164,15 @@ private extension SearchResultViewController {
 // MARK: - Bind Methods
 private extension SearchResultViewController {
   func bind() {
+    let didEnterSearchText = searchBar.rx.controlEvent(.editingDidEnd)
+      .withLatestFrom(searchBar.rx.text)
+      .compactMap { $0 }
+      .filter { !$0.isEmpty }
+    
     let input = SearchResultViewModel.Input(
       didTapBackButton: backButton.rx.tap.asSignal(),
       searchText: searchBar.rx.text.compactMap { $0 }.asDriver(onErrorJustReturn: ""),
+      didEnterSearchText: didEnterSearchText.asSignal(onErrorJustReturn: ""),
       deleteAllRecentSearchInputs: recentSearchInputView.rx.deleteAllRecentSearchInputs,
       deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput
     )
@@ -178,7 +184,10 @@ private extension SearchResultViewController {
   
   func viewBind() {
     recentSearchInputView.rx.didTapRecentSearchInput
-      .emit(to: searchBar.rx.text)
+      .emit(with: self) { owner, searchInput in
+        owner.searchBar.text = searchInput
+        owner.searchBar.sendActions(for: .editingDidEnd)
+      }
       .disposed(by: disposeBag)
   }
   
