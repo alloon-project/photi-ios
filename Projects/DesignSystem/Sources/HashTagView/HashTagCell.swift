@@ -16,10 +16,10 @@ public enum HashTagType: Equatable {
   case icon(size: ChipSize, type: IconChipType)
   case text(size: ChipSize, type: TextChipType)
   
-  func make(with text: String, iconImage: UIImage? = nil) -> UIView {
+  func make(with text: String) -> UIView {
     switch self {
       case let .icon(size, type):
-      return IconChip(text: text, icon: iconImage ?? .closeWhite, type: type, size: size)
+      return IconChip(text: text, icon: .closeWhite, type: type, size: size)
       case let .text(size, type):
         return TextChip(text: text, type: type, size: size)
     }
@@ -30,10 +30,10 @@ public final class HashTagCell: UICollectionViewCell {
   fileprivate var chip: UIView = UIView()
   private var type: HashTagType?
   
-  public func configure(type: HashTagType, text: String, iconImage: UIImage? = nil) {
+  public func configure(type: HashTagType, text: String) {
     guard self.type != type else { return configureText(text) }
     self.type = type
-    self.chip = type.make(with: text, iconImage: iconImage)
+    self.chip = type.make(with: text)
     setupUI(with: chip)
   }
 }

@@ -223,8 +223,7 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
     cell.configure(
       type: .icon(size: .large, type: .blue),
-      text: hashtagsDataSource[indexPath.item],
-      iconImage: .closeBlue
+      text: hashtagsDataSource[indexPath.item]
     )
     
     cell.rx.didTapCloseButton

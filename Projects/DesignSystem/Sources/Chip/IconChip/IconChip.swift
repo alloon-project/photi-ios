@@ -159,7 +159,18 @@ private extension IconChip {
     let resizeIcon = icon
       .resize(iconSize(for: size))
     
-    iconView.image = resizeIcon
+    switch type {
+      case .line:
+        iconView.image = resizeIcon.withTintColor(.gray600)
+      case .gray:
+        iconView.image = resizeIcon.withTintColor(.gray400)
+      case .darkGray:
+        iconView.image = resizeIcon.withTintColor(.gray500)
+      case .blue:
+        iconView.image = resizeIcon.withTintColor(.blue500)
+      case .green:
+        iconView.image = resizeIcon.withTintColor(.gray500)
+    }
   }
 }
 
