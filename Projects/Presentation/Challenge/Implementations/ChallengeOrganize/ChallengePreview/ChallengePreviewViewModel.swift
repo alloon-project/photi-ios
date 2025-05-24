@@ -32,8 +32,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   private let useCase: OrganizeUseCase
   private let networkUnstableRelay = PublishRelay<Void>()
   private let emptyFileErrorRelay = PublishRelay<String>()
-  private let imageTypeErrorRelay = PublishRelay<String>()
-  private let fileTooLargeErrorRelay = PublishRelay<String>()
+  
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
@@ -44,8 +43,6 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   struct Output {
     let networkUnstable: Signal<Void>
     let emptyFileError: Signal<String>
-    let imageTypeError: Signal<String>
-    let fileTooLargeError: Signal<String>
   }
   
   // MARK: - Initializers
@@ -68,9 +65,8 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
     
     return Output(
       networkUnstable: networkUnstableRelay.asSignal(),
-      emptyFileError: emptyFileErrorRelay.asSignal(),
-      imageTypeError: imageTypeErrorRelay.asSignal(),
-      fileTooLargeError: fileTooLargeErrorRelay.asSignal())
+      emptyFileError: emptyFileErrorRelay.asSignal()
+      )
   }
 }
 
@@ -99,12 +95,6 @@ private extension ChallengePreviewViewModel {
       case let .organazieFailed(reason) where reason == .emptyFileInvalid:
         let message = "비어있는 파일은 저장할 수 없습니다."
         emptyFileErrorRelay.accept(message)
-      case let .challengeFailed(reason) where reason == .invalidFileFormat:
-        let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
-        imageTypeErrorRelay.accept(message)
-      case let .challengeFailed(reason) where reason == .fileTooLarge:
-        let message = "파일 사이즈는 8MB 이하만 가능합니다."
-        fileTooLargeErrorRelay.accept(message)
       default:
         networkUnstableRelay.accept(())
     }

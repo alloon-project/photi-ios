@@ -17,7 +17,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   private var isPublic: Bool = true
   private var challengeGoal: String?
   private var challengeProveTime: String?
-  private var challengeEndDate: Date?
+  private var challengeEndDate: String?
   private var challengeCover: UIImageWrapper?
   private var challengeRule: [String] = []
   private var challengeHashtags: [String] = []
@@ -215,7 +215,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
       goal: challengeGoal,
       image: image,
       rules: challengeRule,
-      deadLine: deadline.toString("yyyy. MM. dd")
+      deadLine: deadline
     )
     let coordinater = challengePreviewContainable.coordinator(
       listener: self,
@@ -267,7 +267,7 @@ extension ChallengeOrganizeCoordinator: ChallengeGoalListener {
     detachChallengeGoal(animated: true)
   }
   
-  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date) {
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {
     self.challengeGoal = challengeGoal
     self.challengeProveTime = proveTime
     self.challengeEndDate = endDate

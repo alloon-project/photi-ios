@@ -80,7 +80,7 @@ public final class IconChip: UIView {
       case .line: icon = .closeGray700
       case .gray: icon = .closeGray400
       case .darkGray: icon = .closeGray400.color(.gray500)
-      case .blue: icon = .closeBlue
+      case .blue: icon = .closeBlue.color(.blue400)
       case .green: icon = .closeGreen
     }
     
@@ -159,7 +159,18 @@ private extension IconChip {
     let resizeIcon = icon
       .resize(iconSize(for: size))
     
-    iconView.image = resizeIcon
+    switch type {
+      case .line:
+        iconView.image = resizeIcon.withTintColor(.gray600)
+      case .gray:
+        iconView.image = resizeIcon.withTintColor(.gray400)
+      case .darkGray:
+        iconView.image = resizeIcon.withTintColor(.gray500)
+      case .blue:
+        iconView.image = resizeIcon.withTintColor(.blue500)
+      case .green:
+        iconView.image = resizeIcon.withTintColor(.gray500)
+    }
   }
 }
 

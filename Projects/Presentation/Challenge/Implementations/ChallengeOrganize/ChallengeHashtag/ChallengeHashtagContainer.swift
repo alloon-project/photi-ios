@@ -7,8 +7,10 @@
 //
 
 import Core
+import UseCase
 
 protocol ChallengeHashtagDependency: Dependency {
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 protocol ChallengeHashtagContainable: Containable {
@@ -17,7 +19,7 @@ protocol ChallengeHashtagContainable: Containable {
 
 final class ChallengeHashtagContainer: Container<ChallengeHashtagDependency>, ChallengeHashtagContainable {
   func coordinator(listener: ChallengeHashtagListener) -> ViewableCoordinating {
-    let viewModel = ChallengeHashtagViewModel()
+    let viewModel = ChallengeHashtagViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeHashtagViewController(viewModel: viewModel)
     
     let coordinator = ChallengeHashtagCoordinator(

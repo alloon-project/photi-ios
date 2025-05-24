@@ -73,5 +73,6 @@ extension APIError {
     case emptyFileInvalid
     case fileSizeExceed
     case imageTypeUnsurported
+    case payloadIsNil
   }
 }

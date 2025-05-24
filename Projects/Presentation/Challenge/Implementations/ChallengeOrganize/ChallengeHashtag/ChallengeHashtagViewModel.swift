@@ -24,7 +24,8 @@ protocol ChallengeHashtagViewModelType: AnyObject {
 }
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
-  let disposeBag = DisposeBag()
+  private let disposeBag = DisposeBag()
+  private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeHashtagCoordinatable?
       
@@ -43,7 +44,9 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   }
   
   // MARK: - Initializers
-  init() {}
+  init(useCase: OrganizeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -52,13 +55,16 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       }
       .disposed(by: disposeBag)
     
-    let isHashtagEntered = input.enteredHashtag.map { !$0.isEmpty && $0.count <= 6 }
+    let isHashtagEntered = input.enteredHashtag
+      .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 6 }
+    
     let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
 
     input.didTapNextButton
       .withLatestFrom(input.selectedHashtags)
       .bind(with: self) { owner, hashtags in
         owner.coordinator?.didFinishedAtChallengeHashtag(challengeHashtags: hashtags)
+        owner.useCase.configureChallengePayload(.hashtags, value: hashtags)
       }.disposed(by: disposeBag)
     
     return Output(

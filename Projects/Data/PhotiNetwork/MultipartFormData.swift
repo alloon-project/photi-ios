@@ -32,6 +32,8 @@ public struct MultipartFormDataBodyPart {
     case parameters([String: Any])
     // file, image 등 데이터를 저장합니다.
     case data([String: Data])
+    // jsonString을 저장합니다.
+    case jsonString(key: String, json: String)
   }
   
   public let type: BodyType

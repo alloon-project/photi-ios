@@ -1,8 +1,19 @@
 {
   "images" : [
     {
-      "filename" : "인증샷.svg",
-      "idiom" : "universal"
+      "filename" : "selfi3.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "selfie1.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "selfie2.png",
+      "idiom" : "universal",
+      "scale" : "3x"
     }
   ],
   "info" : {

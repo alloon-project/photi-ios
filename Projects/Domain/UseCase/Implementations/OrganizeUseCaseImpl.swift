@@ -87,9 +87,11 @@ public extension OrganizeUseCaseImpl {
 // MARK: - Upload Methods
 public extension OrganizeUseCaseImpl {
   func organizeChallenge() -> Single<Void> {
-    guard let payload else {
-      return singleWithError(APIError.serverError)
+    guard
+      let payload else {
+      return singleWithError(APIError.organazieFailed(reason: .payloadIsNil))
     }
+
     return repository.challengeOrganize(payload: payload)
   }
 }

@@ -35,9 +35,12 @@ public extension ChallengeOrganizeRepositoryImpl {
 
 // MARK: - Upload Methods
 public extension ChallengeOrganizeRepositoryImpl {
-  func challengeOrganize(payload: ChallengeOrganizePayload
-  ) -> Single<Void> {
-    let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload)
+  func challengeOrganize(payload: ChallengeOrganizePayload) -> Single<Void> {
+    guard
+      let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload)
+    else {
+      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+    }
     
     return requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.organizeChallenge(dto: requestDTO),
@@ -109,10 +112,5 @@ private extension ChallengeOrganizeRepositoryImpl {
       }
       return Disposables.create()
     }
-  }
-  
-  @discardableResult
-  func executeSingle<T>(_ single: Single<T>) async throws -> T {
-    return try await single.value
   }
 }

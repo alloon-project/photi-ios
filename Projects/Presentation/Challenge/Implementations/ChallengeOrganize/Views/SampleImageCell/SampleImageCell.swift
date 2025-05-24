@@ -45,7 +45,6 @@ final class SampleImageCell: UICollectionViewCell {
     imageView.layer.borderColor = UIColor.white.cgColor
     imageView.contentMode = .center
     imageView.backgroundColor = .gray500
-    imageView.contentMode = .scaleAspectFill
     return imageView
   }()
   
@@ -69,8 +68,18 @@ final class SampleImageCell: UICollectionViewCell {
       imageNameLabel.attributedText = "직접 불러오기".attributedString(font: .caption1Bold, color: .gray800)
       imageNameLabel.textAlignment = .center
     } else {
-      let url = URL(string: model.imageUrlString)
-      sampleImageView.kf.setImage(with: url)
+      guard let url = URL(string: model.imageUrlString) else { return }
+      KingfisherManager.shared.retrieveImage(with: url) { [weak self] result in
+        switch result {
+        case .success(let value):
+          Task { @MainActor in
+            self?.sampleImageView.image = value.image.resize(.init(width: 64, height: 64))
+          }
+        case .failure(let error):
+          return
+        }
+      }
+      
       setTempImageName(urlString: model.imageUrlString)
       // TODO: - API에서 이미지 이름 추가예정(?)
       

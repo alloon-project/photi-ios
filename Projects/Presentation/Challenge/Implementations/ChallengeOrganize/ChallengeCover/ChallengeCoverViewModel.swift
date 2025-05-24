@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Core
@@ -34,6 +35,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   
   private let sampleImagesRelay = PublishRelay<[String]>()
   private let requestFailedRelay = PublishRelay<Void>()
+  private let imageSizeErrorRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -47,6 +49,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   struct Output {
     let sampleImages: Signal<[String]>
     let requestFailed: Signal<Void>
+    let imageSizeError: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -69,13 +72,20 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
     input.didTapNextButton
       .withLatestFrom(input.challengeCoverImage)
       .bind(with: self) { owner, image in
+        guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
+          owner.imageSizeErrorRelay.accept(())
+          return
+        }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
+        owner.useCase.configureChallengePayload(.image, value: data)
+        owner.useCase.configureChallengePayload(.imageType, value: type)
       }
       .disposed(by: disposeBag)
     
     return Output(
       sampleImages: sampleImagesRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      requestFailed: requestFailedRelay.asSignal(),
+      imageSizeError: imageSizeErrorRelay.asSignal()
     )
   }
 }
@@ -99,5 +109,16 @@ private extension ChallengeCoverViewModel {
       default:
         requestFailedRelay.accept(())
     }
+  }
+  
+  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+    let maxSizeBytes = maxMB * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      return (data, "png")
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      return (data, "jpeg")
+    }
+    return nil
   }
 }

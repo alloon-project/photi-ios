@@ -8,8 +8,14 @@
 
 import UIKit
 import DesignSystem
+import RxCocoa
+import RxSwift
 
 final class ChallengeRuleCell: UICollectionViewCell {
+  // MARK: - Variables
+  private let disposeBag = DisposeBag()
+  var onTapClose: (() -> Void)?
+
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let view = UIStackView()
@@ -31,14 +37,13 @@ final class ChallengeRuleCell: UICollectionViewCell {
     return label
   }()
   
-  // TODO: - 아이콘이 안보이는 문제 있음
-  private let deleteButton = {
-    let button = IconButton(
-      selectedIcon: .closeCircleBlue,
-      unSelectedIcon: .closeCircleGray400,
-      size: .xSmall
-    )
+  let deleteButton = {
+    let button = UIButton()
+    button.imageView?.contentMode = .scaleAspectFit
+    button.setImage(.closeCircleLight, for: .normal)
+    button.setImage(.closeCircleBlue, for: .selected)
     
+    button.backgroundColor = .clear
     return button
   }()
   
@@ -46,11 +51,17 @@ final class ChallengeRuleCell: UICollectionViewCell {
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
+    bind()
   }
   
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    onTapClose = nil
   }
   
   // MARK: - Configure Methods
@@ -66,7 +77,7 @@ final class ChallengeRuleCell: UICollectionViewCell {
     challengeRuleLabel.textAlignment = .center
     self.contentView.backgroundColor = isSelected ? .blue0 : .white
     self.layer.borderColor = isSelected ? UIColor.blue400.cgColor : UIColor.gray200.cgColor
-
+    deleteButton.isSelected = isSelected
     deleteButton.isHidden = (rule == "+" || isDefault)
   }
 }
@@ -91,7 +102,8 @@ private extension ChallengeRuleCell {
   
   func setConstraints() {
     stackView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(16)
+      $0.top.bottom.equalToSuperview()
     }
     
     challengeRuleLabel.snp.makeConstraints {
@@ -99,7 +111,17 @@ private extension ChallengeRuleCell {
     }
     
     deleteButton.snp.makeConstraints {
-      $0.height.width.equalTo(24)
+      $0.height.width.equalTo(16)
     }
+  }
+}
+
+// MARK: - Bind Method
+private extension ChallengeRuleCell {
+  func bind() {
+    deleteButton.rx.tap
+      .bind { [weak self] in
+        self?.onTapClose?()
+      }.disposed(by: disposeBag)
   }
 }

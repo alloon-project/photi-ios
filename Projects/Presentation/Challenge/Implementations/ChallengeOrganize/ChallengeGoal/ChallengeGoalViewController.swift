@@ -110,6 +110,12 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
     super.touchesEnded(touches, with: event)
     
     view.endEditing(true)
+    
+    if
+      let text = challengeGoalTextView.text,
+      text.count < 10 {
+      presentMinimumGoalTextToastView()
+    }
   }
 }
 
@@ -254,6 +260,17 @@ private extension ChallengeGoalViewController {
     calendar.buttonText = "종료일 고르기"
     calendar.delegate = self
     calendar.present(to: self, animated: true)
+  }
+  
+  func presentMinimumGoalTextToastView() {
+    let toastText = "목표는 10자 이상 적어주세요!"
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
   }
 }
 
