@@ -39,6 +39,6 @@ private extension RecentChallengeSectionHeader {
   }
   
   func setConstraints() {
-    headerView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    headerView.snp.makeConstraints { $0.top.leading.trailing.equalToSuperview() }
   }
 }

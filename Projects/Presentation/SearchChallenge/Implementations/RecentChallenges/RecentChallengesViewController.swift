@@ -146,6 +146,7 @@ private extension RecentChallengesViewController {
       group.interItemSpacing = .fixed(itemSpacing)
       let section = NSCollectionLayoutSection(group: group)
       section.interGroupSpacing = itemSpacing
+      section.contentInsets.top = 20
       let header = NSCollectionLayoutBoundarySupplementaryItem(
         layoutSize: .init(
           widthDimension: .fractionalWidth(1),
@@ -174,8 +175,9 @@ private extension RecentChallengesViewController {
   func supplementaryViewProvider() -> DataSourceType.SupplementaryViewProvider? {
     return .init { collectionView, kind, indexPath in
       guard kind == UICollectionView.elementKindSectionHeader else { return nil }
-      
-      return collectionView.dequeueHeader(RecentChallengeSectionHeader.self, for: indexPath)
+      let headerView = collectionView.dequeueHeader(RecentChallengeSectionHeader.self, for: indexPath)
+      headerView.frame = .init(origin: .zero, size: .init(width: 200, height: 24))
+      return headerView
     }
   }
   
