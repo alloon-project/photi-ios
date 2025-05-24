@@ -88,6 +88,14 @@ private extension SearchChallengeCoordinator {
     self.organizeCoordinator = nil
   }
 }
+  
+  func detachSearchResult() {
+    guard let coordinater = searchResultCoordinator else { return }
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinater)
+    self.searchResultCoordinator = nil
+  }
+  }
 
 // MARK: - SearchChallengeCoordinatable
 extension SearchChallengeCoordinator: SearchChallengeCoordinatable {
@@ -111,4 +119,11 @@ extension SearchChallengeCoordinator: RecommendedChallengesListener {
 // MARK: - RecentChallengesListener
 extension SearchChallengeCoordinator: RecentChallengesListener {
   func requestAttachChallengeAtRecentChallenges(challengeId: Int) { }
+}
+
+// MARK: - SearchResultListener
+extension SearchChallengeCoordinator: SearchResultListener {
+  func didTapBackButtonAtSearchResult() {
+    detachSearchResult()
+  }
 }

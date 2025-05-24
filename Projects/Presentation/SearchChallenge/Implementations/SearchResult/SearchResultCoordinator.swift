@@ -8,7 +8,9 @@
 
 import Core
 
-protocol SearchResultListener: AnyObject { }
+protocol SearchResultListener: AnyObject {
+  func didTapBackButtonAtSearchResult()
+}
 
 protocol SearchResultPresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)

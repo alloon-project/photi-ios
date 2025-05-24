@@ -6,9 +6,12 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import RxCocoa
 import RxSwift
 
-protocol SearchResultCoordinatable: AnyObject { }
+protocol SearchResultCoordinatable: AnyObject {
+  func didTapBackButton()
+}
 
 protocol SearchResultViewModelType: AnyObject {
   associatedtype Input
@@ -22,7 +25,9 @@ final class SearchResultViewModel: SearchResultViewModelType {
   private let disposeBag = DisposeBag()
 
   // MARK: - Input
-  struct Input { }
+  struct Input {
+    let didTapBackButton: Signal<Void>
+  }
   
   // MARK: - Output
   struct Output { }
@@ -31,6 +36,12 @@ final class SearchResultViewModel: SearchResultViewModelType {
   init() { }
   
   func transform(input: Input) -> Output {
+    input.didTapBackButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
     return Output()
   }
 }
