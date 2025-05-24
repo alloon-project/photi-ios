@@ -37,16 +37,7 @@ public final class IconChip: UIView {
   }
   
   // MARK: - UI Components
-  private let stackView: UIStackView = {
-    let stackView = UIStackView()
-    stackView.axis = .horizontal
-    stackView.spacing = 2
-    stackView.alignment = .center
-    stackView.distribution = .fillProportionally
-    
-    return stackView
-  }()
-  
+  private let contentView = UIView()
   private let label = UILabel()
   fileprivate let iconView = UIImageView()
   
@@ -103,8 +94,7 @@ public final class IconChip: UIView {
 private extension IconChip {
   func setupUI() {
     self.backgroundColor = backgroundColor(for: type)
-    iconView.contentMode = .center
-
+    iconView.backgroundColor = .red0
     setViewHierarchy()
     setConstraints(for: size)
     setBorderLine(for: type)
@@ -114,27 +104,34 @@ private extension IconChip {
   }
   
   func setViewHierarchy() {
-    addSubview(stackView)
-    stackView.addArrangedSubviews(label, iconView)
+    addSubview(contentView)
+    contentView.addSubviews(label, iconView)
   }
   
   func setConstraints(for size: ChipSize) {
-    label.setContentHuggingPriority(.init(999), for: .horizontal)
-    iconView.snp.makeConstraints { $0.size.equalTo(iconViewSize(for: self.size)) }
+    let inset = size == .large ? 4 : 2
+    
+    iconView.snp.makeConstraints {
+      $0.leading.equalTo(label.snp.trailing).offset(inset)
+      $0.size.equalTo(iconViewSize(for: self.size))
+      $0.trailing.top.bottom.equalToSuperview()
+    }
+    
+    label.snp.makeConstraints {
+      $0.leading.centerY.equalToSuperview()
+    }
     
     switch size {
       case .large:
-        stackView.spacing = 4
-        stackView.snp.makeConstraints {
+        contentView.snp.makeConstraints {
           $0.top.bottom.equalToSuperview().inset(8)
           $0.leading.equalToSuperview().offset(12)
           $0.trailing.equalToSuperview().offset(-10)
         }
       default:
-        stackView.snp.makeConstraints {
-          $0.top.bottom.equalToSuperview().inset(6)
+        contentView.snp.makeConstraints {
+          $0.top.bottom.trailing.equalToSuperview().inset(6)
           $0.leading.equalToSuperview().offset(8)
-          $0.trailing.equalToSuperview().offset(-6)
         }
     }
   }
@@ -156,10 +153,7 @@ private extension IconChip {
   }
   
   func setIconView(_ icon: UIImage) {
-    let resizeIcon = icon
-      .resize(iconSize(for: size))
-    
-    iconView.image = resizeIcon
+    iconView.image = icon
   }
 }
 
