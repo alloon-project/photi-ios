@@ -34,15 +34,11 @@ final class ChallengeRuleCell: UICollectionViewCell {
   }()
   
   let deleteButton = {
-    let button = IconButton(size: .xSmall)
+    let button = UIButton()
+    button.imageView?.contentMode = .scaleAspectFit
+    button.setImage(.closeCircleLight, for: .normal)
+    button.setImage(.closeCircleBlue, for: .selected)
     
-    button.selectedTintColor = .blue200
-    button.unSelectedTintColor = .gray400
-
-    button.unSelectedIcon = .closeCircleWhite
-    button.selectedIcon = .closeCircleWhite
-    button.invalidateIntrinsicContentSize()
-
     button.backgroundColor = .clear
     return button
   }()
@@ -105,7 +101,7 @@ private extension ChallengeRuleCell {
     }
     
     deleteButton.snp.makeConstraints {
-      $0.height.width.equalTo(24)
+      $0.height.width.equalTo(16)
     }
   }
 }
