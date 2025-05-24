@@ -12,6 +12,10 @@ import RxCocoa
 import RxSwift
 
 final class ChallengeRuleCell: UICollectionViewCell {
+  // MARK: - Variables
+  private let disposeBag = DisposeBag()
+  var onTapClose: (() -> Void)?
+
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let view = UIStackView()
@@ -47,11 +51,17 @@ final class ChallengeRuleCell: UICollectionViewCell {
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
+    bind()
   }
   
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    onTapClose = nil
   }
   
   // MARK: - Configure Methods
@@ -103,5 +113,15 @@ private extension ChallengeRuleCell {
     deleteButton.snp.makeConstraints {
       $0.height.width.equalTo(16)
     }
+  }
+}
+
+// MARK: - Bind Method
+private extension ChallengeRuleCell {
+  func bind() {
+    deleteButton.rx.tap
+      .bind { [weak self] in
+        self?.onTapClose?()
+      }.disposed(by: disposeBag)
   }
 }

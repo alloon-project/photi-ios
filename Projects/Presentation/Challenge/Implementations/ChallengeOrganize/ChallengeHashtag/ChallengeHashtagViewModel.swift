@@ -24,7 +24,7 @@ protocol ChallengeHashtagViewModelType: AnyObject {
 }
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
-  let disposeBag = DisposeBag()
+  private let disposeBag = DisposeBag()
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeHashtagCoordinatable?
@@ -75,7 +75,6 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       }.disposed(by: disposeBag)
     
     return Output(
-      isEnabledAddButton: isEnabledAddButton,
       isValidHashtag: isHashtagEntered.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
     )

@@ -27,6 +27,9 @@ public enum HashTagType: Equatable {
 }
 
 public final class HashTagCell: UICollectionViewCell {
+  // MARK: - Variables
+  private let disposeBag = DisposeBag()
+  public var onTapClose: (() -> Void)?
   fileprivate var chip: UIView = UIView()
   private var type: HashTagType?
   
@@ -35,6 +38,12 @@ public final class HashTagCell: UICollectionViewCell {
     self.type = type
     self.chip = type.make(with: text)
     setupUI(with: chip)
+    bind()
+  }
+  
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    onTapClose = nil
   }
 }
 
@@ -54,6 +63,19 @@ private extension HashTagCell {
     } else if let view = chip as? IconChip {
       view.text = text
     }
+  }
+}
+
+// MARK: - Bind Method
+private extension HashTagCell {
+  func bind() {
+    guard let iconChip = chip as? IconChip else {
+      return
+    }
+    iconChip.rx.didTapIcon
+      .bind { [weak self] in
+        self?.onTapClose?()
+      }.disposed(by: disposeBag)
   }
 }
 

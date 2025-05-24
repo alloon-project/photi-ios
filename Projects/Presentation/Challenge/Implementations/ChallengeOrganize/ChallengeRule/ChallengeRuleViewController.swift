@@ -33,7 +33,11 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   
   private var additionalRules: [Rule] = [
     Rule(title: "+", isSelected: false)
-  ]
+  ] {
+    didSet {
+      ruleCollectionView.reloadData()
+    }
+  }
   private var selectedRules: [String] = [] {
     didSet {
       selectedRulesRelay.accept(selectedRules)
@@ -295,18 +299,17 @@ extension ChallengeRuleViewController: UICollectionViewDataSource {
       cell.configure(with: data.title, isSelected: data.isSelected, isDefault: false)
     }
     
-    cell.deleteButton.rx.tapGesture()
-      .when(.recognized)
-      .map { _ in () }
-      .bind(onNext: { [weak self] in
-        guard let self = self else { return }
-        additionalRules.remove(at: indexPath.item)
-        collectionView.performBatchUpdates {
-          collectionView.deleteItems(at: [indexPath])
-        }
-      })
-      .disposed(by: disposeBag)
-
+    cell.onTapClose = { [weak self] in
+      guard
+        let self,
+        collectionView.indexPath(for: cell) != nil
+      else { return }
+      
+      if let selectedRulesIndex = selectedRules.firstIndex(of: additionalRules[indexPath.item].title) {
+        selectedRules.remove(at: selectedRulesIndex)
+      }
+      additionalRules.remove(at: indexPath.item)
+    }
     return cell
   }
 }
@@ -329,14 +332,5 @@ extension ChallengeRuleViewController: TextFieldBottomSheetDelegate {
     let newRule = Rule(title: text, isSelected: false)
     let beforeCount = additionalRules.count - 1
     additionalRules.insert(newRule, at: beforeCount)
-    
-    ruleCollectionView.performBatchUpdates {
-      ruleCollectionView.insertItems(at: [IndexPath(item: beforeCount, section: 1)])
-    } completion: { [weak self] _ in
-      self?.ruleCollectionView.reloadItems(at: [
-        IndexPath(item: beforeCount, section: 1),
-        IndexPath(item: beforeCount + 1, section: 1)
-      ])
-    }
   }
 }

@@ -226,10 +226,14 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
       text: hashtagsDataSource[indexPath.item]
     )
     
-    cell.rx.didTapCloseButton
-      .bind(with: self) { owner, _ in
-        owner.hashtagsDataSource.remove(at: indexPath.item)
-      }.disposed(by: disposeBag)
+    cell.onTapClose = { [weak self] in
+      guard
+        let self,
+        collectionView.indexPath(for: cell) != nil
+      else { return }
+      
+      hashtagsDataSource.remove(at: indexPath.item)
+    }
     
     return cell
   }
