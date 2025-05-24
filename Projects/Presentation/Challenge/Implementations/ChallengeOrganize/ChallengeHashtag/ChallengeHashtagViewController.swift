@@ -179,8 +179,8 @@ private extension ChallengeHashtagViewController {
   }
   
   func bind(for output: ChallengeHashtagViewModel.Output) {
-    output.isEnabledAddButton
-      .bind(to: addHashtagTextField.rx.buttonIsEnabled)
+    output.isValidHashtag
+      .drive(addHashtagTextField.rx.buttonIsEnabled)
       .disposed(by: disposeBag)
     
     output.isValidHashtag

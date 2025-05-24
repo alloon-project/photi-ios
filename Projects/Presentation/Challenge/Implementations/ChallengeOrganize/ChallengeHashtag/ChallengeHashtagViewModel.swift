@@ -39,7 +39,6 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   
   // MARK: - Output
   struct Output {
-    let isEnabledAddButton: Observable<Bool>
     let isValidHashtag: Driver<Bool>
     let isEnabledNextButton: Driver<Bool>
   }
@@ -56,14 +55,8 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       }
       .disposed(by: disposeBag)
     
-    let isEnabledAddButton = Observable.combineLatest(
-      input.enteredHashtag.asObservable(),
-      input.selectedHashtags
-    ) { enteredHashtag, selectedHashtags in
-      !enteredHashtag.isEmpty && enteredHashtag.count <= 6 && selectedHashtags.count < 3
-    }
-    
-    let isHashtagEntered = input.enteredHashtag.map { !$0.isEmpty && $0.count <= 6 }
+    let isHashtagEntered = input.enteredHashtag
+      .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 6 }
     
     let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
 
