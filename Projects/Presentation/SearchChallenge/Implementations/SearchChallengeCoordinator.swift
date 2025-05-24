@@ -104,7 +104,11 @@ extension SearchChallengeCoordinator: ChallengeOrganizeListener {
 }
 
 // MARK: - RecommendedChallengesListener
-extension SearchChallengeCoordinator: RecommendedChallengesListener { }
+extension SearchChallengeCoordinator: RecommendedChallengesListener {
+  func requestAttachChallengeAtRecommendedChallenges(challengeId: Int) { }
+}
 
 // MARK: - RecentChallengesListener
-extension SearchChallengeCoordinator: RecentChallengesListener { }
+extension SearchChallengeCoordinator: RecentChallengesListener {
+  func requestAttachChallengeAtRecentChallenges(challengeId: Int) { }
+}

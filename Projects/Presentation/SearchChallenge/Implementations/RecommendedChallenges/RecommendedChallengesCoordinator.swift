@@ -8,7 +8,9 @@
 
 import Core
 
-protocol RecommendedChallengesListener: AnyObject { }
+protocol RecommendedChallengesListener: AnyObject {
+  func requestAttachChallengeAtRecommendedChallenges(challengeId: Int)
+}
 
 protocol RecommendedChallengesPresentable { }
 
@@ -28,4 +30,8 @@ final class RecommendedChallengesCoordinator: ViewableCoordinator<RecommendedCha
 }
 
 // MARK: - RecommendedChallengesCoordinatable
-extension RecommendedChallengesCoordinator: RecommendedChallengesCoordinatable { }
+extension RecommendedChallengesCoordinator: RecommendedChallengesCoordinatable {
+  func didTapChallenge(challengeId: Int) {
+    listener?.requestAttachChallengeAtRecommendedChallenges(challengeId: challengeId)
+  }
+}

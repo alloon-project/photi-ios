@@ -32,6 +32,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   private let requestData = PublishRelay<Void>()
   private let requestHashTagChallenge = PublishRelay<Void>()
   private let didSelectHashTag = PublishRelay<String>()
+  private let didTapChallenge = PublishRelay<Int>()
   
   private var popularChallenges = [ChallengeCardPresentationModel]() {
     didSet { popularChallengesCollectionView.reloadData() }
@@ -94,6 +95,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     bind()
     scrollView.delegate = self
     popularChallengesCollectionView.dataSource = self
+    popularChallengesCollectionView.delegate = self
     
     let hashTagDataSource = diffableDatasource()
     datasource = hashTagDataSource
@@ -175,7 +177,8 @@ private extension RecommendedChallengesViewController {
     let input = RecommendedChallengesViewModel.Input(
       requestData: requestData.asSignal(),
       requestHashTagChallenge: requestHashTagChallenge.asSignal(),
-      didSelectHashTag: didSelectHashTag.asSignal()
+      didSelectHashTag: didSelectHashTag.asSignal(),
+      didTapChallenge: didTapChallenge.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -243,6 +246,14 @@ extension RecommendedChallengesViewController: UICollectionViewDataSource {
   }
 }
 
+// MARK: - UICollectionViewDelegate
+extension RecommendedChallengesViewController: UICollectionViewDelegate {
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    let item = popularChallenges[indexPath.row]
+    didTapChallenge.accept(item.id)
+  }
+}
+
 // MARK: - UITableViewDataSource
 extension RecommendedChallengesViewController {
   func diffableDatasource() -> DataSourceType {
@@ -286,6 +297,11 @@ extension RecommendedChallengesViewController {
 extension RecommendedChallengesViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     return UIView()
+  }
+  
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapChallenge.accept(item.id)
   }
 }
 
