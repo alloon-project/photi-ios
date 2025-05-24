@@ -137,7 +137,6 @@ private extension RecentSearchInputView {
     snapshot.deleteItems(duplicateItems)
     
     if let first = snapshot.itemIdentifiers.first {
-      print(snapshot.itemIdentifiers)
       snapshot.insertItems(items, beforeItem: first)
     } else {
       snapshot.appendItems(items)
