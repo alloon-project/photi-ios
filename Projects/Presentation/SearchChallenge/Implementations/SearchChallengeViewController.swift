@@ -40,6 +40,7 @@ final class SearchChallengeViewController: UIViewController, ViewControllerable 
   // MARK: - View LifeCycle
   override func viewDidLoad() {
     super.viewDidLoad()
+    searchBar.delegate = self
     setupUI()
     bind()
   }
@@ -102,7 +103,8 @@ private extension SearchChallengeViewController {
 private extension SearchChallengeViewController {
   func bind() {
     let input = SearchChallengeViewModel.Input(
-      didTapChallengeOrganizeButton: challengeOrganizeButton.rx.tap
+      didTapChallengeOrganizeButton: challengeOrganizeButton.rx.tap,
+      didTapSearchBar: searchBar.rx.tapGesture().when(.recognized).map { _ in () }.asSignal(onErrorJustReturn: ())
     )
     
     let output = viewModel.transform(input: input)
@@ -119,6 +121,13 @@ private extension SearchChallengeViewController {
   }
   
   func bind(output: SearchChallengeViewModel.Output) {}
+}
+
+// MARK: -
+extension SearchChallengeViewController: UITextFieldDelegate {
+  func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+    return false
+  }
 }
 
 // MARK: - Private Methods

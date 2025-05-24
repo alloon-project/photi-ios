@@ -11,6 +11,7 @@ import RxSwift
 
 protocol SearchChallengeCoordinatable: AnyObject {
   func didTapChallengeOrganize()
+  func didStartSearch()
 }
 
 protocol SearchChallengeViewModelType: AnyObject {
@@ -28,7 +29,8 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   
   // MARK: - Input
   struct Input {
-    var didTapChallengeOrganizeButton: ControlEvent<Void>
+    let didTapChallengeOrganizeButton: ControlEvent<Void>
+    let didTapSearchBar: Signal<Void>
   }
   
   // MARK: - Output
@@ -41,6 +43,11 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
     input.didTapChallengeOrganizeButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.didTapChallengeOrganize()
+      }.disposed(by: disposeBag)
+    
+    input.didTapSearchBar
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didStartSearch()
       }.disposed(by: disposeBag)
     
     return Output()
