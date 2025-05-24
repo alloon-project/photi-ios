@@ -18,20 +18,23 @@ public final class SearchChallengeContainer:
   Container<SearchChallengeDependency>,
   SearchChallengeContainable,
   RecommendedChallengesDependency,
-  RecentChallengesDependency {
+  RecentChallengesDependency,
+  SearchResultDependency {
   public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
     let viewModel = SearchChallengeViewModel()
     let viewControllerable = SearchChallengeViewController(viewModel: viewModel)
     
     let recommendedChallenges = RecommendedChallengesContainer(dependency: self)
     let recentChallenges = RecentChallengesContainer(dependency: self)
+    let searchResult = SearchResultContainer(dependency: self)
     
     let coordinator = SearchChallengeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       challengeOrganizeContainable: dependency.challengeOrganizeContainable,
       recommendedChallengesContainable: recommendedChallenges,
-      recentChallengesContainable: recentChallenges
+      recentChallengesContainable: recentChallenges,
+      searchResultContainable: searchResult
     )
     coordinator.listener = listener
     return coordinator
