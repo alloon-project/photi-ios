@@ -29,17 +29,22 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
   private let recentChallengesContainable: RecentChallengesContainable
   private var recentChallengesCoordinator: ViewableCoordinating?
   
+  private let searchResultContainable: SearchResultContainable
+  private var searchResultCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SearchChallengeViewModel,
     challengeOrganizeContainable: ChallengeOrganizeContainable,
     recommendedChallengesContainable: RecommendedChallengesContainable,
-    recentChallengesContainable: RecentChallengesContainable
+    recentChallengesContainable: RecentChallengesContainable,
+    searchResultContainable: SearchResultContainable
   ) {
     self.viewModel = viewModel
     self.organizeContainable = challengeOrganizeContainable
     self.recommendedChallengesContainable = recommendedChallengesContainable
     self.recentChallengesContainable = recentChallengesContainable
+    self.searchResultContainable = searchResultContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -48,7 +53,7 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
     attachSegments()
   }
   
-  func attachSegments() {
+  private func attachSegments() {
     let recommendedChallenges = recommendedChallengesContainable.coordinator(listener: self)
     let recentChallenges = recentChallengesContainable.coordinator(listener: self)
     
@@ -89,10 +94,33 @@ private extension SearchChallengeCoordinator {
   }
 }
 
+// MARK: - SearchResult
+private extension SearchChallengeCoordinator {
+  func attachSearchResult() {
+    guard searchResultCoordinator == nil else { return }
+    let coordinater = searchResultContainable.coordinator(listener: self)
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: false)
+    addChild(coordinater)
+    self.searchResultCoordinator = coordinater
+  }
+  
+  func detachSearchResult() {
+    guard let coordinater = searchResultCoordinator else { return }
+    viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
+    removeChild(coordinater)
+    self.searchResultCoordinator = nil
+  }
+}
+
 // MARK: - SearchChallengeCoordinatable
 extension SearchChallengeCoordinator: SearchChallengeCoordinatable {
   func didTapChallengeOrganize() {
     attachChallengeOrganize()
+  }
+  
+  func didStartSearch() {
+    attachSearchResult()
   }
 }
 
@@ -111,4 +139,11 @@ extension SearchChallengeCoordinator: RecommendedChallengesListener {
 // MARK: - RecentChallengesListener
 extension SearchChallengeCoordinator: RecentChallengesListener {
   func requestAttachChallengeAtRecentChallenges(challengeId: Int) { }
+}
+
+// MARK: - SearchResultListener
+extension SearchChallengeCoordinator: SearchResultListener {
+  func didTapBackButtonAtSearchResult() {
+    detachSearchResult()
+  }
 }
