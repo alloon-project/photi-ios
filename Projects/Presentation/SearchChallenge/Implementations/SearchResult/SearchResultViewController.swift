@@ -65,13 +65,18 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
     
     setupUI()
     bind()
-    
-    recentSearchInputView.append(searchInputs: ["Chip", "코딩", "독서 챌린지", "운동", "헤헤"])
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     searchBar.becomeFirstResponder()
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      self?.hideTabBar(animated: true)
+    }
   }
   
   // MARK: - UI Responder
@@ -86,7 +91,6 @@ private extension SearchResultViewController {
     view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
-    searchSuggestionView.isHidden = true
   }
   
   func setViewHierarchy() {
@@ -161,7 +165,10 @@ private extension SearchResultViewController {
 private extension SearchResultViewController {
   func bind() {
     let input = SearchResultViewModel.Input(
-      didTapBackButton: backButton.rx.tap.asSignal()
+      didTapBackButton: backButton.rx.tap.asSignal(),
+      searchText: searchBar.rx.text.compactMap { $0 }.asDriver(onErrorJustReturn: ""),
+      deleteAllRecentSearchInputs: recentSearchInputView.rx.deleteAllRecentSearchInputs,
+      deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput
     )
     let output = viewModel.transform(input: input)
     
@@ -169,9 +176,27 @@ private extension SearchResultViewController {
     viewModelBind(for: output)
   }
   
-  func viewBind() { }
+  func viewBind() {
+    recentSearchInputView.rx.didTapRecentSearchInput
+      .emit(to: searchBar.rx.text)
+      .disposed(by: disposeBag)
+  }
   
-  func viewModelBind(for output: SearchResultViewModel.Output) { }
+  func viewModelBind(for output: SearchResultViewModel.Output) {
+    output.searchResultMode
+      .drive(with: self) { owner, mode in
+        switch mode {
+          case .searchInputSuggestion(let suggestion):
+            owner.configureSearchSuggestionView(suggestion)
+            owner.searchSuggestionView.isHidden = false
+            owner.searchResultView.isHidden = true
+          case .searchResult:
+            owner.searchSuggestionView.isHidden = true
+            owner.searchResultView.isHidden = false
+        }
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - SearchResultPresentable
@@ -212,5 +237,12 @@ private extension SearchResultViewController {
     viewController.view.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
+  }
+  
+  func configureSearchSuggestionView(_ suggestions: [String]) {
+    emptyRecentSearchInputLabel.isHidden = !suggestions.isEmpty
+    recentSearchInputView.isHidden = suggestions.isEmpty
+    
+    if !suggestions.isEmpty { recentSearchInputView.append(searchInputs: suggestions) }
   }
 }

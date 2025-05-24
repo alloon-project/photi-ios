@@ -20,17 +20,31 @@ protocol SearchResultViewModelType: AnyObject {
   var coordinator: SearchResultCoordinatable? { get set }
 }
 
+enum SearchResultMode {
+  case searchInputSuggestion(recent: [String])
+  case searchResult
+}
+
 final class SearchResultViewModel: SearchResultViewModelType {
   weak var coordinator: SearchResultCoordinatable?
   private let disposeBag = DisposeBag()
+  // TODO: - API 작업 이후 수정 예정
+  private var recentSearchInputs = ["건강", "운동하기", "코딩코딩코딩", "밥 잘먹기"]
+  
+  private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
 
   // MARK: - Input
   struct Input {
     let didTapBackButton: Signal<Void>
+    let searchText: Driver<String>
+    let deleteAllRecentSearchInputs: Signal<Void>
+    let deleteRecentSearchInput: Signal<String>
   }
   
   // MARK: - Output
-  struct Output { }
+  struct Output {
+    let searchResultMode: Driver<SearchResultMode>
+  }
   
   // MARK: - Initializers
   init() { }
@@ -42,6 +56,45 @@ final class SearchResultViewModel: SearchResultViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output()
+    input.searchText
+      .drive(with: self) { owner, text in
+        owner.updateSearchResultMode(text)
+      }
+      .disposed(by: disposeBag)
+    
+    input.deleteAllRecentSearchInputs
+      .emit(with: self) { owner, _ in
+        owner.deleteAllRecentSearchInputs()
+      }
+      .disposed(by: disposeBag)
+    
+    input.deleteRecentSearchInput
+      .emit(with: self) { owner, input in
+        owner.deleteRecentSearchInput(input)
+      }
+      .disposed(by: disposeBag)
+
+    return Output(searchResultMode: searchResultModeRelay.asDriver())
+  }
+}
+
+// MARK: - Private Methods
+private extension SearchResultViewModel {
+  func updateSearchResultMode(_ text: String) {
+    guard text.isEmpty else { return searchResultModeRelay.accept(.searchResult) }
+    
+    let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: recentSearchInputs) : .searchResult
+    
+    searchResultModeRelay.accept(mode)
+  }
+  
+  func deleteAllRecentSearchInputs() {
+    recentSearchInputs = []
+    searchResultModeRelay.accept(.searchInputSuggestion(recent: []))
+  }
+  
+  func deleteRecentSearchInput(_ input: String) {
+    recentSearchInputs.removeAll { $0 == input }
+    searchResultModeRelay.accept(.searchInputSuggestion(recent: recentSearchInputs))
   }
 }

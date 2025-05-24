@@ -64,7 +64,7 @@ final class RecentSearchInputView: UIView {
 // MARK: - UI Methods
 private extension RecentSearchInputView {
   func setupUI() {
-    self.backgroundColor = .red0
+    self.backgroundColor = .white
     setViewHeirarchy()
     setConstraints()
   }
@@ -132,7 +132,8 @@ private extension RecentSearchInputView {
   func append(items: [String]) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
-    snapshot.appendItems(items)
+    let newItems = items.filter { !snapshot.itemIdentifiers.contains($0) }
+    snapshot.appendItems(newItems)
     datasource.apply(snapshot)
   }
   
