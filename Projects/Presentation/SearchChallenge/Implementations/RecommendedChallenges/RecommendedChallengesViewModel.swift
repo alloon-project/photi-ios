@@ -9,7 +9,9 @@
 import RxCocoa
 import RxSwift
 
-protocol RecommendedChallengesCoordinatable: AnyObject { }
+protocol RecommendedChallengesCoordinatable: AnyObject {
+  func didTapChallenge(challengeId: Int)
+}
 
 protocol RecommendedChallengesViewModelType: AnyObject {
   associatedtype Input
@@ -43,6 +45,7 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
     let requestData: Signal<Void>
     let requestHashTagChallenge: Signal<Void>
     let didSelectHashTag: Signal<String>
+    let didTapChallenge: Signal<Int>
   }
   
   // MARK: - Output
@@ -75,6 +78,12 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.didTapChallenge(challengeId: id)
+      }
+      .disposed(by: disposeBag)
+
     return Output(
       popularChallenges: popularChallenges.asDriver(),
       hashTags: hashTagsRelay.asDriver(),
@@ -97,6 +106,7 @@ private extension RecommendedChallengesViewModel {
   func fetchHastags() { }
   
   func fetchHashTagChallenge(hashTag: String) async {
+    guard !Task.isCancelled else { return }
     guard !isLastPage && !isFetching else { return }
     isFetching = true
     
@@ -104,6 +114,18 @@ private extension RecommendedChallengesViewModel {
       isFetching = false
       currentPage += 1
     }
+    
+    do {
+      try await fetchData()
+      guard !Task.isCancelled else { return }
+      // 구현 예정
+    } catch {
+      // 구현 예정
+    }
+  }
+  
+  func fetchData() async throws { }
+  
   func selectedHashTagDidChange(_ hashTag: String) {
     isLastPage = false
     isFetching = false

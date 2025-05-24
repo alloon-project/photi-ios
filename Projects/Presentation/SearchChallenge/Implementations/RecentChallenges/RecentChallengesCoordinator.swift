@@ -8,7 +8,9 @@
 
 import Core
 
-protocol RecentChallengesListener: AnyObject { }
+protocol RecentChallengesListener: AnyObject {
+  func requestAttachChallengeAtRecentChallenges(challengeId: Int)
+}
 
 protocol RecentChallengesPresentable { }
 
@@ -28,4 +30,8 @@ final class RecentChallengesCoordinator: ViewableCoordinator<RecentChallengesPre
 }
 
 // MARK: - RecentChallengesCoordinatable
-extension RecentChallengesCoordinator: RecentChallengesCoordinatable { }
+extension RecentChallengesCoordinator: RecentChallengesCoordinatable {
+  func didTapChallenge(challengeId: Int) {
+    listener?.requestAttachChallengeAtRecentChallenges(challengeId: challengeId)
+  }
+}
