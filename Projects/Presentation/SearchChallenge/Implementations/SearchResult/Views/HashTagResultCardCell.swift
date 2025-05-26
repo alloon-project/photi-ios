@@ -65,7 +65,7 @@ private extension HashTagResultCardCell {
     }
     
     hashTagCollectionView.snp.makeConstraints {
-      $0.top.equalTo(cardView.snp.bottom)
+      $0.top.equalTo(cardView.snp.bottom).offset(8)
       $0.leading.bottom.trailing.equalToSuperview()
       $0.height.equalTo(HashTagResultViewController.Constants.hashTagCollectionViewHeight)
     }
