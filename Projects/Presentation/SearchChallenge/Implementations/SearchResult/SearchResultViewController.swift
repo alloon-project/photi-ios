@@ -14,6 +14,11 @@ import Core
 import DesignSystem
 
 final class SearchResultViewController: UIViewController, ViewControllerable {
+  enum SearchMode {
+    case title
+    case hashTag
+  }
+  
   // MARK: - Properties
   private let viewModel: SearchResultViewModel
   private let disposeBag = DisposeBag()
@@ -21,6 +26,7 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
   
   private let searchText = PublishRelay<String>()
   private let viewDidLoadRelay = PublishRelay<Void>()
+  private let searchMode = BehaviorRelay<SearchMode>(value: .title)
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -173,7 +179,8 @@ private extension SearchResultViewController {
       didTapBackButton: backButton.rx.tap.asSignal(),
       searchText: searchText.asSignal(),
       deleteAllRecentSearchInputs: recentSearchInputView.rx.deleteAllRecentSearchInputs,
-      deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput
+      deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput,
+      searchMode: searchMode.asDriver()
     )
     let output = viewModel.transform(input: input)
     
@@ -244,6 +251,7 @@ extension SearchResultViewController: SearchResultPresentable {
 private extension SearchResultViewController {
   func updateSegmentViewController(to index: Int) {
     defer { segmentIndex = index }
+    searchMode.accept(index == 0 ? .title : .hashTag)
     removeViewController(segmentIndex: segmentIndex)
     attachViewController(segmentIndex: index)
   }

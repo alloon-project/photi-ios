@@ -26,12 +26,16 @@ enum SearchResultMode {
 }
 
 final class SearchResultViewModel: SearchResultViewModelType {
+  typealias SearchMode = SearchResultViewController.SearchMode
+  
   weak var coordinator: SearchResultCoordinatable?
+  
   private let disposeBag = DisposeBag()
   // TODO: - API 작업 이후 수정 예정
   private var recentSearchInputs = ["건강", "운동하기", "코딩코딩코딩", "밥 잘먹기"]
   
   private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
+  private var searchMode = SearchMode.title
 
   // MARK: - Input
   struct Input {
@@ -40,6 +44,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
     let searchText: Signal<String>
     let deleteAllRecentSearchInputs: Signal<Void>
     let deleteRecentSearchInput: Signal<String>
+    let searchMode: Driver<SearchMode>
   }
   
   // MARK: - Output
@@ -73,6 +78,12 @@ final class SearchResultViewModel: SearchResultViewModelType {
     input.deleteAllRecentSearchInputs
       .emit(with: self) { owner, _ in
         owner.deleteAllRecentSearchInputs()
+      }
+      .disposed(by: disposeBag)
+    
+    input.searchMode
+      .drive(with: self) { owner, mode in
+        owner.searchMode = mode
       }
       .disposed(by: disposeBag)
     
