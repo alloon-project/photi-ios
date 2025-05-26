@@ -189,6 +189,12 @@ private extension SearchResultViewController {
         owner.searchBar.sendActions(for: .editingDidEnd)
       }
       .disposed(by: disposeBag)
+    
+    segmentControl.rx.selectedSegment
+      .bind(with: self) { owner, index in
+        owner.updateSegmentViewController(to: index)
+      }
+      .disposed(by: disposeBag)
   }
   
   func viewModelBind(for output: SearchResultViewModel.Output) {
