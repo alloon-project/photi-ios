@@ -28,6 +28,8 @@ final class ChallengeTitleResultViewController: UIViewController, ViewController
   private let disposeBag = DisposeBag()
   private var datasource: DataSourceType?
   
+  private let requestData = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let emptyResultLabel: UILabel = {
     let label = UILabel()
@@ -68,6 +70,8 @@ final class ChallengeTitleResultViewController: UIViewController, ViewController
     let datasource = diffableDatasource()
     self.datasource = datasource
     challengeCollectionView.dataSource = datasource
+    challengeCollectionView.delegate = self
+    initialize(with: Dummy.initialSearchPage)
   }
 }
 
@@ -91,7 +95,7 @@ private extension ChallengeTitleResultViewController {
 // MARK: - Bind Methods
 private extension ChallengeTitleResultViewController {
   func bind() {
-    let input = ChallengeTitleResultViewModel.Input()
+    let input = ChallengeTitleResultViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -100,7 +104,14 @@ private extension ChallengeTitleResultViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: ChallengeTitleResultViewModel.Output) { }
+  func viewModelBind(for output: ChallengeTitleResultViewModel.Output) {
+    output.challenges
+      .drive(with: self) { owner, challenges in
+        owner.initialize(with: challenges)
+        owner.emptyResultLabel.isHidden = !challenges.isEmpty
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - ChallengeTitleResultPresentable
@@ -176,5 +187,16 @@ private extension ChallengeTitleResultViewController {
     models.forEach { snapshot.appendItems([$0]) }
     
     return snapshot
+  }
+}
+
+// MARK: - UICollectionViewDelegate
+extension ChallengeTitleResultViewController: UICollectionViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let yOffset = scrollView.contentOffset.y
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestData.accept(())
   }
 }
