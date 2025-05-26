@@ -29,7 +29,11 @@ final class SearchResultViewModel: SearchResultViewModelType {
   typealias SearchMode = SearchResultViewController.SearchMode
   
   weak var coordinator: SearchResultCoordinatable?
+  let titleSearchInput: Driver<String>
+  let hashTagSearchInput: Driver<String>
   
+  private let titleSearchInputRelay = BehaviorRelay(value: "")
+  private let hashTagSearchInputRelay = BehaviorRelay(value: "")
   private let disposeBag = DisposeBag()
   // TODO: - API 작업 이후 수정 예정
   private var recentSearchInputs = ["건강", "운동하기", "코딩코딩코딩", "밥 잘먹기"]
@@ -53,7 +57,10 @@ final class SearchResultViewModel: SearchResultViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init() {
+    titleSearchInput = titleSearchInputRelay.asDriver()
+    hashTagSearchInput = hashTagSearchInputRelay.asDriver()
+  }
   
   func transform(input: Input) -> Output {
     input.viewDidLoad
@@ -101,14 +108,24 @@ final class SearchResultViewModel: SearchResultViewModelType {
 private extension SearchResultViewModel {
   func updateSearchResultMode(_ text: String) {
     guard text.isEmpty else { return searchResultModeRelay.accept(.searchResult) }
-    
     let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: recentSearchInputs) : .searchResult
     
     searchResultModeRelay.accept(mode)
   }
   
   func enterSearchInput(_ input: String) {
-    guard !input.isEmpty && !recentSearchInputs.contains(input) else { return }
+    guard !input.isEmpty else {
+      titleSearchInputRelay.accept(input)
+      hashTagSearchInputRelay.accept(input)
+      return
+    }
+    
+    switch searchMode {
+      case .title: titleSearchInputRelay.accept(input)
+      case .hashTag: hashTagSearchInputRelay.accept(input)
+    }
+    
+    guard !recentSearchInputs.contains(input) else { return }
     recentSearchInputs = [input] + recentSearchInputs
   }
   
