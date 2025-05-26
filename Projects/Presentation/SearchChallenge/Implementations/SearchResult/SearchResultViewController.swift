@@ -19,6 +19,9 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var segmentIndex: Int = 0
   
+  private let searchText = PublishRelay<String>()
+  private let viewDidLoadRelay = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
   private let navigationBar = UIView()
@@ -65,6 +68,7 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
     
     setupUI()
     bind()
+    viewDidLoadRelay.accept(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -164,15 +168,10 @@ private extension SearchResultViewController {
 // MARK: - Bind Methods
 private extension SearchResultViewController {
   func bind() {
-    let didEnterSearchText = searchBar.rx.controlEvent(.editingDidEnd)
-      .withLatestFrom(searchBar.rx.text)
-      .compactMap { $0 }
-      .filter { !$0.isEmpty }
-    
     let input = SearchResultViewModel.Input(
+      viewDidLoad: viewDidLoadRelay.asSignal(),
       didTapBackButton: backButton.rx.tap.asSignal(),
-      searchText: searchBar.rx.text.compactMap { $0 }.asDriver(onErrorJustReturn: ""),
-      didEnterSearchText: didEnterSearchText.asSignal(onErrorJustReturn: ""),
+      searchText: searchText.asSignal(),
       deleteAllRecentSearchInputs: recentSearchInputView.rx.deleteAllRecentSearchInputs,
       deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput
     )
@@ -193,6 +192,24 @@ private extension SearchResultViewController {
     segmentControl.rx.selectedSegment
       .bind(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
+      }
+      .disposed(by: disposeBag)
+    
+    searchBar.rx.controlEvent(.editingDidEnd)
+      .withLatestFrom(searchBar.rx.text)
+      .compactMap { $0 }
+      .filter { !$0.isEmpty }
+      .bind(with: self) { owner, text in
+        owner.searchText.accept(text)
+      }
+      .disposed(by: disposeBag)
+    
+    searchBar.rx.controlEvent(.editingChanged)
+      .withLatestFrom(searchBar.rx.text)
+      .compactMap { $0 }
+      .filter { $0.isEmpty }
+      .bind(with: self) { owner, _ in
+        owner.searchText.accept("")
       }
       .disposed(by: disposeBag)
   }
@@ -258,6 +275,10 @@ private extension SearchResultViewController {
     emptyRecentSearchInputLabel.isHidden = !suggestions.isEmpty
     recentSearchInputView.isHidden = suggestions.isEmpty
     
-    if !suggestions.isEmpty { recentSearchInputView.append(searchInputs: suggestions) }
+    if !suggestions.isEmpty {
+      DispatchQueue.main.async { [weak self] in
+        self?.recentSearchInputView.append(searchInputs: suggestions)
+      }
+    }
   }
 }
