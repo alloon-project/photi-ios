@@ -29,6 +29,8 @@ final class HashTagResultViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var datasource: DataSourceType?
   
+  private let requestData = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let emptyResultLabel: UILabel = {
     let label = UILabel()
@@ -69,7 +71,7 @@ final class HashTagResultViewController: UIViewController, ViewControllerable {
     let datasource = diffableDatasource()
     self.datasource = datasource
     challengeCollectionView.dataSource = datasource
-    initialize(with: Dummy.initialSearchPage)
+    challengeCollectionView.delegate = self
   }
 }
 
@@ -93,7 +95,7 @@ private extension HashTagResultViewController {
 // MARK: - Bind Methods
 private extension HashTagResultViewController {
   func bind() {
-    let input = HashTagResultViewModel.Input()
+    let input = HashTagResultViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -102,7 +104,14 @@ private extension HashTagResultViewController {
   
   func viewBind() { }
   
-  func viewModelBind(for output: HashTagResultViewModel.Output) { }
+  func viewModelBind(for output: HashTagResultViewModel.Output) {
+    output.challenges
+      .drive(with: self) { owner, challenges in
+        owner.initialize(with: challenges)
+        owner.emptyResultLabel.isHidden = !challenges.isEmpty
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - HashTagResultPresentable
@@ -178,5 +187,16 @@ private extension HashTagResultViewController {
     models.forEach { snapshot.appendItems([$0]) }
     
     return snapshot
+  }
+}
+
+// MARK: - UICollectionViewDelegate
+extension HashTagResultViewController: UICollectionViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let yOffset = scrollView.contentOffset.y
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestData.accept(())
   }
 }
