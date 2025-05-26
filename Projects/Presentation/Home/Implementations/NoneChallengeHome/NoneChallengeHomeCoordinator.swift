@@ -10,11 +10,13 @@ import Challenge
 import Core
 
 protocol NoneChallengeHomeListener: AnyObject {
-  func requestLoginAtNoneChallengeHome()
+  func authenticatedFailedAtNoneChallengeHome()
   func requstConvertInitialHome()
 }
 
-protocol NoneChallengeHomePresentable { }
+protocol NoneChallengeHomePresentable {
+  func configureUserName(_ username: String)
+}
 
 final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomePresentable> {
   weak var listener: NoneChallengeHomeListener?
@@ -34,6 +36,10 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
+  
+  override func start() {
+    presenter.configureUserName(ServiceConfiguration.shared.userName)
+  }
 }
 
 // MARK: - NoneMemberHomeCoordinatable
@@ -44,7 +50,6 @@ extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
     let coordinator = noneMemberChallengeContainer.coordinator(listener: self, challengeId: challengeId)
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-    
     self.noneMemberChallengeCoordinator = coordinator
   }
   
@@ -52,22 +57,22 @@ extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
     guard let coordinator = noneMemberChallengeCoordinator else { return }
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
     noneMemberChallengeCoordinator = nil
   }
 }
 
-// MARK: - NoneMem
+// MARK: - NoneMemberChallenge
 extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
     detachNoneMemberChallenge()
   }
   
   func didJoinChallenge() {
-    detachNoneMemberChallenge()
     listener?.requstConvertInitialHome()
   }
   
-  func requestLogInAtNoneMemberChallenge() {
-    listener?.requestLoginAtNoneChallengeHome()
+  func authenticatedFailedAtNoneMemberChallenge() {
+    listener?.authenticatedFailedAtNoneChallengeHome()
   }
 }

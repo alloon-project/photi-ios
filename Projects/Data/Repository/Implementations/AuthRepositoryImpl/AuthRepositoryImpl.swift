@@ -24,7 +24,11 @@ public struct AuthRepositoryImpl: AuthRepository {
         .request(AuthAPI.isLogIn).value
       return result.statusCode == 200
     } catch {
+      if case let NetworkError.networkFailed(reason) = error, reason == .interceptorMapping {
+        return false
+      } else {
       throw APIError.serverError
+      }
     }
   }
 }

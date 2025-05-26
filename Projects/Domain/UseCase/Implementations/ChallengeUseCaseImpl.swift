@@ -114,4 +114,11 @@ private extension ChallengeUseCaseImpl {
    }
    return nil
  }
+  
+  func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
+    return Single<T>.create { single in
+      single(.failure(error))
+      return Disposables.create()
+    }
+  }
 }

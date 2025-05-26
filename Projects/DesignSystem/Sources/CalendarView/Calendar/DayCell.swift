@@ -99,9 +99,6 @@ private extension DayCell {
   }
   
   func textColor(for type: DateType, isSelected: Bool) -> UIColor {
-    if case .startDate = type {
-      print(day)
-    }
     switch type {
       case .default:
         return isSelected ? .photiWhite : .photiBlack

@@ -9,11 +9,9 @@
 import Challenge
 import Core
 import Home
-import LogIn
 import UseCase
 
 public protocol HomeDependency: Dependency {
-  var loginContainable: LogInContainable { get }
   var homeUseCae: HomeUseCase { get }
   var challengeContainable: ChallengeContainable { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
@@ -37,7 +35,6 @@ public final class HomeContainer:
     let coordinator = HomeCoordinator(
       useCase: dependency.homeUseCae,
       navigationControllerable: navigationControllerable,
-      loginContainer: dependency.loginContainable,
       challengeHomeContainer: challengeHome,
       noneMemberHomeContainer: noneMemberHome,
       noneChallengeHomeContainer: noneChallengeHome

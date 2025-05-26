@@ -72,9 +72,7 @@ public extension ChallengeRepositoryImpl {
       api: ChallengeAPI.challengeProveMemberCount(challengeId: challengeId),
       responseType: ChallengeProveMemberCountResponseDTO.self
     ).value
-    
-    print(result.feedMemberCnt)
-    
+        
     return result.feedMemberCnt
   }
     
@@ -178,6 +176,10 @@ private extension ChallengeRepositoryImpl {
             single(.failure(map404ToAPIError(result.code, result.message)))
           } else if result.statusCode == 409 {
             single(.failure(map409ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.challengeFailed(reason: .fileTooLarge)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.challengeFailed(reason: .invalidFileFormat)))
           } else {
             single(.failure(APIError.serverError))
           }

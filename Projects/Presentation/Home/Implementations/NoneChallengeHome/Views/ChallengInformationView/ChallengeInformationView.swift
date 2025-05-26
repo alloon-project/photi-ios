@@ -16,7 +16,10 @@ import DesignSystem
 
 final class ChallengeInformationView: UIView {
   private var hashTags = [String]() {
-    didSet { hashTagCollectionView.reloadData() }
+    didSet {
+      guard oldValue != hashTags else { return }
+      hashTagCollectionView.reloadData()
+    }
   }
   private(set) var id: Int = 0
   

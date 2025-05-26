@@ -40,7 +40,8 @@ final class AppContainer:
   MyPageDependency,
   ReportDependency,
   ChallengeDependency,
-  NoneMemberChallengeDependency {
+  NoneMemberChallengeDependency,
+  ChallengeOrganizeDependency {
   func coordinator() -> ViewableCoordinating {
     let viewControllerable = AppViewController()
     
@@ -52,7 +53,8 @@ final class AppContainer:
       viewControllerable: viewControllerable,
       homeContainable: home,
       searchChallengeContainable: searchChallenge,
-      myPageContainable: myPage
+      myPageContainable: myPage,
+      loginContainable: loginContainable
     )
   }
   
@@ -60,7 +62,11 @@ final class AppContainer:
   lazy var loginContainable: LogInContainable = {
     return LogInContainer(dependency: self)
   }()
-    
+  
+  lazy var challengeOrganizeContainable: ChallengeOrganizeContainable = {
+    return ChallengeOrganizeContainer(dependency: self)
+  }()
+  
   lazy var reportContainable: ReportContainable = {
     return ReportContainer(dependency: self)
   }()
@@ -134,6 +140,10 @@ final class AppContainer:
     return ResignUseCaseImpl(repository: resignRepository)
   }()
   
+  lazy var organizeUseCase: OrganizeUseCase = {
+    return OrganizeUseCaseImpl(repository: organizeRepository)
+  }()
+  
   // MARK: - Repository
   lazy var authRepository: AuthRepository = {
     return AuthRepositoryImpl()
@@ -185,5 +195,9 @@ final class AppContainer:
 
   lazy var resignRepository: ResignRepository = {
     return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
+  }()
+  
+  lazy var organizeRepository: ChallengeOrganizeRepository = {
+    return ChallengeOrganizeRepositoryImpl(dataMapper: ChallengeOrganizeDataMapperImpl())
   }()
 }

@@ -39,7 +39,7 @@ public final class DatePickerBottomSheetViewController: BottomSheetViewControlle
   
   private let selectedDateRelay = BehaviorRelay<Date?>(value: nil)
   
-  private weak var delegate: DatePickerBottomSheetDelegate?
+  public weak var delegate: DatePickerBottomSheetDelegate?
   
   // MARK: - UI Components
   private let calendarView = CalendarView(selectionMode: .single, startDate: .now)

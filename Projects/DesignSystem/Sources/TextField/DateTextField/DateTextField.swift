@@ -23,6 +23,13 @@ public final class DateTextField: UIView {
     }
   }
   
+  /// textfield의 delegate
+  public weak var delegate: UITextFieldDelegate? {
+    didSet {
+      textField.delegate = delegate
+    }
+  }
+  
   /// rightView에 위치한 버튼의 text를 설정할 수 있씁니다.
   public var buttonText: String = "달력보기" {
     didSet { button.title = buttonText }
@@ -63,7 +70,7 @@ public final class DateTextField: UIView {
   }
   
   // MARK: - UI Components
-  private let textField: PhotiDateTextField = {
+  let textField: PhotiDateTextField = {
     let textField = PhotiDateTextField()
     textField.keyboardType = .numberPad
     textField.autocorrectionType = .no

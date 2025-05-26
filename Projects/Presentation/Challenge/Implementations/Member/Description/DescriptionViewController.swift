@@ -117,12 +117,8 @@ private extension DescriptionViewController {
   func bind() {
     let input = DescriptionViewModel.Input(requestData: requestData.asSignal())
     let output = viewModel.transform(input: input)
-    
-    viewBind()
     viewModelBind(for: output)
   }
-  
-  func viewBind() { }
   
   func viewModelBind(for output: DescriptionViewModel.Output) {
     output.rules

@@ -80,8 +80,7 @@ private extension NoneChallengeHomeViewModel {
           
           owner.challengesRelay.accept(models)
         },
-        onFailure: { owner, err in
-          print(err)
+        onFailure: { owner, _ in
           owner.requestFailedRelay.accept(())
         }
       )
