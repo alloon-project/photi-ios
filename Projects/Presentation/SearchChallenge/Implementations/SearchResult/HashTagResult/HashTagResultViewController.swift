@@ -126,7 +126,7 @@ private extension HashTagResultViewController {
       
       let availableWidth = environment.container.effectiveContentSize.width
       let itemWidth = ((availableWidth - horizontalInset * 2) - itemSpacing) / 2
-      let itemHeight = itemWidth * 1.15 + Constants.hashTagCollectionViewHeight
+      let itemHeight = itemWidth * 1.15 + Constants.hashTagCollectionViewHeight + 8
       
       let itemSize = NSCollectionLayoutSize(
         widthDimension: .absolute(itemWidth),
