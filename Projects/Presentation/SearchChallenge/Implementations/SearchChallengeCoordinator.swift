@@ -10,7 +10,9 @@ import Core
 import Challenge
 import SearchChallenge
 
-protocol SearchChallengePresentable { }
+protocol SearchChallengePresentable {
+  func attachViewControllerables(_ viewControllerables: ViewControllerable...)
+}
 
 final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePresentable> {
   weak var listener: SearchChallengeListener?
@@ -21,19 +23,53 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
   private let organizeContainable: ChallengeOrganizeContainable
   private var organizeCoordinator: Coordinating?
   
+  private let recommendedChallengesContainable: RecommendedChallengesContainable
+  private var recommendedChallengesCoordinator: ViewableCoordinating?
+  
+  private let recentChallengesContainable: RecentChallengesContainable
+  private var recentChallengesCoordinator: ViewableCoordinating?
+  
+  private let searchResultContainable: SearchResultContainable
+  private var searchResultCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SearchChallengeViewModel,
-    challengeOrganizeContainable: ChallengeOrganizeContainable
+    challengeOrganizeContainable: ChallengeOrganizeContainable,
+    recommendedChallengesContainable: RecommendedChallengesContainable,
+    recentChallengesContainable: RecentChallengesContainable,
+    searchResultContainable: SearchResultContainable
   ) {
     self.viewModel = viewModel
-    
     self.organizeContainable = challengeOrganizeContainable
-    
+    self.recommendedChallengesContainable = recommendedChallengesContainable
+    self.recentChallengesContainable = recentChallengesContainable
+    self.searchResultContainable = searchResultContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
   
+  override func start() {
+    attachSegments()
+  }
+  
+  private func attachSegments() {
+    let recommendedChallenges = recommendedChallengesContainable.coordinator(listener: self)
+    let recentChallenges = recentChallengesContainable.coordinator(listener: self)
+    
+    presenter.attachViewControllerables(
+      recommendedChallenges.viewControllerable,
+      recentChallenges.viewControllerable
+    )
+    addChild(recommendedChallenges)
+    addChild(recentChallenges)
+    self.recommendedChallengesCoordinator = recommendedChallenges
+    self.recentChallengesCoordinator = recentChallenges
+  }
+}
+
+// MARK: - ChallengeOrganize
+private extension SearchChallengeCoordinator {
   func attachChallengeOrganize() {
     guard organizeCoordinator == nil else { return }
     
@@ -58,15 +94,56 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
   }
 }
 
+// MARK: - SearchResult
+private extension SearchChallengeCoordinator {
+  func attachSearchResult() {
+    guard searchResultCoordinator == nil else { return }
+    let coordinater = searchResultContainable.coordinator(listener: self)
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: false)
+    addChild(coordinater)
+    self.searchResultCoordinator = coordinater
+  }
+  
+  func detachSearchResult() {
+    guard let coordinater = searchResultCoordinator else { return }
+    viewControllerable.popViewController(animated: true)
+    viewControllerable.uiviewController.showTabBar(animted: true)
+    removeChild(coordinater)
+    self.searchResultCoordinator = nil
+  }
+}
+
+// MARK: - SearchChallengeCoordinatable
 extension SearchChallengeCoordinator: SearchChallengeCoordinatable {
   func didTapChallengeOrganize() {
     attachChallengeOrganize()
   }
+  
+  func didStartSearch() {
+    attachSearchResult()
+  }
 }
 
-// MARK: - Challenge Organize Listener
+// MARK: - ChallengeOrganizeListener
 extension SearchChallengeCoordinator: ChallengeOrganizeListener {
   func didTapBackButtonAtChallengeOrganize() {
     detachChallengeOrganize()
+  }
+}
+
+// MARK: - RecommendedChallengesListener
+extension SearchChallengeCoordinator: RecommendedChallengesListener {
+  func requestAttachChallengeAtRecommendedChallenges(challengeId: Int) { }
+}
+
+// MARK: - RecentChallengesListener
+extension SearchChallengeCoordinator: RecentChallengesListener {
+  func requestAttachChallengeAtRecentChallenges(challengeId: Int) { }
+}
+
+// MARK: - SearchResultListener
+extension SearchChallengeCoordinator: SearchResultListener {
+  func didTapBackButtonAtSearchResult() {
+    detachSearchResult()
   }
 }

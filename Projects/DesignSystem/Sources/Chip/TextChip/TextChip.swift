@@ -12,15 +12,6 @@ import Core
 
 /// Text의 길이에 따라 유동적이로 길이가 변하는 View입니다.
 public final class TextChip: UIView {
-  public override var intrinsicContentSize: CGSize {
-    let labelSize = label.intrinsicContentSize
-    
-    return .init(
-      width: labelSize.width + 2 * sideInset(for: size),
-      height: height(for: size)
-    )
-  }
-  
   /// Text Chip의 size입니다.
   public let size: ChipSize
   
@@ -92,15 +83,17 @@ private extension TextChip {
     switch size {
       case .large:
         label.snp.makeConstraints {
-          $0.centerY.equalToSuperview()
+          $0.top.bottom.equalToSuperview().inset(8)
           $0.leading.trailing.equalToSuperview().inset(12)
         }
       case .medium, .small:
         label.snp.makeConstraints {
-          $0.centerY.equalToSuperview()
+          $0.top.bottom.equalToSuperview().inset(6)
           $0.leading.trailing.equalToSuperview().inset(8)
         }
     }
+    label.setContentHuggingPriority(.required, for: .horizontal)
+    label.setContentCompressionResistancePriority(.required, for: .horizontal)
   }
   
   func setBorderLine(for type: TextChipType) {
@@ -108,7 +101,8 @@ private extension TextChip {
       case .line:
         layer.borderWidth = 1
         layer.borderColor = UIColor.gray300.cgColor
-      default: break
+      default:
+        layer.borderWidth = 0
     }
   }
   
@@ -162,21 +156,6 @@ private extension TextChip {
         return .caption1
       case .small:
         return .caption2
-    }
-  }
-  
-  func sideInset(for size: ChipSize) -> CGFloat {
-    switch size {
-      case .large: return 12
-      case .medium, .small: return 8
-    }
-  }
-  
-  func height(for size: ChipSize) -> CGFloat {
-    switch size {
-      case .large: return 30
-      case .medium: return 25
-      case .small: return 23
     }
   }
 }

@@ -50,6 +50,7 @@ public final class FloatingButton: UIButton {
     self.size = size
     self.mode = mode
     super.init(frame: .zero)
+    setupUI()
   }
   
   @available(*, unavailable)
