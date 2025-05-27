@@ -220,6 +220,7 @@ private extension ChallengeNameViewController {
   
   func viewBind() {
     challengeNameTextField.rx.text
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .map { !$0.isEmpty }
       .bind(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)

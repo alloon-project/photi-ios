@@ -77,11 +77,17 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
       .disposed(by: disposeBag)
     
     let isEnabledNextButton = Observable.combineLatest(
-      input.challengeGoal.asObservable(),
-      input.proveTime.asObservable(),
-      input.date) { goal, time, date in
-        !goal.isEmpty && goal.count >= 10 && !time.isEmpty && date > Date()
-      }
+        input.challengeGoal.asObservable(),
+        input.proveTime.asObservable(),
+        input.date
+    ) { goal, time, date in
+        let trimmedGoal = goal.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isValidGoal = !trimmedGoal.isEmpty && trimmedGoal.count >= 10
+        let isValidTime = !time.isEmpty
+        let isValidDate = date > Date()
+
+        return isValidGoal && isValidTime && isValidDate
+    }
     
     return Output(
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)

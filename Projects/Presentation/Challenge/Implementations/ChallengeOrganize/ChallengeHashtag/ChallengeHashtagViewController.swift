@@ -167,10 +167,9 @@ private extension ChallengeHashtagViewController {
         if owner.hashtagsDataSource.count >= 3 {
           owner.presentHashtagLimitToastView()
         } else {
-          owner.hashtagsDataSource.append(newHashtag)
+          owner.hashtagsDataSource.append(newHashtag.trimmingCharacters(in: .whitespacesAndNewlines))
           owner.addHashtagTextField.text = nil
         }
-        owner.addHashtagTextField.dismissKeyboard()
       }.disposed(by: disposeBag)
     
     selectedHashtags.bind(with: self) { owner, tags in

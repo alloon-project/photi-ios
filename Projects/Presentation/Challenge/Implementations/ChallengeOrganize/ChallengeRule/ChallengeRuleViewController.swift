@@ -326,10 +326,13 @@ extension ChallengeRuleViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - TextFieldBottomSheet Delegate
 extension ChallengeRuleViewController: TextFieldBottomSheetDelegate {
-  func didTapCloseButton() {}
+  func didTapCloseButton() {
+    bottomSheet.textField.text = nil
+  }
   
   func didTapConfirmButton(_ text: String) {
-    let newRule = Rule(title: text, isSelected: false)
+    bottomSheet.textField.text = nil
+    let newRule = Rule(title: text.trimmingCharacters(in: .whitespacesAndNewlines), isSelected: false)
     let beforeCount = additionalRules.count - 1
     additionalRules.insert(newRule, at: beforeCount)
   }
