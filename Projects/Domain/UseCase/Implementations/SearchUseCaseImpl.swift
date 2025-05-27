@@ -49,10 +49,6 @@ public extension SearchUseCaseImpl {
       let myChallenges = try await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
         .map { $0.id }
       
-      guard myChallenges.count < 20 else {
-        throw APIError.challengeFailed(reason: .exceedMaxChallengeCount)
-      }
-      
       return myChallenges.contains(id)
     } catch {
       if let error = error as? APIError, case .authenticationFailed = error {
