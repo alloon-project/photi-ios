@@ -32,19 +32,29 @@ final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePrese
   private let searchResultContainable: SearchResultContainable
   private var searchResultCoordinator: ViewableCoordinating?
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
+  private let noneMemberChallengeContainable: NoneMemberChallengeContainable
+  private var noneMemberchallengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SearchChallengeViewModel,
     challengeOrganizeContainable: ChallengeOrganizeContainable,
     recommendedChallengesContainable: RecommendedChallengesContainable,
     recentChallengesContainable: RecentChallengesContainable,
-    searchResultContainable: SearchResultContainable
+    searchResultContainable: SearchResultContainable,
+    challengeContainable: ChallengeContainable,
+    noneMemberChallengeContainable: NoneMemberChallengeContainable
   ) {
     self.viewModel = viewModel
     self.organizeContainable = challengeOrganizeContainable
     self.recommendedChallengesContainable = recommendedChallengesContainable
     self.recentChallengesContainable = recentChallengesContainable
     self.searchResultContainable = searchResultContainable
+    self.challengeContainable = challengeContainable
+    self.noneMemberChallengeContainable = noneMemberChallengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }

@@ -14,6 +14,8 @@ import UseCase
 public protocol SearchChallengeDependency: Dependency {
   var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
   var searchUseCase: SearchUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
 }
 
 public final class SearchChallengeContainer:
@@ -25,7 +27,7 @@ public final class SearchChallengeContainer:
   var searchUseCase: SearchUseCase { dependency.searchUseCase }
   
   public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
-    let viewModel = SearchChallengeViewModel()
+    let viewModel = SearchChallengeViewModel(useCase: searchUseCase)
     let viewControllerable = SearchChallengeViewController(viewModel: viewModel)
     
     let recommendedChallenges = RecommendedChallengesContainer(dependency: self)
@@ -38,7 +40,9 @@ public final class SearchChallengeContainer:
       challengeOrganizeContainable: dependency.challengeOrganizeContainable,
       recommendedChallengesContainable: recommendedChallenges,
       recentChallengesContainable: recentChallenges,
-      searchResultContainable: searchResult
+      searchResultContainable: searchResult,
+      challengeContainable: dependency.challengeContainable,
+      noneMemberChallengeContainable: dependency.noneMemberChallengeContainable
     )
     coordinator.listener = listener
     return coordinator
