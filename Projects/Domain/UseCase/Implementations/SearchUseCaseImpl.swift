@@ -13,6 +13,7 @@ import Repository
 
 public final class SearchUseCaseImpl: SearchUseCase {
   private let challengeRepository: ChallengeRepository
+  private let maximumChallengeCount = 20
   
   public init(challengeRepository: ChallengeRepository) {
     self.challengeRepository = challengeRepository
@@ -41,5 +42,33 @@ public extension SearchUseCaseImpl {
     )
    
     return isLast ? .lastPage(challenges) : .defaults(challenges)
+  }
+  
+  func didJoinedChallenge(id: Int) async throws -> Bool {
+    do {
+      let myChallenges = try await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+        .map { $0.id }
+      
+      guard myChallenges.count < 20 else {
+        throw APIError.challengeFailed(reason: .exceedMaxChallengeCount)
+      }
+      
+      return myChallenges.contains(id)
+    } catch {
+      if let error = error as? APIError, case .authenticationFailed = error {
+        return false
+      } else {
+        throw error
+      }
+    }
+  }
+  
+  func isPossibleToCreateChallenge() async -> Bool {
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      .count
+    
+    guard let myChallengeCount else { return true }
+    
+    return myChallengeCount < maximumChallengeCount
   }
 }

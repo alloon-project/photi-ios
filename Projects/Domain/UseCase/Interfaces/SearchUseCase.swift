@@ -28,4 +28,7 @@ public protocol SearchUseCase {
     byHashTag hashTag: String,
     page: Int,
     size: Int
-  ) async throws -> PageSearchChallenges}
+  ) async throws -> PageSearchChallenges
+  func didJoinedChallenge(id: Int) async throws -> Bool
+  func isPossibleToCreateChallenge() async -> Bool
+}
