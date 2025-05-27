@@ -24,7 +24,7 @@ protocol ChallengeHashtagViewModelType: AnyObject {
 }
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
-  private let disposeBag = DisposeBag()
+  let disposeBag = DisposeBag()
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeHashtagCoordinatable?

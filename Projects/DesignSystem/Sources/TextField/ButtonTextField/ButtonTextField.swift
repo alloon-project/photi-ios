@@ -60,10 +60,6 @@ public final class ButtonTextField: LineTextField {
       rightPadding: 6
     )
   }
-  
-  public func dismissKeyboard() {
-    textField.resignFirstResponder()
-  }
 }
 
 // MARK: - Reactive Extensions

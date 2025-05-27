@@ -19,7 +19,7 @@ public enum HashTagType: Equatable {
   func make(with text: String) -> UIView {
     switch self {
       case let .icon(size, type):
-      return IconChip(text: text, icon: .closeWhite, type: type, size: size)
+        return IconChip(text: text, icon: .closeWhite, type: type, size: size)
       case let .text(size, type):
         return TextChip(text: text, type: type, size: size)
     }
@@ -41,7 +41,7 @@ public final class HashTagCell: UICollectionViewCell {
     bind()
   }
   
-  override func prepareForReuse() {
+  public override func prepareForReuse() {
     super.prepareForReuse()
     onTapClose = nil
   }
