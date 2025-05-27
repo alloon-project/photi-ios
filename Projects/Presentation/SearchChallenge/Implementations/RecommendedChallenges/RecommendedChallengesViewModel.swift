@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol RecommendedChallengesCoordinatable: AnyObject {
   func didTapChallenge(challengeId: Int)
@@ -23,6 +24,7 @@ protocol RecommendedChallengesViewModelType: AnyObject {
 final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   weak var coordinator: RecommendedChallengesCoordinatable?
   
+  private let useCase: SearchUseCase
   private let disposeBag = DisposeBag()
   private var fetchingHashTagChallengeTask: Task<Void, Never>?
   private var isFetching = false
@@ -57,7 +59,9 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SearchUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.requestData

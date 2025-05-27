@@ -9,9 +9,11 @@
 import Core
 import Challenge
 import SearchChallenge
+import UseCase
 
 public protocol SearchChallengeDependency: Dependency {
   var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
+  var searchUseCase: SearchUseCase { get }
 }
 
 public final class SearchChallengeContainer:
@@ -20,6 +22,8 @@ public final class SearchChallengeContainer:
   RecommendedChallengesDependency,
   RecentChallengesDependency,
   SearchResultDependency {
+  var searchUseCase: SearchUseCase { dependency.searchUseCase }
+  
   public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
     let viewModel = SearchChallengeViewModel()
     let viewControllerable = SearchChallengeViewController(viewModel: viewModel)
