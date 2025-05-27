@@ -28,4 +28,18 @@ public extension SearchUseCaseImpl {
   func popularHashtags() -> Single<[String]> {
     return challengeRepository.fetchPopularHashTags()
   }
+  
+  func challenges(
+    byHashTag hashTag: String,
+    page: Int,
+    size: Int
+  ) async throws -> PageSearchChallenges {
+    let (challenges, isLast) = try await challengeRepository.fetchChallenges(
+      byHashTag: hashTag,
+      page: page,
+      size: size
+    )
+   
+    return isLast ? .lastPage(challenges) : .defaults(challenges)
+  }
 }
