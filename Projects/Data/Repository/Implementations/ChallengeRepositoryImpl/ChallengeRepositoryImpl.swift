@@ -32,6 +32,14 @@ public extension ChallengeRepositoryImpl {
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
   
+  func fetchPopularHashTags() -> Single<[String]> {
+    return requestUnAuthorizableAPI(
+      api: ChallengeAPI.popularHashTags,
+      responseType: [HashTagResponseDTO].self
+    )
+    .map { $0.map { $0.hashtag } }
+  }
+  
   func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.endedChallenges(page: page, size: size),
