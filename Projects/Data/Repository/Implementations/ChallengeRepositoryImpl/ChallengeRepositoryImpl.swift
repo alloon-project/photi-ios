@@ -56,6 +56,22 @@ public extension ChallengeRepositoryImpl {
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
   }
   
+  func fetchChallenges(
+    byHashTag hashTag: String,
+    page: Int,
+    size: Int
+  ) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+    let api = ChallengeAPI.challengesByHashTag(hashTag, page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: ChallengesByHashTagResponseDTO.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromChallengeByHashTag(dto: result)
+    return (challenges, result.last)
+  }
+  
   func isProve(challengeId: Int) async throws -> Bool {
     let api = ChallengeAPI.isProve(challengeId: challengeId)
     let result = try await requestAuthorizableAPI(

@@ -17,6 +17,11 @@ public protocol ChallengeRepository {
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]>
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription>
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
+  func fetchChallenges(
+    byHashTag hashTag: String,
+    page: Int,
+    size: Int
+  ) async throws -> (challenges: [ChallengeSummary], isLast: Bool)
   func fetchPopularHashTags() -> Single<[String]>
   func isProve(challengeId: Int) async throws -> Bool
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
