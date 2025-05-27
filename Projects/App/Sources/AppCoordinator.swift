@@ -144,7 +144,7 @@ private extension AppCoordinator {
 // MARK: - MyPage
 private extension AppCoordinator {
   @MainActor func attachMyPage() {
-    guard searchChallengeCoordinator == nil else { return }
+    guard myPageCoordinator == nil else { return }
     
     let coordinator = myPageContainer.coordinator(listener: self)
     myPageNavigationControllerable.setViewControllers([coordinator.viewControllerable])
