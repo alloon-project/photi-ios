@@ -189,7 +189,9 @@ extension SearchChallengeCoordinator: RecommendedChallengesListener {
 
 // MARK: - RecentChallengesListener
 extension SearchChallengeCoordinator: RecentChallengesListener {
-  func requestAttachChallengeAtRecentChallenges(challengeId: Int) { }
+  func requestAttachChallengeAtRecentChallenges(challengeId: Int) {
+    Task { await viewModel.decideRouteForChallenge(id: challengeId) }
+  }
 }
 
 // MARK: - SearchResultListener
