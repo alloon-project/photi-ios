@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol RecommendedChallengesDependency: Dependency { }
+protocol RecommendedChallengesDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+}
 
 protocol RecommendedChallengesContainable: Containable {
   func coordinator(listener: RecommendedChallengesListener) -> ViewableCoordinating
@@ -18,7 +21,7 @@ final class RecommendedChallengesContainer:
   Container<RecommendedChallengesDependency>,
   RecommendedChallengesContainable {
   func coordinator(listener: RecommendedChallengesListener) -> ViewableCoordinating {
-    let viewModel = RecommendedChallengesViewModel()
+    let viewModel = RecommendedChallengesViewModel(useCase: dependency.searchUseCase)
     let viewControllerable = RecommendedChallengesViewController(viewModel: viewModel)
     
     let coordinator = RecommendedChallengesCoordinator(

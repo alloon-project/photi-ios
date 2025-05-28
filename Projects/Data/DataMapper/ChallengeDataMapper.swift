@@ -16,6 +16,7 @@ public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
   func mapToChallengeSummaryFromEnded(dto: EndedChallengeResponseDTO) -> [ChallengeSummary]
   func mapToChallengeSummaryFromMyChallenge(dto: MyChallengesResponseDTO) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromChallengeByHashTag(dto: ChallengesByHashTagResponseDTO) -> [ChallengeSummary]
   func mapToFeed(dto: FeedResponseDTO) -> Feed
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
   func mapToFeedComment(dto: CommentResponseDTO) -> FeedComment
@@ -103,6 +104,22 @@ public struct ChallengeDataMapperImpl: ChallengeDataMapper {
         feedImageURL: feedImageUrl,
         feedId: $0.feedId,
         isProve: $0.isProve
+      )
+    }
+  }
+  
+  public func mapToChallengeSummaryFromChallengeByHashTag(dto: ChallengesByHashTagResponseDTO) -> [ChallengeSummary] {
+    return dto.content.map {
+      let endDate = $0.endDate.toDate() ?? Date()
+      let hasTags = $0.hashtags.map { $0.hashtag }
+      let imageUrl = URL(string: $0.imageUrl ?? "")
+      
+      return .init(
+        id: $0.id,
+        name: $0.name,
+        imageUrl: imageUrl,
+        endDate: endDate,
+        hashTags: hasTags
       )
     }
   }

@@ -16,7 +16,7 @@ import LogIn
 
 final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChallengePresentable> {
   weak var listener: NoneMemberChallengeListener?
-
+  private let challengeId: Int
   private let viewModel: NoneMemberChallengeViewModel
   
   private let enterChallengeGoalContainer: EnterChallengeGoalContainable
@@ -29,12 +29,14 @@ final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChalle
   private var logInCoordinator: ViewableCoordinating?
   
   init(
+    challengeId: Int,
     viewControllerable: ViewControllerable,
     viewModel: NoneMemberChallengeViewModel,
     enterChallengeGoalContainer: EnterChallengeGoalContainable,
     logInGuideContainer: LogInGuideContainable,
     logInContainer: LogInContainable
   ) {
+    self.challengeId = challengeId
     self.enterChallengeGoalContainer = enterChallengeGoalContainer
     self.logInGuideContainer = logInGuideContainer
     self.logInContainer = logInContainer
@@ -118,7 +120,7 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   }
   
   func didFinishEnterChallengeGoal(_ goal: String) {
-    listener?.didJoinChallenge()
+    listener?.didJoinChallenge(id: challengeId)
   }
   
   func authenticatedFailedAtEnterChallengeGoal() {
