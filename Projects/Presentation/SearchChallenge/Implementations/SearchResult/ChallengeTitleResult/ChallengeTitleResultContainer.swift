@@ -6,17 +6,24 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import RxCocoa
 import Core
 
 protocol ChallengeTitleResultDependency: Dependency { }
 
 protocol ChallengeTitleResultContainable: Containable {
-  func coordinator(listener: ChallengeTitleResultListener) -> ViewableCoordinating
+  func coordinator(
+    listener: ChallengeTitleResultListener,
+    searchInput: Driver<String>
+  ) -> ViewableCoordinating
 }
 
 final class ChallengeTitleResultContainer: Container<ChallengeTitleResultDependency>, ChallengeTitleResultContainable {
-  func coordinator(listener: ChallengeTitleResultListener) -> ViewableCoordinating {
-    let viewModel = ChallengeTitleResultViewModel()
+  func coordinator(
+    listener: ChallengeTitleResultListener,
+    searchInput: Driver<String>
+  ) -> ViewableCoordinating {
+    let viewModel = ChallengeTitleResultViewModel(searchInput: searchInput)
     let viewControllerable = ChallengeTitleResultViewController(viewModel: viewModel)
     
     let coordinator = ChallengeTitleResultCoordinator(

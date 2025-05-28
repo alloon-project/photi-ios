@@ -26,20 +26,29 @@ enum SearchResultMode {
 }
 
 final class SearchResultViewModel: SearchResultViewModelType {
+  typealias SearchMode = SearchResultViewController.SearchMode
+  
   weak var coordinator: SearchResultCoordinatable?
+  let titleSearchInput: Driver<String>
+  let hashTagSearchInput: Driver<String>
+  
+  private let titleSearchInputRelay = BehaviorRelay(value: "")
+  private let hashTagSearchInputRelay = BehaviorRelay(value: "")
   private let disposeBag = DisposeBag()
   // TODO: - API 작업 이후 수정 예정
   private var recentSearchInputs = ["건강", "운동하기", "코딩코딩코딩", "밥 잘먹기"]
   
   private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
+  private var searchMode = SearchMode.title
 
   // MARK: - Input
   struct Input {
+    let viewDidLoad: Signal<Void>
     let didTapBackButton: Signal<Void>
-    let searchText: Driver<String>
-    let didEnterSearchText: Signal<String>
+    let searchText: Signal<String>
     let deleteAllRecentSearchInputs: Signal<Void>
     let deleteRecentSearchInput: Signal<String>
+    let searchMode: Driver<SearchMode>
   }
   
   // MARK: - Output
@@ -48,9 +57,18 @@ final class SearchResultViewModel: SearchResultViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init() {
+    titleSearchInput = titleSearchInputRelay.asDriver()
+    hashTagSearchInput = hashTagSearchInputRelay.asDriver()
+  }
   
   func transform(input: Input) -> Output {
+    input.viewDidLoad
+      .emit(with: self) { owner, _ in
+        owner.updateSearchResultMode("")
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapBackButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
@@ -58,20 +76,21 @@ final class SearchResultViewModel: SearchResultViewModelType {
       .disposed(by: disposeBag)
     
     input.searchText
-      .drive(with: self) { owner, text in
+      .emit(with: self) { owner, text in
+        owner.enterSearchInput(text)
         owner.updateSearchResultMode(text)
       }
       .disposed(by: disposeBag)
-    
-    input.didEnterSearchText
-      .emit(with: self) { owner, text in
-        owner.enterSearchInput(text)
-      }
-      .disposed(by: disposeBag)
-    
+
     input.deleteAllRecentSearchInputs
       .emit(with: self) { owner, _ in
         owner.deleteAllRecentSearchInputs()
+      }
+      .disposed(by: disposeBag)
+    
+    input.searchMode
+      .drive(with: self) { owner, mode in
+        owner.searchMode = mode
       }
       .disposed(by: disposeBag)
     
@@ -89,13 +108,24 @@ final class SearchResultViewModel: SearchResultViewModelType {
 private extension SearchResultViewModel {
   func updateSearchResultMode(_ text: String) {
     guard text.isEmpty else { return searchResultModeRelay.accept(.searchResult) }
-    
     let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: recentSearchInputs) : .searchResult
     
     searchResultModeRelay.accept(mode)
   }
   
   func enterSearchInput(_ input: String) {
+    guard !input.isEmpty else {
+      titleSearchInputRelay.accept(input)
+      hashTagSearchInputRelay.accept(input)
+      return
+    }
+    
+    switch searchMode {
+      case .title: titleSearchInputRelay.accept(input)
+      case .hashTag: hashTagSearchInputRelay.accept(input)
+    }
+    
+    guard !recentSearchInputs.contains(input) else { return }
     recentSearchInputs = [input] + recentSearchInputs
   }
   

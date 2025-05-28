@@ -45,8 +45,14 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
   }
   
   private func attachSegments() {
-    let challengeTitleReulst = challengeTitleReulstContainable.coordinator(listener: self)
-    let hashTagResult = hashTagResultContainable.coordinator(listener: self)
+    let challengeTitleReulst = challengeTitleReulstContainable.coordinator(
+      listener: self,
+      searchInput: viewModel.titleSearchInput
+    )
+    let hashTagResult = hashTagResultContainable.coordinator(
+      listener: self,
+      searchInput: viewModel.hashTagSearchInput
+    )
     
     presenter.attachViewControllerables(
       challengeTitleReulst.viewControllerable,
