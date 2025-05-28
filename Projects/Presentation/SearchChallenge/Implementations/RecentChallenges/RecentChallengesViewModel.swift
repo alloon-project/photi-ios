@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol RecentChallengesCoordinatable: AnyObject {
   func didTapChallenge(challengeId: Int)
@@ -22,7 +23,7 @@ protocol RecentChallengesViewModelType: AnyObject {
 
 final class RecentChallengesViewModel: RecentChallengesViewModelType {
   weak var coordinator: RecentChallengesCoordinatable?
-
+  private let useCase: SearchUseCase
   private let disposeBag = DisposeBag()
   private var isFetching = false
   private var isLastPage = false
@@ -44,7 +45,10 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SearchUseCase) {
+    self.useCase = useCase
+    self.modelMapper = SearchChallengePresentaionModelMapper()
+  }
   
   func transform(input: Input) -> Output {
     input.requestData

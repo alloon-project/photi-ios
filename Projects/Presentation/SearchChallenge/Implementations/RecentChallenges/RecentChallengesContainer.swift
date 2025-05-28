@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol RecentChallengesDependency: Dependency { }
+protocol RecentChallengesDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+}
 
 protocol RecentChallengesContainable: Containable {
   func coordinator(listener: RecentChallengesListener) -> ViewableCoordinating
@@ -16,7 +19,7 @@ protocol RecentChallengesContainable: Containable {
 
 final class RecentChallengesContainer: Container<RecentChallengesDependency>, RecentChallengesContainable {
   func coordinator(listener: RecentChallengesListener) -> ViewableCoordinating {
-    let viewModel = RecentChallengesViewModel()
+    let viewModel = RecentChallengesViewModel(useCase: dependency.searchUseCase)
     let viewControllerable = RecentChallengesViewController(viewModel: viewModel)
     
     let coordinator = RecentChallengesCoordinator(
