@@ -65,10 +65,10 @@ public extension ChallengeRepositoryImpl {
     
     let result = try await requestUnAuthorizableAPI(
       api: api,
-      responseType: ChallengesByHashTagResponseDTO.self
+      responseType: SearcgChallengesSummaryResponseDTO.self
     ).value
     
-    let challenges = dataMapper.mapToChallengeSummaryFromChallengeByHashTag(dto: result)
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
     return (challenges, result.last)
   }
   
@@ -106,6 +106,18 @@ public extension ChallengeRepositoryImpl {
       responseType: MyChallengesResponseDTO.self
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
+  }
+  
+  func fetchRecentChallenges(page: Int, size: Int) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+    let api = ChallengeAPI.recentChallenges(page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: SearcgChallengesSummaryResponseDTO.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
+    return (challenges, result.last)
   }
   
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {
