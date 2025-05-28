@@ -12,4 +12,6 @@ public protocol SearchChallengeContainable: Containable {
   func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating
 }
 
-public protocol SearchChallengeListener: AnyObject { }
+public protocol SearchChallengeListener: AnyObject {
+  func authenticatedFailedAtSearchChallenge()
+}

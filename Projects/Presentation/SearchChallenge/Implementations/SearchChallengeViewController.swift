@@ -120,10 +120,22 @@ private extension SearchChallengeViewController {
       .disposed(by: disposeBag)
   }
   
-  func bind(output: SearchChallengeViewModel.Output) {}
+  func bind(output: SearchChallengeViewModel.Output) {
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.exceedMaxChallengeCount
+      .emit(with: self) { owner, _ in
+        owner.presentExceedMaxChallengeCountToastView()
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
-// MARK: -
+// MARK: - UITextFieldDelegate
 extension SearchChallengeViewController: UITextFieldDelegate {
   func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
     return false
@@ -159,5 +171,20 @@ private extension SearchChallengeViewController {
     viewController.view.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
+  }
+  
+  func presentExceedMaxChallengeCountToastView() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "챌린지는 최대 20개까지 참여할 수 있어요.",
+      icon: .closeRed
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
   }
 }

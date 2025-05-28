@@ -171,7 +171,14 @@ extension AppCoordinator: HomeListener {
 }
 
 // MARK: - SearchChallengeListener
-extension AppCoordinator: SearchChallengeListener { }
+extension AppCoordinator: SearchChallengeListener {
+  func authenticatedFailedAtSearchChallenge() {
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+    }
+  }
+}
 
 // MARK: - MyPageListener
 extension AppCoordinator: MyPageListener {
@@ -183,7 +190,6 @@ extension AppCoordinator: MyPageListener {
 // MARK: - LoginListener
 extension AppCoordinator: LogInListener {
   func didFinishLogIn(userName: String) {
-    // TODO: - 환영합니다" 메시지 띄우기
     Task {
       await detachLogIn(willPopViewConroller: false)
       await reloadAllTab()

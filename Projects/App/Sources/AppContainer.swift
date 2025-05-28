@@ -128,6 +128,10 @@ final class AppContainer:
     return FeedUseCaseImpl(repository: feedRepository)
   }
   
+  lazy var searchUseCase: SearchUseCase = {
+    return SearchUseCaseImpl(challengeRepository: challengeRepository)
+  }()
+  
   lazy var reportUseCase: ReportUseCase = {
     return ReportUseCaseImpl(repository: reportRepository)
   }()
