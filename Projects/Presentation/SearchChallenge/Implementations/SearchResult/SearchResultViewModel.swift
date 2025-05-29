@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol SearchResultCoordinatable: AnyObject {
   func didTapBackButton()
@@ -35,8 +36,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
   private let titleSearchInputRelay = BehaviorRelay(value: "")
   private let hashTagSearchInputRelay = BehaviorRelay(value: "")
   private let disposeBag = DisposeBag()
-  // TODO: - API 작업 이후 수정 예정
-  private var recentSearchInputs = ["건강", "운동하기", "코딩코딩코딩", "밥 잘먹기"]
+  private let useCase: SearchUseCase
   
   private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
   private var searchMode = SearchMode.title
@@ -57,7 +57,8 @@ final class SearchResultViewModel: SearchResultViewModelType {
   }
   
   // MARK: - Initializers
-  init() {
+  init(useCase: SearchUseCase) {
+    self.useCase = useCase
     titleSearchInput = titleSearchInputRelay.asDriver()
     hashTagSearchInput = hashTagSearchInputRelay.asDriver()
   }
@@ -109,7 +110,8 @@ final class SearchResultViewModel: SearchResultViewModelType {
 private extension SearchResultViewModel {
   func updateSearchResultMode(_ text: String) {
     guard text.isEmpty else { return searchResultModeRelay.accept(.searchResult) }
-    let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: recentSearchInputs) : .searchResult
+    let input = useCase.searchHistory()
+    let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: input) : .searchResult
     
     searchResultModeRelay.accept(mode)
   }
@@ -126,17 +128,16 @@ private extension SearchResultViewModel {
       case .hashTag: hashTagSearchInputRelay.accept(input)
     }
     
-    guard !recentSearchInputs.contains(input) else { return }
-    recentSearchInputs = [input] + recentSearchInputs
+    useCase.saveSearchKeyword(input)
   }
   
   func deleteAllRecentSearchInputs() {
-    recentSearchInputs = []
+    useCase.clearSearchHistory()
     searchResultModeRelay.accept(.searchInputSuggestion(recent: []))
   }
   
   func deleteRecentSearchInput(_ input: String) {
-    recentSearchInputs.removeAll { $0 == input }
-    searchResultModeRelay.accept(.searchInputSuggestion(recent: recentSearchInputs))
+    let searchHistories = useCase.deleteSearchKeyword(input)
+    searchResultModeRelay.accept(.searchInputSuggestion(recent: searchHistories))
   }
 }

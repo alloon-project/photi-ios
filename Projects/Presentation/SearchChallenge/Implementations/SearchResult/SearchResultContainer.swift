@@ -25,7 +25,7 @@ final class SearchResultContainer:
   var searchUseCase: SearchUseCase { dependency.searchUseCase}
   
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating {
-    let viewModel = SearchResultViewModel()
+    let viewModel = SearchResultViewModel(useCase: searchUseCase)
     let viewControllerable = SearchResultViewController(viewModel: viewModel)
     
     let challengeTitleResult = ChallengeTitleResultContainer(dependency: self)
