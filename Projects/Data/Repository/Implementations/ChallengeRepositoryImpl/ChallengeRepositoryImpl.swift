@@ -32,6 +32,14 @@ public extension ChallengeRepositoryImpl {
     .map { $0.map { dataMapper.mapToChallengeDetail(dto: $0) } }
   }
   
+  func fetchPopularHashTags() -> Single<[String]> {
+    return requestUnAuthorizableAPI(
+      api: ChallengeAPI.popularHashTags,
+      responseType: [HashTagResponseDTO].self
+    )
+    .map { $0.map { $0.hashtag } }
+  }
+  
   func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.endedChallenges(page: page, size: size),
@@ -46,6 +54,22 @@ public extension ChallengeRepositoryImpl {
       responseType: ChallengeDetailResponseDTO.self
     )
     .map { dataMapper.mapToChallengeDetail(dto: $0, id: id) }
+  }
+  
+  func fetchChallenges(
+    byHashTag hashTag: String,
+    page: Int,
+    size: Int
+  ) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+    let api = ChallengeAPI.challengesByHashTag(hashTag, page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: SearcgChallengesSummaryResponseDTO.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
+    return (challenges, result.last)
   }
   
   func isProve(challengeId: Int) async throws -> Bool {
@@ -82,6 +106,18 @@ public extension ChallengeRepositoryImpl {
       responseType: MyChallengesResponseDTO.self
     )
     .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
+  }
+  
+  func fetchRecentChallenges(page: Int, size: Int) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+    let api = ChallengeAPI.recentChallenges(page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: SearcgChallengesSummaryResponseDTO.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
+    return (challenges, result.last)
   }
   
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {

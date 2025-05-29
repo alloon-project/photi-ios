@@ -29,6 +29,7 @@ public final class NoneMemberChallengeContainer:
     let logInGuideContainer = LogInGuideContainer(dependency: self)
     
     let coordinator = NoneMemberChallengeCoordinator(
+      challengeId: challengeId,
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       enterChallengeGoalContainer: enterChallengeGoalContainer,

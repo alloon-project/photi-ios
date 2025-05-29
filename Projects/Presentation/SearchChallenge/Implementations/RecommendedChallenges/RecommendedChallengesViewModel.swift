@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol RecommendedChallengesCoordinatable: AnyObject {
   func didTapChallenge(challengeId: Int)
@@ -23,6 +24,8 @@ protocol RecommendedChallengesViewModelType: AnyObject {
 final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   weak var coordinator: RecommendedChallengesCoordinatable?
   
+  private let useCase: SearchUseCase
+  private let modelMapper: SearchChallengePresentaionModelMapper
   private let disposeBag = DisposeBag()
   private var fetchingHashTagChallengeTask: Task<Void, Never>?
   private var isFetching = false
@@ -39,6 +42,7 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   private let hashTagsRelay = BehaviorRelay<[String]>(value: [])
   private let hashTagInitialChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
   private let hashTagChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
+  private let networkUnstableRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -54,15 +58,19 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
     let hashTags: Driver<[String]>
     let hashTagInitialChallenges: Driver<[ChallengeCardPresentationModel]>
     let hashTagChallenges: Driver<[ChallengeCardPresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SearchUseCase) {
+    self.useCase = useCase
+    self.modelMapper = SearchChallengePresentaionModelMapper()
+  }
   
   func transform(input: Input) -> Output {
     input.requestData
       .emit(with: self) { owner, _ in
-        owner.fetchAllData()
+        Task { await owner.fetchAllData() }
       }
       .disposed(by: disposeBag)
     
@@ -88,22 +96,38 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
       popularChallenges: popularChallenges.asDriver(),
       hashTags: hashTagsRelay.asDriver(),
       hashTagInitialChallenges: hashTagInitialChallenges.asDriver(),
-      hashTagChallenges: hashTagChallenges.asDriver()
+      hashTagChallenges: hashTagChallenges.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
 
 // MARK: - API Methods
 private extension RecommendedChallengesViewModel {
-  func fetchAllData() {
-    fetchPopularChallenges()
-    fetchHastags()
+  func fetchAllData() async {
     Task { await fetchHashTagChallenge(hashTag: selectedHashTag) }
+
+    do {
+      async let hashtags = fetchHastags()
+      async let challenges = fetchPopularChallenges()
+
+      try await popularChallenges.accept(challenges)
+      try await hashTagsRelay.accept(hashtags)
+    } catch {
+      networkUnstableRelay.accept(())
+    }
   }
   
-  func fetchPopularChallenges() { }
+  func fetchPopularChallenges() async throws -> [ChallengeCardPresentationModel] {
+    let challenges = try await useCase.popularChallenges().value
+    return challenges.map {
+      modelMapper.mapToChallengeCardPresentationModel(from: $0)
+    }
+  }
   
-  func fetchHastags() { }
+  func fetchHastags() async throws -> [String] {
+    return try await useCase.popularHashtags().value
+  }
   
   func fetchHashTagChallenge(hashTag: String) async {
     guard !Task.isCancelled else { return }
@@ -116,15 +140,24 @@ private extension RecommendedChallengesViewModel {
     }
     
     do {
-      try await fetchData()
-      guard !Task.isCancelled else { return }
-      // 구현 예정
+      let result = try await useCase.challenges(
+        byHashTag: hashTag,
+        page: currentPage,
+        size: 15
+      )
+      let models = result.challenges.map {
+        modelMapper.mapToPresentationModelChallengeSummary(from: $0)
+      }
+
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+      currentPage == 0 ? hashTagInitialChallenges.accept(models) : hashTagChallenges.accept(models)
     } catch {
-      // 구현 예정
+      networkUnstableRelay.accept(())
     }
   }
-  
-  func fetchData() async throws { }
   
   func selectedHashTagDidChange(_ hashTag: String) {
     isLastPage = false
@@ -132,5 +165,5 @@ private extension RecommendedChallengesViewModel {
     currentPage = 0
     fetchingHashTagChallengeTask?.cancel()
     fetchingHashTagChallengeTask = Task { await fetchHashTagChallenge(hashTag: hashTag) }
-    }
+  }
 }
