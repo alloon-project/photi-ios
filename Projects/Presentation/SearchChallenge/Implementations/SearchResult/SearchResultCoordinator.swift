@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol SearchResultListener: AnyObject {
@@ -27,15 +28,25 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
   private let hashTagResultContainable: HashTagResultContainable
   private var hashTagResultCoordinator: ViewableCoordinating?
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
+  private let noneMemberChallengeContainable: NoneMemberChallengeContainable
+  private var noneMemberchallengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SearchResultViewModel,
     challengeTitleReulstContainable: ChallengeTitleResultContainable,
-    hashTagResultContainable: HashTagResultContainable
+    hashTagResultContainable: HashTagResultContainable,
+    challengeContainable: ChallengeContainable,
+    noneMemberChallengeContainable: NoneMemberChallengeContainable
   ) {
     self.viewModel = viewModel
     self.challengeTitleReulstContainable = challengeTitleReulstContainable
     self.hashTagResultContainable = hashTagResultContainable
+    self.challengeContainable = challengeContainable
+    self.noneMemberChallengeContainable = noneMemberChallengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
