@@ -84,6 +84,23 @@ public extension ChallengeRepositoryImpl {
     return .init(contents: challenges, isLast: result.last)
   }
   
+  func searchChallenge(
+    byName name: String,
+    page: Int,
+    size: Int
+  ) async throws -> PaginationResultType<ChallengeSummary> {
+    let api = ChallengeAPI.searchChallengesByName(name, page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: PaginationResponseDTO<SearchChallengeByNameResponseDTO>.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengeByName(result.content)
+    
+    return .init(contents: challenges, isLast: result.last)
+  }
+  
   func isProve(challengeId: Int) async throws -> Bool {
     let api = ChallengeAPI.isProve(challengeId: challengeId)
     let result = try await requestAuthorizableAPI(

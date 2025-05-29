@@ -19,6 +19,7 @@ public enum ChallengeAPI {
   case myChallenges(page: Int, size: Int)
   case recentChallenges(page: Int, size: Int)
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
+  case searchChallengesByName(_ name: String, page: Int, size: Int)
   case joinChallenge(id: Int)
   case joinPrivateChallenge(id: Int, code: String)
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
@@ -40,8 +41,9 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges: return "api/challenges/popular"
       case .popularHashTags: return "api/challenges/hashtags"
-      case .challengesByHashTag: return "api/challenges/by-hashtags"
       case .recentChallenges: return "api/challenges"
+      case .challengesByHashTag: return "api/challenges/by-hashtags"
+      case .searchChallengesByName: return "api/challenges/search/name"
       case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
       case .endedChallenges: return "api/users/ended-challenges"
       case .myChallenges: return "api/users/my-challenges"
@@ -61,6 +63,7 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges, .popularHashTags: return .get
       case .challengeDetail, .challengesByHashTag, .recentChallenges: return .get
+      case .searchChallengesByName: return .get
       case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .uploadChallengeProof: return .post
@@ -83,6 +86,10 @@ extension ChallengeAPI: TargetType {
         
       case let .challengesByHashTag(hashTag, page, size):
         let parameters = ["hashtag": hashTag, "page": "\(page)", "size": "\(size)"]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .searchChallengesByName(name, page, size):
+        let parameters = ["challengeName": name, "page": "\(page)", "size": "\(size)"]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
       case .joinChallenge, .challengeProveMemberCount:
@@ -198,6 +205,12 @@ extension ChallengeAPI: TargetType {
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
       case .challengesByHashTag, .recentChallenges:
+        let data = SearchChallengeResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .searchChallengesByName:
         let data = SearchChallengeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
