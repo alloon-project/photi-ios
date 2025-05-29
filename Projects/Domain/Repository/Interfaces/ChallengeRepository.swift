@@ -28,6 +28,11 @@ public protocol ChallengeRepository {
     page: Int,
     size: Int
   ) async throws -> PaginationResultType<ChallengeSummary>
+  func searchChallenge(
+    byHashTag hashtag: String,
+    page: Int,
+    size: Int
+  ) async throws -> PaginationResultType<ChallengeSummary>
   func fetchPopularHashTags() -> Single<[String]>
   func isProve(challengeId: Int) async throws -> Bool
   func challengeProveMemberCount(challengeId: Int) async throws -> Int

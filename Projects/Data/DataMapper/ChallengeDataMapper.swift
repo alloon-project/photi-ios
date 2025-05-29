@@ -17,7 +17,8 @@ public protocol ChallengeDataMapper {
   func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromMyChallenge(dto: [MyChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromSearchChallenge(dto: [SearchChallengeResponseDTO]) -> [ChallengeSummary]
-  func mapToChallengeSummaryFromSearchChallengeByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromByHashTag(_ dto: [SearchChallengeByHashtagResponseDTO]) -> [ChallengeSummary]
   func mapToFeed(dto: FeedResponseDTO) -> Feed
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
   func mapToFeedComment(dto: FeedCommentResponseDTO) -> FeedComment
@@ -128,7 +129,7 @@ public extension ChallengeDataMapperImpl {
     }
   }
   
-  func mapToChallengeSummaryFromSearchChallengeByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary] {
+  func mapToChallengeSummaryFromByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary] {
     return dto.map {
       let imageUrl = URL(string: $0.imageUrl ?? "")
       let endDate = $0.endDate.toDate() ?? Date()
@@ -140,6 +141,25 @@ public extension ChallengeDataMapperImpl {
         imageUrl: imageUrl,
         endDate: endDate,
         hashTags: [],
+        memberCount: $0.currentMemberCnt,
+        memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
+      )
+    }
+  }
+  
+  func mapToChallengeSummaryFromByHashTag(_ dto: [SearchChallengeByHashtagResponseDTO]) -> [ChallengeSummary] {
+    return dto.map {
+      let imageUrl = URL(string: $0.imageUrl ?? "")
+      let endDate = $0.endDate.toDate() ?? Date()
+      let hashTags = $0.hashtags.map { $0.hashtag }
+      let memberImages = $0.memberImages.map { $0.memberImage }
+      
+      return .init(
+        id: $0.id,
+        name: $0.name,
+        imageUrl: imageUrl,
+        endDate: endDate,
+        hashTags: hashTags,
         memberCount: $0.currentMemberCnt,
         memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
       )
