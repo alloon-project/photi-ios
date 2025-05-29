@@ -15,8 +15,8 @@ public struct ChallengeOrganizeResponseDTO: Decodable {
   public let proveTime: String
   public let endDate: String
   public let imageUrl: String
-  public let rules: [String]
-  public let hashtags: [String]
+  public let rules: [RuleResponseDTO]
+  public let hashtags: [HashTagResponseDTO]
 }
 
 public extension ChallengeOrganizeResponseDTO {

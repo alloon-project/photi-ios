@@ -13,12 +13,16 @@ import Core
 /// 내부가 색으로 채워진 Round Button입니다.
 public final class FilledRoundButton: RoundButton {
   // MARK: - Properties
+  private var previousMode: ButtonMode?
+  
   /// Round Button의 type입니다.
   public let type: RoundButtonType
   
   /// Round Button의 mode입니다.
   public var mode: ButtonMode {
-    didSet { setupUI(type: type, mode: mode) }
+    didSet {
+      setupUI(type: type, mode: mode)
+    }
   }
   
   public var title: String {
@@ -34,7 +38,10 @@ public final class FilledRoundButton: RoundButton {
   
   public override var isHighlighted: Bool {
     didSet {
-      self.mode = isHighlighted ? .pressed : .default
+      guard isEnabled else { return }
+  
+      previousMode = isHighlighted ? mode : nil
+      self.mode = isHighlighted ? .pressed : previousMode ?? .default
     }
   }
   

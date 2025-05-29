@@ -38,28 +38,32 @@ public struct MultipartEncoding: MultipartUploadable {
 private extension MultipartEncoding {
   func encodeBodyParts(multiParts: MultipartFormData) -> Data {
     var data = Data()
-    data.appendString("--\(multiParts.boundary)\(crlf)")
     multiParts.bodyParts.forEach { bodyPart in
       switch bodyPart.type {
         case let .parameters(dictionaries):
           dictionaries.forEach { (key, value) in
+            data.appendString("--\(multiParts.boundary)\(crlf)")
             data.append(encodeParameter(key: key, value: value))
           }
         case let .data(dictionaries):
           dictionaries.forEach { (key, value) in
+            data.appendString("--\(multiParts.boundary)\(crlf)")
             let encodedData = encodedData(
               key: key,
               data: value,
               fileExtension: bodyPart.fileExtension,
               mimeType: bodyPart.mimeType
             )
-            
             data.append(encodedData)
           }
+        case let .jsonString(key, json):
+          data.appendString("--\(multiParts.boundary)\(crlf)")
+          let encodedData = encodeJSONString(key: key, value: json)
+          data.append(encodedData)
       }
     }
     data.appendString("--\(multiParts.boundary)--\(crlf)")
-    
+
     return data
   }
   
@@ -73,8 +77,19 @@ private extension MultipartEncoding {
     return endcodedData
   }
   
-  func encodedData(key: String, data: Data, fileExtension: String?, mimeType: String?) -> Data {
+  func encodeJSONString(key: String, value: String) -> Data {
     var endcodedData = Data()
+    endcodedData.appendString("Content-Disposition: form-data; name=\"\(key)\"")
+
+    endcodedData.appendString("\(crlf)\(crlf)")
+    endcodedData.appendString(value)
+    endcodedData.appendString(crlf)
+    
+    return endcodedData
+  }
+  
+  func encodedData(key: String, data: Data, fileExtension: String?, mimeType: String?) -> Data {
+    var endcodedData = Data() 
     let fileExtension = fileExtension ?? ""
     let mimeType = mimeType ?? ""
     
@@ -92,8 +107,7 @@ private extension MultipartEncoding {
 // MARK: - Data Extension
 fileprivate extension Data {
   mutating func appendString(_ string: String) {
-    if let data = string.data(using: .utf8) {
-      self.append(data)
-    }
+    guard let data = string.data(using: .utf8) else { return }
+    self.append(data)
   }
 }

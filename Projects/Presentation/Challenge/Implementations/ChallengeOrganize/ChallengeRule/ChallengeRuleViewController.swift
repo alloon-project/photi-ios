@@ -19,6 +19,7 @@ struct Rule {
 }
 
 final class ChallengeRuleViewController: UIViewController, ViewControllerable {
+  // MARK: Variables
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeRuleViewModel
   private var defaultRules: [Rule] = [
@@ -32,7 +33,11 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   
   private var additionalRules: [Rule] = [
     Rule(title: "+", isSelected: false)
-  ]
+  ] {
+    didSet {
+      ruleCollectionView.reloadData()
+    }
+  }
   private var selectedRules: [String] = [] {
     didSet {
       selectedRulesRelay.accept(selectedRules)
@@ -241,7 +246,12 @@ private extension ChallengeRuleViewController {
 extension ChallengeRuleViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     // 추가 버튼 누를경우 동작
-    if indexPath == IndexPath(item: 0, section: 1) {
+    if indexPath == IndexPath(item: additionalRules.count - 1, section: 1) {
+      if additionalRules.count >= 6 {
+        presentRuleLimitToastView()
+        return
+      }
+      
       bottomSheet.present(to: self, animated: true)
       return
     }
@@ -289,6 +299,17 @@ extension ChallengeRuleViewController: UICollectionViewDataSource {
       cell.configure(with: data.title, isSelected: data.isSelected, isDefault: false)
     }
     
+    cell.onTapClose = { [weak self] in
+      guard
+        let self,
+        collectionView.indexPath(for: cell) != nil
+      else { return }
+      
+      if let selectedRulesIndex = selectedRules.firstIndex(of: additionalRules[indexPath.item].title) {
+        selectedRules.remove(at: selectedRulesIndex)
+      }
+      additionalRules.remove(at: indexPath.item)
+    }
     return cell
   }
 }
@@ -305,11 +326,14 @@ extension ChallengeRuleViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - TextFieldBottomSheet Delegate
 extension ChallengeRuleViewController: TextFieldBottomSheetDelegate {
-  func didTapCloseButton() {}
+  func didTapCloseButton() {
+    bottomSheet.textField.text = nil
+  }
   
   func didTapConfirmButton(_ text: String) {
-    let newRule = Rule(title: text, isSelected: false)
-    additionalRules.append(newRule)
-    ruleCollectionView.insertItems(at: [IndexPath(item: additionalRules.count - 1, section: 1)])
+    bottomSheet.textField.text = nil
+    let newRule = Rule(title: text.trimmingCharacters(in: .whitespacesAndNewlines), isSelected: false)
+    let beforeCount = additionalRules.count - 1
+    additionalRules.insert(newRule, at: beforeCount)
   }
 }

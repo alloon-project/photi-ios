@@ -33,6 +33,7 @@ public class LineTextField: UIView {
     get { textField.text }
     set {
       textField.text = newValue
+      textField.sendActions(for: .editingChanged)
       if case let .count(max) = type {
         setCountLabel(max: max)
       }
@@ -114,7 +115,7 @@ private extension LineTextField {
   func setViewHierarchy(for type: TextFieldType) {
     self.addSubview(textField)
     
-    switch type {        
+    switch type {
       case .count:
         self.addSubview(countLabel)
         

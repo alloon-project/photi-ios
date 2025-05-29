@@ -12,7 +12,7 @@ import Entity
 public protocol ChallengeOrganizeDataMapper {
   func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
   func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
-  -> ChallengeOrganizeRequestDTO
+  -> ChallengeOrganizeRequestDTO?
 }
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
@@ -23,15 +23,10 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
   }
   
   public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
-  -> ChallengeOrganizeRequestDTO {
+  -> ChallengeOrganizeRequestDTO? {
+    guard let jsonString = payload.toJSONString() else { return nil }
     return ChallengeOrganizeRequestDTO(
-      name: payload.name,
-      isPublic: payload.isPublic,
-      goal: payload.goal,
-      proveTime: payload.proveTime,
-      endDate: payload.endDate,
-      rules: payload.rules,
-      hashtags: payload.hashtags,
+      jsonString: jsonString,
       image: payload.image,
       imageType: payload.imageType
     )

@@ -14,14 +14,12 @@ import Core
 import DesignSystem
 
 final class ChallengeHashtagViewController: UIViewController, ViewControllerable {
+  // MARK: - Variables
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHashtagViewModel
   
   private var hashtagsDataSource: [String] = [] {
-    didSet {
-      hashtagCollectionView.reloadData()
-      selectedHashtags.accept(hashtagsDataSource)
-    }
+    didSet { hashtagCollectionView.reloadData() }
   }
   private var selectedHashtags = BehaviorRelay<[String]>(value: [])
   
@@ -32,7 +30,7 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   
   private let titleLabel: UILabel = {
     let label = UILabel()
-    label.attributedText = "인증 룰을 정해볼까요?".attributedString(
+    label.attributedText = "챌린지를 표현하는 해시태그를 정해주세요".attributedString(
       font: .heading4,
       color: .gray900
     )
@@ -40,16 +38,14 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
     return label
   }()
   
-  // 추가버튼
   private let addHashtagTextField = ButtonTextField(
     buttonText: "추가하기",
     placeholder: "해시태그",
     type: .helper,
     mode: .default
   )
-  // 코멘트
+  
   private let commentView = CommentView(.condition, text: "6자 이하", icon: .checkBlue)
-  // 해시태그 컬렉션뷰
   
   private let hashtagCollectionView = HashTagCollectionView(allignMent: .leading)
   
@@ -152,7 +148,7 @@ private extension ChallengeHashtagViewController {
     let input = ChallengeHashtagViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       enteredHashtag: addHashtagTextField.rx.text,
-      selectedHashtags: selectedHashtags.asObservable(),
+      selectedHashtags: selectedHashtags.asDriver(),
       didTapNextButton: nextButton.rx.tap
     )
     
@@ -164,23 +160,30 @@ private extension ChallengeHashtagViewController {
   func viewBind() {
     addHashtagTextField.rx.didTapButton
       .withLatestFrom(addHashtagTextField.rx.text)
-      .bind(with: self) { owner, newHashtag in
-        if owner.hashtagsDataSource.count >= 3 {
-          owner.presentHashtagLimitToastView()
-        } else {
-          owner.hashtagsDataSource.append(newHashtag)
-          owner.addHashtagTextField.text = nil
-        }
-      }.disposed(by: disposeBag)
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .bind(with: self) { owner, hashTag in
+        owner.hashtagsDataSource.append(hashTag)
+        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+        owner.addHashtagTextField.text = ""
+      }
+      .disposed(by: disposeBag)
+    
+    selectedHashtags
+      .filter { $0.count >= 3 }
+      .bind(with: self) { owner, _ in
+        owner.view.endEditing(true)
+        owner.presentHashtagLimitToastView()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: ChallengeHashtagViewModel.Output) {
     output.isValidHashtag
-      .drive(addHashtagTextField.rx.buttonIsEnabled)
+      .drive(commentView.rx.isActivate)
       .disposed(by: disposeBag)
     
-    output.isValidHashtag
-      .drive(commentView.rx.isActivate)
+    output.isEnableAddHashtagButton
+      .drive(addHashtagTextField.rx.buttonIsEnabled)
       .disposed(by: disposeBag)
     
     output.isEnabledNextButton
@@ -219,12 +222,16 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
     cell.configure(
       type: .icon(size: .large, type: .blue),
-      text: hashtagsDataSource[indexPath.item])
+      text: hashtagsDataSource[indexPath.item]
+    )
     
     cell.rx.didTapCloseButton
       .bind(with: self) { owner, _ in
+        guard let indexPath = collectionView.indexPath(for: cell) else { return }
         owner.hashtagsDataSource.remove(at: indexPath.item)
-      }.disposed(by: disposeBag)
+        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+      }
+      .disposed(by: disposeBag)
     
     return cell
   }

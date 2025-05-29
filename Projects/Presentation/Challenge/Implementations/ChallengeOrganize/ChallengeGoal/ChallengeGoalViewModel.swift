@@ -13,7 +13,7 @@ import UseCase
 
 protocol ChallengeGoalCoordinatable: AnyObject {
   func didTapBackButtonAtChallengeGoal()
-  func didFinishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date)
+  func didFinishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String)
 }
 
 protocol ChallengeGoalViewModelType: AnyObject {
@@ -26,6 +26,7 @@ protocol ChallengeGoalViewModelType: AnyObject {
 
 final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   let disposeBag = DisposeBag()
+  private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeGoalCoordinatable?
     
@@ -44,7 +45,9 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   }
   
   // MARK: - Initializers
-  init() {}
+  init(useCase: OrganizeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -65,17 +68,26 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
         owner.coordinator?.didFinishChallengeGoal(
           challengeGoal: infos.0,
           proveTime: infos.1,
-          endDate: infos.2
+          endDate: infos.2.toString("YYYY-MM-dd")
         )
+        owner.useCase.configureChallengePayload(.goal, value: infos.0)
+        owner.useCase.configureChallengePayload(.proveTime, value: infos.1)
+        owner.useCase.configureChallengePayload(.endDate, value: infos.2.toString("YYYY-MM-dd"))
       }
       .disposed(by: disposeBag)
     
     let isEnabledNextButton = Observable.combineLatest(
-      input.challengeGoal.asObservable(),
-      input.proveTime.asObservable(),
-      input.date) { goal, time, date in
-        !goal.isEmpty && !time.isEmpty && date > Date()
-      }
+        input.challengeGoal.asObservable(),
+        input.proveTime.asObservable(),
+        input.date
+    ) { goal, time, date in
+        let trimmedGoal = goal.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isValidGoal = !trimmedGoal.isEmpty && trimmedGoal.count >= 10
+        let isValidTime = !time.isEmpty
+        let isValidDate = date > Date()
+
+        return isValidGoal && isValidTime && isValidDate
+    }
     
     return Output(
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)

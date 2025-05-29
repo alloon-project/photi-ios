@@ -112,6 +112,7 @@ public final class TextFieldBottomSheetViewController: BottomSheetViewController
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     removeKeyboardNotification()
+    textFieldText = nil
   }
 }
 
@@ -180,6 +181,12 @@ private extension TextFieldBottomSheetViewController {
         owner.delegate?.didTapConfirmButton(owner.textFieldText ?? "")
         owner.dismissBottomSheet()
       }
+      .disposed(by: disposeBag)
+    
+    textField.rx.text
+      .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+      .distinctUntilChanged()
+      .bind(to: button.rx.isEnabled)
       .disposed(by: disposeBag)
   }
 }

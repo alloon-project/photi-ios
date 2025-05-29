@@ -11,7 +11,7 @@ import Core
 
 protocol ChallengeGoalListener: AnyObject {
   func didTapBackButtonAtChallengeGoal()
-  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: Date)
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String)
 }
 
 protocol ChallengeGoalPresentable { }
@@ -35,7 +35,7 @@ extension ChallengeGoalCoordinator: ChallengeGoalCoordinatable {
   func didFinishChallengeGoal(
     challengeGoal: String,
     proveTime: String,
-    endDate: Date
+    endDate: String
   ) {
     listener?.didFisishChallengeGoal(
       challengeGoal: challengeGoal,

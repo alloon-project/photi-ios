@@ -54,7 +54,6 @@ private extension Session {
     guard let httpResponse = response as? HTTPURLResponse else {
       throw NetworkError.networkFailed(reason: .httpNoResponse)
     }
-    
     if let accessToken = httpResponse.headers["Authorization"] {
       UserDefaults.standard.setValue(accessToken, forKey: "Authorization")
     }
