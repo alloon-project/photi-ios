@@ -9,14 +9,6 @@
 import Foundation
 
 public struct EndedChallengeResponseDTO: Decodable {
-  public let content: [EndedChallengeContent]
-  
-  public init(content: [EndedChallengeContent]) {
-    self.content = content
-  }
-}
-
-public struct EndedChallengeContent: Decodable {
   public let id: Int
   public let name: String
   public let imageUrl: URL?

@@ -6,18 +6,13 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-public struct FeedCommentsResponseDTO: Decodable {
-  public let content: [CommentResponseDTO]
-  public let last: Bool
-}
-
-public struct CommentResponseDTO: Decodable {
+public struct FeedCommentResponseDTO: Decodable {
   public let id: Int
   public let username: String
   public let comment: String
 }
 
-public extension FeedCommentsResponseDTO {
+public extension FeedCommentResponseDTO {
   static let stubData1 = """
 {
   "code": "200 OK",

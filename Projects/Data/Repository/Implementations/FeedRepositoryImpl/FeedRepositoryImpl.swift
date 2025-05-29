@@ -39,7 +39,7 @@ public extension FeedRepositoryImpl {
     
     let value = try await requestAuthorizableAPI(
       api: api,
-      responseType: FeedsResponseDTO.self
+      responseType: PaginationResponseDTO<FeedsResponseDTO>.self
     ).value
     
     let feeds = value.content.map { data in
@@ -71,7 +71,7 @@ public extension FeedRepositoryImpl {
     let api = FeedAPI.feedComments(feedId: feedId, page: page, size: size)
     let result = try await requestAuthorizableAPI(
       api: api,
-      responseType: FeedCommentsResponseDTO.self
+      responseType: PaginationResponseDTO<FeedCommentResponseDTO>.self
     ).value
     
     let feeds = result.content.map { dataMapper.mapToFeedComment(dto: $0) }

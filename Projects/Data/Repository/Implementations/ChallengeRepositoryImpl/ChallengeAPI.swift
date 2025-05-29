@@ -134,7 +134,7 @@ extension ChallengeAPI: TargetType {
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
       case .myChallenges:
-        let data = MyChallengesResponseDTO.stubData
+        let data = MyChallengeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
@@ -198,7 +198,7 @@ extension ChallengeAPI: TargetType {
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
       case .challengesByHashTag, .recentChallenges:
-        let data = SearcgChallengesSummaryResponseDTO.stubData
+        let data = SearchChallengeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
