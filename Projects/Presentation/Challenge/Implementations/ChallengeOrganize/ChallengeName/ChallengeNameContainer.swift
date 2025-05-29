@@ -7,8 +7,10 @@
 //
 
 import Core
+import UseCase
 
 protocol ChallengeNameDependency: Dependency {
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 protocol ChallengeNameContainable: Containable {
@@ -17,7 +19,7 @@ protocol ChallengeNameContainable: Containable {
 
 final class ChallengeNameContainer: Container<ChallengeNameDependency>, ChallengeNameContainable {
   func coordinator(listener: ChallengeNameListener) -> ViewableCoordinating {
-    let viewModel = ChallengeNameViewModel()
+    let viewModel = ChallengeNameViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeNameViewController(viewModel: viewModel)
     
     let coordinator = ChallengeNameCoordinator(

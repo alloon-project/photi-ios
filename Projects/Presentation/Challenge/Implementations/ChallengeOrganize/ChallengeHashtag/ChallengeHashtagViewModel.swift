@@ -25,6 +25,7 @@ protocol ChallengeHashtagViewModelType: AnyObject {
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   let disposeBag = DisposeBag()
+  private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeHashtagCoordinatable?
       
@@ -32,18 +33,21 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let enteredHashtag: ControlProperty<String>
-    let selectedHashtags: Observable<[String]>
+    let selectedHashtags: Driver<[String]>
     let didTapNextButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
     let isValidHashtag: Driver<Bool>
+    let isEnableAddHashtagButton: Driver<Bool>
     let isEnabledNextButton: Driver<Bool>
   }
   
   // MARK: - Initializers
-  init() {}
+  init(useCase: OrganizeUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -52,17 +56,29 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       }
       .disposed(by: disposeBag)
     
-    let isHashtagEntered = input.enteredHashtag.map { !$0.isEmpty && $0.count <= 6 }
-    let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
-
     input.didTapNextButton
       .withLatestFrom(input.selectedHashtags)
       .bind(with: self) { owner, hashtags in
         owner.coordinator?.didFinishedAtChallengeHashtag(challengeHashtags: hashtags)
-      }.disposed(by: disposeBag)
+        owner.useCase.configureChallengePayload(.hashtags, value: hashtags)
+      }
+      .disposed(by: disposeBag)
+
+    let isValidHashtag = input.enteredHashtag
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .map { !$0.isEmpty && $0.count <= 6 }
+
+    let isEnableAddHashtagButton = Observable.combineLatest(
+      isValidHashtag,
+      input.selectedHashtags.asObservable()
+    ) { ($0, $1) }
+      .map { $0 && $1.count < 3 }
     
+    let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
+
     return Output(
-      isValidHashtag: isHashtagEntered.asDriver(onErrorJustReturn: false),
+      isValidHashtag: isValidHashtag.asDriver(onErrorJustReturn: false),
+      isEnableAddHashtagButton: isEnableAddHashtagButton.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
     )
   }

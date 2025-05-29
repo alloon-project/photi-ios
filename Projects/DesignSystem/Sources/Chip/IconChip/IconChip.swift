@@ -71,7 +71,7 @@ public final class IconChip: UIView {
       case .line: icon = .closeGray700
       case .gray: icon = .closeGray400
       case .darkGray: icon = .closeGray400.color(.gray500)
-      case .blue: icon = .closeBlue
+      case .blue: icon = .closeBlue.color(.blue400)
       case .green: icon = .closeGreen
     }
     
@@ -152,7 +152,18 @@ private extension IconChip {
   }
   
   func setIconView(_ icon: UIImage) {
-    iconView.image = icon
+    switch type {
+      case .line:
+        iconView.image = icon.withTintColor(.gray600)
+      case .gray:
+        iconView.image = icon.withTintColor(.gray400)
+      case .darkGray:
+        iconView.image = icon.withTintColor(.gray500)
+      case .blue:
+        iconView.image = icon.withTintColor(.blue500)
+      case .green:
+        iconView.image = icon.withTintColor(.gray500)
+    }
   }
 }
 

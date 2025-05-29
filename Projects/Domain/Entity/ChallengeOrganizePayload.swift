@@ -40,4 +40,23 @@ public struct ChallengeOrganizePayload {
     self.image = image
     self.imageType = imageType
   }
+  
+  public func toJSONString() -> String? {
+    let dict: [String: Any] = [
+      "name": self.name,
+      "isPublic": self.isPublic,
+      "goal": self.goal,
+      "proveTime": self.proveTime,
+      "endDate": self.endDate,
+      "rules": self.rules.map { ["rule": $0] },
+      "hashtags": self.hashtags.map { ["hashtag": $0] }
+    ]
+    
+    guard let data = try? JSONSerialization.data(withJSONObject: dict),
+          let jsonString = String(data: data, encoding: .utf8) else {
+      return nil
+    }
+    
+    return jsonString
+  }
 }

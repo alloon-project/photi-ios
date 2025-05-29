@@ -48,12 +48,19 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
     return label
   }()
   
-  private let publicComment = CommentView(
-    .condition,
-    text: "다양한 사람들과 챌린지를 즐겨요",
-    icon: .postitBlue,
-    isActivate: true
-  )
+  private let publicCommentBox = UIView()
+  private let publicCommentImageView = {
+    let imageView = UIImageView()
+    imageView.image = .postitBlue
+    return imageView
+  }()
+  
+  private let publicCommentLabel = {
+    let label = UILabel()
+    label.attributedText = "다양한 사람들과 챌린지를 즐겨요".attributedString(font: .caption1, color: .blue400)
+    
+    return label
+  }()
   
   private let privateComment: CommentView = {
     let commentView = CommentView(
@@ -124,11 +131,13 @@ private extension ChallengeNameViewController {
       titleLabel,
       challengeNameTextField,
       publicLabel,
-      publicComment,
+      publicCommentBox,
       privateComment,
       publicSwitch,
       nextButton
     )
+    
+    publicCommentBox.addSubviews(publicCommentImageView, publicCommentLabel)
   }
   
   func setConstraints() {
@@ -159,9 +168,20 @@ private extension ChallengeNameViewController {
       $0.leading.equalTo(challengeNameTextField)
     }
     
-    publicComment.snp.makeConstraints {
+    publicCommentBox.snp.makeConstraints {
       $0.leading.equalTo(publicLabel)
       $0.top.equalTo(publicLabel.snp.bottom).offset(16)
+    }
+    
+    publicCommentImageView.snp.makeConstraints {
+      $0.leading.equalTo(publicCommentBox)
+      $0.top.bottom.equalToSuperview()
+      $0.width.height.equalTo(12)
+    }
+    
+    publicCommentLabel.snp.makeConstraints {
+      $0.leading.equalTo(publicCommentImageView.snp.trailing).offset(6)
+      $0.top.bottom.equalToSuperview()
     }
     
     privateComment.snp.makeConstraints {
@@ -200,13 +220,14 @@ private extension ChallengeNameViewController {
   
   func viewBind() {
     challengeNameTextField.rx.text
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .map { !$0.isEmpty }
       .bind(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
       
     isPublicRelay.asObservable()
       .bind(with: self) { owner, isPublic in
-        owner.publicComment.isHidden = !isPublic
+        owner.publicCommentBox.isHidden = !isPublic
         owner.privateComment.isHidden = isPublic
       }.disposed(by: disposeBag)
   }

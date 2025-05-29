@@ -27,6 +27,8 @@ public enum HashTagType: Equatable {
 }
 
 public final class HashTagCell: UICollectionViewCell {
+  // MARK: - Variables
+  private let disposeBag = DisposeBag()
   fileprivate var chip: UIView = UIView()
   private var type: HashTagType?
   
