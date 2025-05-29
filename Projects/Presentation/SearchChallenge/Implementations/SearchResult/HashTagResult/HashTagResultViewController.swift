@@ -30,6 +30,7 @@ final class HashTagResultViewController: UIViewController, ViewControllerable {
   private var datasource: DataSourceType?
   
   private let requestData = PublishRelay<Void>()
+  private let didTapChallenge = PublishRelay<Int>()
   
   // MARK: - UI Components
   private let emptyResultLabel: UILabel = {
@@ -95,7 +96,10 @@ private extension HashTagResultViewController {
 // MARK: - Bind Methods
 private extension HashTagResultViewController {
   func bind() {
-    let input = HashTagResultViewModel.Input(requestData: requestData.asSignal())
+    let input = HashTagResultViewModel.Input(
+      requestData: requestData.asSignal(),
+      didTapChallenge: didTapChallenge.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
     viewBind()
@@ -210,5 +214,10 @@ extension HashTagResultViewController: UICollectionViewDelegate {
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
     requestData.accept(())
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapChallenge.accept(item.id)
   }
 }

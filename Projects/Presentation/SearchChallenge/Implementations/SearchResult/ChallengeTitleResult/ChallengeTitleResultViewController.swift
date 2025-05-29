@@ -29,7 +29,8 @@ final class ChallengeTitleResultViewController: UIViewController, ViewController
   private var datasource: DataSourceType?
   
   private let requestData = PublishRelay<Void>()
-  
+  private let didTapChallenge = PublishRelay<Int>()
+
   // MARK: - UI Components
   private let emptyResultLabel: UILabel = {
     let label = UILabel()
@@ -94,15 +95,15 @@ private extension ChallengeTitleResultViewController {
 // MARK: - Bind Methods
 private extension ChallengeTitleResultViewController {
   func bind() {
-    let input = ChallengeTitleResultViewModel.Input(requestData: requestData.asSignal())
+    let input = ChallengeTitleResultViewModel.Input(
+      requestData: requestData.asSignal(),
+      didTapChallenge: didTapChallenge.asSignal()
+    )
     let output = viewModel.transform(input: input)
     
-    viewBind()
     viewModelBind(for: output)
   }
-  
-  func viewBind() { }
-  
+    
   func viewModelBind(for output: ChallengeTitleResultViewModel.Output) {
     output.initialChallenges
       .drive(with: self) { owner, challenges in
@@ -209,5 +210,10 @@ extension ChallengeTitleResultViewController: UICollectionViewDelegate {
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
     requestData.accept(())
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapChallenge.accept(item.id)
   }
 }

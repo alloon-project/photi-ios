@@ -10,7 +10,9 @@ import RxCocoa
 import RxSwift
 import UseCase
 
-protocol HashTagResultCoordinatable: AnyObject { }
+protocol HashTagResultCoordinatable: AnyObject {
+  func didTapChallenge(challengeId: Int)
+}
 
 protocol HashTagResultViewModelType: AnyObject {
   associatedtype Input
@@ -38,6 +40,7 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
   }
   
   // MARK: - Output
@@ -62,6 +65,12 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
         owner.fetchingChallengeTask = Task {
           await owner.fetchNextPage(for: input)
         }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.didTapChallenge(challengeId: id)
       }
       .disposed(by: disposeBag)
     
