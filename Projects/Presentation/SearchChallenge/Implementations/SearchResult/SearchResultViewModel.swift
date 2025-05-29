@@ -48,7 +48,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
     let searchText: Signal<String>
     let deleteAllRecentSearchInputs: Signal<Void>
     let deleteRecentSearchInput: Signal<String>
-    let searchMode: Driver<SearchMode>
+    let searchMode: Driver<(mode: SearchMode, input: String)>
   }
   
   // MARK: - Output
@@ -89,8 +89,9 @@ final class SearchResultViewModel: SearchResultViewModelType {
       .disposed(by: disposeBag)
     
     input.searchMode
-      .drive(with: self) { owner, mode in
-        owner.searchMode = mode
+      .drive(with: self) { owner, search in
+        owner.searchMode = search.mode
+        owner.enterSearchInput(search.input)
       }
       .disposed(by: disposeBag)
     

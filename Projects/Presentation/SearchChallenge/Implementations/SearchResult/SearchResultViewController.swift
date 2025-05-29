@@ -26,7 +26,7 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
   
   private let searchText = PublishRelay<String>()
   private let viewDidLoadRelay = PublishRelay<Void>()
-  private let searchMode = BehaviorRelay<SearchMode>(value: .title)
+  private let searchMode = BehaviorRelay<(mode: SearchMode, input: String)>(value: (.title, ""))
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -251,7 +251,9 @@ extension SearchResultViewController: SearchResultPresentable {
 private extension SearchResultViewController {
   func updateSegmentViewController(to index: Int) {
     defer { segmentIndex = index }
-    searchMode.accept(index == 0 ? .title : .hashTag)
+    let mode: SearchMode = index == 0 ? .title : .hashTag
+    
+    searchMode.accept((mode, searchBar.text ?? ""))
     removeViewController(segmentIndex: segmentIndex)
     attachViewController(segmentIndex: index)
   }
