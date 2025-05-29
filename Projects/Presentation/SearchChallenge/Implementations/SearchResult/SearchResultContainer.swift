@@ -7,8 +7,11 @@
 //
 
 import Core
+import UseCase
 
-protocol SearchResultDependency: Dependency { }
+protocol SearchResultDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+}
 
 protocol SearchResultContainable: Containable {
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating
@@ -19,6 +22,8 @@ final class SearchResultContainer:
   SearchResultContainable,
   ChallengeTitleResultDependency,
   HashTagResultDependency {
+  var searchUseCase: SearchUseCase { dependency.searchUseCase }
+  
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating {
     let viewModel = SearchResultViewModel()
     let viewControllerable = SearchResultViewController(viewModel: viewModel)

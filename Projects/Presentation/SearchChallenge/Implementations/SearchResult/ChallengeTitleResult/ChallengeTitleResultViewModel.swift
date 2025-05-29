@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol ChallengeTitleResultCoordinatable: AnyObject { }
 
@@ -20,6 +21,8 @@ protocol ChallengeTitleResultViewModelType: AnyObject {
 
 final class ChallengeTitleResultViewModel: ChallengeTitleResultViewModelType {
   weak var coordinator: ChallengeTitleResultCoordinatable?
+  private let useCase: SearchUseCase
+  private let modelMapper: SearchChallengePresentaionModelMapper
   private let disposeBag = DisposeBag()
   private let searchInput: Driver<String>
   private var isFetching = false
@@ -40,8 +43,11 @@ final class ChallengeTitleResultViewModel: ChallengeTitleResultViewModelType {
   }
   
   // MARK: - Initializers
-  init(searchInput: Driver<String>) {
+  init(useCase: SearchUseCase, searchInput: Driver<String>) {
+    self.useCase = useCase
+    self.modelMapper = SearchChallengePresentaionModelMapper()
     self.searchInput = searchInput
+    bind()
   }
   
   func transform(input: Input) -> Output {
