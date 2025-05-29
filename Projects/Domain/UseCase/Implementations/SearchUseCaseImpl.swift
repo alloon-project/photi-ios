@@ -44,6 +44,12 @@ public extension SearchUseCaseImpl {
     return isLast ? .lastPage(challenges) : .defaults(challenges)
   }
   
+  func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges {
+    let (challenges, isLast) = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
+    
+    return isLast ? .lastPage(challenges) : .defaults(challenges)
+  }
+  
   func didJoinedChallenge(id: Int) async throws -> Bool {
     do {
       let myChallenges = try await challengeRepository.fetchMyChallenges(page: 0, size: 20).value

@@ -6,25 +6,15 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
-public struct ChallengesByHashTagResponseDTO: Decodable {
-  public let content: [ChallengeByHashTag]
+public struct SearcgChallengesSummaryResponseDTO: Decodable {
+  public let content: [SearchChallengeResponseDTO]
   public let page: Int
   public let size: Int
   public let first: Bool
   public let last: Bool
 }
 
-public struct ChallengeByHashTag: Decodable {
-  public let id: Int
-  public let name: String
-  public let imageUrl: String?
-  public let endDate: String
-  public let hashtags: [HashTagResponseDTO]
-}
-
-public extension ChallengesByHashTagResponseDTO {
+public extension SearcgChallengesSummaryResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",

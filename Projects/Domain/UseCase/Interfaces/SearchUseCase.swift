@@ -31,4 +31,5 @@ public protocol SearchUseCase {
   ) async throws -> PageSearchChallenges
   func didJoinedChallenge(id: Int) async throws -> Bool
   func isPossibleToCreateChallenge() async -> Bool
+  func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges
 }

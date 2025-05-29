@@ -105,6 +105,8 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
 // MARK: - API Methods
 private extension RecommendedChallengesViewModel {
   func fetchAllData() async {
+    Task { await fetchHashTagChallenge(hashTag: selectedHashTag) }
+
     do {
       async let hashtags = fetchHastags()
       async let challenges = fetchPopularChallenges()
@@ -138,15 +140,24 @@ private extension RecommendedChallengesViewModel {
     }
     
     do {
-      try await fetchData()
-      guard !Task.isCancelled else { return }
-      // 구현 예정
+      let result = try await useCase.challenges(
+        byHashTag: hashTag,
+        page: currentPage,
+        size: 15
+      )
+      let models = result.challenges.map {
+        modelMapper.mapToPresentationModelChallengeSummary(from: $0)
+      }
+
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+      currentPage == 0 ? hashTagInitialChallenges.accept(models) : hashTagChallenges.accept(models)
     } catch {
-      // 구현 예정
+      networkUnstableRelay.accept(())
     }
   }
-  
-  func fetchData() async throws { }
   
   func selectedHashTagDidChange(_ hashTag: String) {
     isLastPage = false
@@ -154,5 +165,5 @@ private extension RecommendedChallengesViewModel {
     currentPage = 0
     fetchingHashTagChallengeTask?.cancel()
     fetchingHashTagChallengeTask = Task { await fetchHashTagChallenge(hashTag: hashTag) }
-    }
+  }
 }

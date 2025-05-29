@@ -19,4 +19,14 @@ struct SearchChallengePresentaionModelMapper {
       deadLine: challenge.endDate.toString("~ yyyy.MM.dd")
     )
   }
+  
+  func mapToPresentationModelChallengeSummary(from challenge: ChallengeSummary) -> ChallengeCardPresentationModel {
+    return .init(
+      id: challenge.id,
+      hashTags: challenge.hashTags,
+      title: challenge.name,
+      imageUrl: challenge.imageUrl,
+      deadLine: challenge.endDate.toString("~ yyyy.MM.dd")
+    )
+  }
 }

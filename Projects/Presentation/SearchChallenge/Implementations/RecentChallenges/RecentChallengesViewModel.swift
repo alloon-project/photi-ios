@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol RecentChallengesCoordinatable: AnyObject {
   func didTapChallenge(challengeId: Int)
@@ -22,7 +23,8 @@ protocol RecentChallengesViewModelType: AnyObject {
 
 final class RecentChallengesViewModel: RecentChallengesViewModelType {
   weak var coordinator: RecentChallengesCoordinatable?
-
+  private let useCase: SearchUseCase
+  private let modelMapper: SearchChallengePresentaionModelMapper
   private let disposeBag = DisposeBag()
   private var isFetching = false
   private var isLastPage = false
@@ -30,6 +32,8 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   
   private let initialChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
   private let challenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
+  
+  private let networkUnstableRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -41,10 +45,14 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   struct Output {
     let initialChallenges: Driver<[ChallengeCardPresentationModel]>
     let challenges: Driver<[ChallengeCardPresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: SearchUseCase) {
+    self.useCase = useCase
+    self.modelMapper = SearchChallengePresentaionModelMapper()
+  }
   
   func transform(input: Input) -> Output {
     input.requestData
@@ -61,7 +69,8 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
     
     return Output(
       initialChallenges: initialChallenges.asDriver(),
-      challenges: challenges.asDriver()
+      challenges: challenges.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -77,7 +86,20 @@ private extension RecentChallengesViewModel {
       isFetching = false
       currentPage += 1
     }
-    
-    // TODO: API 호출
+      
+    do {
+      let result = try await useCase.recentChallenges(page: currentPage, size: 15)
+      let models = result.challenges.map {
+        modelMapper.mapToPresentationModelChallengeSummary(from: $0)
+      }
+
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+      currentPage == 0 ? initialChallenges.accept(models) : challenges.accept(models)
+    } catch {
+      networkUnstableRelay.accept(())
+    }
   }
 }   

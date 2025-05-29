@@ -17,6 +17,7 @@ public enum ChallengeAPI {
   case challengeDetail(id: Int)
   case endedChallenges(page: Int, size: Int)
   case myChallenges(page: Int, size: Int)
+  case recentChallenges(page: Int, size: Int)
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
   case joinChallenge(id: Int)
   case joinPrivateChallenge(id: Int, code: String)
@@ -40,6 +41,7 @@ extension ChallengeAPI: TargetType {
       case .popularChallenges: return "api/challenges/popular"
       case .popularHashTags: return "api/challenges/hashtags"
       case .challengesByHashTag: return "api/challenges/by-hashtags"
+      case .recentChallenges: return "api/challenges"
       case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
       case .endedChallenges: return "api/users/ended-challenges"
       case .myChallenges: return "api/users/my-challenges"
@@ -58,7 +60,7 @@ extension ChallengeAPI: TargetType {
   public var method: HTTPMethod {
     switch self {
       case .popularChallenges, .popularHashTags: return .get
-      case .challengeDetail, .challengesByHashTag: return .get
+      case .challengeDetail, .challengesByHashTag, .recentChallenges: return .get
       case .endedChallenges, .myChallenges: return .get
       case .joinChallenge, .joinPrivateChallenge: return .post
       case .uploadChallengeProof: return .post
@@ -75,7 +77,7 @@ extension ChallengeAPI: TargetType {
       case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags:
         return .requestPlain
         
-      case let .endedChallenges(page, size), let .myChallenges(page, size):
+      case let .endedChallenges(page, size), let .myChallenges(page, size), let .recentChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
@@ -194,8 +196,9 @@ extension ChallengeAPI: TargetType {
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
-      case .challengesByHashTag:
-        let data = ChallengesByHashTagResponseDTO.stubData
+        
+      case .challengesByHashTag, .recentChallenges:
+        let data = SearcgChallengesSummaryResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
