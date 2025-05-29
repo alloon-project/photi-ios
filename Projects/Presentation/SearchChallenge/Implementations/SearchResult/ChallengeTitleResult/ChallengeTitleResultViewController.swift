@@ -71,7 +71,6 @@ final class ChallengeTitleResultViewController: UIViewController, ViewController
     self.datasource = datasource
     challengeCollectionView.dataSource = datasource
     challengeCollectionView.delegate = self
-    initialize(with: Dummy.initialSearchPage)
   }
 }
 
