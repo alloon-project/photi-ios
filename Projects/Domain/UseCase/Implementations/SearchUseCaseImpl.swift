@@ -35,19 +35,19 @@ public extension SearchUseCaseImpl {
     page: Int,
     size: Int
   ) async throws -> PageSearchChallenges {
-    let (challenges, isLast) = try await challengeRepository.fetchChallenges(
+    let result = try await challengeRepository.fetchChallenges(
       byHashTag: hashTag,
       page: page,
       size: size
     )
    
-    return isLast ? .lastPage(challenges) : .defaults(challenges)
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges {
-    let (challenges, isLast) = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
+    let result = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
     
-    return isLast ? .lastPage(challenges) : .defaults(challenges)
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func didJoinedChallenge(id: Int) async throws -> Bool {

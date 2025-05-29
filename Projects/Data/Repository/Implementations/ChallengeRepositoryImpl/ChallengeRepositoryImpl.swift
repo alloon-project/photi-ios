@@ -60,7 +60,7 @@ public extension ChallengeRepositoryImpl {
     byHashTag hashTag: String,
     page: Int,
     size: Int
-  ) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+  ) async throws -> PaginationResultType<ChallengeSummary> {
     let api = ChallengeAPI.challengesByHashTag(hashTag, page: page, size: size)
     
     let result = try await requestUnAuthorizableAPI(
@@ -69,10 +69,10 @@ public extension ChallengeRepositoryImpl {
     ).value
     
     let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
-    return (challenges, result.last)
+    return .init(contents: challenges, isLast: result.last)
   }
   
-  func fetchRecentChallenges(page: Int, size: Int) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+  func fetchRecentChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
     let api = ChallengeAPI.recentChallenges(page: page, size: size)
     
     let result = try await requestUnAuthorizableAPI(
@@ -81,7 +81,7 @@ public extension ChallengeRepositoryImpl {
     ).value
     
     let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
-    return (challenges, result.last)
+    return .init(contents: challenges, isLast: result.last)
   }
   
   func isProve(challengeId: Int) async throws -> Bool {

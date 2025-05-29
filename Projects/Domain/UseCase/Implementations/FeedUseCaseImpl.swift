@@ -35,13 +35,13 @@ public struct FeedUseCaseImpl: FeedUseCase {
   }
   
   public func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> FeedCommentsPage {
-    let (feeds, isLast) = try await repository.fetchFeedComments(
+    let result = try await repository.fetchFeedComments(
       feedId: feedId,
       page: page,
       size: size
     )
     
-    return isLast ? .lastPage(feeds) : .default(feeds)
+    return result.isLast ? .lastPage(result.contents) : .default(result.contents)
   }
   
   public func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {

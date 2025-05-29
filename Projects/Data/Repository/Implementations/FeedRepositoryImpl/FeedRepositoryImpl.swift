@@ -67,7 +67,7 @@ public extension FeedRepositoryImpl {
     feedId: Int,
     page: Int,
     size: Int
-  ) async throws -> (feeds: [FeedComment], isLast: Bool) {
+  ) async throws -> PaginationResultType<FeedComment> {
     let api = FeedAPI.feedComments(feedId: feedId, page: page, size: size)
     let result = try await requestAuthorizableAPI(
       api: api,
@@ -76,7 +76,7 @@ public extension FeedRepositoryImpl {
     
     let feeds = result.content.map { dataMapper.mapToFeedComment(dto: $0) }
     
-    return (feeds, result.last)
+    return .init(contents: feeds, isLast: result.last)
   }
   
   func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
