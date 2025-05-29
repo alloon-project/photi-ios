@@ -12,6 +12,8 @@ import UseCase
 
 protocol SearchResultCoordinatable: AnyObject {
   func didTapBackButton()
+  func attachChallenge(id: Int)
+  func attachNonememberChallenge(id: Int)
 }
 
 protocol SearchResultViewModelType: AnyObject {
@@ -40,6 +42,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
   
   private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
   private var searchMode = SearchMode.title
+  private let networkUnstableRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
@@ -54,6 +57,7 @@ final class SearchResultViewModel: SearchResultViewModelType {
   // MARK: - Output
   struct Output {
     let searchResultMode: Driver<SearchResultMode>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -102,7 +106,23 @@ final class SearchResultViewModel: SearchResultViewModelType {
       }
       .disposed(by: disposeBag)
 
-    return Output(searchResultMode: searchResultModeRelay.asDriver())
+    return Output(
+      searchResultMode: searchResultModeRelay.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
+    )
+  }
+}
+
+// MARK: - Internal Methods
+extension SearchResultViewModel {
+  @MainActor func decideRouteForChallenge(id: Int) async {
+    do {
+      let didJoined = try await useCase.didJoinedChallenge(id: id)
+      
+      didJoined ? coordinator?.attachChallenge(id: id) : coordinator?.attachNonememberChallenge(id: id)
+    } catch {
+      networkUnstableRelay.accept(())
+    }
   }
 }
 
