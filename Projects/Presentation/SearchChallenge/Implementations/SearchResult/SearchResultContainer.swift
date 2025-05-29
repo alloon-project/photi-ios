@@ -22,7 +22,7 @@ final class SearchResultContainer:
   SearchResultContainable,
   ChallengeTitleResultDependency,
   HashTagResultDependency {
-  var searchUseCase: SearchUseCase { dependency.searchUseCase }
+  var searchUseCase: SearchUseCase { dependency.searchUseCase}
   
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating {
     let viewModel = SearchResultViewModel()

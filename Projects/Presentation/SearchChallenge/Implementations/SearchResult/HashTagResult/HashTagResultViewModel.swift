@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol HashTagResultCoordinatable: AnyObject { }
 
@@ -20,6 +21,9 @@ protocol HashTagResultViewModelType: AnyObject {
 
 final class HashTagResultViewModel: HashTagResultViewModelType {
   weak var coordinator: HashTagResultCoordinatable?
+  private let useCase: SearchUseCase
+  private let modelMapper: SearchChallengePresentaionModelMapper
+  
   private let disposeBag = DisposeBag()
   private let searchInput: Driver<String>
   private var isFetching = false
@@ -40,8 +44,11 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   }
   
   // MARK: - Initializers
-  init(searchInput: Driver<String>) {
+  init(useCase: SearchUseCase, searchInput: Driver<String>) {
+    self.useCase = useCase
+    self.modelMapper = SearchChallengePresentaionModelMapper()
     self.searchInput = searchInput
+    bind()
   }
   
   func transform(input: Input) -> Output {
