@@ -105,10 +105,22 @@ private extension HashTagResultViewController {
   func viewBind() { }
   
   func viewModelBind(for output: HashTagResultViewModel.Output) {
-    output.challenges
+    output.initialChallenges
       .drive(with: self) { owner, challenges in
         owner.initialize(with: challenges)
         owner.emptyResultLabel.isHidden = !challenges.isEmpty
+      }
+      .disposed(by: disposeBag)
+    
+    output.challenges
+      .drive(with: self) { owner, challenges in
+        owner.append(models: challenges)
+      }
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }

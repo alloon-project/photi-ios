@@ -31,8 +31,10 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   private var currentPage = 0
   private var fetchingChallengeTask: Task<Void, Never>?
   
+  private let initialChallengesRelay = BehaviorRelay<[ResultChallengeCardPresentationModel]>(value: [])
   private let challengesRelay = BehaviorRelay<[ResultChallengeCardPresentationModel]>(value: [])
-
+  private let networkUnstableRelay = PublishRelay<Void>()
+  
   // MARK: - Input
   struct Input {
     let requestData: Signal<Void>
@@ -40,7 +42,9 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   
   // MARK: - Output
   struct Output {
+    let initialChallenges: Driver<[ResultChallengeCardPresentationModel]>
     let challenges: Driver<[ResultChallengeCardPresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -56,12 +60,16 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
       .withLatestFrom(searchInput)
       .emit(with: self) { owner, input in
         owner.fetchingChallengeTask = Task {
-          await owner.resetAndfetchChallenges(for: input)
+          await owner.fetchNextPage(for: input)
         }
       }
       .disposed(by: disposeBag)
     
-    return Output(challenges: challengesRelay.asDriver())
+    return Output(
+      initialChallenges: initialChallengesRelay.asDriver(),
+      challenges: challengesRelay.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
+    )
   }
 }
 
@@ -92,15 +100,24 @@ private extension HashTagResultViewModel {
     }
     
     do {
-      try await fetchChallengeData(for: keyword)
-      guard !Task.isCancelled else { return }
-      // 구현 예정
+      let result = try await useCase.searchChallenge(
+        byHashTag: keyword,
+        page: currentPage,
+        size: 15
+      )
+      let models = result.challenges.map {
+        modelMapper.mapToResultChallengeCardFromSummary($0)
+      }
+      
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+      currentPage == 0 ? initialChallengesRelay.accept(models) : challengesRelay.accept(models)
     } catch {
-      // 구현 예정
+      networkUnstableRelay.accept(())
     }
   }
-  
-  func fetchChallengeData(for keyword: String) async throws { }
 }
 
 // MARK: - Private Methods
