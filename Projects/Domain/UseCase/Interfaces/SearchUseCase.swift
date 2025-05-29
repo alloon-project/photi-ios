@@ -33,4 +33,5 @@ public protocol SearchUseCase {
   func isPossibleToCreateChallenge() async -> Bool
   func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges
   func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageSearchChallenges
+  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageSearchChallenges
 }
