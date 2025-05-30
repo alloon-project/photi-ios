@@ -61,12 +61,12 @@ public extension ChallengeUseCaseImpl {
 
 // MARK: - Upload & Update Methods
 public extension ChallengeUseCaseImpl {
-  func joinPrivateChallnege(id: Int, code: String) async throws {
-    try await challengeRepository.joinPrivateChallnege(id: id, code: code).value
+  func verifyInvitationCode(id: Int, code: String) async throws -> Bool {
+    return try await challengeRepository.verifyInvitationCode(id: id, code: code)
   }
   
-  func joinPublicChallenge(id: Int) -> Single<Void> {
-    return challengeRepository.joinPublicChallenge(id: id)
+  func joinChallenge(id: Int, goal: String) -> Single<Void> {
+    return challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
