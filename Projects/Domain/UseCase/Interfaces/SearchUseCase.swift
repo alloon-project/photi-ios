@@ -32,4 +32,10 @@ public protocol SearchUseCase {
   func didJoinedChallenge(id: Int) async throws -> Bool
   func isPossibleToCreateChallenge() async -> Bool
   func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges
+  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageSearchChallenges
+  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageSearchChallenges
+  func searchHistory() -> [String]
+  @discardableResult func saveSearchKeyword(_ keyword: String) -> [String]
+  @discardableResult func deleteSearchKeyword(_ keyword: String) -> [String]
+  func clearSearchHistory()
 }

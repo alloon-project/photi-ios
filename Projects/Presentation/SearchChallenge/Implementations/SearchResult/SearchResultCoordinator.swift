@@ -6,10 +6,12 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol SearchResultListener: AnyObject {
   func didTapBackButtonAtSearchResult()
+  func authenticatedFailedAtSearchResult()
 }
 
 protocol SearchResultPresentable {
@@ -27,15 +29,25 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
   private let hashTagResultContainable: HashTagResultContainable
   private var hashTagResultCoordinator: ViewableCoordinating?
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
+  private let noneMemberChallengeContainable: NoneMemberChallengeContainable
+  private var noneMemberchallengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SearchResultViewModel,
     challengeTitleReulstContainable: ChallengeTitleResultContainable,
-    hashTagResultContainable: HashTagResultContainable
+    hashTagResultContainable: HashTagResultContainable,
+    challengeContainable: ChallengeContainable,
+    noneMemberChallengeContainable: NoneMemberChallengeContainable
   ) {
     self.viewModel = viewModel
     self.challengeTitleReulstContainable = challengeTitleReulstContainable
     self.hashTagResultContainable = hashTagResultContainable
+    self.challengeContainable = challengeContainable
+    self.noneMemberChallengeContainable = noneMemberChallengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -65,6 +77,46 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
   }
 }
 
+// MARK: - Challenge
+extension SearchResultCoordinator {
+  func attachChallenge(id: Int) {
+    guard challengeCoordinator == nil else { return }
+    let coordinater = challengeContainable.coordinator(
+      listener: self,
+      challengeId: id,
+      presentType: .default
+    )
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    addChild(coordinater)
+    self.challengeCoordinator = coordinater
+  }
+  
+  func detachChallenge() {
+    guard let coordinater = challengeCoordinator else { return }
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinater)
+    self.challengeCoordinator = nil
+  }
+}
+
+// MARK: - NoneMemberChallenge
+extension SearchResultCoordinator {
+  func attachNonememberChallenge(id: Int) {
+    guard noneMemberchallengeCoordinator == nil else { return }
+    let coordinater = noneMemberChallengeContainable.coordinator(listener: self, challengeId: id)
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    addChild(coordinater)
+    self.noneMemberchallengeCoordinator = coordinater
+  }
+  
+  func detachNonememberChallenge(animted: Bool) {
+    guard let coordinater = noneMemberchallengeCoordinator else { return }
+    viewControllerable.popViewController(animated: animted)
+    removeChild(coordinater)
+    self.noneMemberchallengeCoordinator = nil
+  }
+}
+
 // MARK: - SearchResultCoordinatable
 extension SearchResultCoordinator: SearchResultCoordinatable {
   func didTapBackButton() {
@@ -73,7 +125,50 @@ extension SearchResultCoordinator: SearchResultCoordinatable {
 }
 
 // MARK: - ChallengeTitleResultListener
-extension SearchResultCoordinator: ChallengeTitleResultListener { }
+extension SearchResultCoordinator: ChallengeTitleResultListener {
+  func didTapChallengeAtChallengeTitleResult(challengeId: Int) {
+    Task { await viewModel.decideRouteForChallenge(id: challengeId) }
+  }
+}
 
 // MARK: - HashTagResultListener
-extension SearchResultCoordinator: HashTagResultListener { }
+extension SearchResultCoordinator: HashTagResultListener {
+  func didTapChallengeAtHashTagResult(challengeId: Int) {
+    Task { await viewModel.decideRouteForChallenge(id: challengeId) }
+  }
+}
+
+// MARK: - ChallengeListener
+extension SearchResultCoordinator: ChallengeListener {
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
+  
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+  }
+  
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticatedFailedAtSearchResult()
+  }
+}
+
+// MARK: - NoneMemberChallengeListener
+extension SearchResultCoordinator: NoneMemberChallengeListener {
+  func didTapBackButtonAtNoneMemberChallenge() {
+    detachNonememberChallenge(animted: true)
+  }
+  
+  func didJoinChallenge(id: Int) {
+    detachNonememberChallenge(animted: false)
+    attachChallenge(id: id)
+  }
+  
+  func authenticatedFailedAtNoneMemberChallenge() {
+    listener?.authenticatedFailedAtSearchResult()
+  }
+}

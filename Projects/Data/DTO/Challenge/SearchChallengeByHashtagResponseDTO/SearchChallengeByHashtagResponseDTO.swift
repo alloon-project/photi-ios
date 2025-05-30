@@ -1,23 +1,22 @@
 //
-//  EndedChallengeResponseDTO.swift
-//  Data
+//  SearchChallengeByHashtagResponseDTO.swift
+//  DTO
 //
-//  Created by 임우섭 on 11/3/24.
-//  Copyright © 2024 com.photi. All rights reserved.
+//  Created by jung on 5/29/25.
+//  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
-public struct EndedChallengeResponseDTO: Decodable {
+public struct SearchChallengeByHashtagResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let imageUrl: URL?
-  public let endDate: String
+  public let imageUrl: String?
   public let currentMemberCnt: Int
+  public let endDate: String
+  public let hashtags: [HashTagResponseDTO]
   public let memberImages: [MemberImageResponseDTO]
 }
 
-public extension EndedChallengeResponseDTO {
+public extension SearchChallengeByHashtagResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",
@@ -28,8 +27,16 @@ public extension EndedChallengeResponseDTO {
         "id": 1,
         "name": "신나게 하는 러닝 챌린지",
         "imageUrl": "https://url.kr/5MhHhD",
-        "endDate": "2024-12-01",
         "currentMemberCnt": 5,
+        "endDate": "2024-12-01",
+        "hashtags": [
+          {
+            "hashtag": "러닝"
+          },
+          {
+            "hashtag": "건강"
+          }
+        ],
         "memberImages": [
           {
             "memberImage": "https://url.kr/5MhHhD"

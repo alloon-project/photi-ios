@@ -13,10 +13,15 @@ import Repository
 
 public final class SearchUseCaseImpl: SearchUseCase {
   private let challengeRepository: ChallengeRepository
+  private let searchHistoryRepository: SearchHistoryRepository
   private let maximumChallengeCount = 20
   
-  public init(challengeRepository: ChallengeRepository) {
+  public init(
+    challengeRepository: ChallengeRepository,
+    searchHistoryRepository: SearchHistoryRepository
+  ) {
     self.challengeRepository = challengeRepository
+    self.searchHistoryRepository = searchHistoryRepository
   }
 }
 
@@ -35,19 +40,38 @@ public extension SearchUseCaseImpl {
     page: Int,
     size: Int
   ) async throws -> PageSearchChallenges {
-    let (challenges, isLast) = try await challengeRepository.fetchChallenges(
+    let result = try await challengeRepository.fetchChallenges(
       byHashTag: hashTag,
       page: page,
       size: size
     )
-   
-    return isLast ? .lastPage(challenges) : .defaults(challenges)
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges {
-    let (challenges, isLast) = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
+    let result = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
     
-    return isLast ? .lastPage(challenges) : .defaults(challenges)
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
+  }
+  
+  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageSearchChallenges {
+    let result = try await challengeRepository.searchChallenge(
+      byName: name,
+      page: page,
+      size: size
+    )
+    
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
+  }
+  
+  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageSearchChallenges {
+    let result = try await challengeRepository.searchChallenge(
+      byHashTag: hashtag,
+      page: page,
+      size: size
+    )
+    
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func didJoinedChallenge(id: Int) async throws -> Bool {
@@ -72,5 +96,30 @@ public extension SearchUseCaseImpl {
     guard let myChallengeCount else { return true }
     
     return myChallengeCount < maximumChallengeCount
+  }
+  
+  func searchHistory() -> [String] {
+    return searchHistoryRepository.fetchAll()
+  }
+}
+
+// MARK: - Update Methods
+public extension SearchUseCaseImpl {
+  @discardableResult func saveSearchKeyword(_ keyword: String) -> [String] {
+    var searchHistories = searchHistoryRepository.fetchAll()
+    searchHistories.removeAll { $0 == keyword }
+    searchHistories.insert(keyword, at: 0)
+    let newSearchHistories = Array(searchHistories.prefix(10))
+    searchHistoryRepository.save(keywords: newSearchHistories)
+    
+    return newSearchHistories
+  }
+  
+  @discardableResult func deleteSearchKeyword(_ keyword: String) -> [String] {
+    return searchHistoryRepository.remove(keyword: keyword)
+  }
+  
+  func clearSearchHistory() {
+    searchHistoryRepository.removeAll()
   }
 }
