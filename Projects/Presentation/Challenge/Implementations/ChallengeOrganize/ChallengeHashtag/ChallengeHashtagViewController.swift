@@ -19,10 +19,7 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   private let viewModel: ChallengeHashtagViewModel
   
   private var hashtagsDataSource: [String] = [] {
-    didSet {
-      hashtagCollectionView.reloadData()
-      selectedHashtags.accept(hashtagsDataSource)
-    }
+    didSet { hashtagCollectionView.reloadData() }
   }
   private var selectedHashtags = PublishRelay<[String]>()
   
@@ -151,7 +148,7 @@ private extension ChallengeHashtagViewController {
     let input = ChallengeHashtagViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       enteredHashtag: addHashtagTextField.rx.text,
-      selectedHashtags: selectedHashtags.asObservable(),
+      selectedHashtags: selectedHashtags.asDriver(),
       didTapNextButton: nextButton.rx.tap
     )
     
@@ -163,28 +160,30 @@ private extension ChallengeHashtagViewController {
   func viewBind() {
     addHashtagTextField.rx.didTapButton
       .withLatestFrom(addHashtagTextField.rx.text)
-      .bind(with: self) { owner, newHashtag in
-        if owner.hashtagsDataSource.count >= 3 {
-          owner.presentHashtagLimitToastView()
-        } else {
-          owner.hashtagsDataSource.append(newHashtag)
-          owner.addHashtagTextField.text = nil
-        }
-        owner.addHashtagTextField.dismissKeyboard()
-      }.disposed(by: disposeBag)
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .bind(with: self) { owner, hashTag in
+        owner.hashtagsDataSource.append(hashTag)
+        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+        owner.addHashtagTextField.text = ""
+      }
+      .disposed(by: disposeBag)
     
-    selectedHashtags.bind(with: self) { owner, tags in
-      owner.addHashtagTextField.buttonIsEnabled = tags.count < 3
-    }.disposed(by: disposeBag)
+    selectedHashtags
+      .filter { $0.count >= 3 }
+      .bind(with: self) { owner, _ in
+        owner.view.endEditing(true)
+        owner.presentHashtagLimitToastView()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: ChallengeHashtagViewModel.Output) {
     output.isValidHashtag
-      .drive(addHashtagTextField.rx.buttonIsEnabled)
+      .drive(commentView.rx.isActivate)
       .disposed(by: disposeBag)
     
-    output.isValidHashtag
-      .drive(commentView.rx.isActivate)
+    output.isEnableAddHashtagButton
+      .drive(addHashtagTextField.rx.buttonIsEnabled)
       .disposed(by: disposeBag)
     
     output.isEnabledNextButton
@@ -226,14 +225,13 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
       text: hashtagsDataSource[indexPath.item]
     )
     
-    cell.onTapClose = { [weak self] in
-      guard
-        let self,
-        collectionView.indexPath(for: cell) != nil
-      else { return }
-      
-      hashtagsDataSource.remove(at: indexPath.item)
-    }
+    cell.rx.didTapCloseButton
+      .bind(with: self) { owner, _ in
+        guard let indexPath = collectionView.indexPath(for: cell) else { return }
+        owner.hashtagsDataSource.remove(at: indexPath.item)
+        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+      }
+      .disposed(by: disposeBag)
     
     return cell
   }

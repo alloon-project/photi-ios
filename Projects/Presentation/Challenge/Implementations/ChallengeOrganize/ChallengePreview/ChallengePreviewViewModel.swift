@@ -58,6 +58,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
       .disposed(by: disposeBag)
     
     input.didTapOrganizeButton
+      .throttle(.seconds(5), latest: false, scheduler: MainScheduler.instance)
       .bind(with: self) { owner, _ in
         owner.organizeChallenge()
       }
