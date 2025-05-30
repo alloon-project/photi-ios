@@ -284,6 +284,12 @@ private extension NoneMemberChallengeViewController {
         owner.presentChallengeNotFoundAlert()
       }
       .disposed(by: disposeBag)
+    
+    output.exceededJoinableChallengeLimit
+      .emit(with: self) { owner, _ in
+        owner.presentExceededJoinableChallengeLimitToastView()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -359,5 +365,20 @@ private extension NoneMemberChallengeViewController {
   
   func presentChallengeNotFoundAlert() {
     challengeNotFoundAlert.present(to: self, animted: true)
+  }
+  
+  func presentExceededJoinableChallengeLimitToastView() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "챌린지는 최대 20개까지 참여할 수 있어요.",
+      icon: .closeRed
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
   }
 }

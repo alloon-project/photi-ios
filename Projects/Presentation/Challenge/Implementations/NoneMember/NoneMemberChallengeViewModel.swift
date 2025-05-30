@@ -40,6 +40,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   private let verifyCodeResultRelay = PublishRelay<Bool>()
   private let networkUnstableRelay = PublishRelay<Void>()
   private let challengeNotFoundRelay = PublishRelay<Void>()
+  private let exceededJoinableChallengeLimitReay = PublishRelay<Void>()
   
   private let challengeRelay = BehaviorRelay<ChallengeDetail?>(value: nil)
   private let challengeObservable: Observable<ChallengeDetail>
@@ -70,6 +71,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let memberThumbnailURLs: Driver<[URL]>
     let challengeNotFound: Signal<Void>
     let networkUnstable: Signal<Void>
+    let exceededJoinableChallengeLimit: Signal<Void>
   }
 
   // MARK: - Initializers
@@ -133,7 +135,8 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
       deadLine: deadLineObservable.asDriver(onErrorJustReturn: ""),
       memberThumbnailURLs: challengeObservable.map(\.memberImages).asDriver(onErrorJustReturn: []),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal(),
+      exceededJoinableChallengeLimit: exceededJoinableChallengeLimitReay.asSignal()
     )
   }
 }
@@ -143,8 +146,9 @@ private extension NoneMemberChallengeViewModel {
   @MainActor func attemptToJoinChallenge() async {
     do {
       let isLogin = try await useCase.isLogIn()
-       
-      decideJoinFlowBasedOnLogIn(isLogin: isLogin)
+      let isPossibleToJoin = await useCase.isPossibleToJoinChallenge()
+      
+      isPossibleToJoin ? decideJoinFlowBasedOnLogIn(isLogin: isLogin) : exceededJoinableChallengeLimitReay.accept(())
     } catch {
       networkUnstableRelay.accept(())
     }

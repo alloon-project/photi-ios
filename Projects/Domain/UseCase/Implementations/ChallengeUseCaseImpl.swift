@@ -15,6 +15,8 @@ import UseCase
 import Repository
 
 public struct ChallengeUseCaseImpl: ChallengeUseCase {
+  private let maximumChallengeCount = 20
+  
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
@@ -56,6 +58,15 @@ public extension ChallengeUseCaseImpl {
   
   func challengeProveMemberCount(challengeId: Int) async throws -> Int {
     return try await challengeRepository.challengeProveMemberCount(challengeId: challengeId)
+  }
+  
+  func isPossibleToJoinChallenge() async -> Bool {
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      .count
+    
+    guard let myChallengeCount else { return true }
+    
+    return myChallengeCount < maximumChallengeCount
   }
 }
 

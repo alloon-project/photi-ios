@@ -24,6 +24,7 @@ public protocol ChallengeUseCase {
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
 
+  func isPossibleToJoinChallenge() async -> Bool
   func isProve(challengeId: Int) async throws -> Bool
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
