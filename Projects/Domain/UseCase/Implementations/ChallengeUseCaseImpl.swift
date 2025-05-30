@@ -68,6 +68,13 @@ public extension ChallengeUseCaseImpl {
     
     return myChallengeCount < maximumChallengeCount
   }
+  
+  func isJoinedChallenge(id: Int) async -> Bool {
+    let myChallenges = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      .map { $0.id }
+    guard let myChallenges else { return false }
+    return myChallenges.contains(id)
+  }
 }
 
 // MARK: - Upload & Update Methods
