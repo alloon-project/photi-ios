@@ -248,6 +248,17 @@ extension SearchChallengeCoordinator: NoneMemberChallengeListener {
     attachChallenge(id: id)
   }
   
+  func alreadyJoinedChallenge(id: Int) {
+    detachNonememberChallenge(willRemoveView: false)
+    guard
+       let navigationController = viewControllerable.uiviewController.navigationController,
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
+     else { return }
+    
+    viewControllerable.setViewControllers([baseVC], animated: false)
+    attachChallenge(id: id)
+  }
+  
   func authenticatedFailedAtNoneMemberChallenge() {
     listener?.authenticatedFailedAtSearchChallenge()
   }

@@ -141,6 +141,13 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   }
 }
 
+// MARK: - Internal Methods
+extension NoneMemberChallengeViewModel {
+  @MainActor func isJoinedChallenge() async -> Bool {
+    return await useCase.isJoinedChallenge(id: challengeId)
+  }
+}
+
 // MARK: - Private Methods
 private extension NoneMemberChallengeViewModel {
   @MainActor func attemptToJoinChallenge() async {

@@ -68,6 +68,10 @@ extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
     detachNoneMemberChallenge()
   }
   
+  func alreadyJoinedChallenge(id: Int) {
+    listener?.requstConvertInitialHome()
+  }
+  
   func didJoinChallenge(id: Int) {
     listener?.requstConvertInitialHome()
   }

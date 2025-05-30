@@ -14,6 +14,7 @@ public protocol NoneMemberChallengeContainable: Containable {
 
 public protocol NoneMemberChallengeListener: AnyObject {
   func didTapBackButtonAtNoneMemberChallenge()
+  func alreadyJoinedChallenge(id: Int)
   func didJoinChallenge(id: Int)
   func authenticatedFailedAtNoneMemberChallenge()
   func shouldDismissNoneMemberChallenge()

@@ -156,12 +156,24 @@ extension NoneMemberChallengeCoordinator: LogInListener {
     detachLogIn(animted: false)
     detachLogInGuide(animted: true)
     
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-      self?.presenter.presentWelcomeToastView(userName)
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let isJoined = await viewModel.isJoinedChallenge()
+      
+      isJoined ? listener?.alreadyJoinedChallenge(id: challengeId) : presentWelcomeToastView(userName)
     }
   }
   
   func didTapBackButtonAtLogIn() {
     detachLogIn(animted: true)
+  }
+}
+
+// MARK: - Private Methods
+private extension NoneMemberChallengeCoordinator {
+  func presentWelcomeToastView(_ userName: String) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      self?.presenter.presentWelcomeToastView(userName)
+    }
   }
 }
