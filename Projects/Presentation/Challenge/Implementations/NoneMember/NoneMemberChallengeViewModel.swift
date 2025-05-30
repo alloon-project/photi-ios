@@ -16,6 +16,7 @@ protocol NoneMemberChallengeCoordinatable: AnyObject {
   func attachEnterChallengeGoal(challengeName: String, challengeID: Int)
   func didTapBackButton()
   func attachLogInGuide()
+  func requestDetach()
 }
 
 protocol NoneMemberChallengeViewModelType: AnyObject {
@@ -50,6 +51,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let didTapJoinButton: ControlEvent<Void>
     let requestVerifyInvitationCode: Signal<String>
     let didFinishVerify: Signal<Void>
+    let didTapConfirmButtonAtChallengeNotFound: Signal<Void>
   }
   
   // MARK: - Output
@@ -105,6 +107,12 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     input.requestVerifyInvitationCode
       .emit(with: self) { owner, code in
         Task { await owner.verifyInvitationCode(code) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapConfirmButtonAtChallengeNotFound
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestDetach()
       }
       .disposed(by: disposeBag)
     

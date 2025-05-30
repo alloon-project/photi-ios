@@ -16,4 +16,5 @@ public protocol NoneMemberChallengeListener: AnyObject {
   func didTapBackButtonAtNoneMemberChallenge()
   func didJoinChallenge(id: Int)
   func authenticatedFailedAtNoneMemberChallenge()
+  func shouldDismissNoneMemberChallenge()
 }

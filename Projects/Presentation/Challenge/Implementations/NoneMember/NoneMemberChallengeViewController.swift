@@ -30,6 +30,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let codeRelay = PublishRelay<String>()
   private let didFinishVerifyRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtChallengeNotFound = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -50,6 +51,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private let deadLineView = ChallengeDeadLineView()
   
   private let joinButton = FilledRoundButton(type: .primary, size: .xLarge, text: "함께하기")
+  private let challengeNotFoundAlert = AlertViewController(alertType: .confirm, title: "챌린지를 찾을 수 없어요.")
   
   // MARK: - Initializers
   init(viewModel: NoneMemberChallengeViewModel) {
@@ -181,7 +183,8 @@ private extension NoneMemberChallengeViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapJoinButton: joinButton.rx.tap,
       requestVerifyInvitationCode: codeRelay.asSignal(),
-      didFinishVerify: didFinishVerifyRelay.asSignal()
+      didFinishVerify: didFinishVerifyRelay.asSignal().asSharedSequence(),
+      didTapConfirmButtonAtChallengeNotFound: didTapConfirmButtonAtChallengeNotFound.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -193,6 +196,12 @@ private extension NoneMemberChallengeViewController {
     ruleView.rx.didTapViewAllRulesButton
       .bind(with: self) { owner, rules in
         owner.displayRuleDetailViewController(rules)
+      }
+      .disposed(by: disposeBag)
+    
+    challengeNotFoundAlert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtChallengeNotFound.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -270,7 +279,11 @@ private extension NoneMemberChallengeViewController {
       }
       .disposed(by: disposeBag)
     
-    // TODO: - 없는 챌린지 인경우, alert 띄우고, 뒤로 가기!
+    output.challengeNotFound
+      .emit(with: self) { owner, _ in
+        owner.presentChallengeNotFoundAlert()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -342,5 +355,9 @@ private extension NoneMemberChallengeViewController {
     self.invitationCodeViewController = viewController
     viewController.delegate = self
     present(viewController, animated: false)
+  }
+  
+  func presentChallengeNotFoundAlert() {
+    challengeNotFoundAlert.present(to: self, animted: true)
   }
 }

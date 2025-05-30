@@ -75,4 +75,8 @@ extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
   func authenticatedFailedAtNoneMemberChallenge() {
     listener?.authenticatedFailedAtNoneChallengeHome()
   }
+  
+  func shouldDismissNoneMemberChallenge() {
+    detachNoneMemberChallenge()
+  }
 }

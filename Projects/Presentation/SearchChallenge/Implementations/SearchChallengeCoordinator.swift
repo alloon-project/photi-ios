@@ -233,6 +233,10 @@ extension SearchChallengeCoordinator: NoneMemberChallengeListener {
     detachNonememberChallenge(willRemoveView: true)
   }
   
+  func shouldDismissNoneMemberChallenge() {
+    detachNonememberChallenge(willRemoveView: true)
+  }
+  
   func didJoinChallenge(id: Int) {
     detachNonememberChallenge(willRemoveView: false)
     guard

@@ -118,6 +118,10 @@ extension NoneMemberChallengeCoordinator: NoneMemberChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtNoneMemberChallenge()
   }
+  
+  func requestDetach() {
+    listener?.shouldDismissNoneMemberChallenge()
+  }
 }
 
 // MARK: - EnterChallengeGoalListener
