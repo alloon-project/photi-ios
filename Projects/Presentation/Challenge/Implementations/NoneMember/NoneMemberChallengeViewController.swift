@@ -264,17 +264,13 @@ private extension NoneMemberChallengeViewController {
   }
   
   func bindFailedView(for output: NoneMemberChallengeViewModel.Output) {
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     
-    output.alreadyJoined
-      .emit(with: self) { owner, _ in
-        owner.displayAlreadyJoinPopUp()
-      }
-      .disposed(by: disposeBag)
+    // TODO: - 없는 챌린지 인경우, alert 띄우고, 뒤로 가기!
   }
 }
 
@@ -346,10 +342,5 @@ private extension NoneMemberChallengeViewController {
     self.invitationCodeViewController = viewController
     viewController.delegate = self
     present(viewController, animated: false)
-  }
-  
-  func displayAlreadyJoinPopUp() {
-    let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
-    popUp.present(to: self, animted: false)
   }
 }
