@@ -21,8 +21,8 @@ public enum ChallengeAPI {
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
   case searchChallengesByName(_ name: String, page: Int, size: Int)
   case searchChallengesByHashtag(_ hashtag: String, page: Int, size: Int)
-  case joinChallenge(id: Int)
-  case joinPrivateChallenge(id: Int, code: String)
+  case verifyInvitationCode(id: Int, _ code: String)
+  case joinChallenge(id: Int, goal: String)
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
   case isProve(challengeId: Int)
   case challengeCount
@@ -49,11 +49,11 @@ extension ChallengeAPI: TargetType {
       case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
       case .endedChallenges: return "api/users/ended-challenges"
       case .myChallenges: return "api/users/my-challenges"
-      case let .joinChallenge(id): return "api/challenges/\(id)/join/public"
-      case let .joinPrivateChallenge(id, _): return "api/challenges/\(id)/join/private"
+      case let .joinChallenge(id, _): return "api/challenges/\(id)/join"
+      case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
+      case let .verifyInvitationCode(id, _): return "api/challenges/\(id)/invitation-code-match"
       case let .uploadChallengeProof(id, _, _): return "api/challenges/\(id)/feeds"
       case let .isProve(challengeId): return "api/users/challenges/\(challengeId)/prove"
-      case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
       case let .challengeDescription(id): return "api/challenges/\(id)/info"
       case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
       case .challengeCount: return "api/users/challenges"
@@ -65,23 +65,24 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges, .popularHashTags: return .get
       case .challengeDetail, .challengesByHashTag, .recentChallenges: return .get
+      case .endedChallenges, .myChallenges, .verifyInvitationCode: return .get
       case .searchChallengesByName, .searchChallengesByHashtag: return .get
-      case .endedChallenges, .myChallenges: return .get
-      case .joinChallenge, .joinPrivateChallenge: return .post
-      case .uploadChallengeProof: return .post
+      case .joinChallenge, .uploadChallengeProof: return .post
       case .isProve, .challengeCount, .challengeProveMemberCount: return .get
       case .updateChallengeGoal: return .patch
-      case .challengeDescription: return .get
-      case .challengeMember: return .get
+      case .challengeDescription, .challengeMember: return .get
       case .leaveChallenge: return .delete
     }
   }
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags:
+      case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags, .challengeProveMemberCount:
         return .requestPlain
         
+      case .isProve, .challengeDescription, .challengeMember, .leaveChallenge:
+        return .requestPlain
+
       case let .endedChallenges(page, size), let .myChallenges(page, size), let .recentChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
@@ -89,15 +90,20 @@ extension ChallengeAPI: TargetType {
       case let .challengesByHashTag(hashTag, page, size), let .searchChallengesByHashtag(hashTag, page, size):
         let parameters = ["hashtag": hashTag, "page": "\(page)", "size": "\(size)"]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
-        
+
       case let .searchChallengesByName(name, page, size):
         let parameters = ["challengeName": name, "page": "\(page)", "size": "\(size)"]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
-        
-      case .joinChallenge, .challengeProveMemberCount:
-        return .requestPlain
 
-      case let .joinPrivateChallenge(_, code):
+      case let .joinChallenge(_, goal):
+        let parameters = ["goal": goal]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+
+      case let .updateChallengeGoal(goal, _):
+        let parameters = ["goal": goal]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+        
+      case let .verifyInvitationCode(_, code):
         let parameters = ["invitationCode": code]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
                 
@@ -109,16 +115,6 @@ extension ChallengeAPI: TargetType {
         )
         
         return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
-
-      case .isProve:
-        return .requestPlain
-        
-      case let .updateChallengeGoal(goal, _):
-        let parameters = ["goal": goal]
-        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
-        
-      case .challengeDescription, .challengeMember, .leaveChallenge:
-        return .requestPlain
     }
   }
   
@@ -148,7 +144,7 @@ extension ChallengeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      case .joinChallenge, .joinPrivateChallenge, .uploadChallengeProof, .updateChallengeGoal, .leaveChallenge:
+      case .joinChallenge, .uploadChallengeProof, .updateChallengeGoal, .leaveChallenge:
         let data = """
           {
             "code": "200 OK",
@@ -158,6 +154,12 @@ extension ChallengeAPI: TargetType {
             }
           }
         """
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .verifyInvitationCode:
+        let data = VerifyInvitationCodeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
