@@ -237,7 +237,7 @@ extension SearchChallengeCoordinator: NoneMemberChallengeListener {
     detachNonememberChallenge(willRemoveView: false)
     guard
        let navigationController = viewControllerable.uiviewController.navigationController,
-       let baseVC = navigationController.viewControllers.first as? ViewControllerable // A
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
      else { return }
     
     viewControllerable.setViewControllers([baseVC], animated: false)
