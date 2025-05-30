@@ -84,15 +84,15 @@ public extension ViewControllerable {
     }
   }
   
-  func setViewControllers(_ viewControllerables: [ViewControllerable]) {
+  func setViewControllers(_ viewControllerables: [ViewControllerable], animated: Bool = true) {
     if let nav = self.uiviewController as? UINavigationController {
-      nav.setViewControllers(viewControllerables.map(\.uiviewController), animated: true)
+      nav.setViewControllers(viewControllerables.map(\.uiviewController), animated: animated)
     } else {
       self.uiviewController
         .navigationController?
         .setViewControllers(
           viewControllerables.map(\.uiviewController),
-          animated: true
+          animated: animated
         )
     }
   }
