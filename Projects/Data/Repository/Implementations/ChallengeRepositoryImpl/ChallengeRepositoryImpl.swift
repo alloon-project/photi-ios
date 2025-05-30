@@ -173,17 +173,18 @@ public extension ChallengeRepositoryImpl {
 
 // MARK: - Upload Methods
 public extension ChallengeRepositoryImpl {
-  func joinPrivateChallnege(id: Int, code: String) -> Single<Void> {
-    return requestAuthorizableAPI(
-      api: ChallengeAPI.joinPrivateChallenge(id: id, code: code),
-      responseType: SuccessResponseDTO.self
-    )
-    .map { _ in () }
+  func verifyInvitationCode(id: Int, code: String) async throws -> Bool {
+    let result = try await requestUnAuthorizableAPI(
+      api: ChallengeAPI.verifyInvitationCode(id: id, code),
+      responseType: VerifyInvitationCodeResponseDTO.self
+    ).value
+    
+    return result.isMatch
   }
   
-  func joinPublicChallenge(id: Int) -> Single<Void> {
+  func joinChallenge(id: Int, goal: String) -> Single<Void> {
     return requestAuthorizableAPI(
-      api: ChallengeAPI.joinChallenge(id: id),
+      api: ChallengeAPI.joinChallenge(id: id, goal: goal),
       responseType: SuccessResponseDTO.self
     )
     .map { _ in () }
@@ -301,9 +302,7 @@ private extension ChallengeRepositoryImpl {
   }
   
   func map400ToAPIError(_ code: String, _ message: String) -> APIError {
-    if code == "CHALLENGE_INVITATION_CODE_INVALID" {
-      return APIError.challengeFailed(reason: .invalidInvitationCode)
-    } else if code == "CHALLENGE_LIMIT_EXCEED" {
+    if code == "CHALLENGE_LIMIT_EXCEED" {
       return APIError.challengeFailed(reason: .challengeLimitExceed)
     } else {
       return APIError.clientError(code: code, message: message)

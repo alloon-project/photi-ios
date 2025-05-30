@@ -59,7 +59,6 @@ extension APIError {
     case userNotFound
     case notChallengeMemeber
     case alreadyJoinedChallenge
-    case invalidInvitationCode
     case alreadyUploadFeed
     case fileTooLarge
     case challengeLimitExceed
