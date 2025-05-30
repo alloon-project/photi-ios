@@ -10,7 +10,7 @@ import Core
 import Entity
 
 struct SearchChallengePresentaionModelMapper {
-  func mapToChallengeCardPresentationModel(from challenge: ChallengeDetail) -> ChallengeCardPresentationModel {
+  func mapToChallengeCardFromDetail(_ challenge: ChallengeDetail) -> ChallengeCardPresentationModel {
     return .init(
       id: challenge.id,
       hashTags: challenge.hashTags,
@@ -20,13 +20,25 @@ struct SearchChallengePresentaionModelMapper {
     )
   }
   
-  func mapToPresentationModelChallengeSummary(from challenge: ChallengeSummary) -> ChallengeCardPresentationModel {
+  func mapToChallengeCardFromSummary(_ challenge: ChallengeSummary) -> ChallengeCardPresentationModel {
     return .init(
       id: challenge.id,
       hashTags: challenge.hashTags,
       title: challenge.name,
       imageUrl: challenge.imageUrl,
       deadLine: challenge.endDate.toString("~ yyyy.MM.dd")
+    )
+  }
+  
+  func mapToResultChallengeCardFromSummary(_ challenge: ChallengeSummary) -> ResultChallengeCardPresentationModel {
+    return .init(
+      id: challenge.id,
+      hashTags: challenge.hashTags,
+      title: challenge.name,
+      imageUrl: challenge.imageUrl,
+      deadLine: challenge.endDate.toString("yyyy. MM. dd 종료"),
+      memberCount: challenge.memberCount ?? 0,
+      memberImageUrls: challenge.memberImages ?? []
     )
   }
 }

@@ -25,6 +25,8 @@ public final class SearchChallengeContainer:
   RecentChallengesDependency,
   SearchResultDependency {
   var searchUseCase: SearchUseCase { dependency.searchUseCase }
+  var challengeContainable: ChallengeContainable { dependency.challengeContainable }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { dependency.noneMemberChallengeContainable }
   
   public func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating {
     let viewModel = SearchChallengeViewModel(useCase: searchUseCase)

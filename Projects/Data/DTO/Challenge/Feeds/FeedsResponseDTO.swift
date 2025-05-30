@@ -6,17 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct FeedsResponseDTO: Decodable {
-  public let content: [ContentResponseDTO]
-  public let page: Int
-  public let size: Int
-  public let first: Bool
-  public let last: Bool
-}
-
-public struct ContentResponseDTO: Decodable {
   public let createdDate: String
   public let feedMemberCnt: Int
   public let feeds: [FeedResponseDTO]

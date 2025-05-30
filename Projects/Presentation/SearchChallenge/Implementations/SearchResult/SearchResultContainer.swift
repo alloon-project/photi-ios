@@ -6,9 +6,15 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
+import UseCase
 
-protocol SearchResultDependency: Dependency { }
+protocol SearchResultDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
+  var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
+}
 
 protocol SearchResultContainable: Containable {
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating
@@ -19,8 +25,10 @@ final class SearchResultContainer:
   SearchResultContainable,
   ChallengeTitleResultDependency,
   HashTagResultDependency {
+  var searchUseCase: SearchUseCase { dependency.searchUseCase}
+  
   func coordinator(listener: SearchResultListener) -> ViewableCoordinating {
-    let viewModel = SearchResultViewModel()
+    let viewModel = SearchResultViewModel(useCase: searchUseCase)
     let viewControllerable = SearchResultViewController(viewModel: viewModel)
     
     let challengeTitleResult = ChallengeTitleResultContainer(dependency: self)
@@ -30,7 +38,9 @@ final class SearchResultContainer:
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       challengeTitleReulstContainable: challengeTitleResult,
-      hashTagResultContainable: hashTagResult
+      hashTagResultContainable: hashTagResult,
+      challengeContainable: dependency.challengeContainable,
+      noneMemberChallengeContainable: dependency.noneMemberChallengeContainable
     )
     coordinator.listener = listener
     return coordinator

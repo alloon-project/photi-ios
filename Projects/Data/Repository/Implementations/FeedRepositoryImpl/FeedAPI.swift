@@ -117,7 +117,7 @@ extension FeedAPI: TargetType {
         
       case let .feedComments(_, page, _):
         let page = min(page, 1)
-        let commentsData = [FeedCommentsResponseDTO.stubData1, FeedCommentsResponseDTO.stubData2]
+        let commentsData = [FeedCommentResponseDTO.stubData1, FeedCommentResponseDTO.stubData2]
         let jsonData = commentsData[page].data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

@@ -8,7 +8,9 @@
 
 import Core
 
-protocol ChallengeTitleResultListener: AnyObject { }
+protocol ChallengeTitleResultListener: AnyObject {
+  func didTapChallengeAtChallengeTitleResult(challengeId: Int)
+}
 
 protocol ChallengeTitleResultPresentable { }
 
@@ -28,4 +30,8 @@ final class ChallengeTitleResultCoordinator: ViewableCoordinator<ChallengeTitleR
 }
 
 // MARK: - ChallengeTitleResultCoordinatable
-extension ChallengeTitleResultCoordinator: ChallengeTitleResultCoordinatable { }
+extension ChallengeTitleResultCoordinator: ChallengeTitleResultCoordinatable {
+  func didTapChallenge(challengeId: Int) {
+    listener?.didTapChallengeAtChallengeTitleResult(challengeId: challengeId)
+  }
+}

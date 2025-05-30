@@ -8,7 +8,9 @@
 
 import Core
 
-protocol HashTagResultListener: AnyObject { }
+protocol HashTagResultListener: AnyObject {
+  func didTapChallengeAtHashTagResult(challengeId: Int)
+}
 
 protocol HashTagResultPresentable { }
 
@@ -28,4 +30,8 @@ final class HashTagResultCoordinator: ViewableCoordinator<HashTagResultPresentab
 }
 
 // MARK: - HashTagResultCoordinatable
-extension HashTagResultCoordinator: HashTagResultCoordinatable { }
+extension HashTagResultCoordinator: HashTagResultCoordinatable {
+  func didTapChallenge(challengeId: Int) {
+    listener?.didTapChallengeAtHashTagResult(challengeId: challengeId)
+  }
+}

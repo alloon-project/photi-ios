@@ -25,7 +25,7 @@ public protocol FeedRepository {
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(id: Int, page: Int, size: Int, orderType: ChallengeFeedsOrderType) async throws -> FeedReturnType
   func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
-  func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> (feeds: [FeedComment], isLast: Bool)
+  func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> PaginationResultType<FeedComment>
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
   func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void>

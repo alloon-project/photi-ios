@@ -8,8 +8,11 @@
 
 import RxCocoa
 import Core
+import UseCase
 
-protocol ChallengeTitleResultDependency: Dependency { }
+protocol ChallengeTitleResultDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+}
 
 protocol ChallengeTitleResultContainable: Containable {
   func coordinator(
@@ -23,7 +26,10 @@ final class ChallengeTitleResultContainer: Container<ChallengeTitleResultDepende
     listener: ChallengeTitleResultListener,
     searchInput: Driver<String>
   ) -> ViewableCoordinating {
-    let viewModel = ChallengeTitleResultViewModel(searchInput: searchInput)
+    let viewModel = ChallengeTitleResultViewModel(
+      useCase: dependency.searchUseCase,
+      searchInput: searchInput
+    )
     let viewControllerable = ChallengeTitleResultViewController(viewModel: viewModel)
     
     let coordinator = ChallengeTitleResultCoordinator(

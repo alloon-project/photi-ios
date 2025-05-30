@@ -90,7 +90,7 @@ private extension RecentChallengesViewModel {
     do {
       let result = try await useCase.recentChallenges(page: currentPage, size: 15)
       let models = result.challenges.map {
-        modelMapper.mapToPresentationModelChallengeSummary(from: $0)
+        modelMapper.mapToChallengeCardFromSummary($0)
       }
 
       switch result {

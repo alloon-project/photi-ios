@@ -129,7 +129,10 @@ final class AppContainer:
   }
   
   lazy var searchUseCase: SearchUseCase = {
-    return SearchUseCaseImpl(challengeRepository: challengeRepository)
+    return SearchUseCaseImpl(
+      challengeRepository: challengeRepository,
+      searchHistoryRepository: searchHistoryRepository
+    )
   }()
   
   lazy var reportUseCase: ReportUseCase = {
@@ -203,5 +206,9 @@ final class AppContainer:
   
   lazy var organizeRepository: ChallengeOrganizeRepository = {
     return ChallengeOrganizeRepositoryImpl(dataMapper: ChallengeOrganizeDataMapperImpl())
+  }()
+  
+  lazy var searchHistoryRepository: SearchHistoryRepository = {
+    return SearchHistoryRepositoryImpl()
   }()
 }

@@ -8,8 +8,11 @@
 
 import RxCocoa
 import Core
+import UseCase
 
-protocol HashTagResultDependency: Dependency { }
+protocol HashTagResultDependency: Dependency {
+  var searchUseCase: SearchUseCase { get }
+}
 
 protocol HashTagResultContainable: Containable {
   func coordinator(
@@ -23,7 +26,10 @@ final class HashTagResultContainer: Container<HashTagResultDependency>, HashTagR
     listener: HashTagResultListener,
     searchInput: Driver<String>
   ) -> ViewableCoordinating {
-    let viewModel = HashTagResultViewModel(searchInput: searchInput)
+    let viewModel = HashTagResultViewModel(
+     useCase: dependency.searchUseCase,
+      searchInput: searchInput
+    )
     let viewControllerable = HashTagResultViewController(viewModel: viewModel)
     
     let coordinator = HashTagResultCoordinator(

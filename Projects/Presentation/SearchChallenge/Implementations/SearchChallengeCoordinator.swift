@@ -196,6 +196,10 @@ extension SearchChallengeCoordinator: RecentChallengesListener {
 
 // MARK: - SearchResultListener
 extension SearchChallengeCoordinator: SearchResultListener {
+  func authenticatedFailedAtSearchResult() {
+    listener?.authenticatedFailedAtSearchChallenge()
+  }
+  
   func didTapBackButtonAtSearchResult() {
     detachSearchResult()
   }

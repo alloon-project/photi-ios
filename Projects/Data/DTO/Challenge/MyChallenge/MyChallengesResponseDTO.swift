@@ -6,12 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
-public struct MyChallengesResponseDTO: Decodable {
-  public let content: [MyChallengeResponseDTO]
-}
-
 public struct MyChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
@@ -25,7 +19,7 @@ public struct MyChallengeResponseDTO: Decodable {
 }
 
 // swiftlint:disable line_length
-public extension MyChallengesResponseDTO {
+public extension MyChallengeResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",

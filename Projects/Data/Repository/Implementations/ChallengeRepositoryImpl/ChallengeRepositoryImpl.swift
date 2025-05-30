@@ -43,9 +43,9 @@ public extension ChallengeRepositoryImpl {
   func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.endedChallenges(page: page, size: size),
-      responseType: EndedChallengeResponseDTO.self
+      responseType: PaginationResponseDTO<EndedChallengeResponseDTO>.self
     )
-    .map { dataMapper.mapToChallengeSummaryFromEnded(dto: $0) }
+    .map { dataMapper.mapToChallengeSummaryFromEnded(dto: $0.content) }
   }
   
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
@@ -60,16 +60,62 @@ public extension ChallengeRepositoryImpl {
     byHashTag hashTag: String,
     page: Int,
     size: Int
-  ) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
+  ) async throws -> PaginationResultType<ChallengeSummary> {
     let api = ChallengeAPI.challengesByHashTag(hashTag, page: page, size: size)
     
     let result = try await requestUnAuthorizableAPI(
       api: api,
-      responseType: SearcgChallengesSummaryResponseDTO.self
+      responseType: PaginationResponseDTO<SearchChallengeResponseDTO>.self
     ).value
     
-    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
-    return (challenges, result.last)
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
+    return .init(contents: challenges, isLast: result.last)
+  }
+  
+  func fetchRecentChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
+    let api = ChallengeAPI.recentChallenges(page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: PaginationResponseDTO<SearchChallengeResponseDTO>.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
+    return .init(contents: challenges, isLast: result.last)
+  }
+  
+  func searchChallenge(
+    byName name: String,
+    page: Int,
+    size: Int
+  ) async throws -> PaginationResultType<ChallengeSummary> {
+    let api = ChallengeAPI.searchChallengesByName(name, page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: PaginationResponseDTO<SearchChallengeByNameResponseDTO>.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromByName(result.content)
+    
+    return .init(contents: challenges, isLast: result.last)
+  }
+  
+  func searchChallenge(
+    byHashTag hashtag: String,
+    page: Int,
+    size: Int
+  ) async throws -> PaginationResultType<ChallengeSummary> {
+    let api = ChallengeAPI.searchChallengesByHashtag(hashtag, page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: PaginationResponseDTO<SearchChallengeByHashtagResponseDTO>.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromByHashTag(result.content)
+    
+    return .init(contents: challenges, isLast: result.last)
   }
   
   func isProve(challengeId: Int) async throws -> Bool {
@@ -103,21 +149,9 @@ public extension ChallengeRepositoryImpl {
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.myChallenges(page: page, size: size),
-      responseType: MyChallengesResponseDTO.self
+      responseType: PaginationResponseDTO<MyChallengeResponseDTO>.self
     )
-    .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
-  }
-  
-  func fetchRecentChallenges(page: Int, size: Int) async throws -> (challenges: [ChallengeSummary], isLast: Bool) {
-    let api = ChallengeAPI.recentChallenges(page: page, size: size)
-    
-    let result = try await requestUnAuthorizableAPI(
-      api: api,
-      responseType: SearcgChallengesSummaryResponseDTO.self
-    ).value
-    
-    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallengesSummary(dto: result)
-    return (challenges, result.last)
+    .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0.content) }
   }
   
   func fetchChallengeDescription(challengeId: Int) -> Single<ChallengeDescription> {

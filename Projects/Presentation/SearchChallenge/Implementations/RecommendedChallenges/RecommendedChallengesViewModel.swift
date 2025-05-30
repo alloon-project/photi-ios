@@ -121,7 +121,7 @@ private extension RecommendedChallengesViewModel {
   func fetchPopularChallenges() async throws -> [ChallengeCardPresentationModel] {
     let challenges = try await useCase.popularChallenges().value
     return challenges.map {
-      modelMapper.mapToChallengeCardPresentationModel(from: $0)
+      modelMapper.mapToChallengeCardFromDetail($0)
     }
   }
   
@@ -146,7 +146,7 @@ private extension RecommendedChallengesViewModel {
         size: 15
       )
       let models = result.challenges.map {
-        modelMapper.mapToPresentationModelChallengeSummary(from: $0)
+        modelMapper.mapToChallengeCardFromSummary($0)
       }
 
       switch result {
