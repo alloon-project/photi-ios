@@ -24,6 +24,12 @@ protocol ChallengeModifyPresentable {
     rules: [String],
     deadLine: String
   )
+  
+  func modifyName(name: String)
+  func modifyGoal(goal: String, verificationTime: String, endDate: String)
+  func modifyCover(image: UIImageWrapper)
+  func modifyHashtags(hashtags: [String])
+  func modifyRules(rules: [String])
 }
 
 final class ChallengeModifyCoordinator: ViewableCoordinator<ChallengeModifyPresentable> {
@@ -111,7 +117,15 @@ private extension ChallengeModifyCoordinator {
 
 // MARK: - ChallengeModifyCoordinatable
 extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
-  func attachModifyName() {}
+  func attachModifyName() {
+    guard modifyNameCoordinator == nil else { return }
+    
+    let coordinater = modifyNameContainer.coordinator(listener: self)
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyNameCoordinator = coordinater
+  }
   
   func attachModifyGoal() {}
   
@@ -122,4 +136,15 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyRule() {}
   
   func didTapBackButton() {}
+}
+
+// MARK: ModifyChallengeName Listener
+extension ChallengeModifyCoordinator: ModifyChallengeNameListener {
+  func didTapBackButtonAtModifyChallengeName() {
+    detachModifyName()
+  }
+  
+  func modifiedChallengeName(name: String) { // TODO: 수정된 이름으로 변경 반영 예정
+    detachModifyName()
+  }
 }

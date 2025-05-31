@@ -24,8 +24,7 @@ public final class ChallengeModifyContainer:
   var organizeUseCase: OrganizeUseCase { dependency.organizeUseCase }
 
   public func coordinator(
-    listener: ModifyChallengeListener,
-    challengeId: Int
+    listener: ModifyChallengeListener
   ) -> ViewableCoordinating {
     let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
