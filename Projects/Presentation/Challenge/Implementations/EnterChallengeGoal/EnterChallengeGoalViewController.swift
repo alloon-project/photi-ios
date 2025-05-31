@@ -170,7 +170,7 @@ private extension EnterChallengeGoalViewController {
   }
   
   func viewBind() {
-    if case .add = mode {
+    if case .join = mode {
       addGoalModeViewBind()
     }
   }
@@ -201,8 +201,22 @@ private extension EnterChallengeGoalViewController {
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
+    
+    output.alreadyJoined
+      .emit(with: self) { owner, _ in
+        owner.displayAlreadyJoinPopUp()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - EditChallengeGoalPresentable
 extension EnterChallengeGoalViewController: EnterChallengeGoalPresentable { }
+
+// MARK: - Private Methods
+private extension EnterChallengeGoalViewController {
+  func displayAlreadyJoinPopUp() {
+    let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
+    popUp.present(to: self, animted: false)
+  }
+}

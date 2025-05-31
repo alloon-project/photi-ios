@@ -10,7 +10,7 @@ import Core
 
 protocol EnterChallengeGoalListener: AnyObject {
   func didTapBackButtonAtEnterChallengeGoal()
-  func didFinishEnterChallengeGoal(_ goal: String)
+  func didFinishEnteringGoal(_ goal: String)
   func authenticatedFailedAtEnterChallengeGoal()
 }
 
@@ -37,12 +37,8 @@ extension EnterChallengeGoalCoordinator: EnterChallengeGoalCoordinatable {
     listener?.didTapBackButtonAtEnterChallengeGoal()
   }
   
-  func didChangeChallengeGoal(goal: String) {
-    listener?.didFinishEnterChallengeGoal(goal)
-  }
-  
-  func didSkipEnterChallengeGoal() {
-    listener?.didFinishEnterChallengeGoal("")
+  func didFinishEnteringGoal(_ goal: String) {
+    listener?.didFinishEnteringGoal(goal)
   }
   
   func authenticatedFailed() {

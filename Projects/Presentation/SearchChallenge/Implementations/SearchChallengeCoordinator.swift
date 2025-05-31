@@ -156,11 +156,14 @@ extension SearchChallengeCoordinator {
     self.noneMemberchallengeCoordinator = coordinater
   }
   
-  func detachNonememberChallenge(animted: Bool) {
+  func detachNonememberChallenge(willRemoveView: Bool) {
     guard let coordinater = noneMemberchallengeCoordinator else { return }
-    viewControllerable.popViewController(animated: animted)
     
-    if animted { viewControllerable.uiviewController.showTabBar(animted: true) }
+    if willRemoveView {
+      viewControllerable.popViewController(animated: true)
+      viewControllerable.uiviewController.showTabBar(animted: true)
+    }
+
     removeChild(coordinater)
     self.noneMemberchallengeCoordinator = nil
   }
@@ -227,11 +230,32 @@ extension SearchChallengeCoordinator: ChallengeListener {
 // MARK: - NoneMemberChallengeListener
 extension SearchChallengeCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
-    detachNonememberChallenge(animted: true)
+    detachNonememberChallenge(willRemoveView: true)
+  }
+  
+  func shouldDismissNoneMemberChallenge() {
+    detachNonememberChallenge(willRemoveView: true)
   }
   
   func didJoinChallenge(id: Int) {
-    detachNonememberChallenge(animted: false)
+    detachNonememberChallenge(willRemoveView: false)
+    guard
+       let navigationController = viewControllerable.uiviewController.navigationController,
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
+     else { return }
+    
+    viewControllerable.setViewControllers([baseVC], animated: false)
+    attachChallenge(id: id)
+  }
+  
+  func alreadyJoinedChallenge(id: Int) {
+    detachNonememberChallenge(willRemoveView: false)
+    guard
+       let navigationController = viewControllerable.uiviewController.navigationController,
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
+     else { return }
+    
+    viewControllerable.setViewControllers([baseVC], animated: false)
     attachChallenge(id: id)
   }
   

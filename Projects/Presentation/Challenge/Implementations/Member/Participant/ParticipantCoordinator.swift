@@ -90,8 +90,8 @@ extension ParticipantCoordinator: EnterChallengeGoalListener {
   func didTapBackButtonAtEnterChallengeGoal() {
     detachEditChallengeGoal()
   }
-
-  func didFinishEnterChallengeGoal(_ goal: String) {
+  
+  func didFinishEnteringGoal(_ goal: String) {
     detachEditChallengeGoal { [weak self] in
       self?.presenter.didUpdateGoal(goal)
     }

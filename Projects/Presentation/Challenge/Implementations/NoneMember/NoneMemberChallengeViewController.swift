@@ -30,6 +30,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let codeRelay = PublishRelay<String>()
   private let didFinishVerifyRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtChallengeNotFound = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -50,6 +51,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   private let deadLineView = ChallengeDeadLineView()
   
   private let joinButton = FilledRoundButton(type: .primary, size: .xLarge, text: "함께하기")
+  private let challengeNotFoundAlert = AlertViewController(alertType: .confirm, title: "챌린지를 찾을 수 없어요.")
   
   // MARK: - Initializers
   init(viewModel: NoneMemberChallengeViewModel) {
@@ -181,7 +183,8 @@ private extension NoneMemberChallengeViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapJoinButton: joinButton.rx.tap,
       requestVerifyInvitationCode: codeRelay.asSignal(),
-      didFinishVerify: didFinishVerifyRelay.asSignal()
+      didFinishVerify: didFinishVerifyRelay.asSignal().asSharedSequence(),
+      didTapConfirmButtonAtChallengeNotFound: didTapConfirmButtonAtChallengeNotFound.asSignal()
     )
     let output = viewModel.transform(input: input)
     
@@ -193,6 +196,12 @@ private extension NoneMemberChallengeViewController {
     ruleView.rx.didTapViewAllRulesButton
       .bind(with: self) { owner, rules in
         owner.displayRuleDetailViewController(rules)
+      }
+      .disposed(by: disposeBag)
+    
+    challengeNotFoundAlert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtChallengeNotFound.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -264,15 +273,21 @@ private extension NoneMemberChallengeViewController {
   }
   
   func bindFailedView(for output: NoneMemberChallengeViewModel.Output) {
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     
-    output.alreadyJoined
+    output.challengeNotFound
       .emit(with: self) { owner, _ in
-        owner.displayAlreadyJoinPopUp()
+        owner.presentChallengeNotFoundAlert()
+      }
+      .disposed(by: disposeBag)
+    
+    output.exceededJoinableChallengeLimit
+      .emit(with: self) { owner, _ in
+        owner.presentExceededJoinableChallengeLimitToastView()
       }
       .disposed(by: disposeBag)
   }
@@ -348,8 +363,22 @@ private extension NoneMemberChallengeViewController {
     present(viewController, animated: false)
   }
   
-  func displayAlreadyJoinPopUp() {
-    let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
-    popUp.present(to: self, animted: false)
+  func presentChallengeNotFoundAlert() {
+    challengeNotFoundAlert.present(to: self, animted: true)
+  }
+  
+  func presentExceededJoinableChallengeLimitToastView() {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "챌린지는 최대 20개까지 참여할 수 있어요.",
+      icon: .closeRed
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
   }
 }

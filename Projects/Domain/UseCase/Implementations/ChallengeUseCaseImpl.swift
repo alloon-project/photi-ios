@@ -15,6 +15,8 @@ import UseCase
 import Repository
 
 public struct ChallengeUseCaseImpl: ChallengeUseCase {
+  private let maximumChallengeCount = 20
+  
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
@@ -57,16 +59,32 @@ public extension ChallengeUseCaseImpl {
   func challengeProveMemberCount(challengeId: Int) async throws -> Int {
     return try await challengeRepository.challengeProveMemberCount(challengeId: challengeId)
   }
+  
+  func isPossibleToJoinChallenge() async -> Bool {
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      .count
+    
+    guard let myChallengeCount else { return true }
+    
+    return myChallengeCount < maximumChallengeCount
+  }
+  
+  func isJoinedChallenge(id: Int) async -> Bool {
+    let myChallenges = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      .map { $0.id }
+    guard let myChallenges else { return false }
+    return myChallenges.contains(id)
+  }
 }
 
 // MARK: - Upload & Update Methods
 public extension ChallengeUseCaseImpl {
-  func joinPrivateChallnege(id: Int, code: String) async throws {
-    try await challengeRepository.joinPrivateChallnege(id: id, code: code).value
+  func verifyInvitationCode(id: Int, code: String) async throws -> Bool {
+    return try await challengeRepository.verifyInvitationCode(id: id, code: code)
   }
   
-  func joinPublicChallenge(id: Int) -> Single<Void> {
-    return challengeRepository.joinPublicChallenge(id: id)
+  func joinChallenge(id: Int, goal: String) -> Single<Void> {
+    return challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {

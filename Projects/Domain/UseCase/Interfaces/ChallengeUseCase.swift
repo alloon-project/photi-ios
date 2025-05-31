@@ -20,9 +20,13 @@ public enum PageFeeds {
 public protocol ChallengeUseCase {
   func isLogIn() async throws -> Bool
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
-  func joinPrivateChallnege(id: Int, code: String) async throws
-  func joinPublicChallenge(id: Int) -> Single<Void>
+  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
+  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
+  func challengeProveMemberCount(challengeId: Int) async throws -> Int
+
+  func isPossibleToJoinChallenge() async -> Bool
   func isProve(challengeId: Int) async throws -> Bool
+  func isJoinedChallenge(id: Int) async -> Bool
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(
@@ -31,9 +35,8 @@ public protocol ChallengeUseCase {
     size: Int,
     orderType: ChallengeFeedsOrderType
   ) async throws -> PageFeeds
+  func verifyInvitationCode(id: Int, code: String) async throws -> Bool
+  func joinChallenge(id: Int, goal: String) -> Single<Void>
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
-  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
-  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
   func leaveChallenge(id: Int) -> Single<Void>
-  func challengeProveMemberCount(challengeId: Int) async throws -> Int
 }
