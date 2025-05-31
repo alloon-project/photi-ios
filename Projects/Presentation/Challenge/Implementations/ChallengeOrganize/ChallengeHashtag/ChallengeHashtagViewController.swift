@@ -21,7 +21,7 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   private var hashtagsDataSource: [String] = [] {
     didSet { hashtagCollectionView.reloadData() }
   }
-  private var selectedHashtags = BehaviorRelay<[String]>(value: [])
+  private var selectedHashtags = PublishRelay<[String]>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
