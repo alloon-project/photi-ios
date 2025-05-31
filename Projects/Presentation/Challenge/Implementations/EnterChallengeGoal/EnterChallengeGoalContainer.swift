@@ -11,7 +11,7 @@ import UseCase
 
 enum ChallengeGoalMode {
   case edit(goal: String)
-  case add
+  case join
 }
 
 protocol EnterChallengeGoalDependency: Dependency {
@@ -34,7 +34,11 @@ final class EnterChallengeGoalContainer: Container<EnterChallengeGoalDependency>
     challengeName: String,
     listener: EnterChallengeGoalListener
   ) -> ViewableCoordinating {
-    let viewModel = EnterChallengeGoalViewModel(challengeID: challengeID, useCase: dependency.challengeUseCase)
+    let viewModel = EnterChallengeGoalViewModel(
+      mode: mode,
+      challengeID: challengeID,
+      useCase: dependency.challengeUseCase
+    )
     let viewControllerable = EnterChallengeGoalViewController(
       mode: mode,
       challengeName: challengeName,

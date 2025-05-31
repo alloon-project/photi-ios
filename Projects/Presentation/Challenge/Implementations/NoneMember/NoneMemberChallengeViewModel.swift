@@ -16,6 +16,7 @@ protocol NoneMemberChallengeCoordinatable: AnyObject {
   func attachEnterChallengeGoal(challengeName: String, challengeID: Int)
   func didTapBackButton()
   func attachLogInGuide()
+  func requestDetach()
 }
 
 protocol NoneMemberChallengeViewModelType: AnyObject {
@@ -37,9 +38,9 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   
   private let displayUnlockViewRelay = PublishRelay<Void>()
   private let verifyCodeResultRelay = PublishRelay<Bool>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   private let challengeNotFoundRelay = PublishRelay<Void>()
-  private let alreadyJoinedRelay = PublishRelay<Void>()
+  private let exceededJoinableChallengeLimitReay = PublishRelay<Void>()
   
   private let challengeRelay = BehaviorRelay<ChallengeDetail?>(value: nil)
   private let challengeObservable: Observable<ChallengeDetail>
@@ -51,6 +52,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let didTapJoinButton: ControlEvent<Void>
     let requestVerifyInvitationCode: Signal<String>
     let didFinishVerify: Signal<Void>
+    let didTapConfirmButtonAtChallengeNotFound: Signal<Void>
   }
   
   // MARK: - Output
@@ -68,8 +70,8 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     let deadLine: Driver<String>
     let memberThumbnailURLs: Driver<[URL]>
     let challengeNotFound: Signal<Void>
-    let requestFailed: Signal<Void>
-    let alreadyJoined: Signal<Void>
+    let networkUnstable: Signal<Void>
+    let exceededJoinableChallengeLimit: Signal<Void>
   }
 
   // MARK: - Initializers
@@ -82,7 +84,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
   func transform(input: Input) -> Output {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
-        owner.fetchChallenge()
+        Task { await owner.fetchChallenge() }
       }
       .disposed(by: disposeBag)
     
@@ -94,7 +96,7 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     
     input.didTapJoinButton
       .bind(with: self) { owner, _ in
-        owner.didTapJoinButton()
+        Task { await owner.attemptToJoinChallenge() }
       }
       .disposed(by: disposeBag)
     
@@ -106,7 +108,13 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
     
     input.requestVerifyInvitationCode
       .emit(with: self) { owner, code in
-        Task { await owner.requestJoinPrivateChallenge(code: code) }
+        Task { await owner.verifyInvitationCode(code) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapConfirmButtonAtChallengeNotFound
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.requestDetach()
       }
       .disposed(by: disposeBag)
     
@@ -127,107 +135,74 @@ final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unc
       deadLine: deadLineObservable.asDriver(onErrorJustReturn: ""),
       memberThumbnailURLs: challengeObservable.map(\.memberImages).asDriver(onErrorJustReturn: []),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal(),
-      alreadyJoined: alreadyJoinedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal(),
+      exceededJoinableChallengeLimit: exceededJoinableChallengeLimitReay.asSignal()
     )
-  }
-}
-
-// MARK: - Private Methods
-private extension NoneMemberChallengeViewModel {
-  func didTapJoinButton() {
-    Task {
-      do {
-        let isLogin = try await useCase.isLogIn()
-        
-        DispatchQueue.main.async { [weak self] in
-          if isLogin {
-            self?.joinChallenge()
-          } else {
-            self?.coordinator?.attachLogInGuide()
-          }
-        }
-      } catch {
-        requestFailedRelay.accept(())
-      }
-    }
-  }
-  
-  func joinChallenge() {
-    if isPrivateChallenge {
-      displayUnlockViewRelay.accept(())
-    } else {
-      Task { await requestJoinPublicChallenge() }
-    }
-  }
-}
-
-// MARK: - API Methods
-private extension NoneMemberChallengeViewModel {
-  func fetchChallenge() {
-    useCase.fetchChallengeDetail(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, challenge in
-          owner.challengeName = challenge.name
-          owner.isPrivateChallenge = !(challenge.isPublic ?? false)
-          owner.challengeRelay.accept(challenge)
-        },
-        onFailure: { owner, error in
-          owner.fetchChallengeFailed(with: error)
-        }
-      )
-      .disposed(by: disposeBag)
-  }
-  
-  func fetchChallengeFailed(with error: Error) {
-    guard let error = error as? APIError else { return }
-    
-    switch error {
-      case let .challengeFailed(reason) where reason == .challengeNotFound:
-        challengeNotFoundRelay.accept(())
-      default:
-        requestFailedRelay.accept(())
-    }
-  }
-  
-  func requestJoinChallengeFailed(with error: Error) {
-    guard let error = error as? APIError else { return requestFailedRelay.accept(()) }
-    print(error)
-    switch error {
-      case let .challengeFailed(reason) where reason == .invalidInvitationCode:
-        verifyCodeResultRelay.accept(false)
-      case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
-        alreadyJoinedRelay.accept(())
-      case .authenticationFailed:
-        coordinator?.attachLogInGuide()
-      default:
-        requestFailedRelay.accept(())
-    }
   }
 }
 
 // MARK: - Internal Methods
 extension NoneMemberChallengeViewModel {
-  func requestJoinPublicChallenge() async {
+  @MainActor func isJoinedChallenge() async -> Bool {
+    return await useCase.isJoinedChallenge(id: challengeId)
+  }
+}
+
+// MARK: - Private Methods
+private extension NoneMemberChallengeViewModel {
+  @MainActor func attemptToJoinChallenge() async {
     do {
-      try await useCase.joinPublicChallenge(id: challengeId).value
-      DispatchQueue.main.async { [weak self] in
-        guard let self else { return }
-        coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
-      }
+      let isLogin = try await useCase.isLogIn()
+      let isPossibleToJoin = await useCase.isPossibleToJoinChallenge()
+      
+      isPossibleToJoin ? decideJoinFlowBasedOnLogIn(isLogin: isLogin) : exceededJoinableChallengeLimitReay.accept(())
     } catch {
-      requestJoinChallengeFailed(with: error)
+      networkUnstableRelay.accept(())
     }
   }
   
-  func requestJoinPrivateChallenge(code: String) async {
+  func decideJoinFlowBasedOnLogIn(isLogin: Bool) {
+    isLogin ? routeBasedOnChallengePrivacy() : coordinator?.attachLogInGuide()
+  }
+  
+  func routeBasedOnChallengePrivacy() {
+    isPrivateChallenge ?
+    displayUnlockViewRelay.accept(()) :
+    coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
+  }
+}
+
+// MARK: - API Methods
+private extension NoneMemberChallengeViewModel {
+  @MainActor func fetchChallenge() async {
     do {
-      try await useCase.joinPrivateChallnege(id: challengeId, code: code)
-      verifyCodeResultRelay.accept(true)
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      challengeName = challenge.name
+      isPrivateChallenge = !(challenge.isPublic ?? false)
+      challengeRelay.accept(challenge)
     } catch {
-      requestJoinChallengeFailed(with: error)
+      requestFailed(with: error)
+    }
+  }
+  
+  func verifyInvitationCode(_ code: String) async {
+    do {
+      let isMatch = try await useCase.verifyInvitationCode(id: challengeId, code: code)
+      verifyCodeResultRelay.accept(isMatch)
+    } catch {
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    switch error {
+      case let .challengeFailed(reason) where reason == .challengeNotFound:
+        challengeNotFoundRelay.accept(())
+      case .authenticationFailed:
+        coordinator?.attachLogInGuide()
+      default:
+        networkUnstableRelay.accept(())
     }
   }
 }

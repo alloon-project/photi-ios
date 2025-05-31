@@ -143,8 +143,6 @@ private extension FeedRepositoryImpl {
           let result = try await provider.request(api, type: responseType.self).value
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
-          } else if result.statusCode == 400 {
-            single(.failure(APIError.challengeFailed(reason: .invalidInvitationCode)))
           } else if result.statusCode == 401 || result.statusCode == 403 {
             single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {

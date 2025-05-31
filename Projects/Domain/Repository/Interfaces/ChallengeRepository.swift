@@ -38,8 +38,8 @@ public protocol ChallengeRepository {
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
   func challengeCount() async throws -> Int
   
-  func joinPublicChallenge(id: Int) -> Single<Void>
-  func joinPrivateChallnege(id: Int, code: String) -> Single<Void>
+  func verifyInvitationCode(id: Int, code: String) async throws -> Bool
+  func joinChallenge(id: Int, goal: String) -> Single<Void>
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
   func leaveChallenge(id: Int) -> Single<Void>
   func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws -> Feed

@@ -14,7 +14,7 @@ protocol SearchResultListener: AnyObject {
   func authenticatedFailedAtSearchResult()
 }
 
-protocol SearchResultPresentable {
+@MainActor protocol SearchResultPresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
 }
 
@@ -66,10 +66,12 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
       searchInput: viewModel.hashTagSearchInput
     )
     
-    presenter.attachViewControllerables(
-      challengeTitleReulst.viewControllerable,
-      hashTagResult.viewControllerable
-    )
+    Task {
+      await presenter.attachViewControllerables(
+        challengeTitleReulst.viewControllerable,
+        hashTagResult.viewControllerable
+      )
+    }
     addChild(challengeTitleReulst)
     addChild(hashTagResult)
     self.challengeTitleReulstCoordinator = challengeTitleReulst
@@ -109,9 +111,14 @@ extension SearchResultCoordinator {
     self.noneMemberchallengeCoordinator = coordinater
   }
   
-  func detachNonememberChallenge(animted: Bool) {
+  func detachNonememberChallenge(willRemoveView: Bool) {
     guard let coordinater = noneMemberchallengeCoordinator else { return }
-    viewControllerable.popViewController(animated: animted)
+    
+    if willRemoveView {
+      viewControllerable.popViewController(animated: true)
+      viewControllerable.uiviewController.showTabBar(animted: true)
+    }
+
     removeChild(coordinater)
     self.noneMemberchallengeCoordinator = nil
   }
@@ -160,11 +167,32 @@ extension SearchResultCoordinator: ChallengeListener {
 // MARK: - NoneMemberChallengeListener
 extension SearchResultCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
-    detachNonememberChallenge(animted: true)
+    detachNonememberChallenge(willRemoveView: true)
+  }
+  
+  func shouldDismissNoneMemberChallenge() {
+    detachNonememberChallenge(willRemoveView: true)
   }
   
   func didJoinChallenge(id: Int) {
-    detachNonememberChallenge(animted: false)
+    detachNonememberChallenge(willRemoveView: false)
+    guard
+       let navigationController = viewControllerable.uiviewController.navigationController,
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
+     else { return }
+    
+    viewControllerable.setViewControllers([baseVC], animated: false)
+    attachChallenge(id: id)
+  }
+  
+  func alreadyJoinedChallenge(id: Int) {
+    detachNonememberChallenge(willRemoveView: false)
+    guard
+       let navigationController = viewControllerable.uiviewController.navigationController,
+       let baseVC = navigationController.viewControllers.first as? ViewControllerable
+     else { return }
+    
+    viewControllerable.setViewControllers([baseVC], animated: false)
     attachChallenge(id: id)
   }
   

@@ -85,6 +85,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension ChallengeViewController {
   func setupUI() {
+    view.backgroundColor = .white
     setViewHierarhcy()
     setConstraints()
   }
