@@ -209,6 +209,28 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
      ruleView.rules = rules
      deadLineView.deadLine = deadLine
    }
+  
+  func modifyName(name: String) {
+    configureTitleLabel(name)
+  }
+  
+  func modifyGoal(goal: String, verificationTime: String, endDate: String) {
+    goalView.goal = goal
+    verificationTimeView.verificationTime = verificationTime
+    deadLineView.deadLine = endDate
+  }
+  
+  func modifyCover(image: UIImageWrapper) {
+    thumbnailImageView.image = image.image
+  }
+  
+  func modifyHashtags(hashtags: [String]) {
+    self.hashTags = hashtags
+  }
+  
+  func modifyRules(rules: [String]) {
+    ruleView.rules = rules
+  }
 }
 
 // MARK: - UICollectionViewDataSource

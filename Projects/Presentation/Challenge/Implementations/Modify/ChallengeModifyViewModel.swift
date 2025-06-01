@@ -32,7 +32,6 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   weak var coordinator: ChallengeModifyCoordinatable?
   private let disposeBag = DisposeBag()
   
-  private let challengeId: Int
   private let useCase: OrganizeUseCase
   
   private let networkUnstableRelay = PublishRelay<Void>()
@@ -71,11 +70,6 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
         owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
-    
-    input.didTapBackButton
-      .bind(with: self) { owner, _ in
-        owner.coordinator?.didTapBackButton()
-      }.disposed(by: disposeBag)
     
     input.didTapChallengeName
       .bind(with: self) { owner, _ in
