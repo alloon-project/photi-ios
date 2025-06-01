@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import Core
 import Entity
 import UseCase
 
@@ -17,6 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
+  func attachChallengeEdit()
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -25,6 +27,12 @@ protocol ChallengeViewModelType: AnyObject {
   
   var disposeBag: DisposeBag { get }
   var coordinator: ChallengeCoordinatable? { get set }
+}
+
+enum DropDownMenu: String {
+  case report = "챌린지 신고하기"
+  case edit = "챌린지 수정하기"
+  case leave = "챌린지 탈퇴하기"
 }
 
 final class ChallengeViewModel: ChallengeViewModelType {
@@ -38,6 +46,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   
   private let challengeModelRelay = BehaviorRelay<ChallengeTitlePresentationModel>(value: .default)
   private let memberCount = BehaviorRelay<Int>(value: 0)
+  private let dropDownMenusRelay = BehaviorRelay<[DropDownMenu]>(value: [])
   private let challengeNotFoundRelay = PublishRelay<Void>()
   private let networkUnstable = PublishRelay<Void>()
   
@@ -48,12 +57,14 @@ final class ChallengeViewModel: ChallengeViewModelType {
     let didTapConfirmButtonAtAlert: Signal<Void>
     let didTapLeaveButton: Signal<Void>
     let didTapReportButton: Signal<Void>
+    let didTapEditButton: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let challengeInfo: Driver<ChallengeTitlePresentationModel>
     let memberCount: Driver<Int>
+    let dropDownMenus: Driver<[DropDownMenu]>
     let challengeNotFound: Signal<Void>
     let networnUnstable: Signal<Void>
   }
@@ -67,7 +78,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   func transform(input: Input) -> Output {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
-        owner.fetchChallenge()
+        Task { await owner.fetchChallenge() }
       }
       .disposed(by: disposeBag)
     
@@ -89,6 +100,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapEditButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.attachChallengeEdit()
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapConfirmButtonAtAlert
       .emit(with: self) { owner, _ in
         owner.coordinator?.didTapConfirmButtonAtAlert()
@@ -98,26 +115,27 @@ final class ChallengeViewModel: ChallengeViewModelType {
     return Output(
       challengeInfo: challengeModelRelay.asDriver(),
       memberCount: memberCount.asDriver(),
+      dropDownMenus: dropDownMenusRelay.asDriver(),
       challengeNotFound: challengeNotFoundRelay.asSignal(),
       networnUnstable: networkUnstable.asSignal()
     )
   }
 }
 
-// MARK: - Private Methods
+// MARK: - API Methods
 private extension ChallengeViewModel {
-  func fetchChallenge() {
-    useCase.fetchChallengeDetail(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, challenge in
-        let model = owner.mapToPresentatoinModel(challenge)
-        owner.challengeModelRelay.accept(model)
-        owner.memberCount.accept(challenge.memberCount)
-        owner.challengeName = challenge.name
-      } onFailure: { owner, error in
-        owner.requestFailed(with: error)
-      }
-      .disposed(by: disposeBag)
+  func fetchChallenge() async {
+    do {
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      let model = mapToPresentatoinModel(challenge)
+      challengeModelRelay.accept(model)
+      memberCount.accept(challenge.memberCount)
+      challengeName = challenge.name
+      
+      configureDropDownMenus(creator: challenge.creator)
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func leaveChallenge() {
@@ -130,15 +148,7 @@ private extension ChallengeViewModel {
       }
       .disposed(by: disposeBag)
   }
-  
-  func mapToPresentatoinModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
-    return .init(
-      title: challenge.name,
-      hashTags: challenge.hashTags,
-      imageURL: challenge.imageUrl
-    )
-  }
-  
+
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else { return networkUnstable.accept(()) }
     
@@ -149,5 +159,24 @@ private extension ChallengeViewModel {
         challengeNotFoundRelay.accept(())
       default: networkUnstable.accept(())
     }
+  }
+}
+
+// MARK: - Private Methods
+private extension ChallengeViewModel {
+  func configureDropDownMenus(creator: String) {
+    if creator == ServiceConfiguration.shared.userName {
+      dropDownMenusRelay.accept([.edit, .leave])
+    } else {
+      dropDownMenusRelay.accept([.report, .leave])
+    }
+  }
+  
+  func mapToPresentatoinModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
+    return .init(
+      title: challenge.name,
+      hashTags: challenge.hashTags,
+      imageURL: challenge.imageUrl
+    )
   }
 }
