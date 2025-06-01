@@ -81,7 +81,12 @@ final class MyPageViewController: UIViewController, ViewControllerable {
   }()
   
   private let calendarView: CalendarView = {
-    let calendarView = CalendarView(selectionMode: .multiple, startDate: Date(), endDate: Date())
+    let calendarView = CalendarView(
+      selectionMode: .multiple,
+      startDate: Date(),
+      currentDate: Date(),
+      endDate: Date()
+    )
     calendarView.isCloseButtonHidden = true
     
     return calendarView
@@ -244,6 +249,14 @@ private extension MyPageViewController {
       .drive(with: self) { owner, url in
         owner.profileImageView.kf.setImage(with: url)
       }
+      .disposed(by: disposeBag)
+    
+    output.calendarStartDate
+      .drive(calendarView.rx.startDate)
+      .disposed(by: disposeBag)
+    
+    output.verifiedChallengeDates
+      .drive(calendarView.rx.defaultSelectedDates)
       .disposed(by: disposeBag)
   }
 }

@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Entity
@@ -34,21 +35,29 @@ final class MyPageViewModel: MyPageViewModelType {
   let disposeBag = DisposeBag()
   
   weak var coordinator: MyPageCoordinatable?
-  private let FeedHistoryCount = BehaviorRelay(value: 0)
+  private let username = BehaviorRelay(value: "")
+  private let profileImageURL = BehaviorRelay<URL?>(value: nil)
+  private let calendarStartDate = BehaviorRelay<Date>(value: Date())
+  private let verifiedChallengeDates = BehaviorRelay<[Date]>(value: [])
+  private let feedHistoryCount = BehaviorRelay(value: 0)
   private let endedChallengeCount = BehaviorRelay(value: 0)
-  private let userChallengeHistoryRelay = PublishRelay<UserChallengeHistory>()
   
   // MARK: - Input
   struct Input {
     let didTapSettingButton: ControlEvent<Void>
     let didTapAuthCountBox: ControlEvent<Void>
     let didTapEndedChallengeBox: ControlEvent<Void>
-    let isVisible: Observable<Bool>
+    let didBecomeVisible: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    let userChallengeHistory: Signal<UserChallengeHistory>
+    let username: Driver<String>
+    let profileImageURL: Driver<URL?>
+    let feedsCount: Driver<Int>
+    let endedChallengeCount: Driver<Int>
+    let calendarStartDate: Driver<Date>
+    let verifiedChallengeDates: Driver<[Date]>
   }
   
   // MARK: - Initializers
@@ -63,43 +72,64 @@ final class MyPageViewModel: MyPageViewModelType {
       }.disposed(by: disposeBag)
     
     input.didTapAuthCountBox
-      .withLatestFrom(FeedHistoryCount)
-//      .filter { $0 > 0 } 
+      .withLatestFrom(feedHistoryCount)
+      .filter { $0 > 0 }
       .bind(with: self) { owner, count in
         owner.coordinator?.attachFeedHistory(count: count)
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
     
     input.didTapEndedChallengeBox
+      .withLatestFrom(endedChallengeCount)
+      .filter { $0 > 0 }
       .bind(with: self) { owner, _ in
         owner.coordinator?.attachEndedChallenge()
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
     
-    input.isVisible
-      .bind(with: self) { owner, isVisible in
-        if isVisible {
-          owner.userChallengeHistory()
-        }
-      }.disposed(by: disposeBag)
+    input.didBecomeVisible
+      .emit(with: self) { owner, _ in
+        Task { await owner.loadData() }
+      }
+      .disposed(by: disposeBag)
     
     return Output(
-      userChallengeHistory: userChallengeHistoryRelay.asSignal()
+      username: username.asDriver(),
+      profileImageURL: profileImageURL.asDriver(),
+      feedsCount: feedHistoryCount.asDriver(),
+      endedChallengeCount: endedChallengeCount.asDriver(),
+      calendarStartDate: calendarStartDate.asDriver(),
+      verifiedChallengeDates: verifiedChallengeDates.asDriver()
     )
   }
 }
 
 // MARK: - Private
 private extension MyPageViewModel {
-  func userChallengeHistory() {
-    useCase.userChallengeHistory()
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, userChallengeHistory in
-          owner.userChallengeHistoryRelay.accept(userChallengeHistory)
-          owner.endedChallengeCount.accept(userChallengeHistory.endedChallengeCnt)
-          owner.FeedHistoryCount.accept(userChallengeHistory.feedCnt)
-        }
-      )
-      .disposed(by: disposeBag)
+  func loadData() {
+    Task { await loadUserInformation() }
+    Task { await loadVerifiedChallengeDates() }
+  }
+  
+  func loadUserInformation() async {
+    do {
+      let summary = try await useCase.loadMyPageSummry().value
+      username.accept(summary.userName)
+      calendarStartDate.accept(summary.registerDate)
+      profileImageURL.accept(summary.imageUrl)
+      feedHistoryCount.accept(summary.feedCount)
+      endedChallengeCount.accept(summary.endedChallengeCount)
+    } catch {
+      print(error)
+    }
+  }
+  
+  func loadVerifiedChallengeDates() async {
+    do {
+      let dates = try await useCase.loadVerifiedChallengeDates().value
+      verifiedChallengeDates.accept(dates)
+    } catch {
+      print(error)
+    }
   }
 }
