@@ -16,7 +16,7 @@ public protocol ChallengeModifyDependency: Dependency {
 
 public final class ChallengeModifyContainer:
   Container<ChallengeModifyDependency>,
-  ModifyChallengeNameDependency,
+  ChallengeNameDependency,
   ChallengeGoalDependency,
   ChallengeCoverDependency,
   ChallengeRuleDependency,
@@ -24,13 +24,12 @@ public final class ChallengeModifyContainer:
   var organizeUseCase: OrganizeUseCase { dependency.organizeUseCase }
 
   public func coordinator(
-    listener: ModifyChallengeListener,
-    challengeId: Int
+    listener: ModifyChallengeListener
   ) -> ViewableCoordinating {
     let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
     
-    let modifyChallengeNameContainable = ModifyChallengeNameContainer(dependency: self)
+    let modifyChallengeNameContainable = ChallengeNameContainer(dependency: self)
     let modifyChallengeGoalContainable = ChallengeGoalContainer(dependency: self)
     let modifyChallengeCoverContainable = ChallengeCoverContainer(dependency: self)
     let modifyChallengeRuleContainable = ChallengeRuleContainer(dependency: self)
