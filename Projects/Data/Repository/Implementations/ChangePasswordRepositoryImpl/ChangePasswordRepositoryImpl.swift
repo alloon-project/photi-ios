@@ -38,11 +38,9 @@ public struct ChangePasswordRepositoryImpl: ChangePasswordRepository {
           if result.statusCode == 200 {
             single(.success(()))
           } else if result.statusCode == 400 {
-            single(.failure(APIError.passwordMatchInvalid))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.loginUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+            single(.failure(APIError.myPageFailed(reason: .passwordMatchInvalid)))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
           }
         } catch {
           single(.failure(error))
