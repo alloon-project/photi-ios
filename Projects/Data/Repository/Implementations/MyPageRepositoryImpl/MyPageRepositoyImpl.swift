@@ -31,6 +31,16 @@ public extension MyPageRepositoyImpl {
     )
     .map { dataMapper.mapToMyPageSummary(from: $0) }
   }
+  
+  func fetchVerifiedChallengeDates() -> Single<[Date]> {
+    return requestAuthorizableAPI(
+      api: MyPageAPI.verifiedChallengeDates,
+      responseType: VerifiedChallengeDatesResponseDTO.self
+    )
+    .map { dataMapper.mapToDate(from: $0) }
+  }
+}
+
 // MARK: - Private Methods
 private extension MyPageRepositoyImpl {
   func requestAuthorizableAPI<T: Decodable>(

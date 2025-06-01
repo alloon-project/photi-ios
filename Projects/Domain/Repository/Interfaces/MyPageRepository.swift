@@ -12,5 +12,5 @@ import Entity
 
 public protocol MyPageRepository {
   func fetchMyPageSummary() -> Single<MyPageSummary>
-  
+  func fetchVerifiedChallengeDates() -> Single<[Date]>
 }

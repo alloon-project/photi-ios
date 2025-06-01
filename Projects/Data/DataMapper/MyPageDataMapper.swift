@@ -13,6 +13,7 @@ import Entity
 
 public protocol MyPageDataMapper {
   func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary
+  func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date]
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
@@ -27,6 +28,12 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
       registerDate: dto.registerDate.toDate("yyyy-MM-dd") ?? Date()
     )
   }
+  
+  public func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date] {
+    return dto.list.compactMap { $0.toDate("yyyy-MM-dd") }
+  }
+}
+
 // MARK: - Private Methods
 private extension MyPageDataMapperImpl {
   func imageURL(from strURL: String?) -> URL? {
