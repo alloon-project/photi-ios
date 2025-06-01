@@ -19,6 +19,7 @@ public struct ChallengeDetailResponseDTO: Decodable {
   public let hashtags: [HashTagResponseDTO]
   public let rules: [RuleResponseDTO]
   public let memberImages: [MemberImageResponseDTO]
+  public let creator: String
 }
 
 public extension ChallengeDetailResponseDTO {
@@ -63,7 +64,8 @@ public extension ChallengeDetailResponseDTO {
       {
         "memberImage": "https://url.kr/5MhHhD"
       }
-    ]
+    ],
+    "creator": "photi"
   }
 }
 """
