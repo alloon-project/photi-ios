@@ -25,6 +25,7 @@ protocol ChallengeNameViewModelType: AnyObject {
 
 final class ChallengeNameViewModel: ChallengeNameViewModelType {
   let disposeBag = DisposeBag()
+  private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeNameCoordinatable?
@@ -41,7 +42,11 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
   struct Output {}
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    mode: ChallengeOrganizeMode,
+    useCase: OrganizeUseCase
+  ) {
+    self.mode = mode
     self.useCase = useCase
   }
   

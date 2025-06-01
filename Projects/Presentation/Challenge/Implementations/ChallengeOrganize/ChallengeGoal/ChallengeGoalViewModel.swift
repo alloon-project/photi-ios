@@ -26,6 +26,7 @@ protocol ChallengeGoalViewModelType: AnyObject {
 
 final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   let disposeBag = DisposeBag()
+  private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeGoalCoordinatable?
@@ -45,7 +46,11 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    mode: ChallengeOrganizeMode,
+    useCase: OrganizeUseCase
+  ) {
+    self.mode = mode
     self.useCase = useCase
   }
   
