@@ -90,9 +90,7 @@ public final class CalendarView: UIView {
   }
   
   private var dataSource = [[CalendarDate]]() {
-    didSet {
-      calendarCollectionView.reloadData()
-    }
+    didSet { calendarCollectionView.reloadData() }
   }
   
   private weak var selectedCell: CalendarCell?
@@ -186,15 +184,17 @@ private extension CalendarView {
       $0.top.leading.trailing.equalToSuperview()
       $0.height.equalTo(64)
     }
+
     weekView.snp.makeConstraints {
       $0.top.equalTo(headerView.snp.bottom)
       $0.leading.equalTo(calendarCollectionView).offset(itemHeight/2 - 7)
+      $0.height.equalTo(42)
     }
-    
+
     calendarCollectionView.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.size.equalTo(calendarSize)
       $0.top.equalTo(weekView.snp.bottom)
+      $0.size.bottom.equalTo(calendarSize)
+      $0.centerX.equalToSuperview()
     }
   }
 }

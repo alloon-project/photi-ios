@@ -18,92 +18,70 @@ final class MyPageViewController: UIViewController, ViewControllerable {
   private let viewModel: MyPageViewModel
   
   private let disposeBag = DisposeBag()
-  // MARK: - UIComponents
-  private let scrollView = {
+  
+  // MARK: - UI Components
+  private let scrollView: UIScrollView = {
     let scrollView = UIScrollView()
-    scrollView.translatesAutoresizingMaskIntoConstraints = false
     scrollView.showsVerticalScrollIndicator = false
     scrollView.bounces = false
+    scrollView.backgroundColor = .blue500
     
     return scrollView
   }()
   
-  private let containerView = {
+  private let containerView = UIView()
+
+  /// navigationBar
+  private let navigationBar: UIView = {
     let view = UIView()
-    view.backgroundColor = .clear
-    view.translatesAutoresizingMaskIntoConstraints = false
-    
-    return view
-  }()
-  // 사용자 정보 part
-  private let userInfoView = {
-    let view = UIView()
-    view.backgroundColor = .clear
-    
     return view
   }()
   
-  /// 하단 톱니모양뷰
-  private let userInfoBottomImageView = {
-    let pinkingView = UIImageView()
-    pinkingView.image = .pinkingBlueDown
+  private let settingButton: UIButton = {
+    let button = UIButton()
+    button.setImage(.settingsWhite, for: .normal)
+    return button
+  }()
+  
+  /// 상단 유저 정보
+  private let userInfoView = UIView()
+  private let profileImageView = AvatarImageView(size: .large)
+  private let userNameLabel = UILabel()
+  private let countBoxStackView: UIStackView = {
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.spacing = 7
+    stackView.alignment = .fill
+    stackView.distribution = .fillEqually
+    
+    return stackView
+  }()
+  private let feedsCountBox = ChallengeCountBox(title: "인증 횟수")
+  private let endedChallengeCountBox = ChallengeCountBox(title: "종료된 챌린지")
+
+  private let seperatorView: UIImageView = {
+    let pinkingView = UIImageView(image: .pinkingBlueDown)
     pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()
   
-  private let userImageView = {
-    let imageView = UIImageView()
-    imageView.layer.cornerRadius = 48
-    imageView.backgroundColor = .gray400
-    imageView.clipsToBounds = true
-    imageView.image = .personLight
-    imageView.contentMode = .scaleAspectFill
-    
-    return imageView
-  }()
-  
-  private let settingButton = {
-    let button = UIButton()
-    button.setImage(.settingsWhite.resize(CGSize(width: 24, height: 24)), for: .normal)
-    return button
-  }()
-  
-  private let feedInfoView = {
+  /// 하단
+  private let feedsInfoView: UIView = {
     let view = UIView()
     view.backgroundColor = .white
     
     return view
   }()
-  
-  private let userNameLabel = {
-    let label = UILabel()
-    label.textColor = .white
-    label.textAlignment = .center
-    label.attributedText = "유저 아이디".attributedString(
-      font: .heading1,
-      color: .white,
-      alignment: .center
-    )
-    
-    return label
-  }()
-  
-  private let authCountBox = ChallengeCountBox(title: "인증 횟수", count: 0)
-  
-  private let endedChallengeCountBox = ChallengeCountBox(title: "종료된 챌린지", count: 0)
-  
-  // 피드
   private let myFeedLabel = {
     let label = UILabel()
-    label.textColor = .white
     label.attributedText = "내 피드".attributedString(font: .heading3, color: .gray900)
     
     return label
   }()
   
-  private let calendarView = {
-    let calendarView = CalendarView(selectionMode: .multiple, startDate: Date())
+  private let calendarView: CalendarView = {
+    let calendarView = CalendarView(selectionMode: .multiple, startDate: Date(), endDate: Date())
     calendarView.isCloseButtonHidden = true
     
     return calendarView
@@ -121,7 +99,7 @@ final class MyPageViewController: UIViewController, ViewControllerable {
     fatalError("init(coder:) has not been implemented")
   }
   
-  // MARK: - View LifeCycle
+  // MARK: - LifeCycles
   override func viewDidLoad() {
     super.viewDidLoad()
     calendarView.delegate = self
@@ -139,101 +117,96 @@ final class MyPageViewController: UIViewController, ViewControllerable {
 // MARK: - Private methods
 private extension MyPageViewController {
   func setupUI() {
-    self.view.backgroundColor = .blue500
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    self.view.addSubview(scrollView)
+    view.addSubview(scrollView)
     scrollView.addSubview(containerView)
-    containerView.addSubviews(userInfoView, feedInfoView)
-    userInfoView.addSubviews(
-      userImageView,
-      settingButton,
-      userNameLabel,
-      authCountBox,
-      endedChallengeCountBox
-    )
-    feedInfoView.addSubviews(userInfoBottomImageView, myFeedLabel, calendarView)
+    containerView.addSubviews(navigationBar, userInfoView, feedsInfoView, seperatorView)
+    navigationBar.addSubview(settingButton)
+    userInfoView.addSubviews(profileImageView, userNameLabel, countBoxStackView)
+    countBoxStackView.addArrangedSubviews(feedsCountBox, endedChallengeCountBox)
+    feedsInfoView.addSubviews(myFeedLabel, calendarView)
   }
   
   func setConstraints() {
+    let tabBarMinY = tabBarController?.tabBar.frame.minY ?? 0
+    let tabBarHeight = view.frame.height - tabBarMinY
     scrollView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+      $0.leading.top.trailing.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(tabBarHeight)
     }
     
     containerView.snp.makeConstraints {
       $0.edges.width.equalToSuperview()
     }
+
+    navigationBar.snp.makeConstraints {
+      $0.top.leading.trailing.equalToSuperview()
+      $0.height.equalTo(44)
+    }
     
     userInfoView.snp.makeConstraints {
-      $0.leading.top.trailing.equalToSuperview()
-      $0.height.equalTo(344)
+      $0.top.equalTo(navigationBar.snp.bottom)
+      $0.leading.trailing.equalToSuperview()
     }
-    
-    feedInfoView.snp.makeConstraints {
+
+    seperatorView.snp.makeConstraints {
       $0.top.equalTo(userInfoView.snp.bottom)
       $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview()
-      $0.height.equalTo(471)
-    }
-    setConstraintsOfUserInfoView()
-    setConstraintsOfFeedInfoView()
-  }
-  
-  func setConstraintsOfUserInfoView() {
-    userInfoBottomImageView.snp.makeConstraints {
-      $0.top.leading.trailing.equalToSuperview()
       $0.height.equalTo(12)
     }
     
+    feedsInfoView.snp.makeConstraints {
+      $0.top.equalTo(userInfoView.snp.bottom)
+      $0.leading.trailing.bottom.equalToSuperview()
+    }
+    
+    setNavigationBarConstraints()
+    setUserInfoViewConstraints()
+    setFeedsInforViewConstraints()
+  }
+  
+  func setNavigationBarConstraints() {
     settingButton.snp.makeConstraints {
-      $0.top.equalToSuperview().offset(12)
-      $0.trailing.equalToSuperview().offset(-19)
-      $0.width.height.equalTo(32)
-    }
-    
-    userImageView.snp.makeConstraints {
-      $0.top.equalTo(settingButton.snp.bottom).offset(16)
-      $0.centerX.equalToSuperview()
-      $0.width.height.equalTo(96)
-    }
-    
-    userNameLabel.snp.makeConstraints {
-      $0.top.equalTo(userImageView.snp.bottom).offset(16)
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.height.equalTo(21)
-    }
-    
-    authCountBox.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.top.equalTo(userNameLabel.snp.bottom).offset(28)
-      $0.trailing.equalTo(userNameLabel.snp.centerX).offset(-3.5)
-      $0.bottom.equalToSuperview().offset(-31)
-    }
-    
-    endedChallengeCountBox.snp.makeConstraints {
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.top.equalTo(authCountBox)
-      $0.leading.equalTo(userNameLabel.snp.centerX).offset(3.5)
-      $0.bottom.equalTo(authCountBox)
+      $0.width.height.equalTo(24)
+      $0.trailing.equalToSuperview().inset(19)
+      $0.centerY.equalToSuperview()
     }
   }
   
-  func setConstraintsOfFeedInfoView() {
+  func setUserInfoViewConstraints() {
+    profileImageView.snp.makeConstraints {
+      $0.top.equalTo(navigationBar.snp.bottom).offset(16)
+      $0.centerX.equalToSuperview()
+    }
+    
+    userNameLabel.snp.makeConstraints {
+      $0.top.equalTo(profileImageView.snp.bottom).offset(16)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    countBoxStackView.snp.makeConstraints {
+      $0.top.equalTo(userNameLabel.snp.bottom).offset(22)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(30)
+      $0.height.equalTo(88)
+    }
+  }
+  
+  func setFeedsInforViewConstraints() {
     myFeedLabel.snp.makeConstraints {
+      $0.top.equalTo(seperatorView).offset(40)
       $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.top.equalTo(userInfoBottomImageView).offset(48)
-      $0.height.equalTo(21)
     }
     
     calendarView.snp.makeConstraints {
-      $0.top.equalTo(myFeedLabel.snp.bottom).offset(20)
+      $0.top.equalTo(myFeedLabel.snp.bottom).offset(22)
       $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-40)
+      $0.bottom.equalToSuperview().inset(40)
     }
   }
 }
@@ -241,18 +214,11 @@ private extension MyPageViewController {
 // MARK: - Bind Methods
 private extension MyPageViewController {
   func bind() {
-    self.rx.isVisible
-      .bind(with: self) { owner, isVisible in
-        if isVisible {
-          owner.navigationController?.showTabBar(animted: true)
-        }
-      }.disposed(by: disposeBag)
-    
     let input = MyPageViewModel.Input(
       didTapSettingButton: settingButton.rx.tap,
-      didTapAuthCountBox: authCountBox.rx.didTapBox,
+      didTapAuthCountBox: feedsCountBox.rx.didTapBox,
       didTapEndedChallengeBox: endedChallengeCountBox.rx.didTapBox,
-      isVisible: self.rx.isVisible
+      didBecomeVisible: rx.isVisible.filter { $0 }.map { _ in () }.asSignal(onErrorJustReturn: ())
     )
     
     let output = viewModel.transform(input: input)
@@ -260,15 +226,23 @@ private extension MyPageViewController {
   }
   
   func bind(output: MyPageViewModel.Output) {
-    output.userChallengeHistory
-      .emit(with: self) { onwer, userChallengeHistory in
-        // TODO: -  캐싱 적용 후 수정     self?.profileImageView.load(url: userInfo.imageUrl)
-        if let url = userChallengeHistory.imageUrl {
-          onwer.userImageView.kf.setImage(with: url)
-        }
-        onwer.userNameLabel.text = userChallengeHistory.userName
-        onwer.authCountBox.count = userChallengeHistory.feedCnt
-        onwer.endedChallengeCountBox.count = userChallengeHistory.endedChallengeCnt
+    output.username
+      .map { $0.attributedString(font: .heading1, color: .white, alignment: .center) }
+      .drive(userNameLabel.rx.attributedText)
+      .disposed(by: disposeBag)
+    
+    output.feedsCount
+      .drive(feedsCountBox.rx.count)
+      .disposed(by: disposeBag)
+    
+    output.endedChallengeCount
+      .drive(endedChallengeCountBox.rx.count)
+      .disposed(by: disposeBag)
+    
+    output.profileImageURL
+      .filter { $0 != nil }
+      .drive(with: self) { owner, url in
+        owner.profileImageView.kf.setImage(with: url)
       }
       .disposed(by: disposeBag)
   }
@@ -277,9 +251,12 @@ private extension MyPageViewController {
 // MARK: - MyPagePresentable
 extension MyPageViewController: MyPagePresentable { }
 
-// MARK: - CalendarView Delegate
+// MARK: - CalendarViewDelegate
 extension MyPageViewController: CalendarViewDelegate {
   func didSelect(_ date: Date) { }
   
   func didTapCloseButton() { }
 }
+
+// MARK: - Private Methods
+private extension MyPageViewController { }
