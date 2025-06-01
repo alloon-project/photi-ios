@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Core
 import DTO
 import Entity
 
@@ -22,7 +23,8 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
       userName: dto.username,
       imageUrl: imageURL(from: dto.imageUrl),
       feedCnt: dto.feedCnt,
-      endedChallengeCnt: dto.endedChallengeCnt
+      endedChallengeCnt: dto.endedChallengeCnt,
+      registerDate: dto.registerDate.toDate("yyyy-MM-dd") ?? Date()
     )
   }
 // MARK: - Private Methods
