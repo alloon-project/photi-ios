@@ -163,9 +163,9 @@ private extension ChangePasswordViewModel {
   func requestFailed(with error: Error) {
     if let error = error as? APIError {
       switch error {
-        case .tokenUnauthorized:
+        case .authenticationFailed:
           tokenUnauthorizedRelay.accept(())
-        case .loginUnauthenticated:
+        case let .myPageFailed(reason) where reason == .passwordMatchInvalid:
           unMatchedCurrentPasswordRelay.accept(())
         default:
           break

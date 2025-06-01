@@ -13,6 +13,8 @@ import SnapKit
 import Core
 
 final public class AlertViewController: UIViewController {
+  public private(set) var isPresenting: Bool = false
+  
   // MARK: - AlertType
   /// Alert의 버튼 갯수를 정의합니다.
   public enum AlertType {
@@ -52,7 +54,13 @@ final public class AlertViewController: UIViewController {
     return view
   }()
   
-  private let mainTitleLabel = UILabel()
+  private let mainTitleLabel: UILabel = {
+    let label = UILabel()
+    label.numberOfLines = 0
+    label.textAlignment = .center
+    return label
+  }()
+  
   private lazy var subTitleLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 0
@@ -99,6 +107,17 @@ final public class AlertViewController: UIViewController {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: - Life Cycles
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    isPresenting = true
+  }
+  
+  public override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    isPresenting = false
   }
 }
 

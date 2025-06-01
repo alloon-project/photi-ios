@@ -32,10 +32,8 @@ public struct ProfileEditRepositoryImpl: ProfileEditRepository {
           
           if result.statusCode == 200, let responseDTO = result.data {
             single(.success(dataMapper.mapToProfileEditInfo(responseDTO: responseDTO)))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.tokenUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
             single(.failure(APIError.userNotFound))
           } else {

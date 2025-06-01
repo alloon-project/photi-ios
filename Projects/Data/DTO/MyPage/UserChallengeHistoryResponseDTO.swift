@@ -9,20 +9,14 @@
 import Foundation
 
 public struct UserChallengeHistoryResponseDTO: Decodable {
-  public let userName: String
-  public let imageUrl: URL?
+  public let username: String
+  public let imageUrl: String?
   public let feedCnt: Int
   public let endedChallengeCnt: Int
-  
-  public init(userName: String, imageUrl: URL?, feedCnt: Int, endedChallengeCnt: Int) {
-    self.userName = userName
-    self.imageUrl = imageUrl
-    self.feedCnt = feedCnt
-    self.endedChallengeCnt = endedChallengeCnt
-  }
+  public let registerDate: String
 }
 
-public extension UserChallengeHistoryResponseDTO  {
+public extension UserChallengeHistoryResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",
@@ -31,7 +25,8 @@ public extension UserChallengeHistoryResponseDTO  {
     "username": "photi",
     "imageUrl": "https://url.kr/5MhHhD",
     "feedCnt": 99,
-    "endedChallengeCnt": 2
+    "endedChallengeCnt": 2,
+    "registerDate": "2025-06-01"
   }
 }
 """

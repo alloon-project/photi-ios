@@ -39,10 +39,8 @@ public struct ReportRepositoryImpl: ReportRepository {
           
           if result.statusCode == 201 {
             single(.success(()))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.tokenUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
             single(.failure(APIError.userNotFound))
           }

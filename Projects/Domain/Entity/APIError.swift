@@ -13,20 +13,16 @@ public enum APIError: Error {
   case loginFailed(reason: LogInFailedReason)
   case signUpFailed(reason: SignUpFailedReason)
   case challengeFailed(reason: ChallengeFailedReason)
+  case myPageFailed(reason: MyPageFailedReason)
   case organazieFailed(reason: OrganizedFailedReason)
-  case tokenUnauthenticated
-  /// 권한이 없는 요청입니다. 로그인 후에 다시 시도 해주세요.
-  case tokenUnauthorized
-  
+
   // MARK: - Profile Edit
   case userNotFound
   
   // MARK: - 비밀번호 변경
   
   /// 비밀번호와 비밀번호 재입력이 동일하지 않습니다.
-  case passwordMatchInvalid
-  /// 아이디 또는 비밀번호가 틀렸습니다.
-  case loginUnauthenticated
+  
 }
 
 extension APIError {
@@ -63,6 +59,14 @@ extension APIError {
     case fileTooLarge
     case challengeLimitExceed
     case invalidFileFormat
+  }
+}
+
+// MARK: - MyPage
+extension APIError {
+  public enum MyPageFailedReason {
+    case userNotFound
+    case passwordMatchInvalid
   }
 }
 
