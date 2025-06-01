@@ -7,15 +7,59 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class AppViewController: UITabBarController, ViewControllerable {
+  private let disposeBag = DisposeBag()
+  private let viewModel: AppViewModel
+  private let didTapMyPageTabBarItem = PublishRelay<Void>()
+  private var homeNavigationController: UIViewController?
+  
+  private let tapMyPageWithoutLogInAlertView: AlertViewController = {
+    let alertVC = AlertViewController(
+      alertType: .canCancel,
+      title: "로그인하고 다양한 챌린지에\n참여해보세요!"
+    )
+    alertVC.confirmButtonTitle = "로그인하기"
+    alertVC.cancelButtonTitle = "나중에 할래요"
+    
+    return alertVC
+  }()
+  
+  private let tokenExpiredAlertView: AlertViewController = {
+    let alertVC = AlertViewController(
+      alertType: .canCancel,
+      title: "재로그인이 필요해요",
+      subTitle: "보안을 위해 자동 로그아웃 됐어요.\n다시 로그인해주세요."
+    )
+    alertVC.confirmButtonTitle = "로그인하기"
+    alertVC.cancelButtonTitle = "나중에 할래요"
+    
+    return alertVC
+  }()
+  
+  // MARK: - Initializers
+  init(viewModel: AppViewModel) {
+    self.viewModel = viewModel
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
+    bind()
+    
+    delegate = self
   }
   
   override func viewDidLayoutSubviews() {
@@ -29,11 +73,26 @@ final class AppViewController: UITabBarController, ViewControllerable {
   }
 }
 
+// MARK: - Bind Methods
+private extension AppViewController {
+  func bind() {
+    let input = AppViewModel.Input(didTapMyPageTabBarItem: didTapMyPageTabBarItem.asSignal())
+    
+    let output = viewModel.transform(input: input)
+    
+    output.allowMoveToMyPage
+      .emit(with: self) { owner, _ in
+        owner.selectedIndex = 2
+      }
+      .disposed(by: disposeBag)
+  }
+}
+
 // MARK: - AppPresentable
 extension AppViewController: AppPresentable {
   func attachNavigationControllers(_ navigationControllers: NavigationControllerable...) {
     let navigations = navigationControllers.map(\.navigationController)
-    
+    homeNavigationController = navigations.first
     navigations.forEach {
       $0.interactivePopGestureRecognizer?.isEnabled = false
       $0.isNavigationBarHidden = true
@@ -46,17 +105,6 @@ extension AppViewController: AppPresentable {
   func changeNavigationControllerToHome() {
     guard viewControllers != nil else { return }
     selectedIndex = 0 // 첫 번째 탭으로 전환
-  }
-  
-  func changeNavigationControllerToChallenge() {
-    guard let viewControllers, viewControllers.count > 1 else { return }
-    
-    selectedIndex = 1 // 두 번째 탭으로 전환
-  }
-  
-  func changeNavigationControllerToMyPage() {
-    guard let viewControllers, viewControllers.count > 2 else { return }
-    selectedIndex = 2 // 세 번째 탭으로 전환
   }
   
   func presentWelcomeToastView(_ username: String) {
@@ -72,6 +120,18 @@ extension AppViewController: AppPresentable {
     }
     
     toastView.present(at: self.view)
+  }
+  
+  func presentTokenExpiredAlertView() {
+    guard let viewController = homeNavigationController else { return }
+    
+    tokenExpiredAlertView.present(to: viewController, animted: true)
+  }
+  
+  func presentTabMyPageWithoutLogInAlertView() {
+    guard let viewController = homeNavigationController else { return }
+    
+    tapMyPageWithoutLogInAlertView.present(to: viewController, animted: true)
   }
 }
 
@@ -108,5 +168,14 @@ private extension AppViewController {
     items[2].selectedImage = .userBlue.withRenderingMode(.alwaysOriginal)
     items[2].image = .userGray400.withRenderingMode(.alwaysOriginal)
     items[2].title = "마이"
+  }
+}
+
+extension AppViewController: UITabBarControllerDelegate {
+  func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    guard let viewControllers = tabBarController.viewControllers else { return false }
+    guard let selectedIndex = viewControllers.firstIndex(of: viewController) else { return false }
+    if selectedIndex == 2 && self.selectedIndex != 2 { didTapMyPageTabBarItem.accept(()) }
+    return selectedIndex != 2
   }
 }

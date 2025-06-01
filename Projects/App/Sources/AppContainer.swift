@@ -43,19 +43,23 @@ final class AppContainer:
   NoneMemberChallengeDependency,
   ChallengeOrganizeDependency {
   func coordinator() -> ViewableCoordinating {
-    let viewControllerable = AppViewController()
+    let viewModel = AppViewModel(useCase: AppUseCaseImpl(repository: authRepository))
+    let viewControllerable = AppViewController(viewModel: viewModel)
     
     let home = HomeContainer(dependency: self)
     let searchChallenge = SearchChallengeContainer(dependency: self)
     let myPage = MyPageContainer(dependency: self)
     
-    return AppCoordinator(
+    let coordinator = AppCoordinator(
       viewControllerable: viewControllerable,
       homeContainable: home,
       searchChallengeContainable: searchChallenge,
       myPageContainable: myPage,
       loginContainable: loginContainable
     )
+    viewModel.coordinator = coordinator
+
+    return coordinator
   }
   
   // MARK: - Containable

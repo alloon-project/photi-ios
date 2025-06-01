@@ -15,9 +15,9 @@ import MyPage
 @MainActor protocol AppPresentable {
   func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
   func changeNavigationControllerToHome()
-  func changeNavigationControllerToChallenge()
-  func changeNavigationControllerToMyPage()
   func presentWelcomeToastView(_ username: String)
+  func presentTokenExpiredAlertView()
+  func presentTabMyPageWithoutLogInAlertView()
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -159,6 +159,17 @@ private extension AppCoordinator {
   }
 }
 
+// MARK: - AppCoordinatable
+extension AppCoordinator: AppCoordinatable {
+  func shouldReloadAllPage() {
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentTabMyPageWithoutLogInAlertView()
+    }
+  }
+}
+
 // MARK: - HomeListener
 extension AppCoordinator: HomeListener {
   func requestLogInAtHome() {
@@ -166,7 +177,10 @@ extension AppCoordinator: HomeListener {
   }
 
   func authenticatedFailedAtHome() {
-    Task { await reloadAllTab() }
+    Task {
+      await reloadAllTab()
+      await presenter.presentTokenExpiredAlertView()
+    }
   }
 }
 
@@ -176,6 +190,7 @@ extension AppCoordinator: SearchChallengeListener {
     Task {
       await reloadAllTab()
       await presenter.changeNavigationControllerToHome()
+      await presenter.presentTokenExpiredAlertView()
     }
   }
 }
@@ -184,6 +199,14 @@ extension AppCoordinator: SearchChallengeListener {
 extension AppCoordinator: MyPageListener {
   func isUserResigned() {
     Task { await presenter.changeNavigationControllerToHome() }
+  }
+  
+  func authenticatedFailedAtMyPage() {
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentTokenExpiredAlertView()
+    }
   }
 }
 
@@ -203,3 +226,5 @@ extension AppCoordinator: LogInListener {
     Task { await detachLogIn(willPopViewConroller: true) }
   }
 }
+
+// TODO: presentTokenExpiredAlertView At 띄우기

@@ -52,7 +52,13 @@ final public class AlertViewController: UIViewController {
     return view
   }()
   
-  private let mainTitleLabel = UILabel()
+  private let mainTitleLabel: UILabel = {
+    let label = UILabel()
+    label.numberOfLines = 0
+    label.textAlignment = .center
+    return label
+  }()
+  
   private lazy var subTitleLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 0
