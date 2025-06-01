@@ -14,13 +14,25 @@ protocol ChallengeNameDependency: Dependency {
 }
 
 protocol ChallengeNameContainable: Containable {
-  func coordinator(listener: ChallengeNameListener) -> ViewableCoordinating
+  func coordinator(
+    mode: ChallengeOrganizeMode,
+    listener: ChallengeNameListener
+  ) -> ViewableCoordinating
 }
 
 final class ChallengeNameContainer: Container<ChallengeNameDependency>, ChallengeNameContainable {
-  func coordinator(listener: ChallengeNameListener) -> ViewableCoordinating {
-    let viewModel = ChallengeNameViewModel(useCase: dependency.organizeUseCase)
-    let viewControllerable = ChallengeNameViewController(viewModel: viewModel)
+  func coordinator(
+    mode: ChallengeOrganizeMode,
+    listener: ChallengeNameListener
+  ) -> ViewableCoordinating {
+    let viewModel = ChallengeNameViewModel(
+      mode: mode,
+      useCase: dependency.organizeUseCase
+    )
+    let viewControllerable = ChallengeNameViewController(
+      mode: mode,
+      viewModel: viewModel
+    )
     
     let coordinator = ChallengeNameCoordinator(
       viewControllerable: viewControllerable,

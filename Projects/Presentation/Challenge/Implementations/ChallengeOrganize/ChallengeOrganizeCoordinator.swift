@@ -10,6 +10,11 @@ import Foundation
 import Core
 import Challenge
 
+enum ChallengeOrganizeMode {
+  case modify
+  case organize
+}
+
 protocol ChallengeOrganizePresentable { }
 
 final class ChallengeOrganizeCoordinator: Coordinator {
@@ -105,7 +110,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeName() {
     guard challengeNameCoordinator == nil else { return }
     
-    let coordinater = challengeNameContainable.coordinator(listener: self)
+    let coordinater = challengeNameContainable.coordinator(mode: .organize, listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -124,7 +129,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeGoal() {
     guard challengeGoalCoordinator == nil else { return }
     
-    let coordinater = challengeGoalContainable.coordinator(listener: self)
+    let coordinater = challengeGoalContainable.coordinator(
+      mode: .organize,
+      listener: self
+    )
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)

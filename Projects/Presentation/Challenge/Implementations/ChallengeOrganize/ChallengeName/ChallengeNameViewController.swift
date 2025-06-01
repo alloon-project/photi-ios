@@ -14,6 +14,7 @@ import Core
 import DesignSystem
 
 final class ChallengeNameViewController: UIViewController, ViewControllerable {
+  private let mode: ChallengeOrganizeMode
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeNameViewModel
   private var isPublicRelay: BehaviorRelay<Bool> = BehaviorRelay(value: true)
@@ -88,7 +89,11 @@ final class ChallengeNameViewController: UIViewController, ViewControllerable {
   )
   
   // MARK: - Initialziers
-  init(viewModel: ChallengeNameViewModel) {
+  init(
+    mode: ChallengeOrganizeMode,
+    viewModel: ChallengeNameViewModel
+  ) {
+    self.mode = mode
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -122,22 +127,35 @@ private extension ChallengeNameViewController {
     challengeNameTextField.setKeyboardType(.default)
     setViewHierarchy()
     setConstraints()
+    
+    if case .modify = mode {
+      navigationBar.title = "챌린지 이름 수정"
+    }
   }
   
   func setViewHierarchy() {
-    view.addSubviews(
-      navigationBar,
-      progressBar,
-      titleLabel,
-      challengeNameTextField,
-      publicLabel,
-      publicCommentBox,
-      privateComment,
-      publicSwitch,
-      nextButton
-    )
-    
-    publicCommentBox.addSubviews(publicCommentImageView, publicCommentLabel)
+    if case .modify = mode {
+      view.addSubviews(
+        navigationBar,
+        titleLabel,
+        challengeNameTextField,
+        nextButton
+      )
+    } else {
+      view.addSubviews(
+        navigationBar,
+        progressBar,
+        titleLabel,
+        challengeNameTextField,
+        publicLabel,
+        publicCommentBox,
+        privateComment,
+        publicSwitch,
+        nextButton
+      )
+      
+      publicCommentBox.addSubviews(publicCommentImageView, publicCommentLabel)
+    }
   }
   
   func setConstraints() {
@@ -147,6 +165,32 @@ private extension ChallengeNameViewController {
       $0.height.equalTo(56)
     }
     
+    if case .modify = mode {
+      setModifyModeConstraints()
+    } else {
+      setOrganizeModeConstraints()
+    }
+    
+    nextButton.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().offset(-56)
+    }
+  }
+  
+  func setModifyModeConstraints() {
+    titleLabel.snp.makeConstraints {
+      $0.top.equalTo(navigationBar.snp.bottom).offset(36)
+      $0.leading.equalToSuperview().offset(24)
+    }
+    
+    challengeNameTextField.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.top.equalTo(titleLabel.snp.bottom).offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
+    }
+  }
+  
+  func setOrganizeModeConstraints() {
     progressBar.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(8)
       $0.leading.trailing.equalToSuperview().inset(24)
@@ -192,11 +236,6 @@ private extension ChallengeNameViewController {
     publicSwitch.snp.makeConstraints {
       $0.top.equalTo(publicLabel).offset(4)
       $0.trailing.equalToSuperview().inset(24)
-    }
-    
-    nextButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-56)
     }
   }
 }

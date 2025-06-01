@@ -15,6 +15,7 @@ import DesignSystem
 
 final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private let mode: ChallengeOrganizeMode
   private let viewModel: ChallengeGoalViewModel
   private let proveTimeRelay = PublishRelay<String>()
   private let endDateRelay = PublishRelay<Date>()
@@ -87,7 +88,11 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   }()
   
   // MARK: - Initialziers
-  init(viewModel: ChallengeGoalViewModel) {
+  init(
+    mode: ChallengeOrganizeMode,
+    viewModel: ChallengeGoalViewModel
+  ) {
+    self.mode = mode
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -133,12 +138,15 @@ private extension ChallengeGoalViewController {
     view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
+    
+    if case .modify = mode {
+      navigationBar.title = "챌린지 소개 수정"
+    }
   }
   
   func setViewHierarchy() {
     view.addSubviews(
       navigationBar,
-      progressBar,
       titleLabel,
       challengeGoalTextView,
       setProveTimeLabel,
@@ -148,6 +156,10 @@ private extension ChallengeGoalViewController {
       nextButton
     )
     
+    if case .organize = mode {
+      view.addSubview(progressBar)
+    }
+
     proveTimeTextField.commentViews = [proveComment]
   }
   
@@ -158,14 +170,21 @@ private extension ChallengeGoalViewController {
       $0.height.equalTo(56)
     }
     
-    progressBar.snp.makeConstraints {
-      $0.top.equalTo(navigationBar.snp.bottom).offset(8)
-      $0.leading.trailing.equalToSuperview().inset(24)
-    }
-    
-    titleLabel.snp.makeConstraints {
-      $0.top.equalTo(progressBar.snp.bottom).offset(48)
-      $0.leading.equalToSuperview().offset(24)
+    if case .modify = mode {
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(36)
+        $0.leading.equalToSuperview().offset(24)
+      }
+    } else {
+      progressBar.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(8)
+        $0.leading.trailing.equalToSuperview().inset(24)
+      }
+      
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.leading.equalToSuperview().offset(24)
+      }
     }
     
     challengeGoalTextView.snp.makeConstraints {
