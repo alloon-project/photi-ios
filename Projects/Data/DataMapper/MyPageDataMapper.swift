@@ -6,22 +6,29 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import DTO
 import Entity
 
 public protocol MyPageDataMapper {
-  func mapToUserChallengeHistory(responseDTO: UserChallengeHistoryResponseDTO) -> UserChallengeHistory
+  func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
-  public init() {}
+  public init() { }
   
-  public func mapToUserChallengeHistory(responseDTO: UserChallengeHistoryResponseDTO) -> UserChallengeHistory {
-    return UserChallengeHistory(
-      userName: responseDTO.userName,
-      imageUrl: responseDTO.imageUrl,
-      feedCnt: responseDTO.feedCnt,
-      endedChallengeCnt: responseDTO.endedChallengeCnt
+  public func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary {
+    return MyPageSummary(
+      userName: dto.username,
+      imageUrl: imageURL(from: dto.imageUrl),
+      feedCnt: dto.feedCnt,
+      endedChallengeCnt: dto.endedChallengeCnt
     )
+  }
+// MARK: - Private Methods
+private extension MyPageDataMapperImpl {
+  func imageURL(from strURL: String?) -> URL? {
+    guard let strURL else { return nil }
+    return URL(string: strURL)
   }
 }

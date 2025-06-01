@@ -17,8 +17,7 @@ public enum MyPageAPI {
 
 extension MyPageAPI: TargetType {
   public var baseURL: URL {
-    return URL(string: "http://localhost:8080")!
-    //    return URL(string: ServiceConfiguration.baseUrl)!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
@@ -28,7 +27,7 @@ extension MyPageAPI: TargetType {
     }
   }
   
-  public var method: PhotiNetwork.HTTPMethod {
+  public var method: HTTPMethod {
     switch self {
     case .userChallegeHistory:
       return .get
