@@ -22,21 +22,21 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   private let endedChallengeContainable: EndedChallengeContainable
   private var endedChallengeCoordinator: ViewableCoordinating?
   
-  private let FeedHistoryContainable: FeedHistoryContainable
-  private var FeedHistoryCoordinator: ViewableCoordinating?
+  private let feedHistoryContainable: FeedHistoryContainable
+  private var feedHistoryCoordinator: ViewableCoordinating?
   
   init(
     viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,
-    FeedHistoryContainable: FeedHistoryContainable
+    feedHistoryContainable: FeedHistoryContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
     self.endedChallengeContainable = endedChallengeContainable
-    self.FeedHistoryContainable = FeedHistoryContainable
+    self.feedHistoryContainable = feedHistoryContainable
     
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -62,26 +62,31 @@ extension MyPageCoordinator: MyPageCoordinatable {
     self.settingCoordinator = nil
   }
   
+// MARK: - FeedHistory
+extension MyPageCoordinator {
   func attachFeedHistory(count: Int) {
-    guard FeedHistoryCoordinator == nil else { return }
+    guard feedHistoryCoordinator == nil else { return }
     
-    let coordinator = FeedHistoryContainable.coordinator(listener: self, feedCount: count)
+    let coordinator = feedHistoryContainable.coordinator(listener: self, feedCount: count)
     addChild(coordinator)
     
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
 
-    self.FeedHistoryCoordinator = coordinator
+    self.feedHistoryCoordinator = coordinator
   }
   
   func detachFeedHistory() {
-    guard let coordinator = FeedHistoryCoordinator else { return }
+    guard let coordinator = feedHistoryCoordinator else { return }
     
     removeChild(coordinator)
     
     viewControllerable.popViewController(animated: true)
-    self.FeedHistoryCoordinator = nil
+    self.feedHistoryCoordinator = nil
   }
-  
+}
+
+// MARK: - EndedChallenge
+extension MyPageCoordinator {
   func attachEndedChallenge() {
     guard endedChallengeCoordinator == nil else { return }
     

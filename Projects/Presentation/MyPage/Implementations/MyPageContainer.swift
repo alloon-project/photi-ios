@@ -43,14 +43,14 @@ public final class MyPageContainer:
     
     let settingContainable = SettingContainer(dependency: self)
     let endedChallengeContainable = EndedChallengeContainer(dependency: self)
-    let FeedHistoryContainable = FeedHistoryContainer(dependency: self)
+    let feedHistoryContainable = FeedHistoryContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       settingContainable: settingContainable,
       endedChallengeContainable: endedChallengeContainable,
-      FeedHistoryContainable: FeedHistoryContainable
+      feedHistoryContainable: feedHistoryContainable
     )
     
     coordinator.listener = listener
