@@ -14,11 +14,9 @@ import UseCase
 
 protocol MyPageCoordinatable: AnyObject {
   func attachSetting()
-  func detachSetting()
   func attachEndedChallenge()
-  func detachEndedChallenge()
   func attachFeedHistory(count: Int)
-  func detachFeedHistory()
+  func authenticatedFailed()
 }
 
 protocol MyPageViewModelType: AnyObject {
@@ -41,6 +39,8 @@ final class MyPageViewModel: MyPageViewModelType {
   private let verifiedChallengeDates = BehaviorRelay<[Date]>(value: [])
   private let feedHistoryCount = BehaviorRelay(value: 0)
   private let endedChallengeCount = BehaviorRelay(value: 0)
+  
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -89,7 +89,7 @@ final class MyPageViewModel: MyPageViewModelType {
     
     input.didBecomeVisible
       .emit(with: self) { owner, _ in
-        Task { await owner.loadData() }
+        owner.loadData()
       }
       .disposed(by: disposeBag)
     
@@ -120,7 +120,7 @@ private extension MyPageViewModel {
       feedHistoryCount.accept(summary.feedCount)
       endedChallengeCount.accept(summary.endedChallengeCount)
     } catch {
-      print(error)
+      requestFailed(with: error)
     }
   }
   
@@ -129,7 +129,20 @@ private extension MyPageViewModel {
       let dates = try await useCase.loadVerifiedChallengeDates().value
       verifiedChallengeDates.accept(dates)
     } catch {
-      print(error)
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    switch error {
+      case .authenticationFailed:
+        coordinator?.authenticatedFailed()
+      case let .myPageFailed(reason) where reason == .userNotFound:
+        coordinator?.authenticatedFailed()
+      default:
+        networkUnstableRelay.accept(())
     }
   }
 }

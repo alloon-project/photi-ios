@@ -245,8 +245,11 @@ private extension MyPageViewController {
       .disposed(by: disposeBag)
     
     output.profileImageURL
-      .filter { $0 != nil }
       .drive(with: self) { owner, url in
+        Task {
+          let image = await owner.profileImage(with: url)
+          owner.profileImageView.configureImage(image)
+        }
         owner.profileImageView.kf.setImage(with: url)
       }
       .disposed(by: disposeBag)
@@ -272,4 +275,19 @@ extension MyPageViewController: CalendarViewDelegate {
 }
 
 // MARK: - Private Methods
-private extension MyPageViewController { }
+private extension MyPageViewController {
+  func profileImage(with url: URL?) async -> UIImage? {
+    guard let url = url else { return nil }
+    
+    return await withCheckedContinuation { continuation in
+      KingfisherManager.shared.retrieveImage(with: url) { result in
+        switch result {
+        case .success(let value):
+          continuation.resume(returning: value.image)
+        case .failure:
+          continuation.resume(returning: nil)
+        }
+      }
+    }
+  }
+}
