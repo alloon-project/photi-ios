@@ -62,6 +62,7 @@ public final class CalendarView: UIView {
   public var startDate: Date {
     didSet {
       self.dataSource = dataSource(from: startDate, to: endDate)
+      scrollTo(date: currentDate)
     }
   }
   
@@ -69,11 +70,18 @@ public final class CalendarView: UIView {
   public var endDate: Date {
     didSet {
       self.dataSource = dataSource(from: startDate, to: endDate)
+      scrollTo(date: currentDate)
     }
   }
   
+  public var currentDate: Date {
+    didSet { scrollTo(date: currentDate) }
+  }
+  
   /// `default`로 선택된 Date입니다.
-  public let defaultSelectedDates: [Date]?
+  public var defaultSelectedDates: [Date] = [] {
+    didSet { calendarCollectionView.reloadData() }
+  }
   
   /// 유저가 선택한 날짜입니다.
   public var selectedDate: Date?
@@ -121,32 +129,37 @@ public final class CalendarView: UIView {
     selectionMode: SelectionMode,
     defaultSelectedDates: [Date],
     startDate: Date,
+    currentDate: Date? = nil,
     endDate: Date? = nil
   ) {
     self.seletectionMode = selectionMode
     self.startDate = startDate
+    self.currentDate = currentDate ?? startDate
     self.endDate = endDate ?? (Calendar.current.date(byAdding: .year, value: 5, to: startDate) ?? startDate)
     
     self.defaultSelectedDates = defaultSelectedDates
-
-    super.init(frame: .zero)
     
+    super.init(frame: .zero)
+
     setupUI()
     calendarCollectionView.dataSource = self
     calendarCollectionView.delegate = self
     
-    self.dataSource = dataSource(from: startDate, to: self.endDate)
+    dataSource = dataSource(from: startDate, to: self.endDate)
+    scrollTo(date: self.currentDate)
   }
   
   public convenience init(
     selectionMode: SelectionMode,
     startDate: Date,
+    currentDate: Date? = nil,
     endDate: Date? = nil
   ) {
     self.init(
       selectionMode: selectionMode,
       defaultSelectedDates: [],
       startDate: startDate,
+      currentDate: currentDate,
       endDate: endDate)
   }
   
@@ -218,9 +231,7 @@ extension CalendarView: UICollectionViewDataSource {
       lineSpacing: lineSpacing
     )
     
-    if let calendarDates = defaultSelectedDates?.map({ CalendarDate(date: $0) }) {
-      cell.selectedDates = calendarDates
-    }
+    cell.selectedDates = defaultSelectedDates.map { CalendarDate(date: $0) }
     
     cell.selectedDateRelay
       .bind(with: self) { owner, calendarDate in
@@ -252,15 +263,8 @@ extension CalendarView: UICollectionViewDelegateFlowLayout {
 extension CalendarView {
   public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     let page = Int(scrollView.contentOffset.x / scrollView.frame.size.width)
-    if page == 0 {
-      headerView.leftDisabled = true
-    } else if page == dataSource.count {
-      headerView.rightDisabled = true
-    } else {
-      headerView.leftDisabled = false
-      headerView.rightDisabled = false
-    }
-    
+      headerView.leftDisabled = page == 0
+      headerView.rightDisabled = page == dataSource.count - 1
     if let date = dataSource[page].first {
       setHeaderViewTitle(date)
     }
@@ -281,6 +285,20 @@ private extension CalendarView {
   
   func setHeaderViewTitle(_ date: CalendarDate) {
     headerView.text = "\(date.year)년 \(date.month)월"
+  }
+  
+  func scrollTo(date: Date) {
+    for (pageIndex, dates) in dataSource.enumerated() {
+      if let first = dates.first, Calendar.current.isDate(first.date, equalTo: date, toGranularity: .month) {
+        let indexPath = IndexPath(item: pageIndex, section: 0)
+        calendarCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+        setHeaderViewTitle(CalendarDate(date: date))
+        headerView.leftDisabled = pageIndex == 0
+        headerView.rightDisabled = pageIndex == dataSource.count - 1
+
+        break
+      }
+    }
   }
   
   func dataSource(from startDate: Date, to endDate: Date) -> [[CalendarDate]] {
@@ -317,7 +335,7 @@ private extension CalendarView {
           calendarDate.type = .disabled
         } else if calendarDate == startCalendarDate {
           calendarDate.type = .startDate
-        } else if calendarDate >= endCalendarDate {
+        } else if calendarDate > endCalendarDate {
           calendarDate.type = .disabled
         } else {
           calendarDate.type = .default
