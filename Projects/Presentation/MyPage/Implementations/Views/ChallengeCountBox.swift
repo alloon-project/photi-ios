@@ -29,7 +29,7 @@ final class ChallengeCountBox: UIView {
   private let countLabel = UILabel()
   
   // MARK: - Initializers
-  init(title: String = "", count: Int = 0) {
+  init(title: String, count: Int = 0) {
     self.title = title
     self.count = count
     super.init(frame: .zero)
@@ -66,7 +66,7 @@ private extension ChallengeCountBox {
     countLabel.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(12)
-      $0.bottom.equalToSuperview().offset(-21)
+      $0.bottom.equalToSuperview().inset(21)
     }
   }
 }

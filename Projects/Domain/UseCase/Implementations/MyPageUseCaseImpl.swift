@@ -6,19 +6,27 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import Entity
 import UseCase
 import Repository
 
-public struct MyPageUseCaseImpl: MyPageUseCase {
+public class MyPageUseCaseImpl: MyPageUseCase {
   private let repository: MyPageRepository
   
   public init(repository: MyPageRepository) {
     self.repository = repository
   }
+}
+
+// MARK: - Fetch Methods
+public extension MyPageUseCaseImpl {
+  func loadMyPageSummry() -> Single<MyPageSummary> {
+    return repository.fetchMyPageSummary()
+  }
   
-  public func userChallengeHistory() -> Single<UserChallengeHistory> {
-    return repository.userChallengeHistory()
+  func loadVerifiedChallengeDates() -> Single<[Date]> {
+    return repository.fetchVerifiedChallengeDates()
   }
 }

@@ -45,19 +45,19 @@ final class HomeCoordinator: Coordinator {
   override func start() {
     Task {
       await detachAll()
-      await attachInitialScreenIfNeeded()
+      await attachInitialScreenIfNeeded(animated: false)
     }
   }
 }
 
 // MARK: - ChallengeHome
 private extension HomeCoordinator {
-  @MainActor func attachChallengeHome() {
+  @MainActor func attachChallengeHome(animated: Bool = true) {
     guard challengeHomeCoordinator == nil else { return }
     
     let coordinator = challengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
-    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+    navigationControllerable.setViewControllers([coordinator.viewControllerable], animated: animated)
     
     self.noneChallengeHomeCoordinator = coordinator
   }
@@ -72,12 +72,12 @@ private extension HomeCoordinator {
 
 // MARK: - NoneChallengeHome
 private extension HomeCoordinator {
-  @MainActor func attachNoneChallengeHome() {
+  @MainActor func attachNoneChallengeHome(animated: Bool = true) {
     guard noneChallengeHomeCoordinator == nil else { return }
     
     let coordinator = noneChallengeHomeContainer.coordinator(listener: self)
     addChild(coordinator)
-    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+    navigationControllerable.setViewControllers([coordinator.viewControllerable], animated: animated)
     
     self.noneChallengeHomeCoordinator = coordinator
   }
@@ -92,12 +92,12 @@ private extension HomeCoordinator {
 
 // MARK: - NoneMemberHome
 private extension HomeCoordinator {
-  @MainActor func attachNoneMemberHome() {
+  @MainActor func attachNoneMemberHome(animated: Bool = true) {
     guard noneMemberHomeCoordinator == nil else { return }
     let coordinator = noneMemberHomeContainer.coordinator(listener: self)
     addChild(coordinator)
     
-    navigationControllerable.setViewControllers([coordinator.viewControllerable])
+    navigationControllerable.setViewControllers([coordinator.viewControllerable], animated: animated)
     self.noneMemberHomeCoordinator = coordinator
   }
   
@@ -147,14 +147,14 @@ extension HomeCoordinator: NoneChallengeHomeListener {
 
 // MARK: - Private Methods
 private extension HomeCoordinator {
-  func attachInitialScreenIfNeeded() async {
+  func attachInitialScreenIfNeeded(animated: Bool = true) async {
     do {
       let count = try await useCase.challengeCount()
       
-      count == 0 ? await attachNoneChallengeHome() : await attachChallengeHome()
+      count == 0 ? await attachNoneChallengeHome(animated: animated) : await attachChallengeHome(animated: animated)
     } catch {
       if let error = error as? APIError, case .authenticationFailed = error {
-        await attachNoneMemberHome()
+        await attachNoneMemberHome(animated: animated)
       } else {
         await presentNetworkUnstableAlert()
       }

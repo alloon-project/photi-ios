@@ -6,12 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import Entity
-import Repository
 
 public protocol MyPageUseCase {
-  init(repository: MyPageRepository)
-  
-  func userChallengeHistory() -> Single<UserChallengeHistory>
+  func loadMyPageSummry() -> Single<MyPageSummary>
+  func loadVerifiedChallengeDates() -> Single<[Date]>
 }

@@ -13,42 +13,50 @@ import PhotiNetwork
 
 public enum MyPageAPI {
   case userChallegeHistory
+  case verifiedChallengeDates
 }
 
 extension MyPageAPI: TargetType {
   public var baseURL: URL {
-    return URL(string: "http://localhost:8080")!
-    //    return URL(string: ServiceConfiguration.baseUrl)!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
     switch self {
-    case .userChallegeHistory:
-      return "api/users/challenge-history"
+      case .userChallegeHistory:
+        return "api/users/challenge-history"
+      case .verifiedChallengeDates:
+        return "api/users/feeds"
     }
   }
   
-  public var method: PhotiNetwork.HTTPMethod {
+  public var method: HTTPMethod {
     switch self {
-    case .userChallegeHistory:
-      return .get
+      case .userChallegeHistory, .verifiedChallengeDates:
+        return .get
     }
   }
   
   public var task: PhotiNetwork.TaskType {
     switch self {
-    case .userChallegeHistory:
-      return .requestPlain
+      case .userChallegeHistory, .verifiedChallengeDates:
+        return .requestPlain
     }
   }
   
   public var sampleResponse: EndpointSampleResponse {
     switch self {
-    case .userChallegeHistory:
-      let data = UserChallengeHistoryResponseDTO.stubData
-      let jsonData = data.data(using: .utf8)
-      
-      return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      case .userChallegeHistory:
+        let data = UserChallengeHistoryResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .verifiedChallengeDates:
+        let data = VerifiedChallengeDatesResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
   }
 }

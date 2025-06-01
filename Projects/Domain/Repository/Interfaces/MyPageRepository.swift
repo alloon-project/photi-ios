@@ -6,12 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
-import DataMapper
 import Entity
 
 public protocol MyPageRepository {
-  init (dataMapper: MyPageDataMapper)
-  
-  func userChallengeHistory() -> Single<UserChallengeHistory>
+  func fetchMyPageSummary() -> Single<MyPageSummary>
+  func fetchVerifiedChallengeDates() -> Single<[Date]>
 }

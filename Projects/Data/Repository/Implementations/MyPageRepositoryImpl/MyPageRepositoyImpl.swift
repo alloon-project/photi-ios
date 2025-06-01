@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import DataMapper
 import DTO
@@ -19,35 +20,69 @@ public struct MyPageRepositoyImpl: MyPageRepository {
   public init(dataMapper: MyPageDataMapper) {
     self.dataMapper = dataMapper
   }
+}
+
+// MARK: - Fetch Methods
+public extension MyPageRepositoyImpl {
+  func fetchMyPageSummary() -> Single<MyPageSummary> {
+    return requestAuthorizableAPI(
+      api: MyPageAPI.userChallegeHistory,
+      responseType: UserChallengeHistoryResponseDTO.self
+    )
+    .map { dataMapper.mapToMyPageSummary(from: $0) }
+  }
   
-  public func userChallengeHistory() -> Single<UserChallengeHistory> {
+  func fetchVerifiedChallengeDates() -> Single<[Date]> {
+    return requestAuthorizableAPI(
+      api: MyPageAPI.verifiedChallengeDates,
+      responseType: VerifiedChallengeDatesResponseDTO.self
+    )
+    .map { dataMapper.mapToDate(from: $0) }
+  }
+}
+
+// MARK: - Private Methods
+private extension MyPageRepositoyImpl {
+  func requestAuthorizableAPI<T: Decodable>(
+    api: MyPageAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .never
+  ) -> Single<T> {
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(
-            stubBehavior: .immediate,
-            session:.init(interceptor: AuthenticationInterceptor())
-          ).request(
-              MyPageAPI.userChallegeHistory,
-              type: UserChallengeHistoryResponseDTO.self
-            ).value
+          let provider = Provider<MyPageAPI>(
+            stubBehavior: behavior,
+            session: .init(interceptor: AuthenticationInterceptor())
+          )
           
-          if result.statusCode == 200, let responseDTO = result.data {
-            single(.success(dataMapper.mapToUserChallengeHistory(responseDTO: responseDTO)))
-          } else if result.statusCode == 401 {
-            single(.failure(APIError.tokenUnauthenticated))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.tokenUnauthorized))
+          let result = try await provider.request(api, type: responseType.self).value
+          if (200..<300).contains(result.statusCode), let data = result.data {
+            single(.success(data))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
-            single(.failure(APIError.userNotFound))
+            single(.failure(map404ToAPIError(result.code, result.message)))
           } else {
             single(.failure(APIError.serverError))
           }
         } catch {
-          single(.failure(APIError.serverError))
+          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+            single(.failure(APIError.authenticationFailed))
+          } else {
+            single(.failure(error))
+          }
         }
       }
       return Disposables.create()
+    }
+  }
+  
+  func map404ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "USER_NOT_FOUND" {
+      return APIError.challengeFailed(reason: .userNotFound)
+    } else {
+      return APIError.clientError(code: code, message: message)
     }
   }
 }
