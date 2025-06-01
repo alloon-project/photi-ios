@@ -8,14 +8,14 @@
 
 import Foundation
 
-public struct FeedHistoryCellPresentationModel: Hashable {
+struct FeedHistoryCellPresentationModel: Hashable {
   let feedId: Int
   let challengeImageUrl: URL?
   let challengeTitle: String
   let provedDate: String
   let challengeId: Int
   
-  public func hash(into hasher: inout Hasher) {
+  func hash(into hasher: inout Hasher) {
     hasher.combine(feedId)
   }
 }
