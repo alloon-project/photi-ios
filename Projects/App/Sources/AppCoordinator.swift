@@ -16,8 +16,8 @@ import MyPage
   func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
   func changeNavigationControllerToHome()
   func presentWelcomeToastView(_ username: String)
-  func presentTokenExpiredAlertView()
-  func presentTabMyPageWithoutLogInAlertView()
+  func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable)
+  func presentTabMyPageWithoutLogInAlertView(to navigationControllerable: NavigationControllerable)
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -165,8 +165,12 @@ extension AppCoordinator: AppCoordinatable {
     Task {
       await reloadAllTab()
       await presenter.changeNavigationControllerToHome()
-      await presenter.presentTabMyPageWithoutLogInAlertView()
+      await presenter.presentTabMyPageWithoutLogInAlertView(to: homeNavigationControllerable)
     }
+  }
+  
+  func attachLogIn() {
+    Task { await attachLogIn(at: homeNavigationControllerable) }
   }
 }
 
@@ -179,7 +183,7 @@ extension AppCoordinator: HomeListener {
   func authenticatedFailedAtHome() {
     Task {
       await reloadAllTab()
-      await presenter.presentTokenExpiredAlertView()
+      await presenter.presentTokenExpiredAlertView(to: homeNavigationControllerable)
     }
   }
 }
@@ -190,7 +194,7 @@ extension AppCoordinator: SearchChallengeListener {
     Task {
       await reloadAllTab()
       await presenter.changeNavigationControllerToHome()
-      await presenter.presentTokenExpiredAlertView()
+      await presenter.presentTokenExpiredAlertView(to: homeNavigationControllerable)
     }
   }
 }
@@ -205,7 +209,7 @@ extension AppCoordinator: MyPageListener {
     Task {
       await reloadAllTab()
       await presenter.changeNavigationControllerToHome()
-      await presenter.presentTokenExpiredAlertView()
+      await presenter.presentTokenExpiredAlertView(to: homeNavigationControllerable)
     }
   }
 }
@@ -226,5 +230,3 @@ extension AppCoordinator: LogInListener {
     Task { await detachLogIn(willPopViewConroller: true) }
   }
 }
-
-// TODO: presentTokenExpiredAlertView At 띄우기

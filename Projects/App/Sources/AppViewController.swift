@@ -17,6 +17,7 @@ final class AppViewController: UITabBarController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: AppViewModel
   private let didTapMyPageTabBarItem = PublishRelay<Void>()
+  private let didTapLogInButton = PublishRelay<Void>()
   private var homeNavigationController: UIViewController?
   
   private let tapMyPageWithoutLogInAlertView: AlertViewController = {
@@ -76,13 +77,28 @@ final class AppViewController: UITabBarController, ViewControllerable {
 // MARK: - Bind Methods
 private extension AppViewController {
   func bind() {
-    let input = AppViewModel.Input(didTapMyPageTabBarItem: didTapMyPageTabBarItem.asSignal())
+    let input = AppViewModel.Input(
+      didTapMyPageTabBarItem: didTapMyPageTabBarItem.asSignal(),
+      didTapLogInButton: didTapLogInButton.asSignal()
+    )
     
     let output = viewModel.transform(input: input)
     
     output.allowMoveToMyPage
       .emit(with: self) { owner, _ in
         owner.selectedIndex = 2
+      }
+      .disposed(by: disposeBag)
+    
+    tapMyPageWithoutLogInAlertView.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLogInButton.accept(())
+      }
+      .disposed(by: disposeBag)
+    
+    tokenExpiredAlertView.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLogInButton.accept(())
       }
       .disposed(by: disposeBag)
   }
@@ -122,16 +138,16 @@ extension AppViewController: AppPresentable {
     toastView.present(at: self.view)
   }
   
-  func presentTokenExpiredAlertView() {
-    guard let viewController = homeNavigationController else { return }
+  func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable) {
+    guard !tokenExpiredAlertView.isPresenting else { return }
     
-    tokenExpiredAlertView.present(to: viewController, animted: true)
+    tokenExpiredAlertView.present(to: navigationControllerable.navigationController, animted: true)
   }
   
-  func presentTabMyPageWithoutLogInAlertView() {
-    guard let viewController = homeNavigationController else { return }
+  func presentTabMyPageWithoutLogInAlertView(to navigationControllerable: NavigationControllerable) {
+    guard !tapMyPageWithoutLogInAlertView.isPresenting else { return }
     
-    tapMyPageWithoutLogInAlertView.present(to: viewController, animted: true)
+    tapMyPageWithoutLogInAlertView.present(to: navigationControllerable.navigationController, animted: true)
   }
 }
 

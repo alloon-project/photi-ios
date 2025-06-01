@@ -12,6 +12,7 @@ import UseCase
 
 protocol AppCoordinatable: AnyObject {
   func shouldReloadAllPage()
+  func attachLogIn()
 }
 
 protocol AppViewModelType: AnyObject {
@@ -31,6 +32,7 @@ final class AppViewModel: AppViewModelType {
   // MARK: - Input
   struct Input {
     let didTapMyPageTabBarItem: Signal<Void>
+    let didTapLogInButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -47,6 +49,12 @@ final class AppViewModel: AppViewModelType {
     input.didTapMyPageTabBarItem
       .emit(with: self) { owner, _ in
         owner.handleMyPageTabSelection()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapLogInButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.attachLogIn()
       }
       .disposed(by: disposeBag)
     
