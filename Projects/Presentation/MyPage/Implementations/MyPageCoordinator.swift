@@ -43,7 +43,8 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   }
 }
 
-extension MyPageCoordinator: MyPageCoordinatable {
+// MARK: - Setting
+extension MyPageCoordinator {
   func attachSetting() {
     guard settingCoordinator == nil else { return }
     
@@ -61,7 +62,8 @@ extension MyPageCoordinator: MyPageCoordinatable {
     viewControllerable.popToRoot(animated: true)
     self.settingCoordinator = nil
   }
-  
+}
+
 // MARK: - FeedHistory
 extension MyPageCoordinator {
   func attachFeedHistory(count: Int) {
@@ -102,6 +104,12 @@ extension MyPageCoordinator {
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.endedChallengeCoordinator = nil
+  }
+}
+
+extension MyPageCoordinator: MyPageCoordinatable {
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtMyPage()
   }
 }
 
