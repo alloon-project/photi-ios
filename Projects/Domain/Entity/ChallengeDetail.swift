@@ -14,6 +14,7 @@ public struct ChallengeDetail {
   public let imageUrl: URL?
   public let endDate: Date
   public let hashTags: [String]
+  public let creator: String
   
   public let proveTime: Date
   public let goal: String
@@ -35,7 +36,8 @@ public struct ChallengeDetail {
     memberCount: Int,
     memberImages: [URL],
     isPublic: Bool?,
-    rules: [String]
+    rules: [String],
+    creator: String = ""
   ) {
     self.id = id
     self.name = name
@@ -48,6 +50,7 @@ public struct ChallengeDetail {
     self.memberImages = memberImages
     self.isPublic = isPublic
     self.rules = rules
+    self.creator = creator
   }
 }
 
@@ -75,5 +78,6 @@ public extension ChallengeDetail {
     self.memberImages = memberImages
     self.isPublic = nil
     self.rules = nil
+    self.creator = ""
   }
 }

@@ -70,7 +70,8 @@ public extension ChallengeDataMapperImpl {
       memberCount: dto.currentMemberCnt,
       memberImages: memberImages.compactMap { URL(string: $0 ?? "") },
       isPublic: dto.isPublic,
-      rules: rules
+      rules: rules,
+      creator: dto.creator
     )
   }
   

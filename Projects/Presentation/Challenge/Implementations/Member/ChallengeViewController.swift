@@ -25,12 +25,12 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private var segmentIndex: Int = 0
   private var memberCount: Int = 0
-  private let dropDownData = ["챌린지 신고하기", "챌린지 탈퇴하기"]
   
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   private let didTapReportButton = PublishRelay<Void>()
   private let didTapLeaveButton = PublishRelay<Void>()
+  private let didTapEditButton = PublishRelay<Void>()
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -66,7 +66,6 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     setupUI()
     bind()
-    dropDownView.dataSource = dropDownData
     dropDownView.delegate = self
     viewDidLoadRelay.accept(())
   }
@@ -139,7 +138,8 @@ private extension ChallengeViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
       didTapLeaveButton: didTapLeaveButton.asSignal(),
-      didTapReportButton: didTapReportButton.asSignal()
+      didTapReportButton: didTapReportButton.asSignal(),
+      didTapEditButton: didTapEditButton.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -164,6 +164,11 @@ private extension ChallengeViewController {
     
     output.memberCount
       .drive(rx.memberCount)
+      .disposed(by: disposeBag)
+    
+    output.dropDownMenus
+      .map { $0.map{ $0.rawValue } }
+      .drive(dropDownView.rx.dataSource)
       .disposed(by: disposeBag)
     
     output.challengeNotFound
@@ -226,10 +231,16 @@ extension ChallengeViewController: ChallengePresentable {
 // MARK: - DropDownDelegate
 extension ChallengeViewController: DropDownDelegate {
   func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
-    if didSelectRowAt == 0 {
-      didTapReportButton.accept(())
-    } else {
-      presentLeaveChallengeAlert(memberCount: memberCount)
+    let data = dropDown.dataSource[didSelectRowAt]    
+    guard let menu = DropDownMenu(rawValue: data) else { return }
+    
+    switch menu {
+      case .edit:
+        didTapEditButton.accept(())
+      case .report:
+        didTapReportButton.accept(())
+      case .leave:
+        presentLeaveChallengeAlert(memberCount: memberCount)
     }
   }
 }

@@ -99,6 +99,13 @@ extension ChallengeCoordinator {
   }
 }
 
+// MARK: - ChallengeEdit
+extension ChallengeCoordinator {
+  func attachChallengeEdit() { }
+  
+  func detachChallengeEdit() { }
+}
+
 // MARK: - ChallengeCoordinatable
 extension ChallengeCoordinator: ChallengeCoordinatable {
   func didTapConfirmButtonAtAlert() {
