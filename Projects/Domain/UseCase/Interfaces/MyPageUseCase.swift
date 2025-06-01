@@ -12,5 +12,5 @@ import Entity
 
 public protocol MyPageUseCase {
   func loadMyPageSummry() -> Single<MyPageSummary>
-  
+  func loadVerifiedChallengeDates() -> Single<[Date]>
 }

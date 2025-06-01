@@ -18,11 +18,15 @@ public class MyPageUseCaseImpl: MyPageUseCase {
   public init(repository: MyPageRepository) {
     self.repository = repository
   }
-  
+}
 
 // MARK: - Fetch Methods
 public extension MyPageUseCaseImpl {
   func loadMyPageSummry() -> Single<MyPageSummary> {
     return repository.fetchMyPageSummary()
+  }
+  
+  func loadVerifiedChallengeDates() -> Single<[Date]> {
+    return repository.fetchVerifiedChallengeDates()
   }
 }
