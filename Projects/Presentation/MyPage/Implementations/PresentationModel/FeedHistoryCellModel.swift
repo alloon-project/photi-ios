@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct FeedHistoryCellPresentationModel: Hashable {
+struct FeedCardPresentationModel: Hashable {
   let challengeId: Int
   let feedId: Int
   let feedImageUrl: URL?

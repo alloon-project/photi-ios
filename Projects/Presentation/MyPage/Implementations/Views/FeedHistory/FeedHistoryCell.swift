@@ -35,7 +35,7 @@ final class FeedHistoryCell: UICollectionViewCell {
   }
   
   // MARK: - Configure Methods
-  func configure(with model: FeedHistoryCellPresentationModel) {
+  func configure(with model: FeedCardPresentationModel) {
     feedImageView.configure(with: model)
     challengeTitleChip.text = model.challengeTitle
   }

@@ -8,27 +8,15 @@
 
 import Foundation
 
-public struct EndedChallengeCardCellPresentationModel {
-  let challengeImageUrl: URL?
-  let challengeTitle: String
-  let endedDate: String
-  let challengeId: Int
+struct EndedChallengeCardPresentationModel: Hashable {
+  let id: Int
+  let thumbnailUrl: URL?
+  let title: String
+  let deadLine: String
   let currentMemberCnt: Int
-  let challengeParticipantImageUrls: [URL]
+  let memberImageUrls: [URL]
   
-  public init(
-    challengeImageUrl: URL?,
-    challengeTitle: String,
-    endedDate: String,
-    challengeId: Int,
-    currentMemberCnt: Int,
-    challengeParticipantImageUrls: [URL]
-  ) {
-    self.challengeImageUrl = challengeImageUrl
-    self.challengeTitle = challengeTitle
-    self.endedDate = endedDate
-    self.challengeId = challengeId
-    self.currentMemberCnt = currentMemberCnt
-    self.challengeParticipantImageUrls = challengeParticipantImageUrls
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
   }
 }
