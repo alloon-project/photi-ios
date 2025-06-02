@@ -21,19 +21,17 @@ protocol EndedChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: EndedChallengeCoordinatable? { get set }
 }
 
 final class EndedChallengeViewModel: EndedChallengeViewModelType {
-  private let useCase: EndedChallengeUseCase
-  
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: EndedChallengeCoordinatable?
   
-  private let maxSize: Int = 10
-  private let userEndedChallengeHistoryRelay = BehaviorRelay<[EndedChallengeCardCellPresentationModel]>(value: [])
+  private let useCase: MyPageUseCase
+  private let disposeBag = DisposeBag()
+  
+
+  private let endedChallengesRelay = BehaviorRelay<[EndedChallengeCardCellPresentationModel]>(value: [])
   private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
@@ -49,7 +47,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: EndedChallengeUseCase) {
+  init(useCase: MyPageUseCase) {
     self.useCase = useCase
   }
   
