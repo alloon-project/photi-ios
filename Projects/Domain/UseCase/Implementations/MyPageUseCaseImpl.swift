@@ -35,4 +35,10 @@ public extension MyPageUseCaseImpl {
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
+  
+  func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary> {
+    let result = try await repository.fetchEndedChallenges(page: page, size: size)
+    
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
+  }
 }

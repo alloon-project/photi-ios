@@ -14,8 +14,5 @@ public protocol MyPageUseCase {
   func loadMyPageSummry() -> Single<MyPageSummary>
   func loadVerifiedChallengeDates() -> Single<[Date]>
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedHistory>
+  func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary>
 }
-
-/*
- func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary> { }
- */
