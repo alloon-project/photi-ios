@@ -93,7 +93,7 @@ private extension FeedHistoryViewModel {
       
     do {
       let result = try await useCase.loadFeedHistory(page: currentPage, size: 15)
-      let models = result.feeds.map { mapToFeedPresentationModel($0) }
+      let models = result.values.map { mapToFeedPresentationModel($0) }
       feedsRelay.accept(models)
       
       switch result {

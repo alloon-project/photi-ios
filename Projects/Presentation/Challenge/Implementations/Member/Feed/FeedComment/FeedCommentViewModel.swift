@@ -232,7 +232,7 @@ private extension FeedCommentViewModel {
     )
     
     switch result {
-      case let .default(comments):
+      case let .defaults(comments):
         let models = modelMapper.mapToFeedCommentPresentationModels(comments)
         let page: FeedCommentType = currentPage == 0 ? .initialPage(models) : .default(models)
         commentsRelay.accept(page)
