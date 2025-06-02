@@ -188,6 +188,24 @@ extension FeedHistoryViewController: FeedHistoryPresentable {
     ).setColor(.green400, for: "\(count)")
     titleLabel.textAlignment = .center
   }
+  
+  func deleteAllFeeds(challengeId: Int) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    
+    let items = snapshot.itemIdentifiers.filter { $0.challengeId == challengeId }
+    snapshot.deleteItems(items)
+    datasource.apply(snapshot)
+  }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    
+    let items = snapshot.itemIdentifiers.filter { $0.challengeId == challengeId && $0.feedId == feedId }
+    snapshot.deleteItems(items)
+    datasource.apply(snapshot)
+  }
 }
 
 // MARK: - UICollectionView Diffable DataSource

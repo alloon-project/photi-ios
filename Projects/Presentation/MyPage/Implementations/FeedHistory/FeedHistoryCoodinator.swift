@@ -11,10 +11,13 @@ import Core
 
 protocol FeedHistoryListener: AnyObject {
   func didTapBackButtonAtFeedHistory()
+  func authenticatedFailedAtFeedHistory()
 }
 
 protocol FeedHistoryPresentable {
-  func setMyFeedCount(_ count: Int)
+  func configureProvedFeedCount(_ count: Int)
+  func deleteFeed(challengeId: Int, feedId: Int)
+  func deleteAllFeeds(challengeId: Int)
 }
 
 final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> {
@@ -39,7 +42,31 @@ final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> 
   }
   
   override func start() {
-    presenter.setMyFeedCount(feedCount)
+    presenter.configureProvedFeedCount(feedCount)
+  }
+}
+
+// MARK: - Challenge
+extension FeedHistoryCoordinator {
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainable.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      presentType: .presentWithFeed(feedId)
+    )
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    addChild(coordinator)
+    challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinator)
+    challengeCoordinator = nil
   }
 }
 
@@ -48,8 +75,28 @@ extension FeedHistoryCoordinator: FeedHistoryCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtFeedHistory()
   }
+}
+
+// MARK: - ChallengeListener
+extension FeedHistoryCoordinator: ChallengeListener {
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticatedFailedAtFeedHistory()
+  }
   
-  func attachChallengeDetail() { }
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
   
-  func detachChallengeDetail() { }
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+    presenter.deleteAllFeeds(challengeId: challengeId)
+  }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    presenter.deleteFeed(challengeId: challengeId, feedId: feedId)
+  }
 }
