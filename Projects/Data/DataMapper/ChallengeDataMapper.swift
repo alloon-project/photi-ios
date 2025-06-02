@@ -14,7 +14,6 @@ import Entity
 public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: PopularChallengeResponseDTO) -> ChallengeDetail
   func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
-  func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromMyChallenge(dto: [MyChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromSearchChallenge(dto: [SearchChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary]
@@ -27,7 +26,7 @@ public protocol ChallengeDataMapper {
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
-  public init() {}
+  public init() { }
 }
 
 // MARK: - Challenge Mapping
@@ -72,23 +71,6 @@ public extension ChallengeDataMapperImpl {
       rules: rules,
       creator: dto.creator
     )
-  }
-  
-  func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary] {
-    return dto.map {
-      let endDate = $0.endDate.toDate() ?? Date()
-      let memberImages = $0.memberImages.map { $0.memberImage }
-      
-      return .init(
-        id: $0.id,
-        name: $0.name,
-        imageUrl: $0.imageUrl,
-        endDate: endDate,
-        hashTags: [],
-        memberCount: $0.currentMemberCnt,
-        memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
-      )
-    }
   }
   
   func mapToChallengeSummaryFromMyChallenge(dto: [MyChallengeResponseDTO]) -> [ChallengeSummary] {

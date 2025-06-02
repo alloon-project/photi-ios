@@ -40,14 +40,6 @@ public extension ChallengeRepositoryImpl {
     .map { $0.map { $0.hashtag } }
   }
   
-  func fetchEndedChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
-    return requestAuthorizableAPI(
-      api: ChallengeAPI.endedChallenges(page: page, size: size),
-      responseType: PaginationResponseDTO<EndedChallengeResponseDTO>.self
-    )
-    .map { dataMapper.mapToChallengeSummaryFromEnded(dto: $0.content) }
-  }
-  
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
     return requestUnAuthorizableAPI(
       api: ChallengeAPI.challengeDetail(id: id),

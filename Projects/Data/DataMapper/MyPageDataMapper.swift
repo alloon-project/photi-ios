@@ -15,6 +15,7 @@ public protocol MyPageDataMapper {
   func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary
   func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date]
   func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedHistory]
+  func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
@@ -43,6 +44,23 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
         createdDate: $0.createdDate.toDate("yyyy-MM-dd") ?? Date(),
         invitationCode: $0.invitationCode,
         name: $0.name
+      )
+    }
+  }
+  
+  public func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary] {
+    return dto.map {
+      let endDate = $0.endDate.toDate() ?? Date()
+      let memberImages = $0.memberImages.map { $0.memberImage }
+      
+      return .init(
+        id: $0.id,
+        name: $0.name,
+        imageUrl: $0.imageUrl,
+        endDate: endDate,
+        hashTags: [],
+        memberCount: $0.currentMemberCnt,
+        memberImages: memberImages.compactMap { URL(string: $0 ?? "") }
       )
     }
   }

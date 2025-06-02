@@ -49,6 +49,16 @@ public extension MyPageRepositoyImpl {
     let feeds = dataMapper.mapToFeedHistory(dtos: result.content)
     return .init(contents: feeds, isLast: result.last)
   }
+  
+  func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.endedChallenges(page: page, size: size),
+      responseType: PaginationResponseDTO<EndedChallengeResponseDTO>.self
+    ).value
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromEnded(dto: result.content)
+    return .init(contents: challenges, isLast: result.last)
+  }
 }
 
 // MARK: - Private Methods
