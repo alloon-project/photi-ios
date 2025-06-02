@@ -26,11 +26,11 @@ protocol FeedHistoryViewModelType: AnyObject {
 }
 
 final class FeedHistoryViewModel: FeedHistoryViewModelType {
-  private let useCase: FeedUseCase
   
   let disposeBag = DisposeBag()
   
   weak var coordinator: FeedHistoryCoordinatable?
+  private let useCase: MyPageUseCase
   
   private let maxSize: Int = 10
   private let userFeedHistoryRelay = BehaviorRelay<[FeedHistoryCellPresentationModel]>(value: [])
@@ -50,7 +50,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: FeedUseCase) {
+  init(useCase: MyPageUseCase) {
     self.useCase = useCase
   }
   
