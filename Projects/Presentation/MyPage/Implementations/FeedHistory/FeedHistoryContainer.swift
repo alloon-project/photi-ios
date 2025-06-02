@@ -6,11 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 import UseCase
 
 protocol FeedHistoryDependency: Dependency {
   var myPageUseCase: MyPageUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
 }
 
 protocol FeedHistoryContainable: Containable {
@@ -27,7 +29,8 @@ final class FeedHistoryContainer:
     let coordinator = FeedHistoryCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      feedCount: feedCount
+      feedCount: feedCount,
+      challengeContainable: dependency.challengeContainable
     )
     coordinator.listener = listener
     

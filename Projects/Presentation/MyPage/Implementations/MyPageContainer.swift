@@ -6,12 +6,14 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Challenge
 import Core
 import MyPage
 import Report
 import UseCase
 
 public protocol MyPageDependency: Dependency {
+  var challengeContainable: ChallengeContainable { get }
   var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
@@ -26,6 +28,8 @@ public final class MyPageContainer:
   SettingDependency,
   EndedChallengeDependency,
   FeedHistoryDependency {
+  var challengeContainable: ChallengeContainable { dependency.challengeContainable }
+  
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }

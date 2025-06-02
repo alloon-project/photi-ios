@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol FeedHistoryListener: AnyObject {
@@ -21,13 +22,18 @@ final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> 
   private let feedCount: Int
   private let viewModel: FeedHistoryViewModel
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: FeedHistoryViewModel,
-    feedCount: Int
+    feedCount: Int,
+    challengeContainable: ChallengeContainable
   ) {
     self.viewModel = viewModel
     self.feedCount = feedCount
+    self.challengeContainable = challengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
