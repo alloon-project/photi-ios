@@ -31,7 +31,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   private var isLastPage = false
   private var currentPage = 0
 
-  private let feedsRelay = BehaviorRelay<[FeedHistoryCellPresentationModel]>(value: [])
+  private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
   private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
@@ -44,7 +44,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   
   // MARK: - Output
   struct Output {
-    let feeds: Driver<[FeedHistoryCellPresentationModel]>
+    let feeds: Driver<[FeedCardPresentationModel]>
     let requestFailed: Signal<Void>
   }
   
@@ -109,7 +109,7 @@ private extension FeedHistoryViewModel {
 
 // MARK: - Private Methods
 private extension FeedHistoryViewModel {
-  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedHistoryCellPresentationModel {
+  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedCardPresentationModel {
     let date = feedHistory.createdDate.toString("yyyy. MM. dd 인증")
     return .init(
       challengeId: feedHistory.challengeId,
