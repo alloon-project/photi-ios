@@ -14,6 +14,7 @@ import UseCase
 protocol EndedChallengeCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChallenge(id: Int)
+  func authenticateFailed()
 }
 
 protocol EndedChallengeViewModelType: AnyObject {
@@ -33,7 +34,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
   private var currentPage = 0
 
   private let endedChallengesRelay = BehaviorRelay<[EndedChallengeCardPresentationModel]>(value: [])
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -45,7 +46,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
   // MARK: - Output
   struct Output {
     let endedChallenges: Driver<[EndedChallengeCardPresentationModel]>
-    let requestFailed: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -74,7 +75,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
     
     return Output(
       endedChallenges: endedChallengesRelay.asDriver(),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -101,7 +102,17 @@ private extension EndedChallengeViewModel {
         default: break
       }
     } catch {
-      requestFailedRelay.accept(())
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    if case .authenticationFailed = error {
+      coordinator?.authenticateFailed()
+    } else {
+      networkUnstableRelay.accept(())
     }
   }
 }

@@ -163,7 +163,7 @@ private extension FeedHistoryViewController {
       }
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }

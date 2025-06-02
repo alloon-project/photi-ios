@@ -75,6 +75,10 @@ extension EndedChallengeCoordinator: EndedChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEndedChallenge()
   }
+  
+  func authenticateFailed() {
+    listener?.authenticatedFailedAtEndedChallenge()
+  }
 }
 
 // MARK: - Extension

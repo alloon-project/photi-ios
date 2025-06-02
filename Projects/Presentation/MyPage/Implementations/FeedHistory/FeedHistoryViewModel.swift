@@ -14,6 +14,7 @@ import UseCase
 protocol FeedHistoryCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChallengeWithFeed(challengeId: Int, feedId: Int)
+  func authenticateFailed()
 }
 
 protocol FeedHistoryViewModelType: AnyObject {
@@ -32,7 +33,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   private var currentPage = 0
 
   private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -45,7 +46,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   // MARK: - Output
   struct Output {
     let feeds: Driver<[FeedCardPresentationModel]>
-    let requestFailed: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -74,7 +75,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
     
     return Output(
       feeds: feedsRelay.asDriver(),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -101,8 +102,17 @@ private extension FeedHistoryViewModel {
         default: break
       }
     } catch {
-      print(error)
-      requestFailedRelay.accept(())
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    if case .authenticationFailed = error {
+      coordinator?.authenticateFailed()
+    } else {
+      networkUnstableRelay.accept(())
     }
   }
 }
