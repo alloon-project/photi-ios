@@ -19,8 +19,8 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     static let groupSpacing: CGFloat = 16
   }
   
-  typealias DataSourceType = UICollectionViewDiffableDataSource<Int, FeedHistoryCellPresentationModel>
-  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedHistoryCellPresentationModel>
+  typealias DataSourceType = UICollectionViewDiffableDataSource<Int, FeedCardPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedCardPresentationModel>
   
   private let viewModel: FeedHistoryViewModel
   
@@ -163,14 +163,14 @@ private extension FeedHistoryViewController {
       }
       .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }
   
-  func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) {
+  func bind(for cell: FeedHistoryCell, model: FeedCardPresentationModel) {
     cell.rx.didTapShareButton
       .bind(with: self) { owner, _ in
         owner.didTapShareButton.accept((model.challengeId, model.feedId))
@@ -219,7 +219,7 @@ extension FeedHistoryViewController {
     }
   }
   
-  func append(models: [FeedHistoryCellPresentationModel]) {
+  func append(models: [FeedCardPresentationModel]) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
     

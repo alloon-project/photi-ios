@@ -15,7 +15,6 @@ public enum ChallengeAPI {
   case popularChallenges
   case popularHashTags
   case challengeDetail(id: Int)
-  case endedChallenges(page: Int, size: Int)
   case myChallenges(page: Int, size: Int)
   case recentChallenges(page: Int, size: Int)
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
@@ -47,7 +46,6 @@ extension ChallengeAPI: TargetType {
       case .searchChallengesByName: return "api/challenges/search/name"
       case .searchChallengesByHashtag: return "api/challenges/search/hashtag"
       case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
-      case .endedChallenges: return "api/users/ended-challenges"
       case .myChallenges: return "api/users/my-challenges"
       case let .joinChallenge(id, _): return "api/challenges/\(id)/join"
       case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
@@ -65,7 +63,7 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges, .popularHashTags: return .get
       case .challengeDetail, .challengesByHashTag, .recentChallenges: return .get
-      case .endedChallenges, .myChallenges, .verifyInvitationCode: return .get
+      case .myChallenges, .verifyInvitationCode: return .get
       case .searchChallengesByName, .searchChallengesByHashtag: return .get
       case .joinChallenge, .uploadChallengeProof: return .post
       case .isProve, .challengeCount, .challengeProveMemberCount: return .get
@@ -83,7 +81,7 @@ extension ChallengeAPI: TargetType {
       case .isProve, .challengeDescription, .challengeMember, .leaveChallenge:
         return .requestPlain
 
-      case let .endedChallenges(page, size), let .myChallenges(page, size), let .recentChallenges(page, size):
+      case let .myChallenges(page, size), let .recentChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
         
@@ -128,12 +126,6 @@ extension ChallengeAPI: TargetType {
         
       case .challengeDetail:
         let data = ChallengeDetailResponseDTO.stubData
-        let jsonData = data.data(using: .utf8)
-        
-        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
-        
-      case .endedChallenges:
-        let data = EndedChallengeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

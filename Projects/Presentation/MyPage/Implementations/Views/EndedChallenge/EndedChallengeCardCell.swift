@@ -11,117 +11,26 @@ import Kingfisher
 import RxCocoa
 import RxSwift
 import Core
+import DesignSystem
 
 public final class EndedChallengeCardCell: UICollectionViewCell {
-  // MARK: - Properties
-  private(set) var model: EndedChallengeCardCellPresentationModel?
-  
   // MARK: - UI Components
-  private let whiteBackGroundView = {
+  private let gradientLayer = GradientLayer(
+    mode: .bottomToTop,
+    minColor: .white,
+    maxColor: .init(white: 0.486, alpha: 1)
+  )
+  private let mainContentView = UIView()
+  private let thumbnailView = UIImageView()
+  private let titleLabel = UILabel()
+  private let deadLineLabel = UILabel()
+  private let bottomBackgroundView: UIView = {
     let view = UIView()
-    view.layer.cornerRadius = 8
-    view.drawShadow(
-      color: .photiBlack,
-      opacity: 0.6,
-      radius: 8
-    )
-    view.backgroundColor = .white
+    view.backgroundColor = .init(white: 1, alpha: 0.3)
     
     return view
   }()
-  
-  private let challengeImageView = {
-    let imageView = UIImageView()
-    imageView.layer.cornerRadius = 8
-    imageView.contentMode = .scaleAspectFill
-    
-    return imageView
-  }()
-  
-  private let challengeTitleLabel = {
-    let label = UILabel()
-    label.numberOfLines = 2
-    label.attributedText = "산책 챌린지".attributedString(
-      font: .body1,
-      color: .white
-    )
-    label.textAlignment = .center
-    label.lineBreakMode = .byTruncatingTail
-    
-    return label
-  }()
-  
-  private let endedDateLabel = {
-    let label = UILabel()
-    label.attributedText = "2024. 8. 30 종료".attributedString(
-      font: .body1,
-      color: .init(white: 1.0, alpha: 0.3)
-    )
-    label.textAlignment = .center
-    
-    return label
-  }()
-  
-  private let bottomWhiteView = {
-    let view = UIView()
-    view.backgroundColor = .init(white: 1.0, alpha: 0.3)
-    
-    return view
-  }()
-  
-  private let participantStackView = {
-    let stackView = UIStackView()
-    stackView.spacing = -10
-    
-    return stackView
-  }()
-  
-  private let firstUserImageView = {
-    let imageView = UIImageView()
-    imageView.configureShapeBorder(
-      width: 1,
-      strockColor: .white,
-      backGroundColor: .gray400
-    )
-    imageView.layer.cornerRadius = 12
-    
-    return imageView
-  }()
-  
-  private let secondUserImageView = {
-    let imageView = UIImageView()
-    imageView.configureShapeBorder(
-      width: 1,
-      strockColor: .white,
-      backGroundColor: .gray400
-    )
-    imageView.layer.cornerRadius = 12
-    
-    return imageView
-  }()
-  
-  private let moreUserImageView = {
-    let imageView = UIImageView()
-
-    imageView.layer.borderWidth = 1.0
-    imageView.layer.borderColor = UIColor.white.cgColor
-    
-    imageView.layer.cornerRadius = 12
-    
-    return imageView
-  }()
-  
-  private let moreUserNumberLabel = {
-    let label = UILabel()
-    label.configureShapeBorder(
-      width: 1,
-      strockColor: .white,
-      backGroundColor: .gray500
-    )
-    label.layer.cornerRadius = 12
-    
-    return label
-  }()
+  private let groupAvatarView = GroupAvatarView(size: .xSmall)
   
   // MARK: - Initializers
   override init(frame: CGRect) {
@@ -134,102 +43,100 @@ public final class EndedChallengeCardCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: - LayoutSubviews
+  public override func layoutSubviews() {
+    super.layoutSubviews()
+    gradientLayer.frame = bounds
+  }
+  
   // MARK: - Configure Methods
-  func configure(with viewModel: EndedChallengeCardCellPresentationModel) {
-    if let url = viewModel.challengeImageUrl {
-      challengeImageView.kf.setImage(with: url)
-    }
-    
-    challengeTitleLabel.text = viewModel.challengeTitle
-    endedDateLabel.text = viewModel.endedDate
-    
-    setupImageView(memberCount: viewModel.currentMemberCnt)
+  func configure(with model: EndedChallengeCardPresentationModel) {
+    thumbnailView.kf.setImage(with: model.thumbnailUrl)
+    configureGroupAvatarView(model.memberImageUrls, memberCount: model.currentMemberCnt)
+    titleLabel.attributedText = model.title.attributedString(font: .body1Bold, color: .white)
+    let deadLineTextColor = UIColor(white: 1, alpha: 0.3)
+    deadLineLabel.attributedText = model.deadLine.attributedString(font: .caption1Bold, color: deadLineTextColor)
   }
 }
 
 // MARK: - UI Methods
 private extension EndedChallengeCardCell {
   func setupUI() {
+    titleLabel.numberOfLines = 2
+    mainContentView.layer.cornerRadius = 8
+    layer.cornerRadius = 8
+    layer.borderWidth = 2
+    layer.borderColor = UIColor.white.cgColor
+    mainContentView.clipsToBounds = true
+    
+    let shadowColor = UIColor(white: 0.125, alpha: 0.2)
+    drawShadow(color: shadowColor, opacity: 1, radius: 6)
+
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    contentView.addSubviews(whiteBackGroundView)
-    
-    whiteBackGroundView.addSubviews(
-      challengeImageView,
-      challengeTitleLabel,
-      endedDateLabel,
-      bottomWhiteView
-    )
-    
-    bottomWhiteView.addSubview(participantStackView)
-    
-    participantStackView.addArrangedSubviews(
-      firstUserImageView,
-      secondUserImageView,
-      moreUserImageView,
-      moreUserNumberLabel
-    )
+    contentView.addSubview(mainContentView)
+    mainContentView.addSubview(thumbnailView)
+    mainContentView.layer.addSublayer(gradientLayer)
+    mainContentView.addSubviews(titleLabel, deadLineLabel, bottomBackgroundView)
+    bottomBackgroundView.addSubview(groupAvatarView)
   }
   
   func setConstraints() {
-    whiteBackGroundView.snp.makeConstraints {
-      $0.edges.equalToSuperview()
+    mainContentView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    thumbnailView.snp.makeConstraints { $0.edges.equalToSuperview() }
+    
+    titleLabel.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalTo(deadLineLabel.snp.top).offset(-8)
     }
     
-    challengeImageView.snp.makeConstraints {
-      $0.edges.equalToSuperview().inset(1)
+    deadLineLabel.snp.makeConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalTo(bottomBackgroundView.snp.top).offset(-6)
     }
     
-    bottomWhiteView.snp.makeConstraints {
-      $0.leading.trailing.bottom.equalToSuperview()
+    bottomBackgroundView.snp.makeConstraints {
+      $0.leading.bottom.trailing.equalToSuperview()
       $0.height.equalTo(49)
     }
     
-    endedDateLabel.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview()
-      $0.bottom.equalTo(bottomWhiteView.snp.top).offset(-8)
+    groupAvatarView.snp.makeConstraints {
+      $0.center.equalToSuperview()
     }
-    
-    challengeTitleLabel.snp.makeConstraints {
-      $0.bottom.equalTo(endedDateLabel.snp.top).offset(-10)
-      $0.leading.equalToSuperview().offset(8)
-      $0.trailing.equalToSuperview().offset(-8)
-    }
-    
-    participantStackView.snp.makeConstraints {
-      $0.width.equalTo(52)
-      $0.height.equalTo(24)
-      $0.center.equalTo(bottomWhiteView)
-    }
-    
-    firstUserImageView.snp.makeConstraints {
-      $0.width.height.equalTo(24)
-    }
-    
-    secondUserImageView.snp.makeConstraints {
-      $0.width.height.equalTo(24)
-    }
-    
-    moreUserImageView.snp.makeConstraints {
-      $0.width.height.equalTo(24)
-    }
-    
-    moreUserNumberLabel.snp.makeConstraints {
-      $0.width.height.equalTo(24)
+  }
+}
+
+// MARK: - Private Methods
+private extension EndedChallengeCardCell {
+  func configureGroupAvatarView(_ urls: [URL], memberCount: Int) {
+    Task { [weak self] in
+      guard let self else { return }
+      // TODO: - 이미지 다운 샘플링 예정
+      let images = await downLoadImages(with: urls)
+      
+      groupAvatarView.configure(
+        maximumAvatarCount: 2,
+        avatarImages: images,
+        count: memberCount
+      )
     }
   }
   
-  func setupImageView(memberCount: Int) {
-    secondUserImageView.isHidden = memberCount < 2
-    moreUserImageView.isHidden = memberCount != 3
-    moreUserNumberLabel.isHidden = memberCount <= 3
+  func downLoadImages(with urls: [URL]) async -> [UIImage] {
+    var images = [UIImage]()
     
-    moreUserNumberLabel.attributedText = "+\(memberCount - 2)".attributedString(
-      font: .caption2Bold,
-      color: .gray0
-    )
+    await withTaskGroup(of: Void.self) { group in
+      urls.forEach { url in
+        group.addTask {
+          guard let image = try? await KingfisherManager.shared.retrieveImage(with: url) else { return }
+          images.append(image.image)
+        }
+      }
+    }
+    
+    return images
   }
 }

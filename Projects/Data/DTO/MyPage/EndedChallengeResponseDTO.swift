@@ -6,12 +6,10 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct EndedChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let imageUrl: URL?
+  public let imageUrl: String?
   public let endDate: String
   public let currentMemberCnt: Int
   public let memberImages: [MemberImageResponseDTO]

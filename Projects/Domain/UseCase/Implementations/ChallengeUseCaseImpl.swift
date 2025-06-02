@@ -42,7 +42,7 @@ public extension ChallengeUseCaseImpl {
     return try await authRepository.isLogIn()
   }
   
-  func fetchFeeds(id: Int, page: Int, size: Int, orderType: ChallengeFeedsOrderType) async throws -> PageFeeds {
+  func fetchFeeds(id: Int, page: Int, size: Int, orderType: ChallengeFeedsOrderType) async throws -> PageState<[Feed]> {
     let result = try await feedRepository.fetchFeeds(id: id, page: page, size: size, orderType: orderType)
     
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
