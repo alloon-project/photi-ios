@@ -19,7 +19,6 @@ public enum FeedAPI {
   case feedComments(feedId: Int, page: Int, size: Int)
   case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
-  case feedHistory(page: Int, size: Int)
 }
 
 extension FeedAPI: TargetType {
@@ -38,7 +37,6 @@ extension FeedAPI: TargetType {
         return "api/challenges/\(challengeId)/feeds/\(feedId)/comments"
       case let .deleteFeedComment(challengeId, feedId, commentId):
         return "api/challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
-     case .feedHistory: return "api/users/feed-history"
     }
   }
   
@@ -50,7 +48,6 @@ extension FeedAPI: TargetType {
       case .feedComments: return .get
       case .uploadFeedComment: return .post
       case .deleteFeedComment, .deleteFeed: return .delete
-      case .feedHistory: return .get
     }
   }
   
@@ -73,10 +70,6 @@ extension FeedAPI: TargetType {
       case let .uploadFeedComment(_, _, comment):
         let parameters = ["comment": comment]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
-        
-      case let .feedHistory(page, size):
-        let parameters = ["page": page, "size": size]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding(destination: .queryString))
     }
   }
   
@@ -119,11 +112,6 @@ extension FeedAPI: TargetType {
         let page = min(page, 1)
         let commentsData = [FeedCommentResponseDTO.stubData1, FeedCommentResponseDTO.stubData2]
         let jsonData = commentsData[page].data(using: .utf8)
-        
-        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
-      case .feedHistory:
-        let data = FeedHistoryResponseDTO.stubData
-        let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }

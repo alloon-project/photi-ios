@@ -29,4 +29,10 @@ public extension MyPageUseCaseImpl {
   func loadVerifiedChallengeDates() -> Single<[Date]> {
     return repository.fetchVerifiedChallengeDates()
   }
+  
+  func loadFeedHistory(page: Int, size: Int) async throws -> PageFeedHistory {
+    let result = try await repository.fetchFeedHistory(page: page, size: size)
+    
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
+  }
 }

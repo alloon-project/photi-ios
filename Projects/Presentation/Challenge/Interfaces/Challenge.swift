@@ -26,4 +26,9 @@ public protocol ChallengeListener: AnyObject {
   func didTapBackButtonAtChallenge()
   func shouldDismissChallenge()
   func leaveChallenge(challengeId: Int)
+  func deleteFeed(challengeId: Int, feedId: Int)
+}
+
+public extension ChallengeListener {
+  func deleteFeed(challengeId: Int, feedId: Int) { }
 }

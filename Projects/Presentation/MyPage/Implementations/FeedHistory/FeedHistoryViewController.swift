@@ -14,67 +14,50 @@ import Core
 import DesignSystem
 
 final class FeedHistoryViewController: UIViewController, ViewControllerable {
+  enum Constants {
+    static let itemSpacing: CGFloat = 10
+    static let groupSpacing: CGFloat = 16
+  }
+  
   typealias DataSourceType = UICollectionViewDiffableDataSource<Int, FeedHistoryCellPresentationModel>
   typealias Snapshot = NSDiffableDataSourceSnapshot<Int, FeedHistoryCellPresentationModel>
   
   private let viewModel: FeedHistoryViewModel
   
-  // MARK: - Variables
+  // MARK: - Properties
   private let disposeBag = DisposeBag()
-  private var dataSource: DataSourceType?
-  private var maxFeedsCount: Int = 0 // Presentable에서 초기화.
-  private var currentPageRelay: BehaviorRelay<Int> = BehaviorRelay(value: 0)
-  
-  // MARK: - UIComponents
-  private let grayBackgroundView = {
+  private var datasource: DataSourceType?
+
+  private let requestData = PublishRelay<Void>()
+  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
+  private let didTapShareButton = PublishRelay<(challengeId: Int, feedId: Int)>()
+
+  // MARK: - UI Components
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
+  private let topView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
     
     return view
   }()
-  
-  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
-  
-  private let titleLabel = {
-    let label = UILabel()
-    label.attributedText = "총 0회 인증했어요".attributedString(
-      font: .heading3,
-      color: .gray900
-    ).setColor(.green400, for: "0")
-    label.textAlignment = .center
-    
-    return label
-  }()
-  
-  /// 하단 톱니모양뷰
-  private let grayBottomImageView = {
-    let pinkingView = UIImageView()
-    pinkingView.image = .pinkingGrayDown
+  private let titleLabel = UILabel()
+  private let seperatorView: UIImageView = {
+    let pinkingView = UIImageView(image: .pinkingGrayDown)
     pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()
-  
-  private let feedHistoryCollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.minimumLineSpacing = 16
-    layout.minimumInteritemSpacing = 12
-    
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.contentInset = .init(
-      top: 35,
-      left: 24,
-      bottom: 0,
-      right: 24
-    )
+  private let feedHistoryCollectionView: UICollectionView = {
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     collectionView.backgroundColor = .white
     collectionView.registerCell(FeedHistoryCell.self)
+    collectionView.contentInsetAdjustmentBehavior = .never
+    collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-    collectionView.alwaysBounceVertical = false
-    
+
     return collectionView
   }()
-  
+ 
   // MARK: - Initializers
   init(viewModel: FeedHistoryViewModel) {
     self.viewModel = viewModel
@@ -90,9 +73,11 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    setFeedCollectionView()
+    configureFeedCollectionView()
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -101,10 +86,14 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   }
 }
 
-//MARK: - Private Methods
+// MARK: - Private Methods
 private extension FeedHistoryViewController {
-  func setFeedCollectionView() {
-    diffableDataSource()
+  func configureFeedCollectionView() {
+    let datasource = diffableDataSource()
+    self.datasource = datasource
+    
+    feedHistoryCollectionView.dataSource = datasource
+    feedHistoryCollectionView.collectionViewLayout = compositionalLayout()
     feedHistoryCollectionView.delegate = self
   }
 }
@@ -118,17 +107,12 @@ private extension FeedHistoryViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(
-      grayBackgroundView,
-      feedHistoryCollectionView,
-      grayBottomImageView
-    )
-    
-    grayBackgroundView.addSubviews(navigationBar, titleLabel)
+    view.addSubviews(topView, feedHistoryCollectionView, seperatorView)
+    topView.addSubviews(navigationBar, titleLabel)
   }
   
   func setConstraints() {
-    grayBackgroundView.snp.makeConstraints {
+    topView.snp.makeConstraints {
       $0.leading.top.trailing.equalToSuperview()
       $0.height.equalTo(200)
     }
@@ -141,19 +125,19 @@ private extension FeedHistoryViewController {
     
     titleLabel.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(34)
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
+      $0.centerX.equalToSuperview()
+    }
+    
+    seperatorView.snp.makeConstraints {
+      $0.top.equalTo(topView.snp.bottom)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(12)
     }
     
     feedHistoryCollectionView.snp.makeConstraints {
-      $0.top.equalTo(grayBackgroundView.snp.bottom)
-      $0.leading.trailing.bottom.equalToSuperview()
-    }
-    
-    grayBottomImageView.snp.makeConstraints {
-      $0.top.equalTo(grayBackgroundView.snp.bottom)
-      $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(12)
+      $0.top.equalTo(seperatorView.snp.bottom).offset(22)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview()
     }
   }
 }
@@ -163,8 +147,9 @@ private extension FeedHistoryViewController {
   func bind() {
     let input = FeedHistoryViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      isVisible: self.rx.isVisible,
-      fetchMoreData: currentPageRelay.asObservable()
+      didTapFeed: didTapFeed.asSignal(),
+      didTapShareButton: didTapShareButton.asSignal(),
+      requestData: requestData.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -172,7 +157,7 @@ private extension FeedHistoryViewController {
   }
   
   func bind(for output: FeedHistoryViewModel.Output) {
-    output.feedHistory
+    output.feeds
       .drive(with: self) { owner, feeds in
         owner.append(models: feeds)
       }
@@ -186,69 +171,110 @@ private extension FeedHistoryViewController {
   }
   
   func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) {
-    // TODO: ChallengeID값을 활용하여 해당 챌린지로 넘어가기.
+    cell.rx.didTapShareButton
+      .bind(with: self) { owner, _ in
+        owner.didTapShareButton.accept((model.challengeId, model.feedId))
+      }
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - FeedHistoryPresentable
 extension FeedHistoryViewController: FeedHistoryPresentable {
-  func setMyFeedCount(_ count: Int) {
+  func configureProvedFeedCount(_ count: Int) {
     titleLabel.attributedText = "총 \(count)회 인증했어요".attributedString(
       font: .heading3,
       color: .gray900
     ).setColor(.green400, for: "\(count)")
     titleLabel.textAlignment = .center
-    maxFeedsCount = count
+  }
+  
+  func deleteAllFeeds(challengeId: Int) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    
+    let items = snapshot.itemIdentifiers.filter { $0.challengeId == challengeId }
+    snapshot.deleteItems(items)
+    datasource.apply(snapshot)
+  }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
+    
+    let items = snapshot.itemIdentifiers.filter { $0.challengeId == challengeId && $0.feedId == feedId }
+    snapshot.deleteItems(items)
+    datasource.apply(snapshot)
   }
 }
 
 // MARK: - UICollectionView Diffable DataSource
 extension FeedHistoryViewController {
-  func diffableDataSource() {
-    self.dataSource = .init(collectionView: feedHistoryCollectionView) { collectionView, indexPath, model in
+  func diffableDataSource() -> DataSourceType {
+    return .init(collectionView: feedHistoryCollectionView) { [weak self] collectionView, indexPath, model in
       let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
       cell.configure(with: model)
-      
+      self?.bind(for: cell, model: model)
       return cell
     }
   }
   
   func append(models: [FeedHistoryCellPresentationModel]) {
-    guard let dataSource else { return }
-    var snapshot = dataSource.snapshot()
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
     
-    // 섹션이 이미 존재하는지 확인
-    DispatchQueue.main.async {
-      if !snapshot.sectionIdentifiers.contains(0) {
-          snapshot.appendSections([0]) // 최초 한 번만 추가
-      }
-      snapshot.appendItems(models, toSection: 0)
-      dataSource.apply(snapshot)
+    if !snapshot.sectionIdentifiers.contains(0) {
+      snapshot.appendSections([0])
+    }
+    snapshot.appendItems(models)
+    
+    datasource.apply(snapshot)
+  }
+}
+
+// MARK: - UICollectionViewLayout
+private extension FeedHistoryViewController {
+  func compositionalLayout() -> UICollectionViewCompositionalLayout {
+    return .init { _, environment in
+      let itemSpacing = Constants.itemSpacing
+
+      let availableWidth = environment.container.effectiveContentSize.width
+      let itemWidth = (availableWidth - itemSpacing) / 2
+      let itemHeight = itemWidth * 1.195
+      
+      let itemSize = NSCollectionLayoutSize(
+        widthDimension: .absolute(itemWidth),
+        heightDimension: .absolute(itemHeight)
+      )
+      let item = NSCollectionLayoutItem(layoutSize: itemSize)
+      
+      let groupSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .absolute(itemHeight)
+      )
+      let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
+      group.interItemSpacing = .fixed(itemSpacing)
+      let section = NSCollectionLayoutSection(group: group)
+      section.contentInsets.bottom = 40
+      section.interGroupSpacing = Constants.groupSpacing
+      
+      return section
     }
   }
 }
 
-
-extension FeedHistoryViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    sizeForItemAt indexPath: IndexPath
-  ) -> CGSize {
-    let widthOfCells = collectionView.bounds.width -
-    (collectionView.contentInset.left + collectionView.contentInset.right)
-    let width = (widthOfCells - 16) / 2.0
+// MARK: - UICollectionViewDelegate
+extension FeedHistoryViewController: UICollectionViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let yOffset = scrollView.contentOffset.y
     
-    return CGSize(width: width, height: 189.0)
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestData.accept(())
   }
   
-  func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-    guard let dataSource else { return }
-    let snapshot = dataSource.snapshot()
-    let count = snapshot.itemIdentifiers(inSection: 0).count
-    
-    if indexPath.item == count - 1 && count != maxFeedsCount {
-      currentPageRelay.accept(count)
-    }
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapFeed.accept((item.challengeId, item.feedId))
   }
 }
