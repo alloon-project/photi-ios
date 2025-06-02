@@ -12,14 +12,23 @@ public struct FeedHistory {
   public let feedId: Int
   public let challengeId: Int
   public let imageUrl: URL?
-  public let provedDate: Date
+  public let createdDate: Date
+  public let invitationCode: String
   public let name: String
   
-  public init(feedId: Int, challengeId: Int, imageUrl: URL?, provedDate: Date, name: String) {
+  public init(
+    feedId: Int,
+    challengeId: Int,
+    imageUrl: URL?,
+    createdDate: Date,
+    invitationCode: String,
+    name: String
+  ) {
     self.feedId = feedId
     self.challengeId = challengeId
     self.imageUrl = imageUrl
-    self.provedDate = provedDate
+    self.createdDate = createdDate
+    self.invitationCode = invitationCode
     self.name = name
   }
 }
