@@ -14,6 +14,7 @@ import PhotiNetwork
 public enum MyPageAPI {
   case userChallegeHistory
   case verifiedChallengeDates
+  case feedHistory(page: Int, size: Int)
 }
 
 extension MyPageAPI: TargetType {
@@ -27,12 +28,13 @@ extension MyPageAPI: TargetType {
         return "api/users/challenge-history"
       case .verifiedChallengeDates:
         return "api/users/feeds"
+      case .feedHistory: return "api/users/feed-history"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .userChallegeHistory, .verifiedChallengeDates:
+      case .userChallegeHistory, .verifiedChallengeDates, .feedHistory:
         return .get
     }
   }
@@ -41,6 +43,9 @@ extension MyPageAPI: TargetType {
     switch self {
       case .userChallegeHistory, .verifiedChallengeDates:
         return .requestPlain
+      case let .feedHistory(page, size):
+        let parameters = ["page": page, "size": size]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
   
@@ -54,6 +59,12 @@ extension MyPageAPI: TargetType {
         
       case .verifiedChallengeDates:
         let data = VerifiedChallengeDatesResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .feedHistory:
+        let data = FeedHistoryResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

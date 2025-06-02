@@ -39,6 +39,16 @@ public extension MyPageRepositoyImpl {
     )
     .map { dataMapper.mapToDate(from: $0) }
   }
+  
+  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedHistory> {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.feedHistory(page: page, size: size),
+      responseType: PaginationResponseDTO<FeedHistoryResponseDTO>.self
+    ).value
+    
+    let feeds = dataMapper.mapToFeedHistory(dtos: result.content)
+    return .init(contents: feeds, isLast: result.last)
+  }
 }
 
 // MARK: - Private Methods
