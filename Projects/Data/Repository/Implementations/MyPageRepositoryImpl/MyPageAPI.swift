@@ -15,6 +15,7 @@ public enum MyPageAPI {
   case userChallegeHistory
   case verifiedChallengeDates
   case feedHistory(page: Int, size: Int)
+  case endedChallenges(page: Int, size: Int)
 }
 
 extension MyPageAPI: TargetType {
@@ -24,17 +25,16 @@ extension MyPageAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .userChallegeHistory:
-        return "api/users/challenge-history"
-      case .verifiedChallengeDates:
-        return "api/users/feeds"
+      case .userChallegeHistory: return "api/users/challenge-history"
+      case .verifiedChallengeDates: return "api/users/feeds"
       case .feedHistory: return "api/users/feed-history"
+      case .endedChallenges: return "api/users/ended-challenges"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .userChallegeHistory, .verifiedChallengeDates, .feedHistory:
+      case .userChallegeHistory, .verifiedChallengeDates, .feedHistory, .endedChallenges:
         return .get
     }
   }
@@ -43,7 +43,8 @@ extension MyPageAPI: TargetType {
     switch self {
       case .userChallegeHistory, .verifiedChallengeDates:
         return .requestPlain
-      case let .feedHistory(page, size):
+        
+      case let .feedHistory(page, size), let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
@@ -65,6 +66,12 @@ extension MyPageAPI: TargetType {
         
       case .feedHistory:
         let data = FeedHistoryResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .endedChallenges:
+        let data = EndedChallengeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

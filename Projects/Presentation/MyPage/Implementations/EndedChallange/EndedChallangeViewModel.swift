@@ -13,43 +13,44 @@ import UseCase
 
 protocol EndedChallengeCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachChallengeDetail()
-  func detachChallengeDetail()
+  func attachChallenge(id: Int)
+  func authenticateFailed()
 }
 
 protocol EndedChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: EndedChallengeCoordinatable? { get set }
 }
 
 final class EndedChallengeViewModel: EndedChallengeViewModelType {
-  private let useCase: EndedChallengeUseCase
-  
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: EndedChallengeCoordinatable?
-  
-  private let maxSize: Int = 10
-  private let userEndedChallengeHistoryRelay = BehaviorRelay<[EndedChallengeCardCellPresentationModel]>(value: [])
-  private let requestFailedRelay = PublishRelay<Void>()
+
+  private let useCase: MyPageUseCase
+  private let disposeBag = DisposeBag()
+  private var isFetching = false
+  private var isLastPage = false
+  private var currentPage = 0
+
+  private let endedChallengesRelay = BehaviorRelay<[EndedChallengeCardPresentationModel]>(value: [])
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
-    let isVisible: Observable<Bool>
+    let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
   }
   
   // MARK: - Output
   struct Output {
-    let endedChallenges: Driver<[EndedChallengeCardCellPresentationModel]>
-    let requestFailed: Signal<Void>
+    let endedChallenges: Driver<[EndedChallengeCardPresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
-  init(useCase: EndedChallengeUseCase) {
+  init(useCase: MyPageUseCase) {
     self.useCase = useCase
   }
   
@@ -60,49 +61,74 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
       }
       .disposed(by: disposeBag)
 
-    input.isVisible
-      .bind(with: self) { [weak self] onwer, _ in
-        guard let self = self else { return }
-        onwer.fetchEndedChallenges(page: 0, size: self.maxSize)
-      }.disposed(by: disposeBag)
+    input.requestData
+      .emit(with: self) { owner, _ in
+        Task { await owner.loadEndedChallenges() }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachChallenge(id: id)
+      }
+      .disposed(by: disposeBag)
     
     return Output(
-      endedChallenges: userEndedChallengeHistoryRelay.asDriver(),
-      requestFailed: requestFailedRelay.asSignal()
+      endedChallenges: endedChallengesRelay.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
+  }
+}
+
+// MARK: - API Methods
+private extension EndedChallengeViewModel {
+  func loadEndedChallenges() async {
+    guard !isLastPage && !isFetching else { return }
+    
+    isFetching = true
+    
+    defer {
+      isFetching = false
+      currentPage += 1
+    }
+      
+    do {
+      let result = try await useCase.loadEndedChallenges(page: currentPage, size: 15)
+      let models = result.values.map { mapToEndedPresentationModel($0) }
+      endedChallengesRelay.accept(models)
+      
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+    } catch {
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    if case .authenticationFailed = error {
+      coordinator?.authenticateFailed()
+    } else {
+      networkUnstableRelay.accept(())
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension EndedChallengeViewModel {
-  func fetchEndedChallenges(page: Int, size: Int) {
-    useCase.fetchEndedChallenges(page: page, size: size)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { onwer, endedChallengeList in
-          let models = endedChallengeList.map { onwer.mapToEndedPresentationModel($0) }
-          
-          onwer.userEndedChallengeHistoryRelay.accept(models)
-        },
-        onFailure: { onwer, error in
-          print(error)
-          onwer.requestFailedRelay.accept(())
-        }
-      )
-      .disposed(by: disposeBag)
-  }
-  
-  func mapToEndedPresentationModel(_ challenge: ChallengeSummary) -> EndedChallengeCardCellPresentationModel {
-    let endDate = challenge.endDate.toString("yyyy.MM.dd")
+  func mapToEndedPresentationModel(_ challenge: ChallengeSummary) -> EndedChallengeCardPresentationModel {
+    let deadLine = challenge.endDate.toString("yyyy. MM. dd 종료")
     
     return .init(
-      challengeImageUrl: challenge.imageUrl,
-      challengeTitle: challenge.name,
-      endedDate: endDate,
-      challengeId: challenge.id,
+      id: challenge.id,
+      thumbnailUrl: challenge.imageUrl,
+      title: challenge.name,
+      deadLine: deadLine,
       currentMemberCnt: challenge.memberCount ?? 0,
-      challengeParticipantImageUrls: challenge.memberImages ?? []
+      memberImageUrls: challenge.memberImages ?? []
     )
   }
 }

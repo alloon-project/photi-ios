@@ -89,10 +89,10 @@ extension MyPageCoordinator {
 
 // MARK: - EndedChallenge
 extension MyPageCoordinator {
-  func attachEndedChallenge() {
+  func attachEndedChallenge(count: Int) {
     guard endedChallengeCoordinator == nil else { return }
     
-    let coordinator = endedChallengeContainable.coordinator(listener: self)
+    let coordinator = endedChallengeContainable.coordinator(endedChallengeCount: count, listener: self)
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.endedChallengeCoordinator = coordinator
@@ -140,5 +140,9 @@ extension MyPageCoordinator: FeedHistoryListener {
 extension MyPageCoordinator: EndedChallengeListener {
   func didTapBackButtonAtEndedChallenge() {
     detachEndedChallenge()
+  }
+  
+  func authenticatedFailedAtEndedChallenge() {
+    listener?.authenticatedFailedAtMyPage()
   }
 }

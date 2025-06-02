@@ -38,6 +38,11 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
   private var isProve: ProveType = .didNotProve("") {
     didSet {
       guard viewWillAppear else { return }
+      if currentPercent == .percent100 {
+        cameraShutterButton.isHidden = true
+        cameraView.isHidden = true
+        return
+      }
       configureTodayHeaderView(for: isProve)
       cameraShutterButton.isHidden = (isProve == .didProve)
       cameraView.isHidden = (isProve == .didProve)
@@ -118,6 +123,12 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     guard !viewWillAppear else { return }
     self.viewWillAppear = true
     if case let .didNotProve(time) = isProve, time.isEmpty { return }
+    
+    if currentPercent == .percent100 {
+      cameraShutterButton.isHidden = true
+      cameraView.isHidden = true
+    }
+    
     cameraShutterButton.isHidden = (isProve == .didProve)
     cameraView.isHidden = (isProve == .didProve)
   }
@@ -128,7 +139,7 @@ final class FeedViewController: UIViewController, ViewControllerable, CameraRequ
     self.viewDidAppear = true
     progressBar.percent = currentPercent
     updateTagViewContraints(percent: currentPercent)
-    if isProve != .didProve { presentPoofTipView() }
+    if isProve != .didProve && currentPercent != .percent100 { presentPoofTipView() }
   }
 }
 
@@ -215,13 +226,20 @@ private extension FeedViewController {
   
   func bind(for output: FeedViewModel.Output) {
     output.proveMemberCount
-      .map { "오늘 \($0)명 인증!" }
-      .drive(tagView.rx.title)
+      .drive(with: self) { owner, count in
+        switch count {
+          case .default(let count):
+            owner.tagView.title = "오늘 \(count)명 인증!"
+          case .ended:
+            owner.tagView.title = "챌린지 완료!"
+        }
+      }
       .disposed(by: disposeBag)
     
     output.provePercent
-      .map { PhotiProgressPercent($0) }
-      .drive(rx.currentPercent)
+      .drive(with: self) { owner, progress in
+        owner.configureProgressBar(for: progress)
+      }
       .disposed(by: disposeBag)
     
     output.proofRelay
@@ -256,6 +274,14 @@ private extension FeedViewController {
         owner.isProve = .didProve
       }
       .disposed(by: disposeBag)
+  }
+  
+  func bindFailed(for output: FeedViewModel.Output) {
+    output.fileTooLarge
+      .emit(with: self) { owner, _ in
+        owner.presentFileTooLargeAlert()
+      }
+      .disposed(by: disposeBag)
     
     output.startFetching
       .emit(with: self) { owner, _ in
@@ -266,14 +292,6 @@ private extension FeedViewController {
     output.stopFetching
       .emit(with: self) { owner, _ in
         owner.updateFeedsFooterLoadingState(isFetching: false)
-      }
-      .disposed(by: disposeBag)
-  }
-  
-  func bindFailed(for output: FeedViewModel.Output) {
-    output.fileTooLarge
-      .emit(with: self) { owner, _ in
-        owner.presentFileTooLargeAlert()
       }
       .disposed(by: disposeBag)
   }
@@ -650,6 +668,18 @@ private extension FeedViewController {
         loadingView?.isHidden = true
         loadingView?.stopLoading()
       }
+    }
+  }
+  
+  func configureProgressBar(for progress: ProgressType) {
+    progressBar.progressTintColor = progress == .ended ? .orange400 : .green400
+    tagView.backgroundColor = progress == .ended ? .orange400 : .green400
+    
+    switch progress {
+      case .ended:
+        currentPercent = .percent100
+      case let .default(percent):
+        currentPercent = .init(percent)
     }
   }
 }

@@ -14,6 +14,7 @@ import UseCase
 protocol FeedHistoryCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChallengeWithFeed(challengeId: Int, feedId: Int)
+  func authenticateFailed()
 }
 
 protocol FeedHistoryViewModelType: AnyObject {
@@ -31,8 +32,8 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   private var isLastPage = false
   private var currentPage = 0
 
-  private let feedsRelay = BehaviorRelay<[FeedHistoryCellPresentationModel]>(value: [])
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -44,8 +45,8 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   
   // MARK: - Output
   struct Output {
-    let feeds: Driver<[FeedHistoryCellPresentationModel]>
-    let requestFailed: Signal<Void>
+    let feeds: Driver<[FeedCardPresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -74,7 +75,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
     
     return Output(
       feeds: feedsRelay.asDriver(),
-      requestFailed: requestFailedRelay.asSignal()
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -93,7 +94,7 @@ private extension FeedHistoryViewModel {
       
     do {
       let result = try await useCase.loadFeedHistory(page: currentPage, size: 15)
-      let models = result.feeds.map { mapToFeedPresentationModel($0) }
+      let models = result.values.map { mapToFeedPresentationModel($0) }
       feedsRelay.accept(models)
       
       switch result {
@@ -101,15 +102,24 @@ private extension FeedHistoryViewModel {
         default: break
       }
     } catch {
-      print(error)
-      requestFailedRelay.accept(())
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    if case .authenticationFailed = error {
+      coordinator?.authenticateFailed()
+    } else {
+      networkUnstableRelay.accept(())
     }
   }
 }
 
 // MARK: - Private Methods
 private extension FeedHistoryViewModel {
-  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedHistoryCellPresentationModel {
+  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedCardPresentationModel {
     let date = feedHistory.createdDate.toString("yyyy. MM. dd 인증")
     return .init(
       challengeId: feedHistory.challengeId,

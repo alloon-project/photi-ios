@@ -18,11 +18,6 @@ public enum APIError: Error {
 
   // MARK: - Profile Edit
   case userNotFound
-  
-  // MARK: - 비밀번호 변경
-  
-  /// 비밀번호와 비밀번호 재입력이 동일하지 않습니다.
-  
 }
 
 extension APIError {

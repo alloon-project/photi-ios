@@ -34,14 +34,14 @@ public struct FeedUseCaseImpl: FeedUseCase {
     try await repository.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
   }
   
-  public func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> FeedCommentsPage {
+  public func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> PageState<FeedComment> {
     let result = try await repository.fetchFeedComments(
       feedId: feedId,
       page: page,
       size: size
     )
     
-    return result.isLast ? .lastPage(result.contents) : .default(result.contents)
+    return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   public func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int {

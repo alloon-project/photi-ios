@@ -113,7 +113,7 @@ private extension ChallengeTitleResultViewModel {
         page: currentPage,
         size: 15
       )
-      let models = result.challenges.map {
+      let models = result.values.map {
         modelMapper.mapToResultChallengeCardFromSummary($0)
       }
       

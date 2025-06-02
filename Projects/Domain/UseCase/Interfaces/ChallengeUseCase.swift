@@ -6,16 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
 import RxRelay
 import RxSwift
 import Core
 import Entity
-
-public enum PageFeeds {
-  case `defaults`([[Feed]])
-  case lastPage([[Feed]])
-}
 
 public protocol ChallengeUseCase {
   func isLogIn() async throws -> Bool
@@ -34,7 +28,7 @@ public protocol ChallengeUseCase {
     page: Int,
     size: Int,
     orderType: ChallengeFeedsOrderType
-  ) async throws -> PageFeeds
+  ) async throws -> PageState<[Feed]>
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool
   func joinChallenge(id: Int, goal: String) -> Single<Void>
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>

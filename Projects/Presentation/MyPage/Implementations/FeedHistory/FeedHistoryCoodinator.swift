@@ -75,6 +75,10 @@ extension FeedHistoryCoordinator: FeedHistoryCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtFeedHistory()
   }
+  
+  func authenticateFailed() {
+    listener?.authenticatedFailedAtFeedHistory()
+  }
 }
 
 // MARK: - ChallengeListener

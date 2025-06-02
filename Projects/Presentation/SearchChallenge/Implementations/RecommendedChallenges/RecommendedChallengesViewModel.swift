@@ -145,7 +145,7 @@ private extension RecommendedChallengesViewModel {
         page: currentPage,
         size: 15
       )
-      let models = result.challenges.map {
+      let models = result.values.map {
         modelMapper.mapToChallengeCardFromSummary($0)
       }
 

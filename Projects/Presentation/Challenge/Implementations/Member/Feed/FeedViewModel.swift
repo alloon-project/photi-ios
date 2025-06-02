@@ -28,6 +28,16 @@ protocol FeedViewModelType: AnyObject {
   var coordinator: FeedCoordinatable? { get set }
 }
 
+enum ProgressType: Equatable {
+  case ended
+  case `default`(percent: Double)
+}
+
+enum ProveMemberType {
+  case ended
+  case `default`(count: Int)
+}
+
 final class FeedViewModel: FeedViewModelType {
   weak var coordinator: FeedCoordinatable?
   private let disposeBag = DisposeBag()
@@ -35,6 +45,7 @@ final class FeedViewModel: FeedViewModelType {
   private let useCase: ChallengeUseCase
   private let modelMapper = FeedPresentatoinModelMapper()
   
+  private var isEnded = false
   private var alignMode: FeedsAlignMode = .recent
   private var proveTime = ""
   private var currentPage = 0
@@ -51,8 +62,8 @@ final class FeedViewModel: FeedViewModelType {
   private let isUploadSuccessRelay = PublishRelay<Bool>()
   private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProve(""))
   private let proveTimeRelay = BehaviorRelay<String>(value: "")
-  private let proveMemberCountRelay = BehaviorRelay<Int>(value: 0)
-  private let provePercentRelay = BehaviorRelay<Double>(value: 0)
+  private let proveMemberCountRelay = BehaviorRelay<ProveMemberType>(value: .default(count: 0))
+  private let provePercentRelay = BehaviorRelay<ProgressType>(value: .default(percent: 0))
   private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
   private let proveFeedRelay = BehaviorRelay<[FeedPresentationModel]>(value: [])
   private let startFetchingRelay = PublishRelay<Void>()
@@ -75,8 +86,8 @@ final class FeedViewModel: FeedViewModelType {
   // MARK: - Output
   struct Output {
     let isUploadSuccess: Signal<Bool>
-    let proveMemberCount: Driver<Int>
-    let provePercent: Driver<Double>
+    let proveMemberCount: Driver<ProveMemberType>
+    let provePercent: Driver<ProgressType>
     let proofRelay: Driver<ProveType>
     let proveFeed: Driver<[FeedPresentationModel]>
     let feeds: Driver<FeedsType>
@@ -189,37 +200,45 @@ private extension FeedViewModel {
   func fetchData() {
     Task {
       await fetchFeeds()
+      await fetchChallengeInfo()
       await fetchProveMemberCount()
     }
-    fetchChallengeInfo()
+    
     fetchIsProof()
   }
   
-  func fetchChallengeInfo() {
-    useCase.fetchChallengeDetail(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, challenge in
-          let proveMemberCount = owner.proveMemberCountRelay.value
-          owner.totalMemberCount = challenge.memberCount
-          owner.updateProvePercent(total: challenge.memberCount, prove: proveMemberCount)
-          let proveTime = challenge.proveTime.toString("HH:mm")
-          owner.proveTimeRelay.accept(proveTime)
-        },
-        onFailure: { owner, error in
-          Task { await owner.requestFailed(with: error) }
-        }
-      )
-      .disposed(by: disposeBag)
+  func fetchChallengeInfo() async {
+    do {
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      let proveType = proveMemberCountRelay.value
+      totalMemberCount = challenge.memberCount
+      
+      isEnded = Date() > challenge.endDate
+      if isEnded {
+        provePercentRelay.accept(.ended)
+      } else if case let .default(count) = proveType {
+        updateProvePercent(total: totalMemberCount, prove: count)
+      }
+      
+      let proveTime = challenge.proveTime.toString("HH:mm")
+      proveTimeRelay.accept(proveTime)
+    } catch {
+      await requestFailed(with: error)
+    }
   }
   
   func fetchProveMemberCount() async {
     let count = try? await useCase.challengeProveMemberCount(challengeId: challengeId)
     
     guard let count else { return }
-    proveMemberCountRelay.accept(count)
-    updateProvePercent(total: totalMemberCount, prove: count)
+
+    if isEnded {
+      proveMemberCountRelay.accept(.ended)
+      provePercentRelay.accept(.ended)
+    } else {
+      proveMemberCountRelay.accept(.default(count: count))
+      updateProvePercent(total: totalMemberCount, prove: count)
+    }
   }
   
   @MainActor func fetchFeeds() async {
@@ -298,9 +317,9 @@ private extension FeedViewModel {
   }
   
   func updateProvePercent(total: Int, prove: Int) {
-    guard total != 0 else { return provePercentRelay.accept(0) }
+    guard total != 0 else { return provePercentRelay.accept(.default(percent: 0)) }
     let percent = Double(prove) / Double(total)
-    provePercentRelay.accept(percent)
+    provePercentRelay.accept(.default(percent: percent))
   }
   
   func convertToFeedsType(from feeds: [[Feed]]) -> FeedsType {

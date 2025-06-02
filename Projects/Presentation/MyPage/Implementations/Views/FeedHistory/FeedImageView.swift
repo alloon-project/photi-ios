@@ -49,7 +49,7 @@ final class FeedImageView: UIView {
   }
   
   // MARK: - Configure Methods
-  func configure(with model: FeedHistoryCellPresentationModel) {
+  func configure(with model: FeedCardPresentationModel) {
     feedImageView.kf.setImage(with: model.feedImageUrl)
     provedDateLabel.attributedText = model.provedDate.attributedString(
       font: .caption1Bold,

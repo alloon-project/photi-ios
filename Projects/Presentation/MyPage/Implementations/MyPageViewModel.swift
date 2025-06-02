@@ -14,7 +14,7 @@ import UseCase
 
 protocol MyPageCoordinatable: AnyObject {
   func attachSetting()
-  func attachEndedChallenge()
+  func attachEndedChallenge(count: Int)
   func attachFeedHistory(count: Int)
   func authenticatedFailed()
 }
@@ -82,8 +82,8 @@ final class MyPageViewModel: MyPageViewModelType {
     input.didTapEndedChallengeBox
       .withLatestFrom(endedChallengeCount)
       .filter { $0 > 0 }
-      .bind(with: self) { owner, _ in
-        owner.coordinator?.attachEndedChallenge()
+      .bind(with: self) { owner, count in
+        owner.coordinator?.attachEndedChallenge(count: count)
       }
       .disposed(by: disposeBag)
     
