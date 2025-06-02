@@ -39,7 +39,7 @@ public extension SearchUseCaseImpl {
     byHashTag hashTag: String,
     page: Int,
     size: Int
-  ) async throws -> PageSearchChallenges {
+  ) async throws -> PageState<ChallengeSummary> {
     let result = try await challengeRepository.fetchChallenges(
       byHashTag: hashTag,
       page: page,
@@ -48,13 +48,13 @@ public extension SearchUseCaseImpl {
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
-  func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges {
+  func recentChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary> {
     let result = try await challengeRepository.fetchRecentChallenges(page: page, size: size)
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
-  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageSearchChallenges {
+  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageState<ChallengeSummary> {
     let result = try await challengeRepository.searchChallenge(
       byName: name,
       page: page,
@@ -64,7 +64,7 @@ public extension SearchUseCaseImpl {
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
-  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageSearchChallenges {
+  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageState<ChallengeSummary> {
     let result = try await challengeRepository.searchChallenge(
       byHashTag: hashtag,
       page: page,

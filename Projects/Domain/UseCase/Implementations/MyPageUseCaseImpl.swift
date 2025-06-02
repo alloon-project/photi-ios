@@ -30,7 +30,7 @@ public extension MyPageUseCaseImpl {
     return repository.fetchVerifiedChallengeDates()
   }
   
-  func loadFeedHistory(page: Int, size: Int) async throws -> PageFeedHistory {
+  func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedHistory> {
     let result = try await repository.fetchFeedHistory(page: page, size: size)
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)

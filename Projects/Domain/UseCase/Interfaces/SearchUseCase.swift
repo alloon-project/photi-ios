@@ -9,18 +9,6 @@
 import RxSwift
 import Entity
 
-public enum PageSearchChallenges {
-  case `defaults`([ChallengeSummary])
-  case lastPage([ChallengeSummary])
-  
-  public var challenges: [ChallengeSummary] {
-    switch self {
-      case .defaults(let values), .lastPage(let values):
-        return values
-    }
-  }
-}
-
 public protocol SearchUseCase {
   func popularChallenges() -> Single<[ChallengeDetail]>
   func popularHashtags() -> Single<[String]>
@@ -28,12 +16,12 @@ public protocol SearchUseCase {
     byHashTag hashTag: String,
     page: Int,
     size: Int
-  ) async throws -> PageSearchChallenges
+  ) async throws -> PageState<ChallengeSummary>
   func didJoinedChallenge(id: Int) async throws -> Bool
   func isPossibleToCreateChallenge() async -> Bool
-  func recentChallenges(page: Int, size: Int) async throws -> PageSearchChallenges
-  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageSearchChallenges
-  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageSearchChallenges
+  func recentChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary>
+  func searchChallenge(byName name: String, page: Int, size: Int) async throws -> PageState<ChallengeSummary>
+  func searchChallenge(byHashTag hashtag: String, page: Int, size: Int) async throws -> PageState<ChallengeSummary>
   func searchHistory() -> [String]
   @discardableResult func saveSearchKeyword(_ keyword: String) -> [String]
   @discardableResult func deleteSearchKeyword(_ keyword: String) -> [String]
