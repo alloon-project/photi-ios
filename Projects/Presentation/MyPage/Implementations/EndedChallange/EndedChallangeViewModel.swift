@@ -26,23 +26,26 @@ protocol EndedChallengeViewModelType: AnyObject {
 
 final class EndedChallengeViewModel: EndedChallengeViewModelType {
   weak var coordinator: EndedChallengeCoordinatable?
-  
+
   private let useCase: MyPageUseCase
   private let disposeBag = DisposeBag()
-  
+  private var isFetching = false
+  private var isLastPage = false
+  private var currentPage = 0
 
-  private let endedChallengesRelay = BehaviorRelay<[EndedChallengeCardCellPresentationModel]>(value: [])
+  private let endedChallengesRelay = BehaviorRelay<[EndedChallengeCardPresentationModel]>(value: [])
   private let requestFailedRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
-    let isVisible: Observable<Bool>
+    let requestData: Signal<Void>
+    let didTapChallenge: Signal<Int>
   }
   
   // MARK: - Output
   struct Output {
-    let endedChallenges: Driver<[EndedChallengeCardCellPresentationModel]>
+    let endedChallenges: Driver<[EndedChallengeCardPresentationModel]>
     let requestFailed: Signal<Void>
   }
   
@@ -58,49 +61,59 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
       }
       .disposed(by: disposeBag)
 
-    input.isVisible
-      .bind(with: self) { [weak self] onwer, _ in
-        guard let self = self else { return }
-        onwer.fetchEndedChallenges(page: 0, size: self.maxSize)
-      }.disposed(by: disposeBag)
-    
+    input.requestData
+      .emit(with: self) { owner, _ in
+        Task { await owner.loadEndedChallenges() }
+      }
+      .disposed(by: disposeBag)
+
     return Output(
-      endedChallenges: userEndedChallengeHistoryRelay.asDriver(),
+      endedChallenges: endedChallengesRelay.asDriver(),
       requestFailed: requestFailedRelay.asSignal()
     )
   }
 }
 
+// MARK: - API Methods
+private extension EndedChallengeViewModel {
+  func loadEndedChallenges() async {
+    guard !isLastPage && !isFetching else { return }
+    
+    isFetching = true
+    
+    defer {
+      isFetching = false
+      currentPage += 1
+    }
+      
+    do {
+      let result = try await useCase.loadEndedChallenges(page: currentPage, size: 15)
+      let models = result.values.map { mapToEndedPresentationModel($0) }
+      endedChallengesRelay.accept(models)
+      
+      switch result {
+        case .lastPage: isLastPage = true
+        default: break
+      }
+    } catch {
+      print(error)
+      requestFailedRelay.accept(())
+    }
+  }
+}
+
 // MARK: - Private Methods
 private extension EndedChallengeViewModel {
-  func fetchEndedChallenges(page: Int, size: Int) {
-    useCase.fetchEndedChallenges(page: page, size: size)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { onwer, endedChallengeList in
-          let models = endedChallengeList.map { onwer.mapToEndedPresentationModel($0) }
-          
-          onwer.userEndedChallengeHistoryRelay.accept(models)
-        },
-        onFailure: { onwer, error in
-          print(error)
-          onwer.requestFailedRelay.accept(())
-        }
-      )
-      .disposed(by: disposeBag)
-  }
-  
-  func mapToEndedPresentationModel(_ challenge: ChallengeSummary) -> EndedChallengeCardCellPresentationModel {
-    let endDate = challenge.endDate.toString("yyyy.MM.dd")
+  func mapToEndedPresentationModel(_ challenge: ChallengeSummary) -> EndedChallengeCardPresentationModel {
+    let deadLine = challenge.endDate.toString("yyyy. MM. dd 종료")
     
     return .init(
-      challengeImageUrl: challenge.imageUrl,
-      challengeTitle: challenge.name,
-      endedDate: endDate,
-      challengeId: challenge.id,
+      id: challenge.id,
+      thumbnailUrl: challenge.imageUrl,
+      title: challenge.name,
+      deadLine: deadLine,
       currentMemberCnt: challenge.memberCount ?? 0,
-      challengeParticipantImageUrls: challenge.memberImages ?? []
+      memberImageUrls: challenge.memberImages ?? []
     )
   }
 }

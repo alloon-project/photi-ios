@@ -76,6 +76,8 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
     configureCollectionView()
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -143,7 +145,8 @@ private extension EndedChallengeViewController {
   func bind() {
     let input = EndedChallengeViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      isVisible: self.rx.isVisible
+      requestData: requestData.asSignal(),
+      didTapChallenge: didTapChallenge.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -152,6 +155,12 @@ private extension EndedChallengeViewController {
   }
   
   func bind(for output: EndedChallengeViewModel.Output) {
+    output.endedChallenges
+      .drive(with: self) { owner, challenges in
+        owner.append(models: challenges)
+      }
+      .disposed(by: disposeBag)
+    
     output.requestFailed
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
@@ -230,4 +239,18 @@ private extension EndedChallengeViewController {
   }
 }
 
-extension EndedChallengeViewController: UICollectionViewDelegate { }
+// MARK: - UICollectionViewDelegate
+extension EndedChallengeViewController: UICollectionViewDelegate {
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let yOffset = scrollView.contentOffset.y
+    
+    guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
+    
+    requestData.accept(())
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapChallenge.accept(item.id)
+  }
+}
