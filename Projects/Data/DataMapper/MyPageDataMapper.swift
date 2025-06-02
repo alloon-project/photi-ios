@@ -56,7 +56,7 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
       return .init(
         id: $0.id,
         name: $0.name,
-        imageUrl: $0.imageUrl,
+        imageUrl: imageURL(from: $0.imageUrl),
         endDate: endDate,
         hashTags: [],
         memberCount: $0.currentMemberCnt,
