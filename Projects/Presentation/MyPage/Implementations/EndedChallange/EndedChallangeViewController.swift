@@ -14,65 +14,46 @@ import Core
 import DesignSystem
 
 final class EndedChallengeViewController: UIViewController, ViewControllerable {
-  private let viewModel: EndedChallengeViewModel
-  
-  // MARK: - Variables
-  private var disposeBag = DisposeBag()
-  private var dataSource: [EndedChallengeCardCellPresentationModel] = [] {
-    didSet {
-      endedChallengeCollectionView.reloadData()
-    }
+  enum Constants {
+    static let itemSpacing: CGFloat = 11
+    static let groupSpacing: CGFloat = 16
+    static let horizontalContentInset: CGFloat = 24
   }
   
+  typealias DataSourceType = UICollectionViewDiffableDataSource<Int, EndedChallengeCardPresentationModel>
+  typealias Snapshot = NSDiffableDataSourceSnapshot<Int, EndedChallengeCardPresentationModel>
+  
+  // MARK: - Properties
+  private let viewModel: EndedChallengeViewModel
+  private let disposeBag = DisposeBag()
+  private var datasource: DataSourceType?
+  
+  private let requestData = PublishRelay<Void>()
+  private let didTapChallenge = PublishRelay<Int>()
+  
   // MARK: - UIComponents
-  private let grayBackgroundView = {
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
+  private let topView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
     
     return view
   }()
-  
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    displayMode: .dark
-  )
-  
-  private let titleLabel = {
-    let label = UILabel()
-    label.attributedText = "총 0개의 챌린지가 종료됐어요".attributedString(
-      font: .heading3,
-      color: .gray900
-    ).setColor(.orange400, for: "0")
-    label.textAlignment = .center
-    
-    return label
-  }()
-  
-  /// 하단 톱니모양뷰
-  private let grayBottomImageView = {
-    let pinkingView = UIImageView()
-    pinkingView.image = .pinkingGrayDown
+  private let titleLabel = UILabel()
+  private let seperatorView: UIImageView = {
+    let pinkingView = UIImageView(image: .pinkingGrayDown)
     pinkingView.contentMode = .topLeft
     
     return pinkingView
   }()
   
   private let endedChallengeCollectionView = {
-    let layout = UICollectionViewFlowLayout()
-    layout.minimumLineSpacing = 16
-    layout.minimumInteritemSpacing = 12
-    
-    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    collectionView.contentInset = .init(
-      top: 35,
-      left: 24,
-      bottom: 0,
-      right: 24
-    )
+    let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     collectionView.backgroundColor = .white
     collectionView.registerCell(EndedChallengeCardCell.self)
+    collectionView.contentInsetAdjustmentBehavior = .never
+    collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-    collectionView.alwaysBounceVertical = false
     
     return collectionView
   }()
@@ -92,8 +73,7 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    endedChallengeCollectionView.delegate = self
-    endedChallengeCollectionView.dataSource = self
+    configureCollectionView()
     setupUI()
     bind()
   }
@@ -107,23 +87,29 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
 // MARK: - UI methods
 private extension EndedChallengeViewController {
   func setupUI() {
-    self.view.backgroundColor = .white
+    view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
   }
   
-  func setViewHierarchy() {
-    self.view.addSubviews(
-      grayBackgroundView,
-      endedChallengeCollectionView,
-      grayBottomImageView
-    )
+  func configureCollectionView() {
+    let datasource = diffableDataSource()
+    self.datasource = datasource
     
-    grayBackgroundView.addSubviews(navigationBar, titleLabel)
+    endedChallengeCollectionView.dataSource = datasource
+    endedChallengeCollectionView.collectionViewLayout = compositionalLayout()
+    endedChallengeCollectionView.delegate = self
+  }
+  
+  func setViewHierarchy() {
+    view.addSubviews(topView, endedChallengeCollectionView, seperatorView)
+    topView.addSubviews(navigationBar, titleLabel)
+    
+    topView.addSubviews(navigationBar, titleLabel)
   }
   
   func setConstraints() {
-    grayBackgroundView.snp.makeConstraints {
+    topView.snp.makeConstraints {
       $0.leading.top.trailing.equalToSuperview()
       $0.height.equalTo(200)
     }
@@ -136,19 +122,18 @@ private extension EndedChallengeViewController {
     
     titleLabel.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(34)
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
+      $0.centerX.equalToSuperview()
+    }
+    
+    seperatorView.snp.makeConstraints {
+      $0.top.equalTo(topView.snp.bottom)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(12)
     }
     
     endedChallengeCollectionView.snp.makeConstraints {
-      $0.top.equalTo(grayBackgroundView.snp.bottom)
+      $0.top.equalTo(seperatorView.snp.bottom).offset(22)
       $0.leading.trailing.bottom.equalToSuperview()
-    }
-    
-    grayBottomImageView.snp.makeConstraints {
-      $0.top.equalTo(grayBackgroundView.snp.bottom)
-      $0.leading.trailing.equalToSuperview()
-      $0.height.equalTo(12)
     }
   }
 }
@@ -167,12 +152,6 @@ private extension EndedChallengeViewController {
   }
   
   func bind(for output: EndedChallengeViewModel.Output) {
-    output.endedChallenges
-      .drive(with: self) { owner, challenges in
-        owner.dataSource = challenges
-      }
-      .disposed(by: disposeBag)
-    
     output.requestFailed
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
@@ -182,35 +161,73 @@ private extension EndedChallengeViewController {
 }
 
 // MARK: - EndedChallangePresentable
-extension EndedChallengeViewController: EndedChallangePresentable { }
-  
-// MARK: - UICollectionViewDataSource
-extension EndedChallengeViewController: UICollectionViewDataSource {
-  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    dataSource.count
-  }
-  
-  func collectionView(
-    _ collectionView: UICollectionView,
-    cellForItemAt indexPath: IndexPath
-  ) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
-    
-    cell.configure(with: dataSource[indexPath.row])
-    return cell
+extension EndedChallengeViewController: EndedChallangePresentable {
+  func configureEndedChallengeCount(_ count: Int) {
+    titleLabel.attributedText = "총 \(count)개의 챌린지가 종료됐어요".attributedString(
+      font: .heading3,
+      color: .gray900
+    ).setColor(.orange400, for: "\(count)")
   }
 }
 
-extension EndedChallengeViewController: UICollectionViewDelegateFlowLayout {
-  func collectionView(
-    _ collectionView: UICollectionView,
-    layout collectionViewLayout: UICollectionViewLayout,
-    sizeForItemAt indexPath: IndexPath
-  ) -> CGSize {
-    let widthOfCells = collectionView.bounds.width -
-    (collectionView.contentInset.left + collectionView.contentInset.right)
-    let width = (widthOfCells - 16) / 2.0
+// MARK: - UICollectionViewDataSource
+private extension EndedChallengeViewController {
+  func diffableDataSource() -> DataSourceType {
+    return .init(collectionView: endedChallengeCollectionView) { collectionView, indexPath, model in
+      let cell = collectionView.dequeueCell(EndedChallengeCardCell.self, for: indexPath)
+      cell.configure(with: model)
+      return cell
+    }
+  }
+  
+  func append(models: [EndedChallengeCardPresentationModel]) {
+    guard let datasource else { return }
+    var snapshot = datasource.snapshot()
     
-    return CGSize(width: width, height: 182.0)
+    if !snapshot.sectionIdentifiers.contains(0) {
+      snapshot.appendSections([0])
+    }
+    snapshot.appendItems(models)
+    
+    datasource.apply(snapshot)
   }
 }
+
+// MARK: - UICollectionViewLayout
+private extension EndedChallengeViewController {
+  func compositionalLayout() -> UICollectionViewCompositionalLayout {
+    return .init { _, environment in
+      let itemSpacing = Constants.itemSpacing
+      let horizontalInset = Constants.horizontalContentInset
+      
+      let availableWidth = environment.container.effectiveContentSize.width
+      let itemWidth = ((availableWidth - horizontalInset * 2) - itemSpacing) / 2
+      let itemHeight = itemWidth * 1.15
+      
+      let itemSize = NSCollectionLayoutSize(
+        widthDimension: .absolute(itemWidth),
+        heightDimension: .absolute(itemHeight)
+      )
+      let item = NSCollectionLayoutItem(layoutSize: itemSize)
+      
+      let groupSize = NSCollectionLayoutSize(
+        widthDimension: .fractionalWidth(1),
+        heightDimension: .absolute(itemHeight)
+      )
+      let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, item])
+      group.interItemSpacing = .fixed(itemSpacing)
+      let section = NSCollectionLayoutSection(group: group)
+      section.contentInsets = .init(
+        top: 0,
+        leading: horizontalInset,
+        bottom: 40,
+        trailing: horizontalInset
+      )
+      section.interGroupSpacing = Constants.groupSpacing
+      
+      return section
+    }
+  }
+}
+
+extension EndedChallengeViewController: UICollectionViewDelegate { }
