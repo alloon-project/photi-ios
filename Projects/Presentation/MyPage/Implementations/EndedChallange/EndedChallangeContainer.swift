@@ -14,17 +14,18 @@ protocol EndedChallengeDependency: Dependency {
 }
 
 protocol EndedChallengeContainable: Containable {
-  func coordinator(listener: EndedChallengeListener) -> ViewableCoordinating
+  func coordinator(endedChallengeCount: Int, listener: EndedChallengeListener) -> ViewableCoordinating
 }
 
 final class EndedChallengeContainer:
   Container<EndedChallengeDependency>,
   EndedChallengeContainable {  
-  func coordinator(listener: EndedChallengeListener) -> ViewableCoordinating {
+  func coordinator(endedChallengeCount: Int, listener: EndedChallengeListener) -> ViewableCoordinating {
     let viewModel = EndedChallengeViewModel(useCase: dependency.myPageUseCase)
     let viewControllerable = EndedChallengeViewController(viewModel: viewModel)
     
     let coordinator = EndedChallengeCoordinator(
+      endedChallengeCount: endedChallengeCount,
       viewControllerable: viewControllerable,
       viewModel: viewModel
     )
