@@ -6,25 +6,16 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct FeedHistoryResponseDTO: Decodable {
-  public let page: Int
-  public let size: Int
-  public let first: Bool
-  public let last: Bool
-  public let content: [FeedHistoryContent]
-}
-
-public struct FeedHistoryContent: Decodable {
   public let feedId: Int
   public let challengeId: Int
-  public let imageUrl: URL?
-  public let createDate: Date
+  public let imageUrl: String?
+  public let createdDate: String
   public let name: String
+  public let invitationCode: String
 }
 
-public extension FeedHistoryResponseDTO  {
+public extension FeedHistoryResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",

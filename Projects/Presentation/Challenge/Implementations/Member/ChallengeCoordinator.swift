@@ -150,6 +150,10 @@ extension ChallengeCoordinator: FeedListener {
   func requestReportAtFeed(feedId: Int) {
     attachReport(reportType: .feed)
   }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    listener?.deleteFeed(challengeId: challengeId, feedId: feedId)
+  }
 }
 
 // MARK: - DescriptionListener

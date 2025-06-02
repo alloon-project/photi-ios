@@ -78,15 +78,6 @@ public extension FeedRepositoryImpl {
     
     return .init(contents: feeds, isLast: result.last)
   }
-  
-  func fetchFeedHistory(page: Int, size: Int) -> Single<[FeedHistory]> {
-    return requestAuthorizableAPI(
-      api: FeedAPI.feedHistory(page: page, size: size),
-      responseType: FeedHistoryResponseDTO.self,
-      behavior: .immediate
-    )
-    .map { dataMapper.mapToFeedHistory(dto: $0) }
-  }
 }
 
 // MARK: - Update Methods

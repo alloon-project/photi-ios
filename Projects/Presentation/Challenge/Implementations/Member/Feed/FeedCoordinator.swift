@@ -15,6 +15,7 @@ protocol FeedListener: AnyObject {
   func networkUnstableAtFeed(reason: String?)
   func challengeNotFoundAtFeed()
   func requestReportAtFeed(feedId: Int)
+  func deleteFeed(challengeId: Int, feedId: Int)
 }
 
 protocol FeedPresentable {
@@ -111,6 +112,7 @@ extension FeedCoordinator: FeedCommentListener {
       self?.presenter.deleteFeed(feedId: id)
     }
     viewModel.updateIsProveIfNeeded()
+    listener?.deleteFeed(challengeId: challengeId, feedId: id)
   }
   
   func authenticatedFailedAtFeedComment() {

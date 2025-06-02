@@ -6,18 +6,19 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Challenge
 import Core
 import MyPage
 import Report
 import UseCase
 
 public protocol MyPageDependency: Dependency {
+  var challengeContainable: ChallengeContainable { get }
   var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
   var endedChallengeUseCase: EndedChallengeUseCase { get }
-  var feedUseCase: FeedUseCase { get }
   var resignUsecase: ResignUseCase { get }
 }
 
@@ -27,14 +28,15 @@ public final class MyPageContainer:
   SettingDependency,
   EndedChallengeDependency,
   FeedHistoryDependency {
-  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
+  var challengeContainable: ChallengeContainable { dependency.challengeContainable }
   
+  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var endedChallengeUseCase: EndedChallengeUseCase { dependency.endedChallengeUseCase }
-  var feedUseCase: FeedUseCase { dependency.feedUseCase }
   var resignUseCase: ResignUseCase { dependency.resignUsecase }
-
+  var myPageUseCase: MyPageUseCase { dependency.myPageUseCase }
+  
   public func coordinator(
     listener: MyPageListener
   ) -> ViewableCoordinating {

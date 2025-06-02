@@ -125,8 +125,12 @@ extension MyPageCoordinator: SettingListener {
   }
 }
 
-// MARK: - ProofListener
+// MARK: - FeedHistoryListener
 extension MyPageCoordinator: FeedHistoryListener {
+  func authenticatedFailedAtFeedHistory() {
+    listener?.authenticatedFailedAtMyPage()
+  }
+  
   func didTapBackButtonAtFeedHistory() {
     detachFeedHistory()
   }
