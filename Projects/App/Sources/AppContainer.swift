@@ -112,10 +112,6 @@ final class AppContainer:
     return ChangePasswordUseCaseImpl(repository: changePasswordRepository)
   }()
   
-  lazy var endedChallengeUseCase: EndedChallengeUseCase = {
-    return EndedChallengeUseCaseImpl(repository: challengeRepository)
-  }()
-  
   lazy var homeUseCae: HomeUseCase = {
     return HomeUseCaseImpl(challengeRepository: challengeRepository)
   }()
