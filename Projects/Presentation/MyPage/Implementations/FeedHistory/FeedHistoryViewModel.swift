@@ -13,8 +13,7 @@ import UseCase
 
 protocol FeedHistoryCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachChallengeDetail()
-  func detachChallengeDetail()
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
 
 protocol FeedHistoryViewModelType: AnyObject {
@@ -61,6 +60,12 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapFeed
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachChallengeWithFeed(challengeId: id.challengeId, feedId: id.feedId)
+      }
+      .disposed(by: disposeBag)
+    
     input.requestData
       .emit(with: self) { owner, _ in
         Task { await owner.loadFeedHistory() }
@@ -87,7 +92,7 @@ private extension FeedHistoryViewModel {
     }
       
     do {
-      let result = try await useCase.loadFeedHistory(page: currentPage, size: 2)
+      let result = try await useCase.loadFeedHistory(page: currentPage, size: 15)
       let models = result.feeds.map { mapToFeedPresentationModel($0) }
       feedsRelay.accept(models)
       

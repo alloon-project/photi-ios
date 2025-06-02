@@ -30,6 +30,7 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
 
   private let requestData = PublishRelay<Void>()
   private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
+  private let didTapShareButton = PublishRelay<(challengeId: Int, feedId: Int)>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -147,6 +148,7 @@ private extension FeedHistoryViewController {
     let input = FeedHistoryViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapFeed: didTapFeed.asSignal(),
+      didTapShareButton: didTapShareButton.asSignal(),
       requestData: requestData.asSignal()
     )
     
@@ -168,12 +170,18 @@ private extension FeedHistoryViewController {
       .disposed(by: disposeBag)
   }
   
-  func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) { }
+  func bind(for cell: FeedHistoryCell, model: FeedHistoryCellPresentationModel) {
+    cell.rx.didTapShareButton
+      .bind(with: self) { owner, _ in
+        owner.didTapShareButton.accept((model.challengeId, model.feedId))
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - FeedHistoryPresentable
 extension FeedHistoryViewController: FeedHistoryPresentable {
-  func setMyFeedCount(_ count: Int) {
+  func configureProvedFeedCount(_ count: Int) {
     titleLabel.attributedText = "총 \(count)회 인증했어요".attributedString(
       font: .heading3,
       color: .gray900
@@ -185,10 +193,10 @@ extension FeedHistoryViewController: FeedHistoryPresentable {
 // MARK: - UICollectionView Diffable DataSource
 extension FeedHistoryViewController {
   func diffableDataSource() -> DataSourceType {
-    return .init(collectionView: feedHistoryCollectionView) { collectionView, indexPath, model in
+    return .init(collectionView: feedHistoryCollectionView) { [weak self] collectionView, indexPath, model in
       let cell = collectionView.dequeueCell(FeedHistoryCell.self, for: indexPath)
       cell.configure(with: model)
-      
+      self?.bind(for: cell, model: model)
       return cell
     }
   }
@@ -245,5 +253,10 @@ extension FeedHistoryViewController: UICollectionViewDelegate {
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
     requestData.accept(())
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
+    didTapFeed.accept((item.challengeId, item.feedId))
   }
 }
