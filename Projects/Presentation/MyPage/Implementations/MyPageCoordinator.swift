@@ -141,4 +141,8 @@ extension MyPageCoordinator: EndedChallengeListener {
   func didTapBackButtonAtEndedChallenge() {
     detachEndedChallenge()
   }
+  
+  func authenticatedFailedAtEndedChallenge() {
+    listener?.authenticatedFailedAtMyPage()
+  }
 }

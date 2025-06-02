@@ -13,8 +13,7 @@ import UseCase
 
 protocol EndedChallengeCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachChallengeDetail()
-  func detachChallengeDetail()
+  func attachChallenge(id: Int)
 }
 
 protocol EndedChallengeViewModelType: AnyObject {
@@ -66,7 +65,13 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
         Task { await owner.loadEndedChallenges() }
       }
       .disposed(by: disposeBag)
-
+    
+    input.didTapChallenge
+      .emit(with: self) { owner, id in
+        owner.coordinator?.attachChallenge(id: id)
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       endedChallenges: endedChallengesRelay.asDriver(),
       requestFailed: requestFailedRelay.asSignal()
@@ -96,7 +101,6 @@ private extension EndedChallengeViewModel {
         default: break
       }
     } catch {
-      print(error)
       requestFailedRelay.accept(())
     }
   }

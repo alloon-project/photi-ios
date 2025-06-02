@@ -6,11 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 import UseCase
 
 protocol EndedChallengeDependency: Dependency {
   var myPageUseCase: MyPageUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
 }
 
 protocol EndedChallengeContainable: Containable {
@@ -27,7 +29,8 @@ final class EndedChallengeContainer:
     let coordinator = EndedChallengeCoordinator(
       endedChallengeCount: endedChallengeCount,
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      challengeContainable: dependency.challengeContainable
     )
     coordinator.listener = listener
     

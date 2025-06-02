@@ -6,10 +6,12 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Challenge
 import Core
 
 protocol EndedChallengeListener: AnyObject {
   func didTapBackButtonAtEndedChallenge()
+  func authenticatedFailedAtEndedChallenge()
 }
 
 protocol EndedChallangePresentable {
@@ -22,13 +24,18 @@ final class EndedChallengeCoordinator: ViewableCoordinator<EndedChallangePresent
   private let endedChallengeCount: Int
   private let viewModel: EndedChallengeViewModel
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
   init(
     endedChallengeCount: Int,
     viewControllerable: ViewControllerable,
-    viewModel: EndedChallengeViewModel
+    viewModel: EndedChallengeViewModel,
+    challengeContainable: ChallengeContainable
   ) {
     self.endedChallengeCount = endedChallengeCount
     self.viewModel = viewModel
+    self.challengeContainable = challengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -39,13 +46,52 @@ final class EndedChallengeCoordinator: ViewableCoordinator<EndedChallangePresent
   }
 }
 
+// MARK: - Challenge
+extension EndedChallengeCoordinator {
+  func attachChallenge(id: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainable.coordinator(
+      listener: self,
+      challengeId: id,
+      presentType: .default
+    )
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    addChild(coordinator)
+    challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinator)
+    challengeCoordinator = nil
+  }
+}
+
 // MARK: - EndedChallengeCoordinatable
 extension EndedChallengeCoordinator: EndedChallengeCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtEndedChallenge()
   }
+}
+
+// MARK: - Extension
+extension EndedChallengeCoordinator: ChallengeListener {
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticatedFailedAtEndedChallenge()
+  }
   
-  func attachChallengeDetail() { }
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
   
-  func detachChallengeDetail() { }
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+  }
 }
