@@ -93,6 +93,7 @@ private extension FeedHistoryViewController {
     
     feedHistoryCollectionView.dataSource = datasource
     feedHistoryCollectionView.collectionViewLayout = compositionalLayout()
+    feedHistoryCollectionView.delegate = self
   }
 }
 
