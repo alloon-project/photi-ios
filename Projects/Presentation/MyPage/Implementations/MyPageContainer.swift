@@ -26,7 +26,8 @@ public final class MyPageContainer:
   MyPageContainable,
   SettingDependency,
   EndedChallengeDependency,
-  FeedHistoryDependency {
+  FeedHistoryDependency,
+  FeedsByDateDependency {
   var challengeContainable: ChallengeContainable { dependency.challengeContainable }
   
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
@@ -35,22 +36,22 @@ public final class MyPageContainer:
   var resignUseCase: ResignUseCase { dependency.resignUsecase }
   var myPageUseCase: MyPageUseCase { dependency.myPageUseCase }
   
-  public func coordinator(
-    listener: MyPageListener
-  ) -> ViewableCoordinating {
+  public func coordinator(listener: MyPageListener) -> ViewableCoordinating {
     let viewModel = MyPageViewModel(useCase: dependency.myPageUseCase)
     let viewControllerable = MyPageViewController(viewModel: viewModel)
     
     let settingContainable = SettingContainer(dependency: self)
     let endedChallengeContainable = EndedChallengeContainer(dependency: self)
     let feedHistoryContainable = FeedHistoryContainer(dependency: self)
+    let feedsByDateContainable = FeedsByDateContainer(dependency: self)
     
     let coordinator = MyPageCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       settingContainable: settingContainable,
       endedChallengeContainable: endedChallengeContainable,
-      feedHistoryContainable: feedHistoryContainable
+      feedHistoryContainable: feedHistoryContainable,
+      feedsByDateContainable: feedsByDateContainable
     )
     
     coordinator.listener = listener
