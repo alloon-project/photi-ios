@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Foundation
 import Core
 import MyPage
 
@@ -112,6 +113,26 @@ extension MyPageCoordinator {
   }
 }
 
+// MARK: - FeedsByDate
+extension MyPageCoordinator {
+  func attachFeedsBy(date: Date) {
+    guard feedsByDateCoordinator == nil else { return }
+    
+    let coordinator = feedsByDateContainable.coordinator(date: date, listener: self)
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.feedsByDateCoordinator = coordinator
+  }
+  
+  func detachFeedsByDate() {
+    guard let coordinator = feedsByDateCoordinator else { return }
+    
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    self.feedsByDateCoordinator = nil
+  }
+}
+
 extension MyPageCoordinator: MyPageCoordinatable {
   func authenticatedFailed() {
     listener?.authenticatedFailedAtMyPage()
@@ -141,7 +162,7 @@ extension MyPageCoordinator: FeedHistoryListener {
   }
 }
 
-// MARK: - FinishedListener
+// MARK: - EndedChallengeListener
 extension MyPageCoordinator: EndedChallengeListener {
   func didTapBackButtonAtEndedChallenge() {
     detachEndedChallenge()
@@ -149,5 +170,12 @@ extension MyPageCoordinator: EndedChallengeListener {
   
   func authenticatedFailedAtEndedChallenge() {
     listener?.authenticatedFailedAtMyPage()
+  }
+}
+
+// MARK: - FeedsByDateListener
+extension MyPageCoordinator: FeedsByDateListener {
+  func didTapBackButtonAtFeedsByDate() {
+    detachFeedsByDate()
   }
 }

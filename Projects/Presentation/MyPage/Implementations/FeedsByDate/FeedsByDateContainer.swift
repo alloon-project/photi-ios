@@ -6,16 +6,17 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import Core
 
 protocol FeedsByDateDependency: Dependency { }
 
 protocol FeedsByDateContainable: Containable {
-  func coordinator(listener: FeedsByDateListener) -> ViewableCoordinating
+  func coordinator(date: Date, listener: FeedsByDateListener) -> ViewableCoordinating
 }
 
 final class FeedsByDateContainer: Container<FeedsByDateDependency>, FeedsByDateContainable {
-  func coordinator(listener: FeedsByDateListener) -> ViewableCoordinating {
+  func coordinator(date: Date, listener: FeedsByDateListener) -> ViewableCoordinating {
     let viewModel = FeedsByDateViewModel()
     let viewControllerable = FeedsByDateViewController(viewModel: viewModel)
     

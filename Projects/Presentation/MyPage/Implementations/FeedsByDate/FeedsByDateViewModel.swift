@@ -20,6 +20,7 @@ protocol FeedsByDateViewModelType: AnyObject {
 final class FeedsByDateViewModel: FeedsByDateViewModelType {
   weak var coordinator: FeedsByDateCoordinatable?
   private let disposeBag = DisposeBag()
+  let date: Date
 
   // MARK: - Input
   struct Input { }
@@ -28,7 +29,9 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init() { }
+  init(date: Date) {
+    self.date = date
+  }
   
   func transform(input: Input) -> Output {
     return Output()
