@@ -9,7 +9,10 @@
 import Challenge
 import Core
 
-public protocol ModifyChallengeListener: AnyObject {}
+protocol ModifyChallengeListener: AnyObject {
+  func challengeModified()
+  func didTapBackButtonAtModifyChallenge()
+}
 
 protocol ChallengeModifyPresentable {
   func setLeftView(
@@ -136,14 +139,22 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyName() {
     guard modifyNameCoordinator == nil else { return }
     
-    let coordinater = modifyNameContainer.coordinator(listener: self)
+    let coordinater = modifyNameContainer.coordinator(mode: .modify, listener: self)
     addChild(coordinater)
     
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.modifyNameCoordinator = coordinater
   }
   
-  func attachModifyGoal() {}
+  func attachModifyGoal() {
+    guard modifyGoalCoordinator == nil else { return }
+    
+    let coordinater = modifyGoalContainer.coordinator(mode: .modify, listener: self)
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyNameCoordinator = coordinater
+  }
   
   func attachModifyCover() {}
   
@@ -151,14 +162,20 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   
   func attachModifyRule() {}
   
-  func didTapBackButton() {}
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtModifyChallenge()
+  }
 }
 
 // MARK: ModifyChallengeName Listener
 extension ChallengeModifyCoordinator: ChallengeNameListener {
-  func didTapBackButtonAtChallengeName() {
-  }
+  func didTapBackButtonAtChallengeName() { }
   
-  func didFisishChallengeName(challengeName: String, isPublic: Bool) {
-  }
+  func didFisishChallengeName(challengeName: String, isPublic: Bool) {}
+}
+
+extension ChallengeModifyCoordinator: ChallengeGoalListener {
+  func didTapBackButtonAtChallengeGoal() {}
+  
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {}
 }

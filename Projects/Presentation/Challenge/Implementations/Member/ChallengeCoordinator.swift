@@ -106,9 +106,38 @@ extension ChallengeCoordinator {
 
 // MARK: - ChallengeEdit
 extension ChallengeCoordinator {
-  func attachChallengeEdit() { }
+  func attachChallengeEdit() {
+    guard
+      modifyCoordinator == nil,
+      let challengeDetail = viewModel.challengeDetail
+    else { return }
+    
+    let viewPresentaionModel = ModifyPresentationModel(
+      title: challengeDetail.name,
+      hashtags: challengeDetail.hashTags,
+      verificationTime: challengeDetail.proveTime.toString("HH : mm"),
+      goal: challengeDetail.goal,
+      imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
+      rules: challengeDetail.rules ?? [],
+      deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
+    )
+    
+    let coordinator = modifyContainer.coordinator(
+      listener: self,
+      viewPresentationMdoel: viewPresentaionModel
+    )
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.modifyCoordinator = coordinator
+  }
   
-  func detachChallengeEdit() { }
+  func detachChallengeEdit() {
+    guard let coordinator = modifyCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
 }
 
 // MARK: - ChallengeCoordinatable
@@ -198,5 +227,16 @@ extension ChallengeCoordinator: ReportListener {
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.reportCoordinator = nil
+  }
+}
+
+// MARK: - ModifyListener
+extension ChallengeCoordinator: ModifyChallengeListener {
+  func challengeModified() {
+    detachChallengeEdit()
+  }
+  
+  func didTapBackButtonAtModifyChallenge() {
+    detachChallengeEdit()
   }
 }
