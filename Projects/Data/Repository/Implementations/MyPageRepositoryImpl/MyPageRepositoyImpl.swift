@@ -59,6 +59,15 @@ public extension MyPageRepositoyImpl {
     let challenges = dataMapper.mapToChallengeSummaryFromEnded(dto: result.content)
     return .init(contents: challenges, isLast: result.last)
   }
+  
+  func fetchFeeds(byDate date: String) async throws -> [FeedSummary] {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.feedsByDate(date),
+      responseType: [FeedByDateResponseDTO].self
+    ).value
+    
+    return dataMapper.mapToFeedSummaryFromFeedsByDate(dtos: result)
+  }
 }
 
 // MARK: - Private Methods

@@ -16,6 +16,7 @@ public enum MyPageAPI {
   case verifiedChallengeDates
   case feedHistory(page: Int, size: Int)
   case endedChallenges(page: Int, size: Int)
+  case feedsByDate(_ date: String)
 }
 
 extension MyPageAPI: TargetType {
@@ -29,23 +30,25 @@ extension MyPageAPI: TargetType {
       case .verifiedChallengeDates: return "api/users/feeds"
       case .feedHistory: return "api/users/feed-history"
       case .endedChallenges: return "api/users/ended-challenges"
+      case .feedsByDate: return "api/users/feeds-by-date"
     }
   }
   
   public var method: HTTPMethod {
-    switch self {
-      case .userChallegeHistory, .verifiedChallengeDates, .feedHistory, .endedChallenges:
-        return .get
-    }
+    return .get
   }
   
-  public var task: PhotiNetwork.TaskType {
+  public var task: TaskType {
     switch self {
       case .userChallegeHistory, .verifiedChallengeDates:
         return .requestPlain
         
       case let .feedHistory(page, size), let .endedChallenges(page, size):
         let parameters = ["page": page, "size": size]
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .feedsByDate(date):
+        let parameters = ["date": date]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
@@ -72,6 +75,12 @@ extension MyPageAPI: TargetType {
         
       case .endedChallenges:
         let data = EndedChallengeResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .feedsByDate:
+        let data = FeedByDateResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
