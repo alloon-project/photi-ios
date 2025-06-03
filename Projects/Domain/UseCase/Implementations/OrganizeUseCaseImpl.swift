@@ -86,10 +86,10 @@ public extension OrganizeUseCaseImpl {
 
 // MARK: - Upload Methods
 public extension OrganizeUseCaseImpl {
-  func organizeChallenge() -> Single<Void> {
+  func organizeChallenge() -> Single<ChallengeDetail> {
     guard
       let payload else {
-      return singleWithError(APIError.organazieFailed(reason: .payloadIsNil))
+      return .error(APIError.organazieFailed(reason: .payloadIsNil))
     }
 
     return repository.challengeOrganize(payload: payload)

@@ -17,4 +17,5 @@ public protocol ChallengeOrganizeContainable: Containable {
 
 public protocol ChallengeOrganizeListener: AnyObject {
   func didTapBackButtonAtChallengeOrganize()
+  func didOrganizedChallenge(challengeId: Int)
 }

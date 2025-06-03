@@ -14,7 +14,7 @@ import Entity
 import UseCase
 
 protocol ChallengePreviewCoordinatable: AnyObject {
-  func didFinishOrganizeChallenge()
+  func didFinishOrganizeChallenge(challengeId: Int)
   func didTapBackButtonAtPreview()
 }
 
@@ -79,8 +79,8 @@ private extension ChallengePreviewViewModel {
   func organizeChallenge() {
     useCase.organizeChallenge()
       .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, _ in
-        owner.coordinator?.didFinishOrganizeChallenge()
+      .subscribe(with: self) { owner, challenge in
+        owner.coordinator?.didFinishOrganizeChallenge(challengeId: challenge.id)
       } onFailure: { owner, error in
         print(error)
         owner.requestFailed(with: error)

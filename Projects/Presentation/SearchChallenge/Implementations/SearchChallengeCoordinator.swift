@@ -178,6 +178,11 @@ extension SearchChallengeCoordinator: SearchChallengeCoordinatable {
 
 // MARK: - ChallengeOrganizeListener
 extension SearchChallengeCoordinator: ChallengeOrganizeListener {
+  func didOrganizedChallenge(challengeId: Int) {
+    attachChallenge(id: challengeId)
+    detachChallengeOrganize()
+  }
+  
   func didTapBackButtonAtChallengeOrganize() {
     detachChallengeOrganize()
   }
