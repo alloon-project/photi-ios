@@ -35,7 +35,7 @@ public extension ChallengeOrganizeRepositoryImpl {
 
 // MARK: - Upload Methods
 public extension ChallengeOrganizeRepositoryImpl {
-  func challengeOrganize(payload: ChallengeOrganizePayload) -> Single<Void> {
+  func challengeOrganize(payload: ChallengeOrganizePayload) -> Single<ChallengeDetail> {
     guard
       let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload)
     else {
@@ -46,7 +46,7 @@ public extension ChallengeOrganizeRepositoryImpl {
       api: ChallengeOrganizeAPI.organizeChallenge(dto: requestDTO),
       responseType: ChallengeOrganizeResponseDTO.self
     )
-    .map { _ in () }
+    .map { dataMapper.mapToChallengeDetail(dto: $0) }
   }
 }
 

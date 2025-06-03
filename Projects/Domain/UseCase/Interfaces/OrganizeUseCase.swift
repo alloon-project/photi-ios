@@ -7,6 +7,7 @@
 //
 
 import RxSwift
+import Entity
 
 public enum PayloadType {
   case name
@@ -24,5 +25,5 @@ public protocol OrganizeUseCase {
   func configureChallengePayload(_ type: PayloadType, value: Any)
   
   func fetchChallengeSampleImages() -> Single<[String]>
-  func organizeChallenge() -> Single<Void>
+  func organizeChallenge() -> Single<ChallengeDetail>
 }
