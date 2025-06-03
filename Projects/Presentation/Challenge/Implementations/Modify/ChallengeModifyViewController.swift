@@ -24,7 +24,12 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
-    
+  private let didTapChallengeNameRelay = PublishRelay<Void>()
+  private let didTapChallengeHashtagRelay = PublishRelay<Void>()
+  private let didTapChallengeGoalRelay = PublishRelay<Void>()
+  private let didTapChallengeCoverRelay = PublishRelay<Void>()
+  private let didTapChallengeRuleRelay = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let mainContainerView = UIView()
@@ -174,6 +179,18 @@ private extension ChallengeModifyViewController {
 // MARK: - Bind Methods
 private extension ChallengeModifyViewController {
   func bind() {
+    let input = ChallengeModifyViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapChallengeName: didTapChallengeNameRelay.asSignal(),
+      didTapChallengeHashtag: didTapChallengeHashtagRelay.asSignal(),
+      didTapChallengeGoal: didTapChallengeGoalRelay.asSignal(),
+      didTapChallengeCover: didTapChallengeCoverRelay.asSignal(),
+      didTapChallengeRule: didTapChallengeRuleRelay.asSignal(),
+      didTapModifyButton: modifyButton.rx.tap
+    )
+    
+    let output = viewModel.transform(input: input)
+    
     viewBind()
   }
   
@@ -183,6 +200,36 @@ private extension ChallengeModifyViewController {
         owner.displayRuleDetailViewController(rules)
       }
       .disposed(by: disposeBag)
+    
+    challengeTitleLabel.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeNameRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    hashTagCollectionView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeHashtagRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    goalView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeGoalRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    thumbnailImageView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeCoverRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    ruleView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeRuleRelay.accept(())
+      }.disposed(by: disposeBag)
   }
 }
 
@@ -201,11 +248,13 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
    }
    
    func setRightView(
-     image: UIImageWrapper,
+     imageURLString: String,
      rules: [String],
      deadLine: String
    ) {
-     thumbnailImageView.image = image.image
+     if let url = URL(string: imageURLString) {
+       thumbnailImageView.kf.setImage(with: url)
+     }
      ruleView.rules = rules
      deadLineView.deadLine = deadLine
    }

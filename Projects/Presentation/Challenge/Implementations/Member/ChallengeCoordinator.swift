@@ -35,6 +35,9 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let reportContainer: ReportContainable
   private var reportCoordinator: ViewableCoordinating?
   
+  private let modifyContainer: ChallengeModifyContainable
+  private var modifyCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
@@ -42,7 +45,8 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
-    reportContainer: ReportContainable
+    reportContainer: ReportContainable,
+    modifyContainer: ChallengeModifyContainable
   ) {
     self.viewModel = viewModel
     self.presentType = initialPresentType
@@ -50,6 +54,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
     self.reportContainer = reportContainer
+    self.modifyContainer = modifyContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -101,9 +106,25 @@ extension ChallengeCoordinator {
 
 // MARK: - ChallengeEdit
 extension ChallengeCoordinator {
-  func attachChallengeEdit() { }
+  func attachChallengeEdit(presentationModel: ModifyPresentationModel) {
+    guard modifyCoordinator == nil else { return }
+    
+    let coordinator = modifyContainer.coordinator(
+      listener: self,
+      viewPresentationMdoel: presentationModel
+    )
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.modifyCoordinator = coordinator
+  }
   
-  func detachChallengeEdit() { }
+  func detachChallengeEdit() {
+    guard let coordinator = modifyCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
 }
 
 // MARK: - ChallengeCoordinatable
@@ -193,5 +214,16 @@ extension ChallengeCoordinator: ReportListener {
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.reportCoordinator = nil
+  }
+}
+
+// MARK: - ModifyListener
+extension ChallengeCoordinator: ModifyChallengeListener {
+  func challengeModified() {
+    detachChallengeEdit()
+  }
+  
+  func didTapBackButtonAtModifyChallenge() {
+    detachChallengeEdit()
   }
 }

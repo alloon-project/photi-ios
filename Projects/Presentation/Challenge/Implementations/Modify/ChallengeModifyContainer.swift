@@ -10,12 +10,20 @@ import Challenge
 import Core
 import UseCase
 
-public protocol ChallengeModifyDependency: Dependency {
+protocol ChallengeModifyDependency: Dependency {
   var organizeUseCase: OrganizeUseCase { get }
 }
 
-public final class ChallengeModifyContainer:
+protocol ChallengeModifyContainable: Containable {
+  func coordinator(
+    listener: ModifyChallengeListener,
+    viewPresentationMdoel: ModifyPresentationModel
+  ) -> ViewableCoordinating
+}
+
+final class ChallengeModifyContainer:
   Container<ChallengeModifyDependency>,
+  ChallengeModifyContainable,
   ChallengeNameDependency,
   ChallengeGoalDependency,
   ChallengeCoverDependency,
@@ -23,8 +31,9 @@ public final class ChallengeModifyContainer:
   ChallengeHashtagDependency {
   var organizeUseCase: OrganizeUseCase { dependency.organizeUseCase }
 
-  public func coordinator(
-    listener: ModifyChallengeListener
+  func coordinator(
+    listener: ModifyChallengeListener,
+    viewPresentationMdoel: ModifyPresentationModel
   ) -> ViewableCoordinating {
     let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
     let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
@@ -38,6 +47,7 @@ public final class ChallengeModifyContainer:
     let coordinator = ChallengeModifyCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
+      viewPresentationModel: viewPresentationMdoel,
       modifyNameContainer: modifyChallengeNameContainable,
       modifyGoalContainer: modifyChallengeGoalContainable,
       modifyCoverContainer: modifyChallengeCoverContainable,
