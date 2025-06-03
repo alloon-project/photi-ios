@@ -16,6 +16,7 @@ protocol MyPageCoordinatable: AnyObject {
   func attachSetting()
   func attachEndedChallenge(count: Int)
   func attachFeedHistory(count: Int)
+  func attachFeedsBy(date: Date)
   func authenticatedFailed()
 }
 
@@ -39,6 +40,7 @@ final class MyPageViewModel: MyPageViewModelType {
   private let verifiedChallengeDates = BehaviorRelay<[Date]>(value: [])
   private let feedHistoryCount = BehaviorRelay(value: 0)
   private let endedChallengeCount = BehaviorRelay(value: 0)
+  private let todayRelay = BehaviorRelay<Date>(value: Date())
   
   private let networkUnstableRelay = PublishRelay<Void>()
   
@@ -48,6 +50,7 @@ final class MyPageViewModel: MyPageViewModelType {
     let didTapAuthCountBox: ControlEvent<Void>
     let didTapEndedChallengeBox: ControlEvent<Void>
     let didBecomeVisible: Signal<Void>
+    let didTapDate: Signal<Date>
   }
   
   // MARK: - Output
@@ -58,6 +61,7 @@ final class MyPageViewModel: MyPageViewModelType {
     let endedChallengeCount: Driver<Int>
     let calendarStartDate: Driver<Date>
     let verifiedChallengeDates: Driver<[Date]>
+    let today: Driver<Date>
   }
   
   // MARK: - Initializers
@@ -87,6 +91,13 @@ final class MyPageViewModel: MyPageViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapDate
+      .emit(with: self) { owner, date in
+        guard owner.verifiedChallengeDates.value.contains(date) else { return }
+        owner.coordinator?.attachFeedsBy(date: date)
+      }
+      .disposed(by: disposeBag)
+    
     input.didBecomeVisible
       .emit(with: self) { owner, _ in
         owner.loadData()
@@ -99,16 +110,18 @@ final class MyPageViewModel: MyPageViewModelType {
       feedsCount: feedHistoryCount.asDriver(),
       endedChallengeCount: endedChallengeCount.asDriver(),
       calendarStartDate: calendarStartDate.asDriver(),
-      verifiedChallengeDates: verifiedChallengeDates.asDriver()
+      verifiedChallengeDates: verifiedChallengeDates.asDriver(),
+      today: todayRelay.asDriver()
     )
   }
 }
 
-// MARK: - Private
+// MARK: - API Methods
 private extension MyPageViewModel {
   func loadData() {
     Task { await loadUserInformation() }
     Task { await loadVerifiedChallengeDates() }
+    todayRelay.accept(todayDate())
   }
   
   func loadUserInformation() async {
@@ -144,5 +157,12 @@ private extension MyPageViewModel {
       default:
         networkUnstableRelay.accept(())
     }
+  }
+}
+
+// MARK: - Private Methods
+private extension MyPageViewModel {
+  func todayDate() -> Date {
+    return Calendar.current.startOfDay(for: Date())
   }
 }

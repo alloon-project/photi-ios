@@ -16,8 +16,9 @@ import DesignSystem
 
 final class MyPageViewController: UIViewController, ViewControllerable {
   private let viewModel: MyPageViewModel
-  
   private let disposeBag = DisposeBag()
+  
+  private let didTapDate = PublishRelay<Date>()
   
   // MARK: - UI Components
   private let scrollView: UIScrollView = {
@@ -223,7 +224,8 @@ private extension MyPageViewController {
       didTapSettingButton: settingButton.rx.tap,
       didTapAuthCountBox: feedsCountBox.rx.didTapBox,
       didTapEndedChallengeBox: endedChallengeCountBox.rx.didTapBox,
-      didBecomeVisible: rx.isVisible.filter { $0 }.map { _ in () }.asSignal(onErrorJustReturn: ())
+      didBecomeVisible: rx.isVisible.filter { $0 }.map { _ in () }.asSignal(onErrorJustReturn: ()),
+      didTapDate: didTapDate.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -255,10 +257,12 @@ private extension MyPageViewController {
       .disposed(by: disposeBag)
     
     output.calendarStartDate
+      .distinctUntilChanged()
       .drive(calendarView.rx.startDate)
       .disposed(by: disposeBag)
     
     output.verifiedChallengeDates
+      .distinctUntilChanged()
       .drive(calendarView.rx.defaultSelectedDates)
       .disposed(by: disposeBag)
   }
@@ -269,7 +273,9 @@ extension MyPageViewController: MyPagePresentable { }
 
 // MARK: - CalendarViewDelegate
 extension MyPageViewController: CalendarViewDelegate {
-  func didSelect(_ date: Date) { }
+  func didSelect(_ date: Date) {
+    didTapDate.accept(date)
+  }
   
   func didTapCloseButton() { }
 }
