@@ -7,6 +7,7 @@
 //
 
 import RxSwift
+import UseCase
 
 protocol FeedsByDateCoordinatable: AnyObject {
   func didTapBackButton()
@@ -22,6 +23,7 @@ protocol FeedsByDateViewModelType: AnyObject {
 final class FeedsByDateViewModel: FeedsByDateViewModelType {
   weak var coordinator: FeedsByDateCoordinatable?
   private let disposeBag = DisposeBag()
+  private let useCase: MyPageUseCase
   let date: Date
 
   // MARK: - Input
@@ -31,8 +33,9 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   struct Output { }
   
   // MARK: - Initializers
-  init(date: Date) {
+  init(date: Date, useCase: MyPageUseCase) {
     self.date = date
+    self.useCase = useCase
   }
   
   func transform(input: Input) -> Output {
