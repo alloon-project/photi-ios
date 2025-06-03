@@ -325,7 +325,7 @@ extension ChallengeOrganizeCoordinator: ChallengePreviewListener {
     detachChallengePreview(animated: true)
   }
   
-  func didFinishOrganizeChallenge() {
-    // TODO: 챌린지화면으로 넘어가기
+  func didFinishOrganizeChallenge(challengeId: Int) {
+    listener?.didOrganizedChallenge(challengeId: challengeId)
   }
 }

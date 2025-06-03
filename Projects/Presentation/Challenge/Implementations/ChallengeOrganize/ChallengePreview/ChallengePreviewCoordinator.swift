@@ -11,7 +11,7 @@ import Core
 
 protocol ChallengePreviewListener: AnyObject {
   func didTapBackButtonAtChallengePreview()
-  func didFinishOrganizeChallenge()
+  func didFinishOrganizeChallenge(challengeId: Int)
 }
 
 protocol ChallengePreviewPresentable {
@@ -62,8 +62,8 @@ final class ChallengePreviewCoordinator: ViewableCoordinator<ChallengePreviewPre
 }
 
 extension ChallengePreviewCoordinator: ChallengePreviewCoordinatable {
-  func didFinishOrganizeChallenge() {
-    listener?.didFinishOrganizeChallenge()
+  func didFinishOrganizeChallenge(challengeId: Int) {
+    listener?.didFinishOrganizeChallenge(challengeId: challengeId)
   }
   
   func didTapBackButtonAtPreview() {
