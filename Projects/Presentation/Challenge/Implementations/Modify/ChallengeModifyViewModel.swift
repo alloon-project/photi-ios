@@ -41,13 +41,12 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
     let didTapBackButton: ControlEvent<Void>
-    let didTapChallengeName: ControlEvent<Void>
-    let didTapChallengeHashtag: ControlEvent<Void>
-    let didTapChallengeGoal: ControlEvent<Void>
-    let didTapChallengeCover: ControlEvent<Void>
-    let didTapChallengeRule: ControlEvent<Void>
+    let didTapChallengeName: Signal<Void>
+    let didTapChallengeHashtag: Signal<Void>
+    let didTapChallengeGoal: Signal<Void>
+    let didTapChallengeCover: Signal<Void>
+    let didTapChallengeRule: Signal<Void>
     let didTapModifyButton: ControlEvent<Void>
   }
   
@@ -72,27 +71,27 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
       .disposed(by: disposeBag)
     
     input.didTapChallengeName
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachModifyName()
       }.disposed(by: disposeBag)
     
     input.didTapChallengeHashtag
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachModifyHashtag()
       }.disposed(by: disposeBag)
     
     input.didTapChallengeGoal
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachModifyGoal()
       }.disposed(by: disposeBag)
     
     input.didTapChallengeCover
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachModifyCover()
       }.disposed(by: disposeBag)
     
     input.didTapChallengeRule
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.attachModifyRule()
       }.disposed(by: disposeBag)
     

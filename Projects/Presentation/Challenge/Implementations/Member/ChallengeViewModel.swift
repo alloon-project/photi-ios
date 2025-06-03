@@ -18,7 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
-  func attachChallengeEdit()
+  func attachChallengeEdit(presentationModel: ModifyPresentationModel)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -40,6 +40,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
   
   let disposeBag = DisposeBag()
   let challengeId: Int
+  var challengeDetail: ChallengeDetail?
   private(set) var challengeName: String = ""
   
   weak var coordinator: ChallengeCoordinatable?
@@ -102,7 +103,17 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapEditButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachChallengeEdit()
+        guard let challengeDetail = owner.challengeDetail else { return }
+        let viewPresentaionModel = ModifyPresentationModel(
+          title: challengeDetail.name,
+          hashtags: challengeDetail.hashTags,
+          verificationTime: challengeDetail.proveTime.toString("HH : mm"),
+          goal: challengeDetail.goal,
+          imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
+          rules: challengeDetail.rules ?? [],
+          deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
+        )
+        owner.coordinator?.attachChallengeEdit(presentationModel: viewPresentaionModel)
       }
       .disposed(by: disposeBag)
     
@@ -128,6 +139,7 @@ private extension ChallengeViewModel {
     do {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
       let model = mapToPresentatoinModel(challenge)
+      challengeDetail = challenge
       challengeModelRelay.accept(model)
       memberCount.accept(challenge.memberCount)
       challengeName = challenge.name

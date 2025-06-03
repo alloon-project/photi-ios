@@ -13,16 +13,6 @@ import SnapKit
 import Core
 import DesignSystem
 
-struct PreviewPresentationModel {
-  let title: String
-  let hashtags: [String]
-  let verificationTime: String
-  let goal: String
-  let image: UIImageWrapper
-  let rules: [String]
-  let deadLine: String
-}
-
 final class ChallengePreviewViewController: UIViewController, ViewControllerable {
   enum Constants {
     static let navigationHeight: CGFloat = 56

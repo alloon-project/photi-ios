@@ -15,6 +15,7 @@ public protocol ChallengeDependency: Dependency {
   var reportContainable: ReportContainable { get }
   var challengeUseCase: ChallengeUseCase { get }
   var feedUseCase: FeedUseCase { get }
+  var organizeUseCase: OrganizeUseCase { get }
 }
 
 public final class ChallengeContainer:
@@ -22,7 +23,8 @@ public final class ChallengeContainer:
   ChallengeContainable,
   FeedDependency,
   DescriptionDependency,
-  ParticipantDependency {
+  ParticipantDependency,
+  ChallengeModifyDependency {
   public func coordinator(
     listener: ChallengeListener,
     challengeId: Int,
@@ -34,6 +36,7 @@ public final class ChallengeContainer:
     let feedContainer = FeedContainer(dependency: self)
     let descriptionContainer = DescriptionContainer(dependency: self)
     let participantContainer = ParticipantContainer(dependency: self)
+    let modifiedContainer = ChallengeModifyContainer(dependency: self)
     
     let coordinator = ChallengeCoordinator(
       viewControllerable: viewControllerable,
@@ -42,7 +45,8 @@ public final class ChallengeContainer:
       feedContainer: feedContainer,
       descriptionContainer: descriptionContainer,
       participantContainer: participantContainer,
-      reportContainer: dependency.reportContainable
+      reportContainer: dependency.reportContainable,
+      modifyContainer: modifiedContainer
     )
     coordinator.listener = listener
     return coordinator
@@ -50,4 +54,5 @@ public final class ChallengeContainer:
   
   var challengeUseCase: ChallengeUseCase { dependency.challengeUseCase }
   var feedUseCase: FeedUseCase { dependency.feedUseCase }
+  var organizeUseCase: OrganizeUseCase { dependency.organizeUseCase }
 }
