@@ -7,6 +7,7 @@
 //
 
 import Core
+import Challenge
 
 protocol FeedsByDateListener: AnyObject {
   func didTapBackButtonAtFeedsByDate()
@@ -20,11 +21,16 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
 
   private let viewModel: FeedsByDateViewModel
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: FeedsByDateViewModel
+    viewModel: FeedsByDateViewModel,
+    challengeContainable: ChallengeContainable
   ) {
     self.viewModel = viewModel
+    self.challengeContainable = challengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }

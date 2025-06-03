@@ -7,11 +7,13 @@
 //
 
 import Foundation
+import Challenge
 import Core
 import UseCase
 
 protocol FeedsByDateDependency: Dependency {
   var myPageUseCase: MyPageUseCase { get }
+  var challengeContainable: ChallengeContainable { get }
 }
 
 protocol FeedsByDateContainable: Containable {
@@ -25,7 +27,8 @@ final class FeedsByDateContainer: Container<FeedsByDateDependency>, FeedsByDateC
     
     let coordinator = FeedsByDateCoordinator(
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      challengeContainable: dependency.challengeContainable
     )
     coordinator.listener = listener
     return coordinator
