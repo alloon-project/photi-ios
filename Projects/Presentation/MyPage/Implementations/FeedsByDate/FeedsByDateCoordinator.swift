@@ -14,7 +14,10 @@ protocol FeedsByDateListener: AnyObject {
   func authenticateFailedAtFeedsByDate()
 }
 
-protocol FeedsByDatePresentable { }
+protocol FeedsByDatePresentable {
+  func deleteFeed(challengeId: Int, feedId: Int)
+  func deleteAllFeeds(challengeId: Int)
+}
 
 final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> {
   weak var listener: FeedsByDateListener?
@@ -36,6 +39,30 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
   }
 }
 
+// MARK: - Challenge
+extension FeedsByDateCoordinator {
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainable.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      presentType: .presentWithFeed(feedId)
+    )
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    addChild(coordinator)
+    challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinator)
+    challengeCoordinator = nil
+  }
+}
+
 // MARK: - FeedsByDateCoordinatable
 extension FeedsByDateCoordinator: FeedsByDateCoordinatable {
   func didTapBackButton() {
@@ -44,5 +71,29 @@ extension FeedsByDateCoordinator: FeedsByDateCoordinatable {
   
   func authenticateFailed() {
     listener?.authenticateFailedAtFeedsByDate()
+  }
+}
+
+// MARK: - ChallengeListener
+extension FeedsByDateCoordinator: ChallengeListener {
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticateFailedAtFeedsByDate()
+  }
+  
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
+  
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+    presenter.deleteAllFeeds(challengeId: challengeId)
+  }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    presenter.deleteFeed(challengeId: challengeId, feedId: feedId)
   }
 }

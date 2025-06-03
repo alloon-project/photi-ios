@@ -138,7 +138,17 @@ private extension FeedsByDateViewController {
 }
 
 // MARK: - FeedsByDatePresentable
-extension FeedsByDateViewController: FeedsByDatePresentable { }
+extension FeedsByDateViewController: FeedsByDatePresentable {
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    feeds.removeAll {
+      $0.challengeId == challengeId && $0.feedId == feedId
+    }
+  }
+  
+  func deleteAllFeeds(challengeId: Int) {
+    feeds.removeAll { $0.challengeId == challengeId }
+  }
+}
 
 // MARK: - UICollectionView CompositionalLayout
 private extension FeedsByDateViewController {
