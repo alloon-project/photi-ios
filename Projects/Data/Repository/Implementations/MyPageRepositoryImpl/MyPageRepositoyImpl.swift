@@ -40,7 +40,7 @@ public extension MyPageRepositoyImpl {
     .map { dataMapper.mapToDate(from: $0) }
   }
   
-  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedHistory> {
+  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary> {
     let result = try await requestAuthorizableAPI(
       api: MyPageAPI.feedHistory(page: page, size: size),
       responseType: PaginationResponseDTO<FeedHistoryResponseDTO>.self

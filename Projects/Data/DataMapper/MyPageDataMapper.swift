@@ -14,7 +14,7 @@ import Entity
 public protocol MyPageDataMapper {
   func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary
   func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date]
-  func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedHistory]
+  func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary]
   func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
 }
 
@@ -35,7 +35,7 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
     return dto.list.compactMap { $0.toDate("yyyy-MM-dd") }
   }
   
-  public func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedHistory] {
+  public func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary] {
     return dtos.map {
       .init(
         feedId: $0.feedId,

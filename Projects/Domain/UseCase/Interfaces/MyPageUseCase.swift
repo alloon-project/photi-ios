@@ -13,6 +13,6 @@ import Entity
 public protocol MyPageUseCase {
   func loadMyPageSummry() -> Single<MyPageSummary>
   func loadVerifiedChallengeDates() -> Single<[Date]>
-  func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedHistory>
+  func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary>
   func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary>
 }

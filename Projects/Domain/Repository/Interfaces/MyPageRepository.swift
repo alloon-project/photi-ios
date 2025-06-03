@@ -13,6 +13,6 @@ import Entity
 public protocol MyPageRepository {
   func fetchMyPageSummary() -> Single<MyPageSummary>
   func fetchVerifiedChallengeDates() -> Single<[Date]>
-  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedHistory>
+  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary>
   func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary>
 }
