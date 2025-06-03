@@ -106,25 +106,12 @@ extension ChallengeCoordinator {
 
 // MARK: - ChallengeEdit
 extension ChallengeCoordinator {
-  func attachChallengeEdit() {
-    guard
-      modifyCoordinator == nil,
-      let challengeDetail = viewModel.challengeDetail
-    else { return }
-    
-    let viewPresentaionModel = ModifyPresentationModel(
-      title: challengeDetail.name,
-      hashtags: challengeDetail.hashTags,
-      verificationTime: challengeDetail.proveTime.toString("HH : mm"),
-      goal: challengeDetail.goal,
-      imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
-      rules: challengeDetail.rules ?? [],
-      deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
-    )
+  func attachChallengeEdit(presentationModel: ModifyPresentationModel) {
+    guard modifyCoordinator == nil else { return }
     
     let coordinator = modifyContainer.coordinator(
       listener: self,
-      viewPresentationMdoel: viewPresentaionModel
+      viewPresentationMdoel: presentationModel
     )
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)

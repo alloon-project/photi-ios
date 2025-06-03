@@ -18,7 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
-  func attachChallengeEdit()
+  func attachChallengeEdit(presentationModel: ModifyPresentationModel)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -103,7 +103,17 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapEditButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachChallengeEdit()
+        guard let challengeDetail = owner.challengeDetail else { return }
+        let viewPresentaionModel = ModifyPresentationModel(
+          title: challengeDetail.name,
+          hashtags: challengeDetail.hashTags,
+          verificationTime: challengeDetail.proveTime.toString("HH : mm"),
+          goal: challengeDetail.goal,
+          imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
+          rules: challengeDetail.rules ?? [],
+          deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
+        )
+        owner.coordinator?.attachChallengeEdit(presentationModel: viewPresentaionModel)
       }
       .disposed(by: disposeBag)
     
