@@ -178,4 +178,8 @@ extension MyPageCoordinator: FeedsByDateListener {
   func didTapBackButtonAtFeedsByDate() {
     detachFeedsByDate()
   }
+  
+  func authenticateFailedAtFeedsByDate() {
+    listener?.authenticatedFailedAtMyPage()
+  }
 }

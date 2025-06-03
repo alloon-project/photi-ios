@@ -116,7 +116,7 @@ extension CalendarCell: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
     guard let cell = collectionView.cellForItem(at: indexPath) else { return false }
     
-    return !cell.isSelected
+    return selectionMode == .single ? !cell.isSelected : true
   }
 }
 

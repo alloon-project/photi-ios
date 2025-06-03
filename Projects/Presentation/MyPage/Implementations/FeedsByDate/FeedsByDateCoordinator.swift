@@ -7,25 +7,59 @@
 //
 
 import Core
+import Challenge
 
 protocol FeedsByDateListener: AnyObject {
   func didTapBackButtonAtFeedsByDate()
+  func authenticateFailedAtFeedsByDate()
 }
 
-protocol FeedsByDatePresentable { }
+protocol FeedsByDatePresentable {
+  func deleteFeed(challengeId: Int, feedId: Int)
+  func deleteAllFeeds(challengeId: Int)
+}
 
 final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> {
   weak var listener: FeedsByDateListener?
 
   private let viewModel: FeedsByDateViewModel
   
+  private let challengeContainable: ChallengeContainable
+  private var challengeCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
-    viewModel: FeedsByDateViewModel
+    viewModel: FeedsByDateViewModel,
+    challengeContainable: ChallengeContainable
   ) {
     self.viewModel = viewModel
+    self.challengeContainable = challengeContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
+  }
+}
+
+// MARK: - Challenge
+extension FeedsByDateCoordinator {
+  func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
+    guard challengeCoordinator == nil else { return }
+    
+    let coordinator = challengeContainable.coordinator(
+      listener: self,
+      challengeId: challengeId,
+      presentType: .presentWithFeed(feedId)
+    )
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    addChild(coordinator)
+    challengeCoordinator = coordinator
+  }
+  
+  func detachChallenge() {
+    guard let coordinator = challengeCoordinator else { return }
+    
+    viewControllerable.popViewController(animated: true)
+    removeChild(coordinator)
+    challengeCoordinator = nil
   }
 }
 
@@ -33,5 +67,33 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
 extension FeedsByDateCoordinator: FeedsByDateCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtFeedsByDate()
+  }
+  
+  func authenticateFailed() {
+    listener?.authenticateFailedAtFeedsByDate()
+  }
+}
+
+// MARK: - ChallengeListener
+extension FeedsByDateCoordinator: ChallengeListener {
+  func authenticatedFailedAtChallenge() {
+    listener?.authenticateFailedAtFeedsByDate()
+  }
+  
+  func didTapBackButtonAtChallenge() {
+    detachChallenge()
+  }
+  
+  func shouldDismissChallenge() {
+    detachChallenge()
+  }
+  
+  func leaveChallenge(challengeId: Int) {
+    detachChallenge()
+    presenter.deleteAllFeeds(challengeId: challengeId)
+  }
+  
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    presenter.deleteFeed(challengeId: challengeId, feedId: feedId)
   }
 }

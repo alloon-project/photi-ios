@@ -28,6 +28,7 @@ final class FeedsByDateViewController: UIViewController, ViewControllerable {
   }
   
   private let requestData = PublishRelay<Void>()
+  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   
   // MARK: - UI Components
   private let navigationBar: PhotiNavigationBar
@@ -107,25 +108,47 @@ private extension FeedsByDateViewController {
   func bind() {
     let input = FeedsByDateViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
-      requestData: requestData.asSignal()
+      requestData: requestData.asSignal(),
+      didTapFeed: didTapFeed.asSignal()
     )
     let output = viewModel.transform(input: input)
     
-    viewBind()
     viewModelBind(for: output)
   }
-  
-  func viewBind() { }
   
   func viewModelBind(for output: FeedsByDateViewModel.Output) {
     output.feeds
       .drive(rx.feeds)
       .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for cell: FeedsByDateCell) {
+    cell.rx.didTapFeed
+      .bind(with: self) { owner, ids in
+        owner.didTapFeed.accept(ids)
+      }
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - FeedsByDatePresentable
-extension FeedsByDateViewController: FeedsByDatePresentable { }
+extension FeedsByDateViewController: FeedsByDatePresentable {
+  func deleteFeed(challengeId: Int, feedId: Int) {
+    feeds.removeAll {
+      $0.challengeId == challengeId && $0.feedId == feedId
+    }
+  }
+  
+  func deleteAllFeeds(challengeId: Int) {
+    feeds.removeAll { $0.challengeId == challengeId }
+  }
+}
 
 // MARK: - UICollectionView CompositionalLayout
 private extension FeedsByDateViewController {
@@ -169,7 +192,7 @@ extension FeedsByDateViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(FeedsByDateCell.self, for: indexPath)
     let isLast = indexPath.row == feeds.count - 1
     cell.configure(with: feeds[indexPath.row], isLast: isLast)
-    
+    bind(for: cell)
     return cell
   }
 }
