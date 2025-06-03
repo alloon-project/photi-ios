@@ -8,7 +8,9 @@
 
 import Core
 
-protocol FeedsByDateListener: AnyObject { }
+protocol FeedsByDateListener: AnyObject {
+  func didTapBackButtonAtFeedsByDate()
+}
 
 protocol FeedsByDatePresentable { }
 
@@ -28,4 +30,8 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
 }
 
 // MARK: - FeedsByDateCoordinatable
-extension FeedsByDateCoordinator: FeedsByDateCoordinatable { }
+extension FeedsByDateCoordinator: FeedsByDateCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtFeedsByDate()
+  }
+}

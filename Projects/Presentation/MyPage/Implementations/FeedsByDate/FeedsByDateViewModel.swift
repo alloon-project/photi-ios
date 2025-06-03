@@ -8,7 +8,9 @@
 
 import RxSwift
 
-protocol FeedsByDateCoordinatable: AnyObject { }
+protocol FeedsByDateCoordinatable: AnyObject {
+  func didTapBackButton()
+}
 
 protocol FeedsByDateViewModelType: AnyObject {
   associatedtype Input
@@ -34,6 +36,12 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    return Output()
+    input.didTapBackButton
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+  }
+}
   }
 }
