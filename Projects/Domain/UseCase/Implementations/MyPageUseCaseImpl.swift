@@ -41,4 +41,8 @@ public extension MyPageUseCaseImpl {
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
+  
+  func loadFeeds(byDate date: String) async throws -> [FeedSummary] {
+    return try await repository.fetchFeeds(byDate: date)
+  }
 }
