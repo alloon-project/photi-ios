@@ -25,7 +25,8 @@ protocol FeedPresentable {
 
 final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
-
+  
+  private var viewDidAppeared: Bool = false
   private let challengeId: Int
   private let viewModel: FeedViewModel
   private let initialPresentType: ChallengePresentType
@@ -49,7 +50,9 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   }
   
   override func viewDidAppear() {
-    guard case let .presentWithFeed(feedId) = initialPresentType else { return }
+    guard case let .presentWithFeed(feedId) = initialPresentType, !viewDidAppeared else { return }
+    
+    viewDidAppeared = true
     attachFeedDetail(challengeId: challengeId, feedId: feedId)
   }
 }
