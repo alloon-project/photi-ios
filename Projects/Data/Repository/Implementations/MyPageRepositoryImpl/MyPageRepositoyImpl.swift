@@ -40,7 +40,7 @@ public extension MyPageRepositoyImpl {
     .map { dataMapper.mapToDate(from: $0) }
   }
   
-  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedHistory> {
+  func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary> {
     let result = try await requestAuthorizableAPI(
       api: MyPageAPI.feedHistory(page: page, size: size),
       responseType: PaginationResponseDTO<FeedHistoryResponseDTO>.self
@@ -58,6 +58,15 @@ public extension MyPageRepositoyImpl {
     
     let challenges = dataMapper.mapToChallengeSummaryFromEnded(dto: result.content)
     return .init(contents: challenges, isLast: result.last)
+  }
+  
+  func fetchFeeds(byDate date: String) async throws -> [FeedSummary] {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.feedsByDate(date),
+      responseType: [FeedByDateResponseDTO].self
+    ).value
+    
+    return dataMapper.mapToFeedSummaryFromFeedsByDate(dtos: result)
   }
 }
 

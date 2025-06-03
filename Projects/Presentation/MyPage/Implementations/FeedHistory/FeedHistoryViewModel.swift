@@ -119,7 +119,7 @@ private extension FeedHistoryViewModel {
 
 // MARK: - Private Methods
 private extension FeedHistoryViewModel {
-  func mapToFeedPresentationModel(_ feedHistory: FeedHistory) -> FeedCardPresentationModel {
+  func mapToFeedPresentationModel(_ feedHistory: FeedSummary) -> FeedCardPresentationModel {
     let date = feedHistory.createdDate.toString("yyyy. MM. dd 인증")
     return .init(
       challengeId: feedHistory.challengeId,
