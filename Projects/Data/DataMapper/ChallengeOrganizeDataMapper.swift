@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import DTO
 import Entity
 
@@ -13,6 +14,9 @@ public protocol ChallengeOrganizeDataMapper {
   func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
   func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
   -> ChallengeOrganizeRequestDTO?
+  func mapToChallengeDetail(
+    dto: ChallengeOrganizeResponseDTO
+  ) -> ChallengeDetail
 }
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
@@ -30,5 +34,25 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
       image: payload.image,
       imageType: payload.imageType
     )
+  }
+  
+  public func mapToChallengeDetail(dto: ChallengeOrganizeResponseDTO) -> ChallengeDetail {
+    let endDate = dto.endDate.toDate() ?? Date()
+    let hasTags = dto.hashtags.map { $0.hashtag }
+    let proveTime = dto.proveTime.toDate("HH:mm") ?? Date()
+    let rules = dto.rules.map { $0.rule }
+    
+    return ChallengeDetail(
+      id: dto.id,
+      name: dto.name,
+      imageUrl: URL(string: dto.imageUrl),
+      endDate: endDate,
+      hashTags: hasTags,
+      proveTime: proveTime,
+      goal: dto.goal,
+      memberCount: 0,
+      memberImages: [],
+      isPublic: nil,
+      rules: rules)
   }
 }
