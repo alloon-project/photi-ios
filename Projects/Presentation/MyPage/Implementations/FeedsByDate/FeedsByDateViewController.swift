@@ -28,6 +28,7 @@ final class FeedsByDateViewController: UIViewController, ViewControllerable {
   }
   
   private let requestData = PublishRelay<Void>()
+  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   
   // MARK: - UI Components
   private let navigationBar: PhotiNavigationBar
@@ -107,15 +108,13 @@ private extension FeedsByDateViewController {
   func bind() {
     let input = FeedsByDateViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
-      requestData: requestData.asSignal()
+      requestData: requestData.asSignal(),
+      didTapFeed: didTapFeed.asSignal()
     )
     let output = viewModel.transform(input: input)
     
-    viewBind()
     viewModelBind(for: output)
   }
-  
-  func viewBind() { }
   
   func viewModelBind(for output: FeedsByDateViewModel.Output) {
     output.feeds
@@ -125,6 +124,14 @@ private extension FeedsByDateViewController {
     output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for cell: FeedsByDateCell) {
+    cell.rx.didTapFeed
+      .bind(with: self) { owner, ids in
+        owner.didTapFeed.accept(ids)
       }
       .disposed(by: disposeBag)
   }
@@ -175,7 +182,7 @@ extension FeedsByDateViewController: UICollectionViewDataSource {
     let cell = collectionView.dequeueCell(FeedsByDateCell.self, for: indexPath)
     let isLast = indexPath.row == feeds.count - 1
     cell.configure(with: feeds[indexPath.row], isLast: isLast)
-    
+    bind(for: cell)
     return cell
   }
 }

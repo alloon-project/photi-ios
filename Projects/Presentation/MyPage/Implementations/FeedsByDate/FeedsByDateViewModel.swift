@@ -38,6 +38,7 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   struct Input {
     let didTapBackButton: Signal<Void>
     let requestData: Signal<Void>
+    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
   }
   
   // MARK: - Output
