@@ -15,6 +15,7 @@ import UseCase
 
 protocol FeedsByDateCoordinatable: AnyObject {
   func didTapBackButton()
+  func authenticateFailed()
 }
 
 protocol FeedsByDateViewModelType: AnyObject {
@@ -31,6 +32,7 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   let date: Date
   
   private let feedsRelay = BehaviorRelay<[FeedsByDatePresentationModel]>(value: [])
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -41,6 +43,7 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   // MARK: - Output
   struct Output {
     let feeds: Driver<[FeedsByDatePresentationModel]>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -62,7 +65,10 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
       }
       .disposed(by: disposeBag)
     
-    return Output(feeds: feedsRelay.asDriver())
+    return Output(
+      feeds: feedsRelay.asDriver(),
+      networkUnstable: networkUnstableRelay.asSignal()
+    )
   }
 }
 
@@ -77,8 +83,17 @@ private extension FeedsByDateViewModel {
       
       feedsRelay.accept(models)
     } catch {
-      // TODO: 에러 구현
-      print(error)
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    if case .authenticationFailed = error {
+      coordinator?.authenticateFailed()
+    } else {
+      networkUnstableRelay.accept(())
     }
   }
 }

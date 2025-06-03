@@ -10,6 +10,7 @@ import Core
 
 protocol FeedsByDateListener: AnyObject {
   func didTapBackButtonAtFeedsByDate()
+  func authenticateFailedAtFeedsByDate()
 }
 
 protocol FeedsByDatePresentable { }
@@ -33,5 +34,9 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
 extension FeedsByDateCoordinator: FeedsByDateCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtFeedsByDate()
+  }
+  
+  func authenticateFailed() {
+    listener?.authenticateFailedAtFeedsByDate()
   }
 }

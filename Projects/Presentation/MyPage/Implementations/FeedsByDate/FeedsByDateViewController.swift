@@ -121,6 +121,12 @@ private extension FeedsByDateViewController {
     output.feeds
       .drive(rx.feeds)
       .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
