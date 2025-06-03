@@ -25,18 +25,23 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
   private let feedHistoryContainable: FeedHistoryContainable
   private var feedHistoryCoordinator: ViewableCoordinating?
   
+  private let feedsByDateContainable: FeedsByDateContainable
+  private var feedsByDateCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: MyPageViewModel,
     settingContainable: SettingContainable,
     endedChallengeContainable: EndedChallengeContainable,
-    feedHistoryContainable: FeedHistoryContainable
+    feedHistoryContainable: FeedHistoryContainable,
+    feedsByDateContainable: FeedsByDateContainable
   ) {
     self.viewModel = viewModel
     
     self.settingContainable = settingContainable
     self.endedChallengeContainable = endedChallengeContainable
     self.feedHistoryContainable = feedHistoryContainable
+    self.feedsByDateContainable = feedsByDateContainable
     
     super.init(viewControllerable)
     viewModel.coordinator = self
