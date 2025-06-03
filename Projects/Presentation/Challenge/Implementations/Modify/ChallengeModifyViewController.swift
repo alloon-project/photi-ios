@@ -258,11 +258,13 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
    }
    
    func setRightView(
-     image: UIImageWrapper,
+     imageURLString: String,
      rules: [String],
      deadLine: String
    ) {
-     thumbnailImageView.image = image.image
+     if let url = URL(string: imageURLString) {
+       thumbnailImageView.kf.setImage(with: url)
+     }
      ruleView.rules = rules
      deadLineView.deadLine = deadLine
    }

@@ -35,6 +35,9 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   private let reportContainer: ReportContainable
   private var reportCoordinator: ViewableCoordinating?
   
+  private let modifyContainer: ChallengeModifyContainable
+  private var modifyCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: ChallengeViewModel,
@@ -42,7 +45,8 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     feedContainer: FeedContainable,
     descriptionContainer: DescriptionContainable,
     participantContainer: ParticipantContainable,
-    reportContainer: ReportContainable
+    reportContainer: ReportContainable,
+    modifyContainer: ChallengeModifyContainable
   ) {
     self.viewModel = viewModel
     self.presentType = initialPresentType
@@ -50,6 +54,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
     self.descriptionContainer = descriptionContainer
     self.participantContainer = participantContainer
     self.reportContainer = reportContainer
+    self.modifyContainer = modifyContainer
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
