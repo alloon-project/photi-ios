@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import PhotosUI
 import Kingfisher
 import RxCocoa
 import RxGesture
@@ -24,6 +25,7 @@ final class ProfileEditViewController: UIViewController, ViewControllerable {
   
   private let requestData = PublishRelay<Void>()
   private let didTapProfileEditMenu = PublishRelay<ProfileEditMenuItem>()
+  private let didSelectImageRelay = PublishRelay<UIImageWrapper>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "프로필 수정", displayMode: .dark)
@@ -41,6 +43,18 @@ final class ProfileEditViewController: UIViewController, ViewControllerable {
     return tableView
   }()
   private let resignButton = TextButton(text: "회원탈퇴", size: .small, type: .gray)
+  
+  private let successUpdateProfileImageToastView = ToastView(
+    tipPosition: .none,
+    text: "프로필 사진이 업데이트됐어요.",
+    icon: .bulbWhite
+  )
+  
+  private let failedUpdateProfileImageToastView = ToastView(
+    tipPosition: .none,
+    text: "수정에 실패했어요.다시 시도해주세요.",
+    icon: .closeRed
+  )
   
   // MARK: - Initializers
   init(viewModel: ProfileEditViewModel) {
@@ -104,6 +118,13 @@ private extension ProfileEditViewController {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
       $0.trailing.equalToSuperview().inset(24)
     }
+    
+    [successUpdateProfileImageToastView, failedUpdateProfileImageToastView].forEach {
+      $0.setConstraints {
+        $0.centerX.equalToSuperview()
+        $0.bottom.equalToSuperview().inset(64)
+      }
+    }
   }
 }
 
@@ -114,11 +135,22 @@ private extension ProfileEditViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapProfileEditMenu: didTapProfileEditMenu.asSignal(),
       didTapResignButton: resignButton.rx.tap.asSignal(),
-      requestData: requestData.asSignal()
+      requestData: requestData.asSignal(),
+      didSelectImage: didSelectImageRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
+  }
+  
+  func viewBind() {
+    profileImageView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.presentImagePicker()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(output: ProfileEditViewModel.Output) {
@@ -132,6 +164,13 @@ private extension ProfileEditViewController {
           let image = await owner.profileImage(with: url)
           owner.profileImageView.configureImage(image)
         }
+      }
+      .disposed(by: disposeBag)
+    
+    output.isSuccessedUploadImage
+      .emit(with: self) { owner, isSuccess in
+        LoadingAnimation.logo.stop()
+        owner.presentToastView(isSuccess: isSuccess)
       }
       .disposed(by: disposeBag)
   }
@@ -161,7 +200,6 @@ extension ProfileEditViewController: UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    print(menuItems)
     let cell = tableView.dequeueCell(ProfileEditMenuItemCell.self, for: indexPath)
     cell.configure(with: menuItems[indexPath.row])
     return cell
@@ -173,6 +211,26 @@ extension ProfileEditViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let item = menuItems[indexPath.row]
     didTapProfileEditMenu.accept(item)
+  }
+}
+
+// MARK: - PHPickerViewControllerDelegate
+extension ProfileEditViewController: PHPickerViewControllerDelegate {
+  func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+    picker.dismiss(animated: true)
+
+    guard
+      let itemProvider = results.first?.itemProvider,
+      itemProvider.canLoadObject(ofClass: UIImage.self)
+    else { return }
+
+    itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, _ in
+      guard let self, let image = image as? UIImage else { return }
+      DispatchQueue.main.async {
+        LoadingAnimation.logo.start(at: self.view)
+      }
+      self.didSelectImageRelay.accept(.init(image: image))
+    }
   }
 }
 
@@ -191,5 +249,21 @@ private extension ProfileEditViewController {
         }
       }
     }
+  }
+  
+  func presentImagePicker() {
+    var configuration = PHPickerConfiguration(photoLibrary: .shared())
+    configuration.selectionLimit = 1
+    configuration.filter = .images
+    
+    let picker = PHPickerViewController(configuration: configuration)
+    picker.delegate = self
+    present(picker, animated: true)
+  }
+  
+  func presentToastView(isSuccess: Bool) {
+    isSuccess ?
+    successUpdateProfileImageToastView.present(at: self.view) :
+    failedUpdateProfileImageToastView.present(at: self.view)
   }
 }

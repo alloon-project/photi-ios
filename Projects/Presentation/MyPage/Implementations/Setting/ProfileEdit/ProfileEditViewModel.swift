@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Core
 import Entity
 import UseCase
 
@@ -35,6 +36,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   private let profileEditMenuItemsRelay = BehaviorRelay<[ProfileEditMenuItem]>(value: [])
   private let profileImageUrlRelay = BehaviorRelay<URL?>(value: nil)
+  private let isSuccessedUploadImageRelay = PublishRelay<Bool>()
   
   // MARK: - Input
   struct Input {
@@ -42,12 +44,14 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     let didTapProfileEditMenu: Signal<ProfileEditMenuItem>
     let didTapResignButton: Signal<Void>
     let requestData: Signal<Void>
+    let didSelectImage: Signal<UIImageWrapper>
   }
   
   // MARK: - Output
   struct Output {
     let profileEditMenuItemsRelay: Driver<[ProfileEditMenuItem]>
     let profileImageUrl: Driver<URL?>
+    let isSuccessedUploadImage: Signal<Bool>
   }
   
   // MARK: - Initializers
@@ -73,6 +77,12 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didSelectImage
+      .emit(with: self) { owner, image in
+        Task { await owner.updateUserProfile(image) }
+      }
+      .disposed(by: disposeBag)
+    
     input.didTapResignButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.attachResign()
@@ -81,12 +91,13 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     
     return Output(
       profileEditMenuItemsRelay: profileEditMenuItemsRelay.asDriver(),
-      profileImageUrl: profileImageUrlRelay.asDriver()
+      profileImageUrl: profileImageUrlRelay.asDriver(),
+      isSuccessedUploadImage: isSuccessedUploadImageRelay.asSignal()
     )
   }
 }
 
-// MARK: - Private Methods
+// MARK: - API Methods
 private extension ProfileEditViewModel {
   func loadUserProfile() async {
     do {
@@ -102,5 +113,20 @@ private extension ProfileEditViewModel {
     }
   }
   
+  func updateUserProfile(_ image: UIImageWrapper) async {
+    do {
+      let url = try await useCase.updateProfileImage(image)
+      profileImageUrlRelay.accept(url)
+      isSuccessedUploadImageRelay.accept(true)
+    } catch {
+      // TODO: 에러시 UI 구현 예정
+      print(error)
+      isSuccessedUploadImageRelay.accept(false)
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension ProfileEditViewModel {
   func navitate(to item: ProfileEditMenuItem) { }
 }
