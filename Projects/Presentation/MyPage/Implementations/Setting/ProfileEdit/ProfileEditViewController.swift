@@ -173,6 +173,12 @@ private extension ProfileEditViewController {
         owner.presentToastView(isSuccess: isSuccess)
       }
       .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
   }
 }
 

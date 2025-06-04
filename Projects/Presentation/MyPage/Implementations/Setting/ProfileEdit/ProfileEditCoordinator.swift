@@ -11,6 +11,7 @@ import Core
 protocol ProfileEditListener: AnyObject {
   func didTapBackButtonAtProfileEdit()
   func isUserResigned()
+  func authenticatedFailedAtProfileEdit()
 }
 
 protocol ProfileEditPresentable {
@@ -44,12 +45,8 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
   }
 }
 
-// MARK: - ProfileEditCoordinatable
-extension ProfileEditCoordinator: ProfileEditCoordinatable {
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtProfileEdit()
-  }
-  
+// MARK: - ChangePassword
+extension ProfileEditCoordinator {
   func attachChangePassword() {
     guard changePasswordCoordinator == nil else { return }
     
@@ -66,7 +63,10 @@ extension ProfileEditCoordinator: ProfileEditCoordinatable {
     viewControllerable.popViewController(animated: true)
     self.resignCoordinator = nil
   }
-  
+}
+
+// MARK: - Resign
+extension ProfileEditCoordinator {
   func attachResign() {
     guard resignCoordinator == nil else { return }
     
@@ -82,6 +82,17 @@ extension ProfileEditCoordinator: ProfileEditCoordinatable {
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.resignCoordinator = nil
+  }
+}
+
+// MARK: - ProfileEditCoordinatable
+extension ProfileEditCoordinator: ProfileEditCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtProfileEdit()
+  }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtProfileEdit()
   }
 }
 

@@ -17,6 +17,7 @@ protocol ProfileEditCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChangePassword()
   func attachResign()
+  func authenticatedFailed()
 }
 
 protocol ProfileEditViewModelType: AnyObject {
@@ -37,6 +38,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   private let profileEditMenuItemsRelay = BehaviorRelay<[ProfileEditMenuItem]>(value: [])
   private let profileImageUrlRelay = BehaviorRelay<URL?>(value: nil)
   private let isSuccessedUploadImageRelay = PublishRelay<Bool>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -52,6 +54,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     let profileEditMenuItemsRelay: Driver<[ProfileEditMenuItem]>
     let profileImageUrl: Driver<URL?>
     let isSuccessedUploadImage: Signal<Bool>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -92,7 +95,8 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     return Output(
       profileEditMenuItemsRelay: profileEditMenuItemsRelay.asDriver(),
       profileImageUrl: profileImageUrlRelay.asDriver(),
-      isSuccessedUploadImage: isSuccessedUploadImageRelay.asSignal()
+      isSuccessedUploadImage: isSuccessedUploadImageRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
@@ -108,8 +112,7 @@ private extension ProfileEditViewModel {
       profileEditMenuItemsRelay.accept(menuItems)
       profileImageUrlRelay.accept(profile.imageUrl)
     } catch {
-      // TODO: 에러시 UI 구현 예정
-      print(error)
+      requestFailed(with: error)
     }
   }
   
@@ -119,9 +122,32 @@ private extension ProfileEditViewModel {
       profileImageUrlRelay.accept(url)
       isSuccessedUploadImageRelay.accept(true)
     } catch {
-      // TODO: 에러시 UI 구현 예정
-      print(error)
-      isSuccessedUploadImageRelay.accept(false)
+      uploadFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    switch error {
+      case .authenticationFailed:
+        coordinator?.authenticatedFailed()
+      case let .myPageFailed(reason) where reason == .userNotFound:
+        coordinator?.authenticatedFailed()
+      default:
+        networkUnstableRelay.accept(())
+    }
+  }
+  
+  func uploadFailed(with error: Error) {
+    guard let error = error as? APIError else { return isSuccessedUploadImageRelay.accept(false) }
+    
+    switch error {
+      case .authenticationFailed:
+        coordinator?.authenticatedFailed()
+      case let .myPageFailed(reason) where reason == .userNotFound:
+        coordinator?.authenticatedFailed()
+      default: isSuccessedUploadImageRelay.accept(false)
     }
   }
 }
