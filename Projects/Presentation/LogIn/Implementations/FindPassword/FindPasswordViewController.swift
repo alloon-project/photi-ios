@@ -147,7 +147,7 @@ private extension FindPasswordViewController {
     
     warningToastView.setConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(64)
+      $0.bottom.equalToSuperview().inset(64)
     }
   }
 }
