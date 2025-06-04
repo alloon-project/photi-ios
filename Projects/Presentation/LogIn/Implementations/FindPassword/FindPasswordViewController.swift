@@ -95,8 +95,7 @@ final class FindPasswordViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension FindPasswordViewController {
   func setupUI() {
-    self.navigationController?.setNavigationBarHidden(true, animated: false)
-    self.view.backgroundColor = .white
+    view.backgroundColor = .white
     nextButton.isEnabled = false
     
     setViewHierarchy()

@@ -98,7 +98,7 @@ private extension FindPasswordViewModel {
   @MainActor func requestTempoaryPassword(id: String, email: String) async {
     do {
       try await useCase.sendTemporaryPassword(to: email, userName: id).value
-      coordinator?.attachTempPassword(userEmail: email)
+      coordinator?.attachTempPassword(userEmail: email, userName: id)
     } catch {
       requestFailed(with: error)
     }
