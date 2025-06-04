@@ -34,6 +34,8 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   weak var coordinator: TempPasswordCoordinatable?
   
   private let invalidPasswordRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
+  private let isSuccessedResendRelay = PublishRelay<Bool>()
 
   // MARK: - Input
   struct Input {
@@ -45,8 +47,10 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   
   // MARK: - Output
   struct Output {
-    var isEnabledNextButton: Driver<Bool>
-    var isEmailResendSucceed: Signal<Void>
+    let isEnabledNextButton: Driver<Bool>
+    let isSuccessedResend: Signal<Bool>
+    let invalidPassword: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -67,61 +71,45 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
       }.disposed(by: disposeBag)
     
     input.didTapResendButton
-      .bind(with: self) { owner, _ in
-        owner.findPassword(userEmail: owner.email, userName: owner.name)
+      .emit(with: self) { owner, _ in
+        Task { await owner.requestTempoaryPassword() }
       }.disposed(by: disposeBag)
     
-    input.didTapContinueButton
+    input.didTapNextButton
       .withLatestFrom(input.password)
-      .bind(with: self) { owner, password in
-        owner.requestLogin(userName: owner.name, password: password)
+      .emit(with: self) { owner, password in
+        Task { await owner.validateTemporaryPassword(password) }
       }.disposed(by: disposeBag)
     
-    let isEnabledNextButton = input.password
-      .map { !$0.isEmpty }
+    let isEnabledNextButton = input.password.map { !$0.isEmpty }
     
     return Output(
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
-      isEmailResendSucceed: emailResentRelay.asSignal()
+      isSuccessedResend: isSuccessedResendRelay.asSignal(),
+      invalidPassword: invalidPasswordRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
 }
 
-// MARK: - Private Methods
+// MARK: - API Methods
 private extension TempPasswordViewModel {
-  // TODO: 서버 연결 시 아이디 & 이메일 확인 로직 구현
-  func findPassword(userEmail: String, userName: String) {
-    useCase.findPassword(userEmail: userEmail, userName: userName)
-      .subscribe(
-        with: self,
-        onSuccess: { onwer, _ in
-          onwer.emailResentRelay.accept(())
-        },
-        onFailure: { _, err in
-          print(err)
-        }
-      )
-      .disposed(by: disposeBag)
+  func requestTempoaryPassword() async {
+    do {
+      try await useCase.sendTemporaryPassword(to: email, userName: name).value
+      isSuccessedResendRelay.accept(true)
+    } catch {
+      isSuccessedResendRelay.accept(false)
+    }
   }
   
-  func requestLogin(userName: String, password: String) {
-    useCase.login(username: userName, password: password)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.coordinator?.attachNewPassword()
-        },
-        onFailure: { owner, error in
-          owner.requestFailed(with: error)
-        }
-      )
-      .disposed(by: disposeBag)
-  }
-  
-  func requestFailed(with error: Error) {
-    if let error = error as? APIError, case .loginFailed = error {
-      invalidPasswordRelay.accept(())
+  @MainActor func validateTemporaryPassword(_ password: String) async {
+    let result = await useCase.verifyTemporaryPassword(password, name: name)
+
+    switch result {
+      case .success: coordinator?.attachNewPassword()
+      case .mismatch: invalidPasswordRelay.accept(())
+      case .failure: networkUnstableRelay.accept(())
     }
   }
 }
