@@ -96,7 +96,10 @@ final class AppContainer:
   }()
   
   lazy var myPageUseCase: MyPageUseCase = {
-    return MyPageUseCaseImpl(repository: myPageRepository)
+    return MyPageUseCaseImpl(
+      authRepository: authRepository,
+      myPagerepository: myPageRepository
+    )
   }()
   
   lazy var profileEditUseCase: ProfileEditUseCase = {
