@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Entity
@@ -21,34 +22,32 @@ protocol ProfileEditViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: ProfileEditCoordinatable? { get set }
-  
-  init(useCase: ProfileEditUseCase)
-  
+
   func transform(input: Input) -> Output
 }
 
 final class ProfileEditViewModel: ProfileEditViewModelType {
-  private let useCase: ProfileEditUseCase
-
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: ProfileEditCoordinatable?
-  
-  private let userInfoRelay = PublishRelay<UserProfile>()
 
+  private let useCase: ProfileEditUseCase
+  private let disposeBag = DisposeBag()
+  
+  private let profileEditMenuItemsRelay = BehaviorRelay<[ProfileEditMenuItem]>(value: [])
+  private let profileImageUrlRelay = BehaviorRelay<URL?>(value: nil)
+  
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapCell: Driver<Int>
-    let didTapResignButton: ControlEvent<Void>
-    let isVisible: Observable<Bool>
+    let didTapBackButton: Signal<Void>
+    let didTapProfileEditMenu: Signal<ProfileEditMenuItem>
+    let didTapResignButton: Signal<Void>
+    let requestData: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    let userInfo: Signal<UserProfile>
+    let profileEditMenuItemsRelay: Driver<[ProfileEditMenuItem]>
+    let profileImageUrl: Driver<URL?>
   }
   
   // MARK: - Initializers
@@ -58,50 +57,50 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.didTapBackButton()
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
-    input.didTapCell
-      .drive(with: self) { onwer, index in
-        switch index {
-        case 0, 1:
-          break
-        case 2:
-          onwer.coordinator?.attachChangePassword()
-        default:
-          break
-        }
+    input.requestData
+      .emit(with: self) { owner, _ in
+        Task { await owner.loadUserProfile() }
       }.disposed(by: disposeBag)
+    
+    input.didTapProfileEditMenu
+      .emit(with: self) { owner, item in
+        owner.navitate(to: item)
+      }
+      .disposed(by: disposeBag)
     
     input.didTapResignButton
-      .bind(with: self) { onwer, _ in
-        onwer.coordinator?.attachResign()
-      }.disposed(by: disposeBag)
-    
-    input.isVisible
-      .bind(with: self) { onwer, _ in
-        onwer.userInfo()
-      }.disposed(by: disposeBag)
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.attachResign()
+      }
+      .disposed(by: disposeBag)
     
     return Output(
-      userInfo: userInfoRelay.asSignal()
+      profileEditMenuItemsRelay: profileEditMenuItemsRelay.asDriver(),
+      profileImageUrl: profileImageUrlRelay.asDriver()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  func userInfo() {
-    useCase.userInfo()
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { onwer, userInfo in
-          onwer.userInfoRelay.accept(userInfo)
-        }
-      )
-      .disposed(by: disposeBag)
+  func loadUserProfile() async {
+    do {
+      let profile = try await useCase.loadUserProfile()
+      
+      let menuItems: [ProfileEditMenuItem] = [.id(profile.name), .email(profile.email), .editPassword]
+      
+      profileEditMenuItemsRelay.accept(menuItems)
+      profileImageUrlRelay.accept(profile.imageUrl)
+    } catch {
+      // TODO: 에러시 UI 구현 예정
+      print(error)
+    }
   }
+  
+  func navitate(to item: ProfileEditMenuItem) { }
 }
