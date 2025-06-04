@@ -12,7 +12,7 @@ import UseCase
 
 protocol NewPasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapResetPasswordAlert()
+  func didFinishUpdatePassword()
 }
 
 protocol NewPasswordViewModelType {
@@ -28,6 +28,10 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
   weak var coordinator: NewPasswordCoordinatable?
 
   private let disposeBag = DisposeBag()
+  private let useCase: LogInUseCase
+  
+  private let isSuccessedUpdatePasswordRelay = PublishRelay<Bool>()
+  private let isStartedUpdatePasswordRelay = PublishRelay<Bool>()
 
   // MARK: - Input
   struct Input {
@@ -47,6 +51,8 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     let isValidPassword: Driver<Bool>
     let correspondPassword: Driver<Bool>
     let isEnabledNextButton: Driver<Bool>
+    let isSuccessedUpdatePassword: Signal<Bool>
+    let isStartedUpdatePassword: Signal<Bool>
   }
   
   // MARK: - Initializers
@@ -58,6 +64,19 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     input.didTapBackButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapContinueButton
+      .withLatestFrom(input.password.asDriver())
+      .emit(with: self) { owner, password in
+        Task { await owner.updatePassword(password) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didFinishUpdatePassword()
       }
       .disposed(by: disposeBag)
     
@@ -84,8 +103,7 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     let isEnabledNextButton = Observable.combineLatest(
       isValidPassword, correspondPassword
     ) { $0 && $1 }
-    
-    // TODO: 비밀번호 재설정 요청 -> 성공시 팝업 팝업 끝나면 로그인으로 이동
+
     return Output(
       containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
       containNumber: containNumber.asDriver(onErrorJustReturn: false),
@@ -93,10 +111,24 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
       isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
       isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false),
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
+      isSuccessedUpdatePassword: isSuccessedUpdatePasswordRelay.asSignal(),
+      isStartedUpdatePassword: isStartedUpdatePasswordRelay.asSignal()
     )
   }
 }
 
 // MARK: - API Methods
-private extension NewPasswordViewModel { }
+private extension NewPasswordViewModel {
+  func updatePassword(_ newPassword: String) async {
+    do {
+      isStartedUpdatePasswordRelay.accept(true)
+      try await useCase.updatePassword(newPassword)
+      isStartedUpdatePasswordRelay.accept(false)
+      isSuccessedUpdatePasswordRelay.accept(true)
+    } catch {
+      isSuccessedUpdatePasswordRelay.accept(false)
+      isStartedUpdatePasswordRelay.accept(false)
+    }
+  }
+}

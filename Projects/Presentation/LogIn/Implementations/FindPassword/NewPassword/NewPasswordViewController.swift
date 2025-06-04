@@ -147,7 +147,7 @@ private extension NewPasswordViewController {
   }
 }
 
-// MARK: - Bind
+// MARK: - Bind Methods
 private extension NewPasswordViewController {
   func bind() {
     let input = NewPasswordViewModel.Input(
@@ -159,6 +159,7 @@ private extension NewPasswordViewController {
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
   }
   
@@ -213,8 +214,34 @@ private extension NewPasswordViewController {
     output.isEnabledNextButton
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.isStartedUpdatePassword
+      .emit(with: self) { owner, isStart in
+        isStart ? owner.nextButton.startLoadingAnimation() : owner.nextButton.stopLoadingAnimation()
+        owner.view.isUserInteractionEnabled = !isStart
+      }
+      .disposed(by: disposeBag)
+    
+    output.isSuccessedUpdatePassword
+      .emit(with: self) { owner, isSuccessed in
+        if isSuccessed {
+          owner.presentConfirmAlertView()
+        } else {
+          owner.presentNetworkUnstableAlert()
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - NewPasswordPresentable
 extension NewPasswordViewController: NewPasswordPresentable { }
+
+// MARK: - Private Methods
+private extension NewPasswordViewController {
+  func presentConfirmAlertView() {
+    guard !alertView.isPresenting else { return }
+    
+    alertView.present(to: self, animted: true)
+  }
+}
