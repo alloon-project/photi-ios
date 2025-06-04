@@ -93,30 +93,22 @@ final class FindIdViewModel: FindIdViewModelType {
   }
 }
 
-// MARK: - Private Methods
+// MARK: - API Methods
 private extension FindIdViewModel {
-  func requestCheckEmail(email: String) {
-    useCase.findId(userEmail: email)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.checkedEmailRelay.accept(())
-        },
-        onFailure: { owner, error in
-          print(error)
-          owner.requestFailed(error: error)
-        }
-      )
-      .disposed(by: disposeBag)
+  func requestCheckEmail(email: String) async {
+    do {
+      try await useCase.findId(userEmail: email).value
+      successEmailVerificationRelay.accept(())
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
-  func requestFailed(error: Error) {
-    if
-      let error = error as? APIError,
-      case .userNotFound = error {
-      wrongEmailRelay.accept(())
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError, case .userNotFound = error {
+      notRegisteredEmailRelay.accept(())
     } else {
-      requestFailedRelay.accept(())
+      networkUnstableRelay.accept(())
     }
   }
 }
