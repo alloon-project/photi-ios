@@ -6,6 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
+import Core
 import Entity
 import UseCase
 import Repository
@@ -21,5 +23,27 @@ public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
 public extension ProfileEditUseCaseImpl {
   func loadUserProfile() async throws -> UserProfile {
     return try await repository.fetchUserProfile()
+  }
+  
+  func updateProfileImage(_ image: UIImageWrapper) async throws -> URL? {
+    guard let (data, type) = imageToData(image, maxMB: 8) else {
+      throw APIError.myPageFailed(reason: .fileTooLarge)
+    }
+    
+    return try await repository.uploadProfileImage(data, imageType: type)
+  }
+}
+
+// MARK: - Private Methods
+private extension ProfileEditUseCaseImpl {
+  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+    let maxSizeBytes = maxMB * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      return (data, "png")
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      return (data, "jpeg")
+    }
+    return nil
   }
 }

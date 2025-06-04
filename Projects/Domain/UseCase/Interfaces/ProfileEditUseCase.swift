@@ -6,8 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
+import Core
 import Entity
 
 public protocol ProfileEditUseCase {
   func loadUserProfile() async throws -> UserProfile
+  func updateProfileImage(_ image: UIImageWrapper) async throws -> URL?
 }
