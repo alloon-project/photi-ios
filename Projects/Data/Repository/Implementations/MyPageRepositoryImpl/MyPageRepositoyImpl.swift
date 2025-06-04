@@ -77,6 +77,15 @@ public extension MyPageRepositoyImpl {
     
     return dataMapper.mapToUserProfile(dto: result)
   }
+  
+  func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL? {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.uploadProfileImage(image, imageType: imageType),
+      responseType: UserProfileResponseDTO.self
+    ).value
+    
+    return dataMapper.mapToUserProfile(dto: result).imageUrl
+  }
 }
 
 // MARK: - Private Methods
@@ -101,6 +110,10 @@ private extension MyPageRepositoyImpl {
             single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
             single(.failure(map404ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.myPageFailed(reason: .fileTooLarge)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.myPageFailed(reason: .invalidFileFormat)))
           } else {
             single(.failure(APIError.serverError))
           }

@@ -17,7 +17,7 @@ public protocol MyPageDataMapper {
   func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary]
   func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToFeedSummaryFromFeedsByDate(dtos: [FeedByDateResponseDTO]) -> [FeedSummary]
-  func mapToUserProfile(dto: ProfileEditResponseDTO) -> UserProfile
+  func mapToUserProfile(dto: UserProfileResponseDTO) -> UserProfile
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
@@ -83,7 +83,7 @@ public extension MyPageDataMapperImpl {
     }
   }
   
-  func mapToUserProfile(dto: ProfileEditResponseDTO) -> UserProfile {
+  func mapToUserProfile(dto: UserProfileResponseDTO) -> UserProfile {
     return .init(
       imageUrl: imageURL(from: dto.imageUrl),
       name: dto.username,
