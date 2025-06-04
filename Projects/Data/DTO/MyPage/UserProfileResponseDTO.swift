@@ -6,13 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-public struct ProfileEditResponseDTO: Decodable {
+public struct UserProfileResponseDTO: Decodable {
   public let imageUrl: String?
   public let username: String
   public let email: String
 }
 
-public extension ProfileEditResponseDTO {
+public extension UserProfileResponseDTO {
   static let stubData = """
 {
   "code": "200 OK",

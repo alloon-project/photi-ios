@@ -72,7 +72,7 @@ public extension MyPageRepositoyImpl {
   func fetchUserProfile() async throws -> UserProfile {
     let result = try await requestAuthorizableAPI(
       api: MyPageAPI.userInformation,
-      responseType: ProfileEditResponseDTO.self
+      responseType: UserProfileResponseDTO.self
     ).value
     
     return dataMapper.mapToUserProfile(dto: result)
