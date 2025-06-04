@@ -7,47 +7,39 @@
 //
 
 import UIKit
-import RxSwift
+import Kingfisher
 import RxCocoa
+import RxGesture
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
-import Entity
 
 final class ProfileEditViewController: UIViewController, ViewControllerable {
   private let viewModel: ProfileEditViewModel
-  
   private let disposeBag = DisposeBag()
-
-  private var userInfo: [String] = []
-
-  // MARK: - UIComponents
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "프로필 수정",
-    displayMode: .dark
-  )
+  private var menuItems = [ProfileEditMenuItem]() {
+    didSet { menuTableView.reloadData() }
+  }
   
-  private let profileImageView = {
-    let imageView = UIImageView()
-    imageView.layer.cornerRadius = 48
-    imageView.backgroundColor = .gray400
-    imageView.clipsToBounds = true
-    imageView.image = .personLight
-    imageView.contentMode = .scaleAspectFill
-    
-    return imageView
-  }()
+  private let requestData = PublishRelay<Void>()
+  private let didTapProfileEditMenu = PublishRelay<ProfileEditMenuItem>()
+
+  // MARK: - UI Components
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "프로필 수정", displayMode: .dark)
   
-  private let menuTableView = {
+  private let profileImageView = AvatarImageView(size: .large)
+  
+  private let menuTableView: SelfSizingTableView = {
     let tableView = SelfSizingTableView()
-    tableView.registerCell(SettingTableViewCell.self)
-    tableView.estimatedRowHeight = 32
+    tableView.registerCell(ProfileEditMenuItemCell.self)
+    tableView.rowHeight = 56
+    tableView.separatorInset = .zero
+    tableView.separatorColor = .gray200
     tableView.isScrollEnabled = false
     
     return tableView
   }()
-  
   private let resignButton = TextButton(text: "회원탈퇴", size: .small, type: .gray)
   
   // MARK: - Initializers
@@ -65,10 +57,12 @@ final class ProfileEditViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    menuTableView.rx.setDelegate(self).disposed(by: disposeBag)
-    menuTableView.rx.setDataSource(self).disposed(by: disposeBag)
+    menuTableView.delegate = self
+    menuTableView.dataSource = self
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
 }
 
@@ -81,7 +75,7 @@ private extension ProfileEditViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(
+    view.addSubviews(
       navigationBar,
       profileImageView,
       menuTableView,
@@ -99,18 +93,16 @@ private extension ProfileEditViewController {
     profileImageView.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(navigationBar.snp.bottom).offset(32)
-      $0.width.height.equalTo(96)
     }
     
     menuTableView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(profileImageView.snp.bottom).offset(32)
-      $0.height.equalTo(184)
     }
     
     resignButton.snp.makeConstraints {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
-      $0.trailing.equalToSuperview().offset(-14)
+      $0.trailing.equalToSuperview().inset(24)
     }
   }
 }
@@ -119,10 +111,10 @@ private extension ProfileEditViewController {
 private extension ProfileEditViewController {
   func bind() {
     let input = ProfileEditViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapCell: menuTableView.rx.itemSelected.map { $0.row }.asDriver(onErrorJustReturn: 0),
-      didTapResignButton: resignButton.rx.tap,
-      isVisible: self.rx.isVisible
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapProfileEditMenu: didTapProfileEditMenu.asSignal(),
+      didTapResignButton: resignButton.rx.tap.asSignal(),
+      requestData: requestData.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -130,10 +122,16 @@ private extension ProfileEditViewController {
   }
   
   func bind(output: ProfileEditViewModel.Output) {
-    output.userInfo
-      .emit(with: self) { onwer, userInfo in
-        // TODO: -  캐싱 적용 후 수정     self?.profileImageView.load(url: userInfo.imageUrl)
-        onwer.userInfo = [userInfo.userName, userInfo.userEmail]
+    output.profileEditMenuItemsRelay
+      .drive(rx.menuItems)
+      .disposed(by: disposeBag)
+    
+    output.profileImageUrl
+      .drive(with: self) { owner, url in
+        Task {
+          let image = await owner.profileImage(with: url)
+          owner.profileImageView.configureImage(image)
+        }
       }
       .disposed(by: disposeBag)
   }
@@ -149,32 +147,49 @@ extension ProfileEditViewController: ProfileEditPresentable {
     )
     changedPasswordToastView.setConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-64)
+      $0.bottom.equalToSuperview().inset(64)
     }
     
     changedPasswordToastView.present(to: self)
   }
 }
 
-// MARK: - UITableView Delegate, DataSource
-extension ProfileEditViewController: UITableViewDelegate, UITableViewDataSource {
-  func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    56
-  }
-  
+// MARK: - UITableViewDataSource
+extension ProfileEditViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    profileEditMenuDataSource.count
+    return menuItems.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
-    
-    if profileEditMenuDataSource[indexPath.row].1 == 0 {
-      cell.configure(with: profileEditMenuDataSource[indexPath.row].0, type: .default)
-    } else {
-      cell.configure(with: profileEditMenuDataSource[indexPath.row].0,
-                     type: .label(text: "불러오는중")) // TODO: - 아이디 & 이메일 조회 후 변경 예정
-    }
+    print(menuItems)
+    let cell = tableView.dequeueCell(ProfileEditMenuItemCell.self, for: indexPath)
+    cell.configure(with: menuItems[indexPath.row])
     return cell
+  }
+}
+
+// MARK: - UITableViewDelegate
+extension ProfileEditViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let item = menuItems[indexPath.row]
+    didTapProfileEditMenu.accept(item)
+  }
+}
+
+// MARK: - Private Methods
+private extension ProfileEditViewController {
+  func profileImage(with url: URL?) async -> UIImage? {
+    guard let url = url else { return nil }
+    
+    return await withCheckedContinuation { continuation in
+      KingfisherManager.shared.retrieveImage(with: url) { result in
+        switch result {
+        case .success(let value):
+          continuation.resume(returning: value.image)
+        case .failure:
+          continuation.resume(returning: nil)
+        }
+      }
+    }
   }
 }
