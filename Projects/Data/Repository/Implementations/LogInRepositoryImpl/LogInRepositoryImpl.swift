@@ -29,7 +29,7 @@ public extension LogInRepositoryImpl {
     
     return requestUnAuthorizableAPI(
       api: LogInAPI.login(dto: requestDTO),
-      responseType: SuccessResponseDTO.self
+      responseType: LogInResponseDTO.self
     )
     .map { _ in () }
   }
@@ -47,6 +47,16 @@ public extension LogInRepositoryImpl {
     
     return requestUnAuthorizableAPI(
       api: LogInAPI.findPassword(dto: requestDTO),
+      responseType: SuccessResponseDTO.self
+    )
+    .map { _ in () }
+  }
+  
+  func updatePassword(from password: String, newPassword: String) -> Single<Void> {
+    let requestDTO = UpdatePasswordRequstDTO(password: password, newPassword: newPassword)
+    
+    return requestAuthorizableAPI(
+      api: LogInAPI.updatePassword(dto: requestDTO),
       responseType: SuccessResponseDTO.self
     )
     .map { _ in () }
@@ -78,6 +88,42 @@ private extension LogInRepositoryImpl {
           }
         } catch {
           single(.failure(error))
+        }
+      }
+      return Disposables.create()
+    }
+  }
+  
+  @discardableResult
+  func requestAuthorizableAPI<T: Decodable>(
+    api: LogInAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .never
+  ) -> Single<T> {
+    return Single.create { single in
+      Task {
+        do {
+          let provider = Provider<LogInAPI>(
+            stubBehavior: behavior,
+            session: .init(interceptor: AuthenticationInterceptor())
+          )
+          
+          let result = try await provider.request(api, type: responseType.self).value
+          if (200..<300).contains(result.statusCode), let data = result.data {
+            single(.success(data))
+          } else if result.statusCode == 401 {
+            single(.failure(APIError.loginFailed(reason: .invalidEmailOrPassword)))
+          } else if result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
+          } else {
+            single(.failure(APIError.serverError))
+          }
+        } catch {
+          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+            single(.failure(APIError.authenticationFailed))
+          } else {
+            single(.failure(error))
+          }
         }
       }
       return Disposables.create()
