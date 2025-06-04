@@ -10,6 +10,6 @@ import RxSwift
 
 public protocol LogInUseCase {
   func login(username: String, password: String) -> Single<Void>
-  func findId(userEmail: String) -> Single<Void>
-  func findPassword(userEmail: String, userName: String) -> Single<Void>
+  func sendUserInformation(to email: String) -> Single<Void>
+  func sendTemporaryPassword(to email: String, userName: String) -> Single<Void>
 }

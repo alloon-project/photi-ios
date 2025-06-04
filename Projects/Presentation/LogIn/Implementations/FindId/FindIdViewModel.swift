@@ -97,7 +97,7 @@ final class FindIdViewModel: FindIdViewModelType {
 private extension FindIdViewModel {
   func requestCheckEmail(email: String) async {
     do {
-      try await useCase.findId(userEmail: email).value
+      try await useCase.sendUserInformation(to: email).value
       successEmailVerificationRelay.accept(())
     } catch {
       requestFailed(with: error)

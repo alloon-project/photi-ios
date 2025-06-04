@@ -10,6 +10,6 @@ import RxSwift
 
 public protocol LogInRepository {
   func logIn(userName: String, password: String) -> Single<Void>
-  func findId(userEmail: String) -> Single<Void>
-  func findPassword(userEmail: String, userName: String) -> Single<Void>
+  func requestUserInformation(email: String) -> Single<Void>
+  func requestTemporaryPassword(email: String, userName: String) -> Single<Void>
 }

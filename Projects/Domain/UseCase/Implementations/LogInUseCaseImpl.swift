@@ -21,10 +21,11 @@ public final class LogInUseCaseImpl: LogInUseCase {
     repository.logIn(userName: username, password: password)
   }
   
-  public func findId(userEmail: String) -> Single<Void> {
-    repository.findId(userEmail: userEmail)
+  public func sendUserInformation(to email: String) -> Single<Void> {
+    repository.requestUserInformation(email: email)
   }
-  public func findPassword(userEmail: String, userName: String) -> Single<Void> {
-    repository.findPassword(userEmail: userEmail, userName: userName)
+  
+  public func sendTemporaryPassword(to email: String, userName: String) -> Single<Void> {
+    repository.requestTemporaryPassword(email: email, userName: userName)
   }
 }

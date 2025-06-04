@@ -34,16 +34,16 @@ public extension LogInRepositoryImpl {
     .map { _ in () }
   }
   
-  func findId(userEmail: String) -> Single<Void> {
+  func requestUserInformation(email: String) -> Single<Void> {
     return requestUnAuthorizableAPI(
-      api: LogInAPI.findId(email: userEmail),
+      api: LogInAPI.findId(email: email),
       responseType: SuccessResponseDTO.self
     )
     .map { _ in () }
   }
   
-  func findPassword(userEmail: String, userName: String) -> Single<Void> {
-    let requestDTO = dataMapper.mapToFindPasswordRequestDTO(userEmail: userEmail, userName: userName)
+  func requestTemporaryPassword(email: String, userName: String) -> Single<Void> {
+    let requestDTO = dataMapper.mapToFindPasswordRequestDTO(userEmail: email, userName: userName)
     
     return requestUnAuthorizableAPI(
       api: LogInAPI.findPassword(dto: requestDTO),
