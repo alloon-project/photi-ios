@@ -8,6 +8,7 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol NewPasswordCoordinatable: AnyObject {
   func didTapBackButton()
@@ -49,7 +50,9 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: LogInUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
