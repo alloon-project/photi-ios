@@ -10,7 +10,6 @@ import Core
 import UseCase
 
 protocol TempPasswordDependency: Dependency {
-  var findPasswordUseCase: FindPasswordUseCase { get }
   var loginUseCase: LogInUseCase { get }
 }
 
@@ -31,8 +30,7 @@ final class TempPasswordContainer:
     userName: String
   ) -> ViewableCoordinating {
     let viewModel = TempPasswordViewModel(
-      findPasswordUseCase: dependency.findPasswordUseCase,
-      loginUseCase: dependency.loginUseCase,
+      useCase: dependency.loginUseCase,
       email: userEmail,
       name: userName
     )

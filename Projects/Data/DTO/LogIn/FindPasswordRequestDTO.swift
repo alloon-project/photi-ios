@@ -7,11 +7,11 @@
 //
 
 public struct FindPasswordRequestDTO: Encodable {
-  public let userEmail: String
-  public let userName: String
+  public let email: String
+  public let username: String
   
-  public init(userEmail: String, userName: String) {
-    self.userEmail = userEmail
-    self.userName = userName
+  public init(email: String, username: String) {
+    self.email = email
+    self.username = username
   }
 }

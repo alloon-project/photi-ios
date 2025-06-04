@@ -15,15 +15,16 @@ public enum APIError: Error {
   case challengeFailed(reason: ChallengeFailedReason)
   case myPageFailed(reason: MyPageFailedReason)
   case organazieFailed(reason: OrganizedFailedReason)
-
-  // MARK: - Profile Edit
+  
   case userNotFound
 }
 
+// MARK: - LogIn
 extension APIError {
   public enum LogInFailedReason {
     case invalidEmailOrPassword
     case deletedUser
+    case unMatchedTempoaryPassword
   }
 }
 

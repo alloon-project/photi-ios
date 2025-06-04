@@ -90,11 +90,11 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
     self.findPasswordCoordinator = coordinater
   }
   
-  func detachFindPassword() { 
+  func detachFindPassword(willRemoveView: Bool) {
     guard let coordinater = findPasswordCoordinator else { return }
     
     removeChild(coordinater)
-    viewControllerable.popViewController(animated: true)
+    if willRemoveView { viewControllerable.popViewController(animated: true) }
     self.findPasswordCoordinator = nil
   }
 }
@@ -125,11 +125,19 @@ extension LogInCoordinator: SignUpListener {
 // MARK: - FindpasswordListener
 extension LogInCoordinator: FindPasswordListener {
   func didTapBackButtonAtFindPassword() {
-    detachFindPassword()
+    detachFindPassword(willRemoveView: true)
   }
   
-  func didFinishFindPassword() {
-    detachFindPassword()
+  func didFinishUpdatePassword() {
+    detachFindPassword(willRemoveView: false)
+    guard
+      let navigationController = viewControllerable.uiviewController.navigationController,
+      let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
+      viewControllerables.count >= 2
+    else { return }
+
+    let remainingVCs = Array(viewControllerables.prefix(2))
+    viewControllerable.setViewControllers(remainingVCs, animated: true)
   }
 }
 

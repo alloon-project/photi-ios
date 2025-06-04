@@ -8,61 +8,75 @@
 
 import RxCocoa
 import RxSwift
+import UseCase
 
 protocol NewPasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapResetPasswordAlert()
+  func didFinishUpdatePassword()
 }
 
 protocol NewPasswordViewModelType {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: NewPasswordCoordinatable? { get set }
   
   func transform(input: Input) -> Output
 }
 
 final class NewPasswordViewModel: NewPasswordViewModelType {
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: NewPasswordCoordinatable?
+
+  private let disposeBag = DisposeBag()
+  private let useCase: LogInUseCase
   
+  private let isSuccessedUpdatePasswordRelay = PublishRelay<Bool>()
+  private let isStartedUpdatePasswordRelay = PublishRelay<Bool>()
+
   // MARK: - Input
   struct Input {
-    var password: ControlProperty<String>
-    var reEnteredPassword: ControlProperty<String>
-    var didTapBackButton: ControlEvent<Void>
-    var didTapContinueButton: ControlEvent<Void>
-    let didAppearAlert: PublishRelay<Void>
+    let password: ControlProperty<String>
+    let reEnteredPassword: ControlProperty<String>
+    let didTapBackButton: Signal<Void>
+    let didTapContinueButton: Signal<Void>
+    let didTapConfirmButtonAtAlert: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var containAlphabet: Driver<Bool>
-    var containNumber: Driver<Bool>
-    var containSpecial: Driver<Bool>
-    var isValidRange: Driver<Bool>
-    var isValidPassword: Driver<Bool>
-    var correspondPassword: Driver<Bool>
-    var isEnabledNextButton: Driver<Bool>
+    let containAlphabet: Driver<Bool>
+    let containNumber: Driver<Bool>
+    let containSpecial: Driver<Bool>
+    let isValidRange: Driver<Bool>
+    let isValidPassword: Driver<Bool>
+    let correspondPassword: Driver<Bool>
+    let isEnabledNextButton: Driver<Bool>
+    let isSuccessedUpdatePassword: Signal<Bool>
+    let isStartedUpdatePassword: Signal<Bool>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: LogInUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
     input.didTapContinueButton
-      .bind(with: self) { owner, _ in
-        // TODO: 비밀번호 재설정 API
-        owner.coordinator?.didTapResetPasswordAlert()
+      .withLatestFrom(input.password.asDriver())
+      .emit(with: self) { owner, password in
+        Task { await owner.updatePassword(password) }
+      }
+      .disposed(by: disposeBag)
+    
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didFinishUpdatePassword()
       }
       .disposed(by: disposeBag)
     
@@ -89,8 +103,7 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     let isEnabledNextButton = Observable.combineLatest(
       isValidPassword, correspondPassword
     ) { $0 && $1 }
-    
-    // TODO: 비밀번호 재설정 요청 -> 성공시 팝업 팝업 끝나면 로그인으로 이동
+
     return Output(
       containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
       containNumber: containNumber.asDriver(onErrorJustReturn: false),
@@ -98,7 +111,24 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
       isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
       isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false),
       correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
+      isSuccessedUpdatePassword: isSuccessedUpdatePasswordRelay.asSignal(),
+      isStartedUpdatePassword: isStartedUpdatePasswordRelay.asSignal()
     )
+  }
+}
+
+// MARK: - API Methods
+private extension NewPasswordViewModel {
+  func updatePassword(_ newPassword: String) async {
+    do {
+      isStartedUpdatePasswordRelay.accept(true)
+      try await useCase.updatePassword(newPassword)
+      isStartedUpdatePasswordRelay.accept(false)
+      isSuccessedUpdatePasswordRelay.accept(true)
+    } catch {
+      isSuccessedUpdatePasswordRelay.accept(false)
+      isStartedUpdatePasswordRelay.accept(false)
+    }
   }
 }

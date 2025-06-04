@@ -10,7 +10,7 @@ import Core
 
 protocol NewPasswordListener: AnyObject {
   func didTapBackButtonAtNewPassword()
-  func didFinishFindPassword()
+  func didFinishUpdatePassword()
 }
 
 protocol NewPasswordPresentable { }
@@ -33,7 +33,7 @@ final class NewPasswordCoordinator: ViewableCoordinator<NewPasswordPresentable>,
     listener?.didTapBackButtonAtNewPassword()
   }
   
-  func didTapResetPasswordAlert() {
-    listener?.didFinishFindPassword()
+  func didFinishUpdatePassword() {
+    listener?.didFinishUpdatePassword()
   }
 }

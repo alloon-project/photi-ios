@@ -8,4 +8,7 @@
 
 public protocol AuthRepository {
   func isLogIn() async throws -> Bool
+  func accessToken() -> String?
+  func storeAccessToken(_ token: String)
+  func removeToken()
 }

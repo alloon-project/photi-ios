@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol FindIdDependency: Dependency {
-  var findIdUseCase: FindIdUseCase { get }
+  var loginUseCase: LogInUseCase { get }
 }
 
 protocol FindIdContainable: Containable {
@@ -19,7 +19,7 @@ protocol FindIdContainable: Containable {
 
 final class FindIdContainer: Container<FindIdDependency>, FindIdContainable {
   func coordinator(listener: FindIdListener) -> ViewableCoordinating {
-    let viewModel = FindIdViewModel(useCase: dependency.findIdUseCase)
+    let viewModel = FindIdViewModel(useCase: dependency.loginUseCase)
     let viewControllerable = FindIdViewController(viewModel: viewModel)
     let coordinator = FindIdCoordinator(
       viewControllerable: viewControllerable,

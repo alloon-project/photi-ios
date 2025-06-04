@@ -19,16 +19,11 @@ final class FindIdViewController: UIViewController, ViewControllerable {
   private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "아이디 찾기",
-    displayMode: .dark
-  )
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "아이디 찾기", displayMode: .dark)
   
   private let announceLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 2
-    label.textAlignment = .left
     label.attributedText = "가입 시 사용했던 \n이메일을 입력해주세요".attributedString(font: .heading4, color: .gray900)
     return label
   }()
@@ -61,17 +56,19 @@ final class FindIdViewController: UIViewController, ViewControllerable {
     super.init(nibName: nil, bundle: nil)
   }
   
+  @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
-  // MARK: - View Life Cycle
+  // MARK: - Life Cycle
   override func viewDidLoad() {
     super.viewDidLoad()
     
     setupUI()
     bind()
   }
+  
   // MARK: - UIResponder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
@@ -85,7 +82,6 @@ private extension FindIdViewController {
   func setupUI() {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
-    self.nextButton.isEnabled = false
     setViewHierarchy()
     setConstraints()
   }
@@ -102,21 +98,18 @@ private extension FindIdViewController {
     }
     
     announceLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-20)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(navigationBar.snp.bottom).offset(40)
     }
     
     emailTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(announceLabel.snp.bottom).offset(20)
     }
     
     nextButton.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.bottom.equalToSuperview().offset(-56)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(56)
     }
   }
 }
@@ -125,53 +118,65 @@ private extension FindIdViewController {
 private extension FindIdViewController {
   func bind() {
     let input = FindIdViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
-      email: emailTextField.rx.text,
-      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged),
-      didTapNextButton: nextButton.rx.tap,
-      didAppearAlert: alertRelay
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      email: emailTextField.rx.text.asDriver(),
+      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
+      didTapNextButton: nextButton.rx.tap.asSignal(),
+      didAppearAlert: alertRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
+    bind(for: output)
+  }
+  
+  func viewBind() {
+    alertVC.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.alertRelay.accept(())
+      }
+      .disposed(by: disposeBag)
     
-    output.isValidateEmail
-      .emit(with: self) { owner, isValidate in
-        if !isValidate {
-          owner.emailTextField.mode = .error
-          owner.emailTextField.commentViews = [owner.invalidEmail]
-          owner.emailTextField.commentViews.forEach { $0.isActivate = true }
-          owner.nextButton.isEnabled = false
-        } else {
-          owner.emailTextField.mode = .default
-          owner.emailTextField.commentViews.forEach { $0.isActivate = false }
-          owner.nextButton.isEnabled = true
-        }
-      }.disposed(by: disposeBag)
-    
-    output.wrongEmail
+    emailTextField.textField.rx.controlEvent(.editingChanged)
+      .bind(with: self) { owner, _ in
+        owner.emailTextField.mode = .default
+        owner.emailTextField.commentViews.forEach { $0.isActivate = false }
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: FindIdViewModel.Output) {
+    output.invalidFormat
+      .emit(with: self) { owner, _ in
+        owner.emailTextField.mode = .error
+        owner.emailTextField.commentViews = [owner.invalidEmail]
+        owner.invalidEmail.isActivate = true
+      }
+      .disposed(by: disposeBag)
+
+    output.notRegisteredEmail
       .emit(with: self) { owner, _ in
         owner.emailTextField.mode = .error
         owner.emailTextField.commentViews = [owner.isWrongEmail]
-        owner.emailTextField.commentViews.forEach { $0.isActivate = true }
-        owner.nextButton.isEnabled = false
-      }.disposed(by: disposeBag)
+        owner.isWrongEmail.isActivate = true
+      }
+      .disposed(by: disposeBag)
     
-    output.checkEmailSucceed
+    output.successEmailVerification
       .emit(with: self) { owner, _ in
         owner.alertVC.present(to: owner, animted: false)
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
     
-    output.requestFailed
+    output.isEnabledConfirm
+      .drive(nextButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
-    
-    alertVC.rx.isDismissing
-      .bind(with: self) { owner, _ in
-        owner.alertRelay.accept(())
-      }.disposed(by: disposeBag)
   }
 }
 
