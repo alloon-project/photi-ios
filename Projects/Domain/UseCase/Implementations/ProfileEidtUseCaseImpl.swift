@@ -6,19 +6,20 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Entity
 import UseCase
 import Repository
 
-public struct ProfileEditUseCaseImpl: ProfileEditUseCase {
-  private let repository: ProfileEditRepository
+public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
+  private let repository: MyPageRepository
   
-  public init(repository: ProfileEditRepository) {
+  public init(repository: MyPageRepository) {
     self.repository = repository
   }
-  
-  public func userInfo() -> Single<UserProfile> {
-    return repository.userInfo()
+}
+
+public extension ProfileEditUseCaseImpl {
+  func loadUserProfile() async throws -> UserProfile {
+    return try await repository.fetchUserProfile()
   }
 }

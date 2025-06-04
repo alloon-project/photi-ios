@@ -6,12 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Entity
-import Repository
 
 public protocol ProfileEditUseCase {
-  init(repository: ProfileEditRepository)
-  
-  func userInfo() -> Single<UserProfile>
+  func loadUserProfile() async throws -> UserProfile
 }
