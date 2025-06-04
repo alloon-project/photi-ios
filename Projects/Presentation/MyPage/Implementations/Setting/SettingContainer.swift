@@ -26,9 +26,7 @@ final class SettingContainer:
   SettingContainable,
   ProfileEditDependency {
   var resignUsecase: ResignUseCase { dependency.resignUseCase }
-  
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
-  
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   func coordinator(listener: SettingListener) -> ViewableCoordinating {
