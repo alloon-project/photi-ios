@@ -13,6 +13,7 @@ protocol SettingListener: AnyObject {
   func isUserResigned()
   func didTapBackButtonAtSetting()
   func authenticatedFailedAtSetting()
+  func didLogOut()
 }
 
 protocol SettingPresentable { }
@@ -94,6 +95,10 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
 extension SettingCoordinator: SettingCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtSetting()
+  }
+  
+  func didFinishLogOut() {
+    listener?.didLogOut()
   }
 }
 // MARK: - ProfileEditListener

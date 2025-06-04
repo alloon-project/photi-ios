@@ -153,6 +153,10 @@ extension MyPageCoordinator: SettingListener {
   func authenticatedFailedAtSetting() {
     listener?.authenticatedFailedAtMyPage()
   }
+  
+  func didLogOut() {
+    listener?.didLogOut()
+  }
 }
 
 // MARK: - FeedHistoryListener

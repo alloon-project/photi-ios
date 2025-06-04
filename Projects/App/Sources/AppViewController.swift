@@ -121,6 +121,9 @@ extension AppViewController: AppPresentable {
   func changeNavigationControllerToHome() {
     guard viewControllers != nil else { return }
     selectedIndex = 0 // 첫 번째 탭으로 전환
+    
+    guard let viewController = viewControllers?.first else { return }
+    viewController.showTabBar(animted: true)
   }
   
   func presentWelcomeToastView(_ username: String) {
@@ -148,6 +151,21 @@ extension AppViewController: AppPresentable {
     guard !tapMyPageWithoutLogInAlertView.isPresenting else { return }
     
     tapMyPageWithoutLogInAlertView.present(to: navigationControllerable.navigationController, animted: true)
+  }
+  
+  func presentLogOutToastView(to navigationControllerable: NavigationControllerable) {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: "로그아웃이 완료됐어요.",
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    toastView.present(at: self.view)
   }
 }
 

@@ -18,6 +18,7 @@ import MyPage
   func presentWelcomeToastView(_ username: String)
   func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable)
   func presentTabMyPageWithoutLogInAlertView(to navigationControllerable: NavigationControllerable)
+  func presentLogOutToastView(to navigationControllerable: NavigationControllerable)
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -210,6 +211,14 @@ extension AppCoordinator: MyPageListener {
       await reloadAllTab()
       await presenter.changeNavigationControllerToHome()
       await presenter.presentTokenExpiredAlertView(to: homeNavigationControllerable)
+    }
+  }
+  
+  func didLogOut() {
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentLogOutToastView(to: homeNavigationControllerable)
     }
   }
 }

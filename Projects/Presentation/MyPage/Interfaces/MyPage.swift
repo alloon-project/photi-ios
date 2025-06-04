@@ -15,4 +15,5 @@ public protocol MyPageContainable: Containable {
 public protocol MyPageListener: AnyObject {
   func isUserResigned()
   func authenticatedFailedAtMyPage()
+  func didLogOut()
 }
