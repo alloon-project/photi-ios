@@ -95,19 +95,20 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
 
 // MARK: - Private Methods
 private extension FindPasswordViewModel {
-  // TODO: 서버 연결 시 아이디 & 이메일 확인 로직 구현
-  func findPassword(userEmail: String, userName: String) {
-    useCase.findPassword(userEmail: userEmail, userName: userName)
-      .subscribe(
-        with: self,
-        onSuccess: { onwer, _ in
-          onwer.coordinator?.attachTempPassword(userEmail: userEmail, userName: userName)
-        },
-        onFailure: { onwer, err in
-          print(err)
-          onwer.invalidIdOrEmailRelay.accept(())
-        }
-      )
-      .disposed(by: disposeBag)
+  @MainActor func requestTempoaryPassword(id: String, email: String) async {
+    do {
+      try await useCase.sendTemporaryPassword(to: email, userName: id).value
+      coordinator?.attachTempPassword(userEmail: email)
+    } catch {
+      requestFailed(with: error)
+    }
+  }
+  
+  func requestFailed(with error: Error) {
+    if let error = error as? APIError, case .userNotFound = error {
+      unMatchedIdOrEmailIdOrEmailRelay.accept(())
+    } else {
+      networkUnstableRelay.accept(())
+    }
   }
 }
