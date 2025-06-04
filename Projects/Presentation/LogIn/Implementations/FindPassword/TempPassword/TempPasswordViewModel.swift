@@ -20,29 +20,27 @@ protocol TempPasswordViewModelType {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: TempPasswordCoordinatable? { get set }
   
   func transform(input: Input) -> Output
 }
 
 final class TempPasswordViewModel: TempPasswordViewModelType {
-  let disposeBag = DisposeBag()
+  private let disposeBag = DisposeBag()
   private let useCase: LogInUseCase
   private let email: String
   private let name: String
   
   weak var coordinator: TempPasswordCoordinatable?
   
-  private let emailResentRelay = PublishRelay<Void>()
   private let invalidPasswordRelay = PublishRelay<Void>()
 
   // MARK: - Input
   struct Input {
-    var password: ControlProperty<String>
-    var didTapBackButton: ControlEvent<Void>
-    var didTapResendButton: ControlEvent<Void>
-    var didTapContinueButton: ControlEvent<Void>
+    let password: Driver<String>
+    let didTapBackButton: Signal<Void>
+    let didTapResendButton: Signal<Void>
+    let didTapNextButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -64,7 +62,7 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }.disposed(by: disposeBag)
     
