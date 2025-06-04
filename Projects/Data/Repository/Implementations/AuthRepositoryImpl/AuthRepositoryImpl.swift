@@ -6,11 +6,15 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
 import Entity
 import PhotiNetwork
 import Repository
 
 public struct AuthRepositoryImpl: AuthRepository {
+  private let accessTokenKey = "Authorization"
+  private let refreshTokenKey = "Refresh-Token"
+  
   public init() { }
   
   public func isLogIn() async throws -> Bool {
@@ -30,5 +34,18 @@ public struct AuthRepositoryImpl: AuthRepository {
       throw APIError.serverError
       }
     }
+  }
+  
+  public func accessToken() -> String? {
+    return UserDefaults.standard.string(forKey: accessTokenKey)
+  }
+  
+  public func storeAccessToken(_ token: String) {
+    UserDefaults.standard.set(token, forKey: accessTokenKey)
+  }
+  
+  public func removeToken() {
+    UserDefaults.standard.removeObject(forKey: accessTokenKey)
+    UserDefaults.standard.removeObject(forKey: refreshTokenKey)
   }
 }
