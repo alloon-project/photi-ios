@@ -85,7 +85,10 @@ final class AppContainer:
   
   // MARK: - UseCase
   lazy var logInUseCase: LogInUseCase = {
-    return LogInUseCaseImpl(repository: logInRepository)
+    return LogInUseCaseImpl(
+      authRepository: authRepository,
+      loginrepository: logInRepository
+    )
   }()
   
   lazy var signUpUseCase: SignUpUseCase = {

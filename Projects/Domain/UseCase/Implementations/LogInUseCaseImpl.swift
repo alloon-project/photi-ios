@@ -12,12 +12,13 @@ import Repository
 
 public final class LogInUseCaseImpl: LogInUseCase {
   private let repository: LogInRepository
+  private let authRepository: AuthRepository
+  private let loginrepository: LogInRepository
   
-  public init(repository: LogInRepository) {
-    self.repository = repository
+  public init(authRepository: AuthRepository, loginrepository: LogInRepository) {
+    self.authRepository = authRepository
+    self.loginrepository = loginrepository
   }
-  
-  public func login(username: String, password: String) -> Single<Void> {
     repository.logIn(userName: username, password: password)
   }
   
