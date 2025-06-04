@@ -9,6 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
+import Core
 
 protocol SettingCoordinatable: AnyObject {
   func didTapBackButton()
@@ -26,49 +27,73 @@ protocol SettingViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: SettingCoordinatable? { get set }
 }
 
 final class SettingViewModel: SettingViewModelType {
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: SettingCoordinatable?
   
+  private let disposeBag = DisposeBag()
+  private let settingMenuItems: [SettingMenuItem] = [
+    .editProfile,
+    .contactSupport,
+    .termsOfService,
+    .privacyPolicy,
+    .appVersion(version: Bundle.appVersion),
+    .logout
+  ]
+  
+  private let settingMenuItemsRelay = BehaviorRelay<[SettingMenuItem]>(value: [])
+  
   // MARK: - Input
-  struct Input { 
-    let didTapBackButton: ControlEvent<Void>
-    let didTapCell: ControlEvent<IndexPath>
+  struct Input {
+    let didTapBackButton: Signal<Void>
+    let requestData: Signal<Void>
+    let didTapSettingMenu: Signal<SettingMenuItem>
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output {
+    let settingMenuItems: Driver<[SettingMenuItem]>
+  }
   
   // MARK: - Initializers
   init() { }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
     
-    input.didTapCell
-      .bind(with: self) { onwer, index in
-        switch index.row {
-        case 0:
-          onwer.coordinator?.attachProfileEdit()
-        case 1:
-          onwer.coordinator?.attachInquiry()
-        case 2:
-          onwer.coordinator?.attachServiceTerms()
-        case 3:
-          onwer.coordinator?.attachPrivacy()
-        default:
-          break
-        }
-      }.disposed(by: disposeBag)
-    return Output()
+    input.requestData
+      .emit(with: self) { owner, _ in
+        owner.settingMenuItemsRelay.accept(owner.settingMenuItems)
+      }
+      .disposed(by: disposeBag)
+
+    input.didTapSettingMenu
+      .emit(with: self) { owner, menu in
+        owner.navigate(for: menu)
+      }
+      .disposed(by: disposeBag)
+    return Output(settingMenuItems: settingMenuItemsRelay.asDriver())
   }
+}
+
+// MARK: - Private Methods
+private extension SettingViewModel {
+  func navigate(for settingMenu: SettingMenuItem) {
+    switch settingMenu {
+      case .editProfile: coordinator?.attachProfileEdit()
+      case .contactSupport: coordinator?.attachInquiry()
+      case .termsOfService: coordinator?.attachServiceTerms()
+      case .privacyPolicy: coordinator?.attachPrivacy()
+      case .logout: requestLogOut()
+      default: break
+    }
+  }
+  
+  func requestLogOut() { }
 }

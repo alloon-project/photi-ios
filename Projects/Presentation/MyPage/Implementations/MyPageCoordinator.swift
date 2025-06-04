@@ -149,6 +149,10 @@ extension MyPageCoordinator: SettingListener {
   func didTapBackButtonAtSetting() {
     detachSetting()
   }
+  
+  func authenticatedFailedAtSetting() {
+    listener?.authenticatedFailedAtMyPage()
+  }
 }
 
 // MARK: - FeedHistoryListener

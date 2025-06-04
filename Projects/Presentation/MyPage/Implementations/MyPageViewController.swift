@@ -252,7 +252,6 @@ private extension MyPageViewController {
           let image = await owner.profileImage(with: url)
           owner.profileImageView.configureImage(image)
         }
-        owner.profileImageView.kf.setImage(with: url)
       }
       .disposed(by: disposeBag)
     

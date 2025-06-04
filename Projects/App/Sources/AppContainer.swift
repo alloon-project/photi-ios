@@ -105,7 +105,7 @@ final class AppContainer:
   }()
   
   lazy var profileEditUseCase: ProfileEditUseCase = {
-    return ProfileEditUseCaseImpl(repository: profileEditRepository)
+    return ProfileEditUseCaseImpl(repository: myPageRepository)
   }()
   
   lazy var changePasswordUseCase: ChangePasswordUseCase = {
@@ -174,10 +174,6 @@ final class AppContainer:
   
   lazy var myPageRepository: MyPageRepository = {
     return MyPageRepositoyImpl(dataMapper: MyPageDataMapperImpl())
-  }()
-  
-  lazy var profileEditRepository: ProfileEditRepository = {
-    return ProfileEditRepositoryImpl(dataMapper: ProfileEditDataMapperImpl())
   }()
   
   lazy var changePasswordRepository: ChangePasswordRepository = {

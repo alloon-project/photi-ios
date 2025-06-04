@@ -12,6 +12,7 @@ import Report
 protocol SettingListener: AnyObject {
   func isUserResigned()
   func didTapBackButtonAtSetting()
+  func authenticatedFailedAtSetting()
 }
 
 protocol SettingPresentable { }
@@ -103,6 +104,10 @@ extension SettingCoordinator: ProfileEditListener {
   
   func didTapBackButtonAtProfileEdit() {
     detachProfileEdit()
+  }
+  
+  func authenticatedFailedAtProfileEdit() {
+    listener?.authenticatedFailedAtSetting()
   }
 }
 
