@@ -10,7 +10,7 @@ import RxSwift
 import UseCase
 import Repository
 
-public struct LogInUseCaseImpl: LogInUseCase {
+public final class LogInUseCaseImpl: LogInUseCase {
   private let repository: LogInRepository
   
   public init(repository: LogInRepository) {
@@ -19,5 +19,12 @@ public struct LogInUseCaseImpl: LogInUseCase {
   
   public func login(username: String, password: String) -> Single<Void> {
     repository.logIn(userName: username, password: password)
+  }
+  
+  public func findId(userEmail: String) -> Single<Void> {
+    repository.findId(userEmail: userEmail)
+  }
+  public func findPassword(userEmail: String, userName: String) -> Single<Void> {
+    repository.findPassword(userEmail: userEmail, userName: userName)
   }
 }

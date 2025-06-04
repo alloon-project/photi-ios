@@ -10,6 +10,7 @@ import DTO
 
 public protocol LogInDataMapper {
   func mapToLogInRequestDTO(userName: String, password: String) -> LogInRequestDTO
+  func mapToFindPasswordRequestDTO(userEmail: String, userName: String) -> FindPasswordRequestDTO
 }
 
 public struct LogInDataMapperImpl: LogInDataMapper {
@@ -17,5 +18,9 @@ public struct LogInDataMapperImpl: LogInDataMapper {
   
   public func mapToLogInRequestDTO(userName: String, password: String) -> LogInRequestDTO {
     return LogInRequestDTO(username: userName, password: password)
+  }
+  
+  public func mapToFindPasswordRequestDTO(userEmail: String, userName: String) -> FindPasswordRequestDTO {
+    return FindPasswordRequestDTO(userEmail: userEmail, userName: userName)
   }
 }

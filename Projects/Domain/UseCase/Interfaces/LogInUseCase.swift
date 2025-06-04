@@ -7,10 +7,9 @@
 //
 
 import RxSwift
-import Repository
 
 public protocol LogInUseCase {
-  init(repository: LogInRepository)
-  
   func login(username: String, password: String) -> Single<Void>
+  func findId(userEmail: String) -> Single<Void>
+  func findPassword(userEmail: String, userName: String) -> Single<Void>
 }

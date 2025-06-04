@@ -20,30 +20,66 @@ public struct LogInRepositoryImpl: LogInRepository {
   public init(dataMapper: LogInDataMapper) {
     self.dataMapper = dataMapper
   }
+}
   
-  public func logIn(userName: String, password: String) -> Single<Void> {
+// MARK: - Public Methods
+public extension LogInRepositoryImpl {
+  func logIn(userName: String, password: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToLogInRequestDTO(userName: userName, password: password)
-      
-    return Single.create { single in
+    
+    return requestUnAuthorizableAPI(
+      api: LogInAPI.login(dto: requestDTO),
+      responseType: SuccessResponseDTO.self
+    )
+    .map { _ in () }
+  }
+  
+  func findId(userEmail: String) -> Single<Void> {
+    return requestUnAuthorizableAPI(
+      api: LogInAPI.findId(email: userEmail),
+      responseType: SuccessResponseDTO.self
+    )
+    .map { _ in () }
+  }
+  
+  func findPassword(userEmail: String, userName: String) -> Single<Void> {
+    let requestDTO = dataMapper.mapToFindPasswordRequestDTO(userEmail: userEmail, userName: userName)
+    
+    return requestUnAuthorizableAPI(
+      api: LogInAPI.findPassword(dto: requestDTO),
+      responseType: SuccessResponseDTO.self
+    )
+    .map { _ in () }
+  }
+}
+
+// MARK: - Private Methods
+private extension LogInRepositoryImpl {
+  func requestUnAuthorizableAPI<T: Decodable>(
+    api: LogInAPI,
+    responseType: T.Type,
+    behavior: StubBehavior = .never
+  ) -> Single<T> {
+    Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .never)
-            .request(LogInAPI.login(dto: requestDTO), type: LogInResponseDTO.self).value
-          if result.statusCode == 200, let data = result.data {
-            ServiceConfiguration.shared.setUseName(data.username)
-            single(.success(()))
+          let provider = Provider<LogInAPI>(stubBehavior: behavior)
+          let result = try await provider
+            .request(api, type: responseType.self).value
+          
+          if (200..<300).contains(result.statusCode), let data = result.data {
+            single(.success(data))
           } else if result.statusCode == 401 {
             single(.failure(APIError.loginFailed(reason: .invalidEmailOrPassword)))
-          } else if result.statusCode == 409 {
-            single(.failure(APIError.loginFailed(reason: .deletedUser)))
+          } else if result.statusCode == 404 {
+            single(.failure(APIError.userNotFound))
           } else {
             single(.failure(APIError.serverError))
           }
         } catch {
-          single(.failure(APIError.serverError))
+          single(.failure(error))
         }
       }
-      
       return Disposables.create()
     }
   }
