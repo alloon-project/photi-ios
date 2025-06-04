@@ -14,7 +14,7 @@ enum SettingMenuItem {
   case appVersion(version: String)
   case logout
   
-  var displayType: SettingMenuDisplayType {
+  var displayType: MenuDisplayType {
     switch self {
       case .appVersion(let version):
         return .leftSubTitle(title: title, subTitle: version)
@@ -33,9 +33,4 @@ enum SettingMenuItem {
       case .logout: return "로그아웃"
     }
   }
-}
-
-enum SettingMenuDisplayType {
-  case `default`(title: String)
-  case leftSubTitle(title: String, subTitle: String)
 }

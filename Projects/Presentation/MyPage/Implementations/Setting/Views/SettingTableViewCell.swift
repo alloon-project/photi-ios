@@ -64,7 +64,7 @@ private extension SettingTableViewCell {
 
 // MARK: - Private Methods
 private extension SettingTableViewCell {
-  func configureAccessoryView(with type: SettingMenuDisplayType) {
+  func configureAccessoryView(with type: MenuDisplayType) {
     accessoryViewContainer.subviews.forEach { $0.removeFromSuperview() }
     switch type {
     case .default:
