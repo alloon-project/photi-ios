@@ -17,6 +17,7 @@ public enum MyPageAPI {
   case feedHistory(page: Int, size: Int)
   case endedChallenges(page: Int, size: Int)
   case feedsByDate(_ date: String)
+  case userInformation
 }
 
 extension MyPageAPI: TargetType {
@@ -31,6 +32,7 @@ extension MyPageAPI: TargetType {
       case .feedHistory: return "api/users/feed-history"
       case .endedChallenges: return "api/users/ended-challenges"
       case .feedsByDate: return "api/users/feeds-by-date"
+      case .userInformation: return "api/users"
     }
   }
   
@@ -40,7 +42,7 @@ extension MyPageAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .userChallegeHistory, .verifiedChallengeDates:
+      case .userChallegeHistory, .verifiedChallengeDates, .userInformation:
         return .requestPlain
         
       case let .feedHistory(page, size), let .endedChallenges(page, size):
@@ -81,6 +83,12 @@ extension MyPageAPI: TargetType {
         
       case .feedsByDate:
         let data = FeedByDateResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .userInformation:
+        let data = ProfileEditResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")

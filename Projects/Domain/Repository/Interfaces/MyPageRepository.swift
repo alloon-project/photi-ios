@@ -16,4 +16,5 @@ public protocol MyPageRepository {
   func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary>
   func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary>
   func fetchFeeds(byDate date: String) async throws -> [FeedSummary]
+  func fetchUserProfile() async throws -> UserProfile
 }

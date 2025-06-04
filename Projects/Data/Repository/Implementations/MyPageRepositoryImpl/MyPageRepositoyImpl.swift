@@ -68,6 +68,15 @@ public extension MyPageRepositoyImpl {
     
     return dataMapper.mapToFeedSummaryFromFeedsByDate(dtos: result)
   }
+  
+  func fetchUserProfile() async throws -> UserProfile {
+    let result = try await requestAuthorizableAPI(
+      api: MyPageAPI.userInformation,
+      responseType: ProfileEditResponseDTO.self
+    ).value
+    
+    return dataMapper.mapToUserProfile(dto: result)
+  }
 }
 
 // MARK: - Private Methods
