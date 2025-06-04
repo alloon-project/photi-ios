@@ -9,25 +9,17 @@
 import Foundation
 
 public struct UserProfile {
-  public let imageUrl: URL
-  public let userName: String
-  public let userEmail: String
-  
-  public static var defaultValue: UserProfile {
-    return UserProfile(
-      imageUrl: URL(string: "exampleUrl")!,
-      userName: "닉네임 불러오는중",
-      userEmail: "example@example.com"
-    )
-  }
+  public let imageUrl: URL?
+  public let name: String
+  public let email: String
   
   public init(
-    imageUrl: URL,
-    userName: String,
-    userEmail: String
+    imageUrl: URL?,
+    name: String,
+    email: String
   ) {
     self.imageUrl = imageUrl
-    self.userName = userName
-    self.userEmail = userEmail
+    self.name = name
+    self.email = email
   }
 }
