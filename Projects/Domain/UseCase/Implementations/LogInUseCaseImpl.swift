@@ -22,7 +22,7 @@ public final class LogInUseCaseImpl: LogInUseCase {
     self.loginrepository = loginrepository
   }
 }
-  
+
 // MARK: - Public Methods
 public extension LogInUseCaseImpl {
   func login(username: String, password: String) -> Single<Void> {
@@ -50,8 +50,24 @@ public extension LogInUseCaseImpl {
     } catch {
       return handledVerifyTemporaryPasswordError(with: error)
     }
-}
+  }
   
+  func updatePassword(_ newPassword: String) async throws {
+    guard let temporaryToken, let temporaryPassword else { throw APIError.authenticationFailed }
+
+    do {
+      authRepository.storeAccessToken(temporaryToken)
+      try await loginrepository.updatePassword(from: temporaryPassword, newPassword: newPassword).value
+      authRepository.removeToken()
+      self.temporaryToken = nil
+      self.temporaryPassword = nil
+    } catch {
+      authRepository.removeToken()
+      throw error
+    }
+  }
+}
+
 // MARK: - Private Methods
 private extension LogInUseCaseImpl {
   func handledVerifyTemporaryPasswordError(with error: Error) -> VerifyTemporaryPasswordResult {

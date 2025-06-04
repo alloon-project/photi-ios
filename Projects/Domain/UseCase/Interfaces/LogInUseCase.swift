@@ -19,4 +19,5 @@ public protocol LogInUseCase {
   func sendUserInformation(to email: String) -> Single<Void>
   func sendTemporaryPassword(to email: String, userName: String) -> Single<Void>
   func verifyTemporaryPassword(_ password: String, name: String) async -> VerifyTemporaryPasswordResult
+  func updatePassword(_ newPassword: String) async throws
 }
