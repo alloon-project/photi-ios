@@ -13,6 +13,9 @@ import PhotiNetwork
 
 public enum LogInAPI {
   case login(dto: LogInRequestDTO)
+  case findId(email: String)
+  case findPassword(dto: FindPasswordRequestDTO)
+  case updatePassword(dto: UpdatePasswordRequstDTO)
 }
 
 extension LogInAPI: TargetType {
@@ -22,14 +25,17 @@ extension LogInAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .login:
-        return "api/users/login"
+      case .login: return "api/users/login"
+      case .findId: return "api/users/find-username"
+      case .findPassword: return "api/users/find-password"
+      case .updatePassword: return "api/users/password"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .login: return .post
+      case .updatePassword: return .patch
+      default: return .post
     }
   }
   
@@ -37,6 +43,16 @@ extension LogInAPI: TargetType {
     switch self {
       case let .login(dto):
         return .requestJSONEncodable(dto)
+        
+      case let .findPassword(dto):
+        return .requestJSONEncodable(dto)
+        
+      case let .updatePassword(dto):
+        return .requestJSONEncodable(dto)
+        
+      case let .findId(email):
+        let parameter = ["email": email]
+        return .requestParameters(parameters: parameter, encoding: JSONEncoding.default)
     }
   }
   
@@ -46,6 +62,19 @@ extension LogInAPI: TargetType {
         let responseData = LogInRequestDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
+        return .networkResponse(200, jsonData ?? Data(), "", "")
+        
+      case .findPassword, .findId, .updatePassword:
+        let data = """
+          {
+            "code": "200 OK",
+            "message": "성공",
+            "data": {
+              successMessage: "string"
+            }         
+          }
+        """
+        let jsonData = data.data(using: .utf8)
         return .networkResponse(200, jsonData ?? Data(), "", "")
     }
   }

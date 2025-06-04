@@ -14,14 +14,13 @@ protocol TempPasswordListener: AnyObject {
 }
 
 protocol TempPasswordPresentable {
-  func setUserEmail(_ userEmail: String)
+  func configureUserEmail(_ email: String)
 }
 
 final class TempPasswordCoordinator: ViewableCoordinator<TempPasswordPresentable>, TempPasswordCoordinatable {
   weak var listener: TempPasswordListener?
   
-  private let viewModel: any TempPasswordViewModelType
-  
+  private let viewModel: TempPasswordViewModel
   private let userEmail: String
   
   init(
@@ -36,7 +35,7 @@ final class TempPasswordCoordinator: ViewableCoordinator<TempPasswordPresentable
   }
   
   override func start() {
-    presenter.setUserEmail(userEmail)
+    presenter.configureUserEmail(userEmail)
   }
 }
 

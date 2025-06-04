@@ -16,15 +16,10 @@ import DesignSystem
 final class NewPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: NewPasswordViewModel
-  private let alertRelay = PublishRelay<Void>()
-  private let didTapContinueButton = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "비밀번호 재설정",
-    displayMode: .dark
-  )
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 재설정", displayMode: .dark)
   
   private let passwordTitleLabel: UILabel = {
     let label = UILabel()
@@ -47,7 +42,6 @@ final class NewPasswordViewController: UIViewController, ViewControllerable {
   }()
   
   private let passwordCheckTextField = PasswordTextField(placeholder: "비밀번호 확인", type: .helper)
-  
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   
   private let containAlphabetCommentView = CommentView(
@@ -65,6 +59,12 @@ final class NewPasswordViewController: UIViewController, ViewControllerable {
   
   private let correnspondPasswordCommentView = CommentView(
     .condition, text: "비밀번호 일치", icon: .checkGray400
+  )
+  
+  private let alertView = AlertViewController(
+    alertType: .confirm,
+    title: "비밀번호가 변경되었어요",
+    subTitle: "새 비밀번호로 로그인 해주세요"
   )
   
   // MARK: - Initializers
@@ -109,8 +109,8 @@ private extension NewPasswordViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, passwordTitleLabel, passwordTextField, nextButton)
-    self.view.addSubviews(passwordCheckTitleLabel, passwordCheckTextField)
+    view.addSubviews(navigationBar, passwordTitleLabel, passwordTextField, nextButton)
+    view.addSubviews(passwordCheckTitleLabel, passwordCheckTextField)
   }
   
   func setConstraints() {
@@ -126,7 +126,7 @@ private extension NewPasswordViewController {
     }
     
     passwordTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordTitleLabel.snp.bottom).offset(24)
     }
     
@@ -136,30 +136,39 @@ private extension NewPasswordViewController {
     }
     
     passwordCheckTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordCheckTitleLabel.snp.bottom).offset(24)
     }
     
     nextButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-56)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(56)
     }
   }
 }
 
-// MARK: - Bind
+// MARK: - Bind Methods
 private extension NewPasswordViewController {
   func bind() {
     let input = NewPasswordViewModel.Input(
       password: passwordTextField.rx.text,
       reEnteredPassword: passwordCheckTextField.rx.text,
-      didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapContinueButton: nextButton.rx.tap, 
-      didAppearAlert: alertRelay
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapContinueButton: nextButton.rx.tap.asSignal(),
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
+  }
+  
+  func viewBind() {
+    alertView.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(output: NewPasswordViewModel.Output) {
@@ -205,8 +214,34 @@ private extension NewPasswordViewController {
     output.isEnabledNextButton
       .drive(nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
+    
+    output.isStartedUpdatePassword
+      .emit(with: self) { owner, isStart in
+        isStart ? owner.nextButton.startLoadingAnimation() : owner.nextButton.stopLoadingAnimation()
+        owner.view.isUserInteractionEnabled = !isStart
+      }
+      .disposed(by: disposeBag)
+    
+    output.isSuccessedUpdatePassword
+      .emit(with: self) { owner, isSuccessed in
+        if isSuccessed {
+          owner.presentConfirmAlertView()
+        } else {
+          owner.presentNetworkUnstableAlert()
+        }
+      }
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - NewPasswordPresentable
 extension NewPasswordViewController: NewPasswordPresentable { }
+
+// MARK: - Private Methods
+private extension NewPasswordViewController {
+  func presentConfirmAlertView() {
+    guard !alertView.isPresenting else { return }
+    
+    alertView.present(to: self, animted: true)
+  }
+}

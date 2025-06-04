@@ -18,15 +18,9 @@ final class FindPasswordViewController: UIViewController, ViewControllerable {
   private let viewModel: FindPasswordViewModel
   
   // MARK: - UI Components
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "비밀번호 찾기",
-    displayMode: .dark
-  )
-  
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 찾기", displayMode: .dark )
   private let enterIdLabel: UILabel = {
     let label = UILabel()
-    label.textAlignment = .left
     label.attributedText = "아이디를 입력해주세요".attributedString(
       font: .heading4,
       color: .gray900
@@ -34,50 +28,37 @@ final class FindPasswordViewController: UIViewController, ViewControllerable {
     return label
   }()
   
-  private let idTextField: LineTextField = {
-    let textField = LineTextField(placeholder: "아이디", type: .default)
-    textField.setKeyboardType(.default)
-    return textField
-  }()
-  
-  private let idWarningView = CommentView(
-    .warning,
-    text: "ID 형태가 올바르지 않아요",
-    icon: .closeRed,
-    isActivate: true
-  )
-  private let announceLabel: UILabel = {
+  private let enterEmailLabel: UILabel = {
     let label = UILabel()
-    label.textAlignment = .left
     label.attributedText = "가입 시 사용했던 이메일을 입력해주세요".attributedString(
       font: .heading4,
       color: .gray900
     )
     return label
   }()
-  private let emailFormWarningView = CommentView(
-    .warning,
-    text: "이메일 형태가 올바르지 않아요",
-    icon: .closeRed,
-    isActivate: true
-  )
-  private let emailTextCountWarningView = CommentView(
-    .warning,
-    text: "100자 이하의 이메일을 사용해주세요",
-    icon: .closeRed,
-    isActivate: true
-  )
+  
+  private let idTextField = LineTextField(placeholder: "아이디", type: .default)
   private let emailTextField: LineTextField = {
     let textField = LineTextField(placeholder: "이메일", type: .default)
     textField.setKeyboardType(.emailAddress)
     return textField
   }()
   
-  private let nextButton = FilledRoundButton(
-    type: .primary,
-    size: .xLarge,
-    text: "다음"
+  private let idWarningView = CommentView(
+    .warning,
+    text: "아이디 형태가 올바르지 않아요",
+    icon: .closeRed,
+    isActivate: true
   )
+
+  private let emailFormWarningView = CommentView(
+    .warning,
+    text: "이메일 형태가 올바르지 않아요",
+    icon: .closeRed,
+    isActivate: true
+  )
+
+  private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   
   private let warningToastView = ToastView(
     tipPosition: .none,
@@ -114,8 +95,8 @@ final class FindPasswordViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension FindPasswordViewController {
   func setupUI() {
-    self.navigationController?.setNavigationBarHidden(true, animated: false)
-    self.view.backgroundColor = .white
+    view.backgroundColor = .white
+    nextButton.isEnabled = false
     
     setViewHierarchy()
     setConstraints()
@@ -126,7 +107,7 @@ private extension FindPasswordViewController {
       navigationBar,
       enterIdLabel,
       idTextField,
-      announceLabel,
+      enterEmailLabel,
       emailTextField,
       nextButton
     )
@@ -140,38 +121,33 @@ private extension FindPasswordViewController {
     }
     
     enterIdLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-20)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(navigationBar.snp.bottom).offset(40)
     }
     
     idTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(enterIdLabel.snp.bottom).offset(20)
     }
     
-    announceLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-20)
+    enterEmailLabel.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(idTextField.snp.bottom).offset(40)
     }
     
     emailTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.top.equalTo(announceLabel.snp.bottom).offset(20)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.top.equalTo(enterEmailLabel.snp.bottom).offset(20)
     }
     
     nextButton.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.bottom.equalToSuperview().offset(-56)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(56)
     }
     
     warningToastView.setConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-64)
+      $0.bottom.equalToSuperview().inset(64)
     }
   }
 }
@@ -180,56 +156,60 @@ private extension FindPasswordViewController {
 private extension FindPasswordViewController {
   func bind() {
     let input = FindPasswordViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
-      userId: idTextField.rx.text,
-      endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserId: idTextField.textField.rx.controlEvent(.editingChanged),
-      userEmail: emailTextField.rx.text,
-      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged),
-      didTapNextButton: nextButton.rx.tap
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      userId: idTextField.rx.text.asDriver(),
+      endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
+      userEmail: emailTextField.rx.text.asDriver(),
+      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
+      didTapNextButton: nextButton.rx.tap.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    
+    viewBind()
     bind(for: output)
   }
   
-  func bind(for output: FindPasswordViewModel.Output) {
-    output.isVaildId
-      .emit(with: self) { onwer, isValid in
-        if isValid {
-          onwer.convertIdTextField(commentView: nil)
-        } else {
-          onwer.convertIdTextField(commentView: onwer.idWarningView)
-        }
-      }.disposed(by: disposeBag)
-    
-    output.isValidEmailForm
-      .emit(with: self) { onwer, isValid in
-        if isValid {
-          onwer.convertEmailTextField(commentView: nil)
-        } else {
-          onwer.convertEmailTextField(commentView: onwer.emailFormWarningView)
-        }
-      }.disposed(by: disposeBag)
-    
-    output.isOverMaximumText
-      .emit(with: self) { owner, isOver in
-        if isOver {
-          owner.convertEmailTextField(commentView: owner.emailTextCountWarningView)
-        } else {
-          owner.convertEmailTextField(commentView: nil)
-        }
+  func viewBind() {
+    idTextField.textField.rx.controlEvent(.editingChanged)
+      .bind(with: self) { owner, _ in
+        owner.convertIdTextField(commentView: nil)
       }
       .disposed(by: disposeBag)
     
+    emailTextField.textField.rx.controlEvent(.editingChanged)
+      .bind(with: self) { owner, _ in
+        owner.convertEmailTextField(commentView: nil)
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: FindPasswordViewModel.Output) {
+    output.inValidIdFormat
+      .emit(with: self) { owner, _ in
+        owner.convertIdTextField(commentView: owner.idWarningView)
+      }
+      .disposed(by: disposeBag)
+
+    output.inValidEmailFormat
+      .emit(with: self) { owner, _ in
+        owner.convertEmailTextField(commentView: owner.emailFormWarningView)
+      }
+      .disposed(by: disposeBag)
+
     output.isEnabledNextButton
       .emit(to: nextButton.rx.isEnabled)
       .disposed(by: disposeBag)
     
-    output.invalidIdOrEmail
+    output.unMatchedIdOrEmail
       .emit(with: self) { onwer, _ in
         onwer.displayToastView()
+      }
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }
@@ -246,7 +226,7 @@ private extension FindPasswordViewController {
       idTextField.mode = .error
     } else {
       idTextField.commentViews = []
-      idTextField.mode = .success
+      idTextField.mode = .default
     }
   }
   
@@ -256,7 +236,7 @@ private extension FindPasswordViewController {
       emailTextField.mode = .error
     } else {
       emailTextField.commentViews = []
-      emailTextField.mode = .success
+      emailTextField.mode = .default
     }
   }
   
