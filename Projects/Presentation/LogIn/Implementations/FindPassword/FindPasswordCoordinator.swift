@@ -11,7 +11,7 @@ import LogIn
 
 protocol FindPasswordListener: AnyObject {
   func didTapBackButtonAtFindPassword()
-  func didFinishFindPassword()
+  func didFinishUpdatePassword()
 }
 
 protocol FindPasswordPresentable { }
@@ -103,7 +103,7 @@ extension FindPasswordCoordinator: NewPasswordListener {
     detachNewPassword()
   }
   
-  func didFinishFindPassword() {
-    listener?.didFinishFindPassword()
+  func didFinishUpdatePassword() {
+    listener?.didFinishUpdatePassword()
   }
 }

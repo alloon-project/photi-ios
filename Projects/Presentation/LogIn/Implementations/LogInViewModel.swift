@@ -13,11 +13,8 @@ import UseCase
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
-  func detachSignUp()
   func attachFindId()
-  func detachFindId()
   func attachFindPassword()
-  func detachFindPassword()
   func didFinishLogIn(userName: String)
   func didTapBackButton()
 }
