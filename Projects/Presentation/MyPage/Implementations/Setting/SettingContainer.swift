@@ -15,6 +15,7 @@ protocol SettingDependency: Dependency {
   var reportContainable: ReportContainable { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var resignUseCase: ResignUseCase { get }
+  var myPageUseCase: MyPageUseCase { get }
 }
 
 protocol SettingContainable: Containable {
@@ -30,7 +31,7 @@ final class SettingContainer:
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   func coordinator(listener: SettingListener) -> ViewableCoordinating {
-    let viewModel = SettingViewModel()
+    let viewModel = SettingViewModel(useCase: dependency.myPageUseCase)
     let viewControllerable = SettingViewController(viewModel: viewModel)
     
     let profileEdit = ProfileEditContainer(dependency: self)
