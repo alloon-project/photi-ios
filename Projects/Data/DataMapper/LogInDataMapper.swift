@@ -21,6 +21,6 @@ public struct LogInDataMapperImpl: LogInDataMapper {
   }
   
   public func mapToFindPasswordRequestDTO(userEmail: String, userName: String) -> FindPasswordRequestDTO {
-    return FindPasswordRequestDTO(userEmail: userEmail, userName: userName)
+    return .init(email: userEmail, username: userName)
   }
 }
