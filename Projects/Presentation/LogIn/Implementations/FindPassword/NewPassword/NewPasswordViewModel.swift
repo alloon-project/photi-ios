@@ -17,36 +17,35 @@ protocol NewPasswordCoordinatable: AnyObject {
 protocol NewPasswordViewModelType {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: NewPasswordCoordinatable? { get set }
   
   func transform(input: Input) -> Output
 }
 
 final class NewPasswordViewModel: NewPasswordViewModelType {
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: NewPasswordCoordinatable?
-  
+
+  private let disposeBag = DisposeBag()
+
   // MARK: - Input
   struct Input {
-    var password: ControlProperty<String>
-    var reEnteredPassword: ControlProperty<String>
-    var didTapBackButton: ControlEvent<Void>
-    var didTapContinueButton: ControlEvent<Void>
-    let didAppearAlert: PublishRelay<Void>
+    let password: ControlProperty<String>
+    let reEnteredPassword: ControlProperty<String>
+    let didTapBackButton: Signal<Void>
+    let didTapContinueButton: Signal<Void>
+    let didTapConfirmButtonAtAlert: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var containAlphabet: Driver<Bool>
-    var containNumber: Driver<Bool>
-    var containSpecial: Driver<Bool>
-    var isValidRange: Driver<Bool>
-    var isValidPassword: Driver<Bool>
-    var correspondPassword: Driver<Bool>
-    var isEnabledNextButton: Driver<Bool>
+    let containAlphabet: Driver<Bool>
+    let containNumber: Driver<Bool>
+    let containSpecial: Driver<Bool>
+    let isValidRange: Driver<Bool>
+    let isValidPassword: Driver<Bool>
+    let correspondPassword: Driver<Bool>
+    let isEnabledNextButton: Driver<Bool>
   }
   
   // MARK: - Initializers
@@ -54,15 +53,8 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-    
-    input.didTapContinueButton
-      .bind(with: self) { owner, _ in
-        // TODO: 비밀번호 재설정 API
-        owner.coordinator?.didTapResetPasswordAlert()
       }
       .disposed(by: disposeBag)
     
@@ -102,3 +94,6 @@ final class NewPasswordViewModel: NewPasswordViewModelType {
     )
   }
 }
+
+// MARK: - API Methods
+private extension NewPasswordViewModel { }
