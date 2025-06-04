@@ -29,7 +29,7 @@ final class FindIdViewModel: FindIdViewModelType {
   
   weak var coordinator: FindIdCoordinatable?
   
-  private let useCase: FindIdUseCase
+  private let useCase: LogInUseCase
   private let checkedEmailRelay = PublishRelay<Void>()
   private let wrongEmailRelay = PublishRelay<Void>()
   private let requestFailedRelay = PublishRelay<Void>()
@@ -54,7 +54,7 @@ final class FindIdViewModel: FindIdViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: FindIdUseCase) {
+  init(useCase: LogInUseCase) {
     self.useCase = useCase
   }
   

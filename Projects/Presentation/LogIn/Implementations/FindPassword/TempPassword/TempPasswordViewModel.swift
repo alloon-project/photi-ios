@@ -28,8 +28,7 @@ protocol TempPasswordViewModelType {
 
 final class TempPasswordViewModel: TempPasswordViewModelType {
   let disposeBag = DisposeBag()
-  private let findPasswordUseCase: FindPasswordUseCase
-  private let loginUseCase: LogInUseCase
+  private let useCase: LogInUseCase
   private let email: String
   private let name: String
   
@@ -54,13 +53,11 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   
   // MARK: - Initializers
   init(
-    findPasswordUseCase: FindPasswordUseCase,
-    loginUseCase: LogInUseCase,
+    useCase: LogInUseCase,
     email: String,
     name: String
   ) {
-    self.findPasswordUseCase = findPasswordUseCase
-    self.loginUseCase = loginUseCase
+    self.useCase = useCase
     self.email = email
     self.name = name
   }
@@ -96,7 +93,7 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
 private extension TempPasswordViewModel {
   // TODO: 서버 연결 시 아이디 & 이메일 확인 로직 구현
   func findPassword(userEmail: String, userName: String) {
-    findPasswordUseCase.findPassword(userEmail: userEmail, userName: userName)
+    useCase.findPassword(userEmail: userEmail, userName: userName)
       .subscribe(
         with: self,
         onSuccess: { onwer, _ in
@@ -110,7 +107,7 @@ private extension TempPasswordViewModel {
   }
   
   func requestLogin(userName: String, password: String) {
-    loginUseCase.login(username: userName, password: password)
+    useCase.login(username: userName, password: password)
       .observe(on: MainScheduler.instance)
       .subscribe(
         with: self,

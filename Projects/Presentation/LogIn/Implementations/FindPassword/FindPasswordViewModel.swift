@@ -21,15 +21,14 @@ protocol FindPasswordViewModelType {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
+  var coordinator: FindPasswordCoordinatable? { get }
 }
 
 final class FindPasswordViewModel: FindPasswordViewModelType {
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: FindPasswordCoordinatable?
   
-  private let useCase: FindPasswordUseCase
+  private let disposeBag = DisposeBag()
+  private let useCase: LogInUseCase
   private let invalidIdOrEmailRelay = PublishRelay<Void>()
   
   // MARK: - Input
@@ -54,7 +53,7 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: FindPasswordUseCase) {
+  init(useCase: LogInUseCase) {
     self.useCase = useCase
   }
   
