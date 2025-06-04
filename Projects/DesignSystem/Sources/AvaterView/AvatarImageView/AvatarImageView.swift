@@ -48,8 +48,9 @@ public final class AvatarImageView: UIImageView {
 // MARK: - Public Methods
 public extension AvatarImageView {
   func configureImage(_ image: UIImage?) {
+    contentMode = image == nil ? .center : .scaleAspectFill
+
     let image = image ?? defaultImage
-    
     self.image = image
   }
 }

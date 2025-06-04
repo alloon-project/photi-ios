@@ -17,12 +17,15 @@ public protocol MyPageDataMapper {
   func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary]
   func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToFeedSummaryFromFeedsByDate(dtos: [FeedByDateResponseDTO]) -> [FeedSummary]
+  func mapToUserProfile(dto: UserProfileResponseDTO) -> UserProfile
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
   public init() { }
-  
-  public func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary {
+}
+
+public extension MyPageDataMapperImpl {
+  func mapToMyPageSummary(from dto: UserChallengeHistoryResponseDTO) -> MyPageSummary {
     return MyPageSummary(
       userName: dto.username,
       imageUrl: imageURL(from: dto.imageUrl),
@@ -32,11 +35,11 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
     )
   }
   
-  public func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date] {
+  func mapToDate(from dto: VerifiedChallengeDatesResponseDTO) -> [Date] {
     return dto.list.compactMap { $0.toDate("yyyy-MM-dd") }
   }
   
-  public func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary] {
+  func mapToFeedHistory(dtos: [FeedHistoryResponseDTO]) -> [FeedSummary] {
     return dtos.map {
       .init(
         feedId: $0.feedId,
@@ -49,7 +52,7 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
     }
   }
   
-  public func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary] {
+  func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary] {
     return dto.map {
       let endDate = $0.endDate.toDate() ?? Date()
       let memberImages = $0.memberImages.map { $0.memberImage }
@@ -66,7 +69,7 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
     }
   }
   
-  public func mapToFeedSummaryFromFeedsByDate(dtos: [FeedByDateResponseDTO]) -> [FeedSummary] {
+  func mapToFeedSummaryFromFeedsByDate(dtos: [FeedByDateResponseDTO]) -> [FeedSummary] {
     return dtos.map {
       let proveTime = $0.proveTime.toDate("HH:mm") ?? Date()
 
@@ -78,6 +81,14 @@ public struct MyPageDataMapperImpl: MyPageDataMapper {
         name: $0.name
       )
     }
+  }
+  
+  func mapToUserProfile(dto: UserProfileResponseDTO) -> UserProfile {
+    return .init(
+      imageUrl: imageURL(from: dto.imageUrl),
+      name: dto.username,
+      email: dto.email
+    )
   }
 }
 

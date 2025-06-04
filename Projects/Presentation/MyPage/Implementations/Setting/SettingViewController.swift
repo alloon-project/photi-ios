@@ -14,22 +14,25 @@ import Core
 import DesignSystem
 
 final class SettingViewController: UIViewController, ViewControllerable {
+  // MARK: - Properties
+  private let disposeBag = DisposeBag()
   private let viewModel: SettingViewModel
+  private var settingMenuItems = [SettingMenuItem]() {
+    didSet { menuTableView.reloadData() }
+  }
   
-  // MARK: - Variables
-  private var disposeBag = DisposeBag()
+  private let requestData = PublishRelay<Void>()
+  private let didTapSettingMenu = PublishRelay<SettingMenuItem>()
+
+  // MARK: - UI Components
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "설정", displayMode: .dark)
   
-  // MARK: - UIComponents
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "설정",
-    displayMode: .dark
-  )
-  
-  private let menuTableView = {
+  private let menuTableView: SelfSizingTableView = {
     let tableView = SelfSizingTableView()
     tableView.registerCell(SettingTableViewCell.self)
-    tableView.estimatedRowHeight = 32
+    tableView.rowHeight = 56
+    tableView.separatorInset = .zero
+    tableView.separatorColor = .gray200
     tableView.isScrollEnabled = false
     
     return tableView
@@ -50,10 +53,12 @@ final class SettingViewController: UIViewController, ViewControllerable {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    menuTableView.rx.setDataSource(self).disposed(by: disposeBag)
-    menuTableView.rx.setDelegate(self).disposed(by: disposeBag)
+    menuTableView.delegate = self
+    menuTableView.dataSource = self
     setupUI()
     bind()
+    
+    requestData.accept(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -62,7 +67,7 @@ final class SettingViewController: UIViewController, ViewControllerable {
   }
 }
 
-// MARK: - Private methods
+// MARK: - UI Methods
 private extension SettingViewController {
   func setupUI() {
     self.view.backgroundColor = .white
@@ -70,17 +75,8 @@ private extension SettingViewController {
     setConstraints()
   }
   
-  func bind() {
-    let input = SettingViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapCell: menuTableView.rx.itemSelected
-    )
-    
-    let _ = viewModel.transform(input: input)
-  }
-  
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, menuTableView)
+    view.addSubviews(navigationBar, menuTableView)
   }
   
   func setConstraints() {
@@ -91,51 +87,53 @@ private extension SettingViewController {
     }
     
     menuTableView.snp.makeConstraints {
-      $0.leading.equalToSuperview()
-      $0.trailing.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(navigationBar.snp.bottom).offset(20)
-      $0.bottom.equalToSuperview().offset(-20)
     }
+  }
+}
+
+// MARK: - Bind Methods
+private extension SettingViewController {
+  func bind() {
+    let input = SettingViewModel.Input(
+      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      requestData: requestData.asSignal(),
+      didTapSettingMenu: didTapSettingMenu.asSignal()
+    )
+    
+    let output = viewModel.transform(input: input)
+    bind(for: output)
+  }
+  
+  func bind(for output: SettingViewModel.Output) {
+    output.settingMenuItems
+      .drive(rx.settingMenuItems)
+      .disposed(by: disposeBag)
   }
 }
 
 // MARK: - SettingPresentable
 extension SettingViewController: SettingPresentable { }
 
-// MARK: - UITableViewDelegate
-extension SettingViewController: UITableViewDelegate, UITableViewDataSource {
-  func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    56
-  }
-  
+// MARK: - UITableViewDataSource
+extension SettingViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    settingMenuDatasource.count
+    return settingMenuItems.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(SettingTableViewCell.self, for: indexPath)
-    if settingMenuDatasource[indexPath.row].1 == 0 {
-      cell.configure(
-        with: settingMenuDatasource[indexPath.row].0,
-        type: .default
-      )
-    } else {
-      if let currentVerison = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-        cell.configure(
-          with: settingMenuDatasource[indexPath.row].0,
-          type: .label(text: currentVerison),
-          font: .caption1,
-          rightTextColor: .blue500
-        )
-      } else {
-        cell.configure(
-          with: settingMenuDatasource[indexPath.row].0,
-          type: .label(text: "버전 확인 불가"),
-          font: .caption1,
-          rightTextColor: .blue500
-        )
-      }
-    }
+    cell.configure(with: settingMenuItems[indexPath.row])
+    
     return cell
+  }
+}
+
+// MARK: - UITableViewDelegate
+extension SettingViewController: UITableViewDelegate {
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let item = settingMenuItems[indexPath.row]
+    didTapSettingMenu.accept(item)
   }
 }

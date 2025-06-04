@@ -17,6 +17,8 @@ public enum MyPageAPI {
   case feedHistory(page: Int, size: Int)
   case endedChallenges(page: Int, size: Int)
   case feedsByDate(_ date: String)
+  case userInformation
+  case uploadProfileImage(_ data: Data, imageType: String)
 }
 
 extension MyPageAPI: TargetType {
@@ -31,16 +33,21 @@ extension MyPageAPI: TargetType {
       case .feedHistory: return "api/users/feed-history"
       case .endedChallenges: return "api/users/ended-challenges"
       case .feedsByDate: return "api/users/feeds-by-date"
+      case .userInformation: return "api/users"
+      case .uploadProfileImage: return "api/users/image"
     }
   }
   
   public var method: HTTPMethod {
-    return .get
+    switch self {
+      case .uploadProfileImage: return .post
+      default: return .get
+    }
   }
   
   public var task: TaskType {
     switch self {
-      case .userChallegeHistory, .verifiedChallengeDates:
+      case .userChallegeHistory, .verifiedChallengeDates, .userInformation:
         return .requestPlain
         
       case let .feedHistory(page, size), let .endedChallenges(page, size):
@@ -50,6 +57,15 @@ extension MyPageAPI: TargetType {
       case let .feedsByDate(date):
         let parameters = ["date": date]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .uploadProfileImage(image, imageType):
+        let multiPartBody = MultipartFormDataBodyPart(
+          .data(["imageFile": image]),
+          fileExtension: imageType,
+          mimeType: "image/\(imageType)"
+        )
+        
+        return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
     }
   }
   
@@ -81,6 +97,12 @@ extension MyPageAPI: TargetType {
         
       case .feedsByDate:
         let data = FeedByDateResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .userInformation, .uploadProfileImage:
+        let data = UserProfileResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
