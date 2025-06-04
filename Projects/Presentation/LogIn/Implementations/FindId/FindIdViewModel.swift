@@ -20,37 +20,34 @@ protocol FindIdViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: FindIdCoordinatable? { get set }
 }
 
 final class FindIdViewModel: FindIdViewModelType {
-  let disposeBag = DisposeBag()
-  
   weak var coordinator: FindIdCoordinatable?
   
+  private let disposeBag = DisposeBag()
   private let useCase: LogInUseCase
-  private let checkedEmailRelay = PublishRelay<Void>()
-  private let wrongEmailRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let successEmailVerificationRelay = PublishRelay<Void>()
+  private let notRegisteredEmailRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let email: ControlProperty<String>
-    let endEditingUserEmail: ControlEvent<Void>
-    let editingUserEmail: ControlEvent<Void>
-    let didTapNextButton: ControlEvent<Void>
-    let didAppearAlert: PublishRelay<Void>
+    let didTapBackButton: Signal<Void>
+    let email: Driver<String>
+    let endEditingUserEmail: Signal<Void>
+    let didTapNextButton: Signal<Void>
+    let didAppearAlert: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var isValidateEmail: Signal<Bool>
-    var isOverMaximumText: Signal<Bool>
-    var checkEmailSucceed: Signal<Void>
-    var wrongEmail: Signal<Void>
-    var requestFailed: Signal<Void>
+    let successEmailVerification: Signal<Void>
+    let notRegisteredEmail: Signal<Void>
+    let invalidFormat: Signal<Void>
+    let networkUnstable: Signal<Void>
+    let isEnabledConfirm: Driver<Bool>
   }
   
   // MARK: - Initializers
@@ -59,41 +56,40 @@ final class FindIdViewModel: FindIdViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    // 단순 동작 bind
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
       .disposed(by: disposeBag)
-    
-    let isValidateEmail = input.endEditingUserEmail
-      .withLatestFrom(input.email)
-      .filter { $0.count <= 100 && !$0.isEmpty }
-      .map { $0.isValidateEmail() }
-      .asSignal(onErrorJustReturn: false)
-    
-    let isOverMaximumText = input.editingUserEmail
-      .withLatestFrom(input.email)
-      .map { $0.count > 100 }
-    
+
     input.didTapNextButton
       .withLatestFrom(input.email)
-      .bind(with: self) { owner, email in
-        owner.requestCheckEmail(email: email)
-      }.disposed(by: disposeBag)
+      .emit(with: self) { owner, email in
+        Task { await owner.requestCheckEmail(email: email) }
+      }
+      .disposed(by: disposeBag)
     
     input.didAppearAlert
-      .bind(with: self) { owner, _ in
+      .emit(with: self) { owner, _ in
         owner.coordinator?.isRequestSucceed()
-      }.disposed(by: disposeBag)
-    // Output 반환
+      }
+      .disposed(by: disposeBag)
+
+    let inValidateEmail = input.endEditingUserEmail
+      .withLatestFrom(input.email)
+      .filter { !$0.isValidateEmail() || $0.count > 100 }
+      .map { _ in () }
+    
+    let isEnabledConfirm = input.email
+       .map { $0.isValidateEmail() && $0.count <= 100 }
+
     return Output(
-      isValidateEmail: isValidateEmail,
-      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-      checkEmailSucceed: checkedEmailRelay.asSignal(),
-      wrongEmail: wrongEmailRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
-    ) // TODO: 서버 연결 후 수정
+      successEmailVerification: successEmailVerificationRelay.asSignal(),
+      notRegisteredEmail: notRegisteredEmailRelay.asSignal(),
+      invalidFormat: inValidateEmail.asSignal(onErrorJustReturn: ()),
+      networkUnstable: networkUnstableRelay.asSignal(),
+      isEnabledConfirm: isEnabledConfirm.asDriver(onErrorJustReturn: false)
+    )
   }
 }
 
