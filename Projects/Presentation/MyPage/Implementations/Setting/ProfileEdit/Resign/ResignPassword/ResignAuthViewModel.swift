@@ -29,7 +29,7 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
   
   weak var coordinator: ResignAuthCoordinatable?
   
-  private let useCase: ResignUseCase
+  private let useCase: ProfileEditUseCase
   private let wrongPasswordRelay = PublishRelay<Void>()
   private let requestFailedRelay = PublishRelay<Void>()
   
@@ -47,7 +47,7 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: ResignUseCase) {
+  init(useCase: ProfileEditUseCase) {
     self.useCase = useCase
   }
   
@@ -74,28 +74,7 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
 
 // MARK: - Private Methods
 private extension ResignAuthViewModel {
-  func requestCheckPassword(password: String) {
-    useCase.resign(password: password)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.coordinator?.isRequestSucceed()
-        },
-        onFailure: { owner, error in
-          owner.requestFailed(error: error)
-        }
-      )
-      .disposed(by: disposeBag)
-  }
+  func requestCheckPassword(password: String) { }
   
-  func requestFailed(error: Error) {
-    if
-      let error = error as? APIError,
-      case .userNotFound = error {
-      wrongPasswordRelay.accept(())
-    } else {
-      requestFailedRelay.accept(())
-    }
-  }
+  func requestFailed(error: Error) { }
 }

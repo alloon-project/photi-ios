@@ -141,10 +141,6 @@ final class AppContainer:
     return InquiryUseCaseImpl(repository: inquiryRepository)
   }()
   
-  lazy var resignUsecase: ResignUseCase = {
-    return ResignUseCaseImpl(repository: resignRepository)
-  }()
-  
   lazy var organizeUseCase: OrganizeUseCase = {
     return OrganizeUseCaseImpl(repository: organizeRepository)
   }()
@@ -184,10 +180,6 @@ final class AppContainer:
   
   lazy var inquiryRepository: InquiryRepository = {
     return InquiryRepositoryImpl(dataMapper: InquiryDataMapperImpl())
-  }()
-
-  lazy var resignRepository: ResignRepository = {
-    return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
   }()
   
   lazy var organizeRepository: ChallengeOrganizeRepository = {

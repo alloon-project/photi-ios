@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol ResignAuthDependency: Dependency {
-  var resignUseCase: ResignUseCase { get }
+  var profileEditUsecase: ProfileEditUseCase { get }
 }
 
 protocol ResignAuthContainable: Containable {
@@ -19,7 +19,7 @@ protocol ResignAuthContainable: Containable {
 
 final class ResignAuthContainer: Container<ResignAuthDependency>, ResignAuthContainable {
   func coordinator(listener: ResignAuthListener) -> ViewableCoordinating {
-    let viewModel = ResignAuthViewModel(useCase: dependency.resignUseCase)
+    let viewModel = ResignAuthViewModel(useCase: dependency.profileEditUsecase)
     let viewControllerable = ResignAuthViewController(viewModel: viewModel)
     let coordinator = ResignAuthCoordinator(
       viewControllerable: viewControllerable,
