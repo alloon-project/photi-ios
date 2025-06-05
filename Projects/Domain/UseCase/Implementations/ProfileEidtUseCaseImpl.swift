@@ -32,6 +32,10 @@ public extension ProfileEditUseCaseImpl {
     
     return try await repository.uploadProfileImage(data, imageType: type)
   }
+  
+  func withdraw(with password: String) async throws {
+    return try await repository.deleteUserAccount(password: password)
+  }
 }
 
 // MARK: - Private Methods
