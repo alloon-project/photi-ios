@@ -118,7 +118,9 @@ private extension MyPageRepositoyImpl {
           let result = try await provider.request(api, type: responseType.self).value
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
-          } else if result.statusCode == 401 || result.statusCode == 403 {
+          } else if result.statusCode == 401 {
+            single(.failure(map401ToAPIError(result.code, result.message)))
+          } else if result.statusCode == 403 {
             single(.failure(APIError.authenticationFailed))
           } else if result.statusCode == 404 {
             single(.failure(map404ToAPIError(result.code, result.message)))
@@ -141,9 +143,19 @@ private extension MyPageRepositoyImpl {
     }
   }
   
+  func map401ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "LOGIN_UNAUTHENTICATED" {
+      return APIError.myPageFailed(reason: .passwordMatchInvalid)
+    } else if code == "TOKEN_UNAUTHENTICATED" {
+      return APIError.authenticationFailed
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
   func map404ToAPIError(_ code: String, _ message: String) -> APIError {
     if code == "USER_NOT_FOUND" {
-      return APIError.challengeFailed(reason: .userNotFound)
+      return APIError.myPageFailed(reason: .userNotFound)
     } else {
       return APIError.clientError(code: code, message: message)
     }

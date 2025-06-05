@@ -6,14 +6,17 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Foundation
+
 import RxCocoa
 import RxSwift
 import Entity
 import UseCase
 
 protocol WithdrawAuthCoordinatable: AnyObject {
-  func isRequestSucceed()
+  func withdrawalSucceed()
   func didTapBackButton()
+  func authenticatedFailed()
 }
 
 protocol WithdrawAuthViewModelType: AnyObject {
@@ -30,20 +33,21 @@ final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
   weak var coordinator: WithdrawAuthCoordinatable?
   
   private let useCase: ProfileEditUseCase
-  private let wrongPasswordRelay = PublishRelay<Void>()
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let didFailPasswordVerificationRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
     let password: ControlProperty<String>
-    let didTapNextButton: ControlEvent<Void>
+    let didTapWithdrawButton: ControlEvent<Void>
   }
   
   // MARK: - Output
   struct Output {
-    var wrongPassword: Signal<Void>
-    var requestFailed: Signal<Void>
+    let didFailPasswordVerification: Signal<Void>
+    let networkUnstable: Signal<Void>
+    let isEnabledWithdrawButton: Driver<Bool>
   }
   
   // MARK: - Initializers
@@ -77,7 +81,27 @@ final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
 
 // MARK: - API Methods
 private extension WithdrawAuthViewModel {
-  func requestCheckPassword(password: String) { }
+  @MainActor func withdraw(password: String) async {
+    do {
+      try await useCase.withdraw(with: password)
+      coordinator?.withdrawalSucceed()
+    } catch {
+      requestFailed(with: error)
+    }
+  }
   
-  func requestFailed(error: Error) { }
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    
+    switch error {
+      case .authenticationFailed:
+        coordinator?.authenticatedFailed()
+      case let .myPageFailed(reason) where reason == .passwordMatchInvalid:
+        didFailPasswordVerificationRelay.accept(())
+      case let .myPageFailed(reason) where reason == .userNotFound:
+        coordinator?.authenticatedFailed()
+      default:
+        networkUnstableRelay.accept(())
+    }
+  }
 }
