@@ -77,7 +77,10 @@ public extension MyPageRepositoyImpl {
     
     return dataMapper.mapToUserProfile(dto: result)
   }
-  
+}
+
+// MARK: - Update Methods
+public extension MyPageRepositoyImpl {
   func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL? {
     let result = try await requestAuthorizableAPI(
       api: MyPageAPI.uploadProfileImage(image, imageType: imageType),
@@ -85,6 +88,15 @@ public extension MyPageRepositoyImpl {
     ).value
     
     return dataMapper.mapToUserProfile(dto: result).imageUrl
+  }
+  
+  func deleteUserAccount(password: String) async throws {
+    let single = requestAuthorizableAPI(
+      api: MyPageAPI.withdrawUser(password: password),
+      responseType: SuccessResponseDTO.self
+    )
+    
+    try await executeSingle(single)
   }
 }
 
@@ -135,5 +147,10 @@ private extension MyPageRepositoyImpl {
     } else {
       return APIError.clientError(code: code, message: message)
     }
+  }
+  
+  @discardableResult
+  func executeSingle<T>(_ single: Single<T>) async throws -> T {
+    return try await single.value
   }
 }
