@@ -127,18 +127,7 @@ extension AppViewController: AppPresentable {
   }
   
   func presentWelcomeToastView(_ username: String) {
-    let toastView = ToastView(
-      tipPosition: .none,
-      text: "\(username)님 환영합니다!",
-      icon: .bulbWhite
-    )
-    
-    toastView.setConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().inset(64)
-    }
-    
-    toastView.present(at: self.view)
+    bulbToastView(title: "\(username)님 환영합니다!").present(at: self.view)
   }
   
   func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable) {
@@ -154,18 +143,11 @@ extension AppViewController: AppPresentable {
   }
   
   func presentLogOutToastView(to navigationControllerable: NavigationControllerable) {
-    let toastView = ToastView(
-      tipPosition: .none,
-      text: "로그아웃이 완료됐어요.",
-      icon: .bulbWhite
-    )
-    
-    toastView.setConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().inset(64)
-    }
-    
-    toastView.present(at: self.view)
+    bulbToastView(title: "로그아웃이 완료됐어요.").present(at: self.view)
+  }
+  
+  func presentWithdrawToastView(to navigationControllerable: NavigationControllerable) {
+    bulbToastView(title: "탈퇴가 완료됐어요. 다음에 또 만나요!").present(at: self.view)
   }
 }
 
@@ -205,11 +187,30 @@ private extension AppViewController {
   }
 }
 
+// MARK: - UITabBarControllerDelegate
 extension AppViewController: UITabBarControllerDelegate {
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
     guard let viewControllers = tabBarController.viewControllers else { return false }
     guard let selectedIndex = viewControllers.firstIndex(of: viewController) else { return false }
     if selectedIndex == 2 && self.selectedIndex != 2 { didTapMyPageTabBarItem.accept(()) }
     return selectedIndex != 2
+  }
+}
+
+// MARK: - Private Methods
+private extension AppViewController {
+  func bulbToastView(title: String) -> ToastView {
+    let toastView = ToastView(
+      tipPosition: .none,
+      text: title,
+      icon: .bulbWhite
+    )
+    
+    toastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    return toastView
   }
 }

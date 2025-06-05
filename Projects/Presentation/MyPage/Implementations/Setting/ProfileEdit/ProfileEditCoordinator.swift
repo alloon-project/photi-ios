@@ -117,4 +117,8 @@ extension ProfileEditCoordinator: WithdrawListener {
   func didTapBackButtonAtWithdraw() {
     detachWithdraw()
   }
+  
+  func authenticatedFailedAtWithdraw() {
+    listener?.authenticatedFailedAtProfileEdit()
+  }
 }

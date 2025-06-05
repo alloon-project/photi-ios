@@ -12,11 +12,12 @@ import LogIn
 protocol WithdrawAuthListener: AnyObject {
   func didTapBackButtonAtWithdrawAuth()
   func didFinishWithdrawal()
+  func authenticatedFailedAtWithdrawAuth()
 }
 
 protocol WithdrawAuthPresentable { }
 
-final class WithdrawAuthCoordinator: ViewableCoordinator<WithdrawAuthPresentable>, WithdrawAuthCoordinatable {
+final class WithdrawAuthCoordinator: ViewableCoordinator<WithdrawAuthPresentable> {
   weak var listener: WithdrawAuthListener?
   
   private let viewModel: any WithdrawAuthViewModelType
@@ -29,11 +30,19 @@ final class WithdrawAuthCoordinator: ViewableCoordinator<WithdrawAuthPresentable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  func isRequestSucceed() {
+}
+
+// MARK: - WithdrawAuthCoordinatable
+extension WithdrawAuthCoordinator: WithdrawAuthCoordinatable {
+  func withdrawalSucceed() {
     listener?.didFinishWithdrawal()
   }
+  
   func didTapBackButton() {
     listener?.didTapBackButtonAtWithdrawAuth()
+  }
+  
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtWithdrawAuth()
   }
 }

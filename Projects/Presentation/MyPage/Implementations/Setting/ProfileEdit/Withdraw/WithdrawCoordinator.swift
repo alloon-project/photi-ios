@@ -11,6 +11,7 @@ import Core
 protocol WithdrawListener: AnyObject {
   func didTapBackButtonAtWithdraw()
   func didFinishWithdrawal()
+  func authenticatedFailedAtWithdraw()
 }
 
 protocol WithdrawPresentable { }
@@ -71,5 +72,9 @@ extension WithdrawCoordinator: WithdrawAuthListener {
   
   func didFinishWithdrawal() {
     listener?.didFinishWithdrawal()
+  }
+  
+  func authenticatedFailedAtWithdrawAuth() {
+    listener?.authenticatedFailedAtWithdraw()
   }
 }

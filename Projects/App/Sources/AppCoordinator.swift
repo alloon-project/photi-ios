@@ -19,6 +19,7 @@ import MyPage
   func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable)
   func presentTabMyPageWithoutLogInAlertView(to navigationControllerable: NavigationControllerable)
   func presentLogOutToastView(to navigationControllerable: NavigationControllerable)
+  func presentWithdrawToastView(to navigationControllerable: NavigationControllerable)
 }
 
 final class AppCoordinator: ViewableCoordinator<AppPresentable> {
@@ -203,7 +204,11 @@ extension AppCoordinator: SearchChallengeListener {
 // MARK: - MyPageListener
 extension AppCoordinator: MyPageListener {
   func didFinishWithdrawal() {
-    Task { await presenter.changeNavigationControllerToHome() }
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentWithdrawToastView(to: homeNavigationControllerable)
+    }
   }
   
   func authenticatedFailedAtMyPage() {
