@@ -10,7 +10,6 @@ import Core
 
 protocol ResignListener: AnyObject {
   func didTapBackButtonAtResign()
-  func didTapCancelButtonAtResign()
   func didFisishedResign()
 }
 
@@ -62,7 +61,7 @@ extension ResignCoordinator: ResignCoordinatable {
   }
   
   func didTapCancelButton() {
-    listener?.didTapCancelButtonAtResign()
+    listener?.didTapBackButtonAtResign()
   }
 }
 

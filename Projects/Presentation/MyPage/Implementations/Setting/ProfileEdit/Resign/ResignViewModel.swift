@@ -36,7 +36,7 @@ final class ResignViewModel: ResignViewModelType {
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output { }
   
   // MARK: - Initializers
   init() { }

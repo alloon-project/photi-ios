@@ -28,17 +28,8 @@ final class ResignViewController: UIViewController, ViewControllerable {
     
     return label
   }()
-  private let resignButton = LineRoundButton(
-    text: "탈퇴 계속하기",
-    type: .primary,
-    size: .xLarge
-  )
-  
-  private let cancelButton = LineRoundButton(
-    text: "취소하기",
-    type: .quaternary,
-    size: .xLarge
-  )
+  private let resignButton = LineRoundButton(text: "탈퇴 계속하기", type: .primary, size: .xLarge)
+  private let cancelButton = LineRoundButton(text: "취소하기", type: .quaternary, size: .xLarge)
   
   // MARK: - Initializers
   init(viewModel: ResignViewModel) {
@@ -90,18 +81,18 @@ private extension ResignViewController {
     }
     
     cancelButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-56)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(56)
     }
     
     resignButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalTo(cancelButton.snp.top).offset(-16)
     }
   }
 }
 
-// MARK: - Bind
+// MARK: - Bind Methods
 private extension ResignViewController {
   func bind() {
     let input = ResignViewModel.Input(
@@ -109,7 +100,12 @@ private extension ResignViewController {
       didTapResignButton: resignButton.rx.tap,
       didTapCancelButton: cancelButton.rx.tap
     )
+    
+    let output = viewModel.transform(input: input)
+    bind(for: output)
   }
+  
+  func bind(for output: ResignViewModel.Output) { }
 }
 
 // MARK: - ResignPresentable
