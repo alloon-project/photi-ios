@@ -18,29 +18,17 @@ final class WithdrawAuthViewController: UIViewController, ViewControllerable {
   private let viewModel: WithdrawAuthViewModel
 
   // MARK: - UI Components
-  private let navigationBar = PhotiNavigationBar(
-    leftView: .backButton,
-    title: "",
-    displayMode: .dark
-  )
+  private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
-  private let announceLabel: UILabel = {
+  private let titleLabel: UILabel = {
     let label = UILabel()
-    label.numberOfLines = 1
-    label.textAlignment = .left
     label.attributedText = "기존 비밀번호를 입력해주세요".attributedString(font: .heading4, color: .gray900)
     return label
   }()
   
-  private let passwordTextField: PasswordTextField = {
-    let textField = PasswordTextField(type: .default, mode: .default)
-    textField.setKeyboardType(.default)
-    return textField
-  }()
-  
-  private let resignButton = FilledRoundButton(type: .primary, size: .xLarge, text: "탈퇴하기", mode: .disabled)
-  
-  private let alertVC = AlertViewController(
+  private let passwordTextField = PasswordTextField(type: .default)
+  private let withdrawButton = FilledRoundButton(type: .primary, size: .xLarge, text: "탈퇴하기", mode: .disabled)
+  private let didFailPasswordVerificationAlert = AlertViewController(
     alertType: .confirm,
     title: "비밀번호가 일치하지 않아요",
     subTitle: "다시 입력해주세요"
@@ -53,6 +41,7 @@ final class WithdrawAuthViewController: UIViewController, ViewControllerable {
     super.init(nibName: nil, bundle: nil)
   }
   
+  @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
@@ -64,7 +53,7 @@ final class WithdrawAuthViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
-  // MARK: - UIResponder
+  // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
     
@@ -75,15 +64,14 @@ final class WithdrawAuthViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension WithdrawAuthViewController {
   func setupUI() {
-    self.navigationController?.setNavigationBarHidden(true, animated: false)
-    self.view.backgroundColor = .white
-    self.resignButton.isEnabled = false
+    view.backgroundColor = .white
+//    withdrawButton.isEnabled = false
     setViewHierarchy()
     setConstraints()
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, announceLabel, passwordTextField, resignButton)
+    view.addSubviews(navigationBar, titleLabel, passwordTextField, withdrawButton)
   }
   
   func setConstraints() {
@@ -93,22 +81,19 @@ private extension WithdrawAuthViewController {
       $0.height.equalTo(56)
     }
     
-    announceLabel.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(20)
-      $0.trailing.equalToSuperview().offset(-20)
+    titleLabel.snp.makeConstraints {
+      $0.leading.equalToSuperview().inset(24)
       $0.top.equalTo(navigationBar.snp.bottom).offset(40)
     }
     
     passwordTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.top.equalTo(announceLabel.snp.bottom).offset(20)
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(20)
     }
     
-    resignButton.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().offset(-24)
-      $0.bottom.equalToSuperview().offset(-56)
+    withdrawButton.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.bottom.equalToSuperview().inset(56)
     }
   }
 }
@@ -119,37 +104,41 @@ private extension WithdrawAuthViewController {
     let input = WithdrawAuthViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       password: passwordTextField.rx.text,
-      didTapNextButton: resignButton.rx.tap
+      didTapWithdrawButton: withdrawButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
-    
-    output.requestFailed
+    viewBind()
+    bind(for: output)
+  }
+  
+  func viewBind() {
+    passwordTextField.rx.text
+      .map { !$0.isEmpty }
+      .bind(with: self) { owner, isEntered in
+        owner.withdrawButton.isEnabled = isEntered
+      }
+      .disposed(by: disposeBag)
+  }
+  
+  func bind(for output: WithdrawAuthViewModel.Output) {
+    output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
     
-    output.wrongPassword
+    output.didFailPasswordVerification
       .emit(with: self) { owner, _ in
-        owner.displayInvalidPasswordPopUp()
-      }.disposed(by: disposeBag)
+        owner.didFailPasswordVerificationAlert.present(to: owner, animted: true)
+      }
+      .disposed(by: disposeBag)
     
-    passwordTextField.rx.text
-      .map { !$0.isEmpty }
-      .bind(with: self) { owner, isEntered in
-        owner.resignButton.isEnabled = isEntered
-      }.disposed(by: disposeBag)
+    output.isEnabledWithdrawButton
+      .drive(withdrawButton.rx.isEnabled)
+      .disposed(by: disposeBag)
   }
 }
 
-// MARK: - ResignAuthPresentable
+// MARK: - WithdrawAuthPresentable
 extension WithdrawAuthViewController: WithdrawAuthPresentable { }
-
-// MARK: - Private Methods
-private extension WithdrawAuthViewController {
-  func displayInvalidPasswordPopUp() {
-    let alertVC = AlertViewController(alertType: .confirm, title: "비밀번호가 일치하지 않아요.", subTitle: "다시 입력해 주세요.")
-    alertVC.present(to: self, animted: false)
-  }
-}

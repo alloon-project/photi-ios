@@ -58,21 +58,24 @@ final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
       }
       .disposed(by: disposeBag)
     
-    input.didTapNextButton
+    let isEnabledWithdrawButton = input.password.map { $0.isValidPassword }
+    
+    input.didTapWithdrawButton
       .withLatestFrom(input.password)
       .bind(with: self) { owner, password in
-        owner.requestCheckPassword(password: password)
-      }.disposed(by: disposeBag)
+        Task { await owner.withdraw(password: password) }
+      }
+      .disposed(by: disposeBag)
     
-    // Output 반환
     return Output(
-      wrongPassword: wrongPasswordRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      didFailPasswordVerification: didFailPasswordVerificationRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal(),
+      isEnabledWithdrawButton: isEnabledWithdrawButton.asDriver(onErrorJustReturn: false)
     )
   }
 }
 
-// MARK: - Private Methods
+// MARK: - API Methods
 private extension WithdrawAuthViewModel {
   func requestCheckPassword(password: String) { }
   
