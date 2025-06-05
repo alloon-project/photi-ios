@@ -1,5 +1,5 @@
 //
-//  ResignAuthViewController.swift
+//  WithdrawAuthViewController.swift
 //  Presentation
 //
 //  Created by 임우섭 on 2/15/25.
@@ -13,9 +13,9 @@ import SnapKit
 import Core
 import DesignSystem
 
-final class ResignAuthViewController: UIViewController, ViewControllerable {
+final class WithdrawAuthViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
-  private let viewModel: ResignAuthViewModel
+  private let viewModel: WithdrawAuthViewModel
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
@@ -47,7 +47,7 @@ final class ResignAuthViewController: UIViewController, ViewControllerable {
   )
   
   // MARK: - Initiazliers
-  init(viewModel: ResignAuthViewModel) {
+  init(viewModel: WithdrawAuthViewModel) {
     self.viewModel = viewModel
     
     super.init(nibName: nil, bundle: nil)
@@ -73,7 +73,7 @@ final class ResignAuthViewController: UIViewController, ViewControllerable {
 }
 
 // MARK: - UI Methods
-private extension ResignAuthViewController {
+private extension WithdrawAuthViewController {
   func setupUI() {
     self.navigationController?.setNavigationBarHidden(true, animated: false)
     self.view.backgroundColor = .white
@@ -114,9 +114,9 @@ private extension ResignAuthViewController {
 }
 
 // MARK: - Bind Method
-private extension ResignAuthViewController {
+private extension WithdrawAuthViewController {
   func bind() {
-    let input = ResignAuthViewModel.Input(
+    let input = WithdrawAuthViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       password: passwordTextField.rx.text,
       didTapNextButton: resignButton.rx.tap
@@ -144,10 +144,10 @@ private extension ResignAuthViewController {
 }
 
 // MARK: - ResignAuthPresentable
-extension ResignAuthViewController: ResignAuthPresentable { }
+extension WithdrawAuthViewController: WithdrawAuthPresentable { }
 
 // MARK: - Private Methods
-private extension ResignAuthViewController {
+private extension WithdrawAuthViewController {
   func displayInvalidPasswordPopUp() {
     let alertVC = AlertViewController(alertType: .confirm, title: "비밀번호가 일치하지 않아요.", subTitle: "다시 입력해 주세요.")
     alertVC.present(to: self, animted: false)

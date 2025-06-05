@@ -1,5 +1,5 @@
 //
-//  ResignAuthViewModel.swift
+//  WithdrawAuthViewModel.swift
 //  Presentation
 //
 //  Created by 임우섭 on 2/15/25.
@@ -11,23 +11,23 @@ import RxSwift
 import Entity
 import UseCase
 
-protocol ResignAuthCoordinatable: AnyObject {
+protocol WithdrawAuthCoordinatable: AnyObject {
   func isRequestSucceed()
   func didTapBackButton()
 }
 
-protocol ResignAuthViewModelType: AnyObject {
+protocol WithdrawAuthViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
-  var coordinator: ResignAuthCoordinatable? { get set }
+  var coordinator: WithdrawAuthCoordinatable? { get set }
 }
 
-final class ResignAuthViewModel: ResignAuthViewModelType {
+final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
   let disposeBag = DisposeBag()
   
-  weak var coordinator: ResignAuthCoordinatable?
+  weak var coordinator: WithdrawAuthCoordinatable?
   
   private let useCase: ProfileEditUseCase
   private let wrongPasswordRelay = PublishRelay<Void>()
@@ -73,7 +73,7 @@ final class ResignAuthViewModel: ResignAuthViewModelType {
 }
 
 // MARK: - Private Methods
-private extension ResignAuthViewModel {
+private extension WithdrawAuthViewModel {
   func requestCheckPassword(password: String) { }
   
   func requestFailed(error: Error) { }

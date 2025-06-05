@@ -42,7 +42,7 @@ final class ProfileEditViewController: UIViewController, ViewControllerable {
     
     return tableView
   }()
-  private let resignButton = TextButton(text: "회원탈퇴", size: .small, type: .gray)
+  private let withdrawButton = TextButton(text: "회원탈퇴", size: .small, type: .gray)
   
   private let successUpdateProfileImageToastView = ToastView(
     tipPosition: .none,
@@ -93,7 +93,7 @@ private extension ProfileEditViewController {
       navigationBar,
       profileImageView,
       menuTableView,
-      resignButton
+      withdrawButton
     )
   }
   
@@ -114,7 +114,7 @@ private extension ProfileEditViewController {
       $0.top.equalTo(profileImageView.snp.bottom).offset(32)
     }
     
-    resignButton.snp.makeConstraints {
+    withdrawButton.snp.makeConstraints {
       $0.top.equalTo(menuTableView.snp.bottom).offset(32)
       $0.trailing.equalToSuperview().inset(24)
     }
@@ -134,7 +134,7 @@ private extension ProfileEditViewController {
     let input = ProfileEditViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapProfileEditMenu: didTapProfileEditMenu.asSignal(),
-      didTapResignButton: resignButton.rx.tap.asSignal(),
+      didTapWithdrawButton: withdrawButton.rx.tap.asSignal(),
       requestData: requestData.asSignal(),
       didSelectImage: didSelectImageRelay.asSignal()
     )

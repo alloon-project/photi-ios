@@ -202,7 +202,7 @@ extension AppCoordinator: SearchChallengeListener {
 
 // MARK: - MyPageListener
 extension AppCoordinator: MyPageListener {
-  func isUserResigned() {
+  func didFinishWithdrawal() {
     Task { await presenter.changeNavigationControllerToHome() }
   }
   

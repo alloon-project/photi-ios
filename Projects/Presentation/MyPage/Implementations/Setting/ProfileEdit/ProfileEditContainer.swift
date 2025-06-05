@@ -22,7 +22,7 @@ final class ProfileEditContainer:
   Container<ProfileEditDependency>,
   ProfileEditContainable,
   ChangePasswordDependency,
-  ResignDependency {
+  WithdrawDependency {
   var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUseCase }
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   
@@ -31,13 +31,13 @@ final class ProfileEditContainer:
     let viewControllerable = ProfileEditViewController(viewModel: viewModel)
     
     let changePassword = ChangePasswordContainer(dependency: self)
-    let resign = ResignContainer(dependency: self)
+    let withdraw = WithdrawContainer(dependency: self)
     
     let coordinator = ProfileEditCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       changePasswordContainable: changePassword, 
-      resignContainable: resign
+      withdrawContainable: withdraw
     )
     coordinator.listener = listener
     
