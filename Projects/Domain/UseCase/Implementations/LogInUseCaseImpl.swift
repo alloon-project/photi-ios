@@ -7,6 +7,7 @@
 //
 
 import RxSwift
+import Core
 import Entity
 import UseCase
 import Repository
@@ -27,6 +28,8 @@ public final class LogInUseCaseImpl: LogInUseCase {
 public extension LogInUseCaseImpl {
   func login(username: String, password: String) -> Single<Void> {
     loginrepository.logIn(userName: username, password: password)
+      .do { ServiceConfiguration.shared.setUseName($0) }
+      .map { _ in () }
   }
   
   func sendUserInformation(to email: String) -> Single<Void> {

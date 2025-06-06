@@ -13,6 +13,7 @@ public protocol MyPageContainable: Containable {
 }
 
 public protocol MyPageListener: AnyObject {
-  func isUserResigned()
+  func didFinishWithdrawal()
   func authenticatedFailedAtMyPage()
+  func didLogOut()
 }

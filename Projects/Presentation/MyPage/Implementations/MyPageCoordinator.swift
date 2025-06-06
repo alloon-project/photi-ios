@@ -141,9 +141,9 @@ extension MyPageCoordinator: MyPageCoordinatable {
 
 // MARK: - SettingListener
 extension MyPageCoordinator: SettingListener {
-  func isUserResigned() {
+  func didFinishWithdrawal() {
     detachSetting()
-    listener?.isUserResigned()
+    listener?.didFinishWithdrawal()
   }
   
   func didTapBackButtonAtSetting() {
@@ -152,6 +152,10 @@ extension MyPageCoordinator: SettingListener {
   
   func authenticatedFailedAtSetting() {
     listener?.authenticatedFailedAtMyPage()
+  }
+  
+  func didLogOut() {
+    listener?.didLogOut()
   }
 }
 

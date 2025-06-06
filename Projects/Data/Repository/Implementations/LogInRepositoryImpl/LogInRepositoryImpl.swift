@@ -24,14 +24,14 @@ public struct LogInRepositoryImpl: LogInRepository {
   
 // MARK: - Public Methods
 public extension LogInRepositoryImpl {
-  func logIn(userName: String, password: String) -> Single<Void> {
+  func logIn(userName: String, password: String) -> Single<String> {
     let requestDTO = dataMapper.mapToLogInRequestDTO(userName: userName, password: password)
     
     return requestUnAuthorizableAPI(
       api: LogInAPI.login(dto: requestDTO),
       responseType: LogInResponseDTO.self
     )
-    .map { _ in () }
+    .map { $0.username }
   }
   
   func requestUserInformation(email: String) -> Single<Void> {

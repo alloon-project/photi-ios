@@ -16,7 +16,7 @@ import UseCase
 protocol ProfileEditCoordinatable: AnyObject {
   func didTapBackButton()
   func attachChangePassword()
-  func attachResign()
+  func attachWithdraw()
   func authenticatedFailed()
 }
 
@@ -44,7 +44,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   struct Input {
     let didTapBackButton: Signal<Void>
     let didTapProfileEditMenu: Signal<ProfileEditMenuItem>
-    let didTapResignButton: Signal<Void>
+    let didTapWithdrawButton: Signal<Void>
     let requestData: Signal<Void>
     let didSelectImage: Signal<UIImageWrapper>
   }
@@ -86,9 +86,9 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
       }
       .disposed(by: disposeBag)
     
-    input.didTapResignButton
+    input.didTapWithdrawButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachResign()
+        owner.coordinator?.attachWithdraw()
       }
       .disposed(by: disposeBag)
     

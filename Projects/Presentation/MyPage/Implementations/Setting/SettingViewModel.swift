@@ -10,17 +10,15 @@ import Foundation
 import RxCocoa
 import RxSwift
 import Core
+import UseCase
 
 protocol SettingCoordinatable: AnyObject {
   func didTapBackButton()
   func attachProfileEdit()
-  func detachProfileEdit()
   func attachInquiry()
-  func detachInquiry()
   func attachServiceTerms()
-  func detachServiceTerms()
   func attachPrivacy()
-  func detachPrivacy()
+  func didFinishLogOut()
 }
 
 protocol SettingViewModelType: AnyObject {
@@ -34,6 +32,7 @@ final class SettingViewModel: SettingViewModelType {
   weak var coordinator: SettingCoordinatable?
   
   private let disposeBag = DisposeBag()
+  private let useCase: MyPageUseCase
   private let settingMenuItems: [SettingMenuItem] = [
     .editProfile,
     .contactSupport,
@@ -44,21 +43,26 @@ final class SettingViewModel: SettingViewModelType {
   ]
   
   private let settingMenuItemsRelay = BehaviorRelay<[SettingMenuItem]>(value: [])
+  private let shouldPresentLogoutAlert = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: Signal<Void>
     let requestData: Signal<Void>
     let didTapSettingMenu: Signal<SettingMenuItem>
+    let requestLogOut: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let settingMenuItems: Driver<[SettingMenuItem]>
+    let shouldPresentLogoutAlert: Signal<Void>
   }
   
   // MARK: - Initializers
-  init() { }
+  init(useCase: MyPageUseCase) {
+    self.useCase = useCase
+  }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -78,7 +82,17 @@ final class SettingViewModel: SettingViewModelType {
         owner.navigate(for: menu)
       }
       .disposed(by: disposeBag)
-    return Output(settingMenuItems: settingMenuItemsRelay.asDriver())
+    
+    input.requestLogOut
+      .emit(with: self) { owner, _ in
+        owner.requestLogOut()
+      }
+      .disposed(by: disposeBag)
+    
+    return Output(
+      settingMenuItems: settingMenuItemsRelay.asDriver(),
+      shouldPresentLogoutAlert: shouldPresentLogoutAlert.asSignal()
+    )
   }
 }
 
@@ -90,10 +104,13 @@ private extension SettingViewModel {
       case .contactSupport: coordinator?.attachInquiry()
       case .termsOfService: coordinator?.attachServiceTerms()
       case .privacyPolicy: coordinator?.attachPrivacy()
-      case .logout: requestLogOut()
+      case .logout: shouldPresentLogoutAlert.accept(())
       default: break
     }
   }
   
-  func requestLogOut() { }
+  func requestLogOut() {
+    useCase.logOut()
+    coordinator?.didFinishLogOut()
+  }
 }

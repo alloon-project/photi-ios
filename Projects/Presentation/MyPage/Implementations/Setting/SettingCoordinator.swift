@@ -10,9 +10,10 @@ import Core
 import Report
 
 protocol SettingListener: AnyObject {
-  func isUserResigned()
+  func didFinishWithdrawal()
   func didTapBackButtonAtSetting()
   func authenticatedFailedAtSetting()
+  func didLogOut()
 }
 
 protocol SettingPresentable { }
@@ -95,11 +96,15 @@ extension SettingCoordinator: SettingCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtSetting()
   }
+  
+  func didFinishLogOut() {
+    listener?.didLogOut()
+  }
 }
 // MARK: - ProfileEditListener
 extension SettingCoordinator: ProfileEditListener {
-  func isUserResigned() {
-    listener?.isUserResigned()
+  func didFinishWithdrawal() {
+    listener?.didFinishWithdrawal()
   }
   
   func didTapBackButtonAtProfileEdit() {

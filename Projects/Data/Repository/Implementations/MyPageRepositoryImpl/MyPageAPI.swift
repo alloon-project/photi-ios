@@ -19,6 +19,7 @@ public enum MyPageAPI {
   case feedsByDate(_ date: String)
   case userInformation
   case uploadProfileImage(_ data: Data, imageType: String)
+  case withdrawUser(password: String)
 }
 
 extension MyPageAPI: TargetType {
@@ -35,12 +36,14 @@ extension MyPageAPI: TargetType {
       case .feedsByDate: return "api/users/feeds-by-date"
       case .userInformation: return "api/users"
       case .uploadProfileImage: return "api/users/image"
+      case .withdrawUser: return "api/users"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
       case .uploadProfileImage: return .post
+      case .withdrawUser: return .patch
       default: return .get
     }
   }
@@ -57,6 +60,10 @@ extension MyPageAPI: TargetType {
       case let .feedsByDate(date):
         let parameters = ["date": date]
         return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
+        
+      case let .withdrawUser(password):
+        let parameters = ["password": password]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
         
       case let .uploadProfileImage(image, imageType):
         let multiPartBody = MultipartFormDataBodyPart(
@@ -105,6 +112,19 @@ extension MyPageAPI: TargetType {
         let data = UserProfileResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+        
+      case .withdrawUser:
+        let data = """
+          {
+            "code": "200 OK",
+            "message": "성공",
+            "data": {
+              "successMessage": "string"
+            }
+          }
+        """
+        let jsonData = data.data(using: .utf8)
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
   }

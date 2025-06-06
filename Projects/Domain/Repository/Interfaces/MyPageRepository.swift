@@ -18,4 +18,5 @@ public protocol MyPageRepository {
   func fetchFeeds(byDate date: String) async throws -> [FeedSummary]
   func fetchUserProfile() async throws -> UserProfile
   func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL?
+  func deleteUserAccount(password: String) async throws
 }
