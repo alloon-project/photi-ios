@@ -18,7 +18,6 @@ public protocol MyPageDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
   var reportContainable: ReportContainable { get }
-  var resignUsecase: ResignUseCase { get }
 }
 
 public final class MyPageContainer:
@@ -33,7 +32,6 @@ public final class MyPageContainer:
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
-  var resignUseCase: ResignUseCase { dependency.resignUsecase }
   var myPageUseCase: MyPageUseCase { dependency.myPageUseCase }
   
   public func coordinator(listener: MyPageListener) -> ViewableCoordinating {

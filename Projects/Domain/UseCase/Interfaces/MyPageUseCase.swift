@@ -16,4 +16,5 @@ public protocol MyPageUseCase {
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary>
   func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary>
   func loadFeeds(byDate date: String) async throws -> [FeedSummary]
+  func logOut()
 }

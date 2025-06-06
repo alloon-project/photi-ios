@@ -96,11 +96,17 @@ final class AppContainer:
   }()
   
   lazy var myPageUseCase: MyPageUseCase = {
-    return MyPageUseCaseImpl(repository: myPageRepository)
+    return MyPageUseCaseImpl(
+      authRepository: authRepository,
+      myPagerepository: myPageRepository
+    )
   }()
   
   lazy var profileEditUseCase: ProfileEditUseCase = {
-    return ProfileEditUseCaseImpl(repository: myPageRepository)
+    return ProfileEditUseCaseImpl(
+      authRepository: authRepository,
+      myPageRepository: myPageRepository
+    )
   }()
   
   lazy var changePasswordUseCase: ChangePasswordUseCase = {
@@ -136,10 +142,6 @@ final class AppContainer:
   
   lazy var inquiryUseCase: InquiryUseCase = {
     return InquiryUseCaseImpl(repository: inquiryRepository)
-  }()
-  
-  lazy var resignUsecase: ResignUseCase = {
-    return ResignUseCaseImpl(repository: resignRepository)
   }()
   
   lazy var organizeUseCase: OrganizeUseCase = {
@@ -181,10 +183,6 @@ final class AppContainer:
   
   lazy var inquiryRepository: InquiryRepository = {
     return InquiryRepositoryImpl(dataMapper: InquiryDataMapperImpl())
-  }()
-
-  lazy var resignRepository: ResignRepository = {
-    return ResignRepositoryImpl(dataMapper: ResignDataMapperImpl())
   }()
   
   lazy var organizeRepository: ChallengeOrganizeRepository = {

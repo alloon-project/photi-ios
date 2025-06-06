@@ -13,36 +13,42 @@ import UseCase
 import Repository
 
 public class MyPageUseCaseImpl: MyPageUseCase {
-  private let repository: MyPageRepository
+  private let authRepository: AuthRepository
+  private let myPagerepository: MyPageRepository
   
-  public init(repository: MyPageRepository) {
-    self.repository = repository
+  public init(authRepository: AuthRepository, myPagerepository: MyPageRepository) {
+    self.authRepository = authRepository
+    self.myPagerepository = myPagerepository
   }
 }
 
 // MARK: - Fetch Methods
 public extension MyPageUseCaseImpl {
   func loadMyPageSummry() -> Single<MyPageSummary> {
-    return repository.fetchMyPageSummary()
+    return myPagerepository.fetchMyPageSummary()
   }
   
   func loadVerifiedChallengeDates() -> Single<[Date]> {
-    return repository.fetchVerifiedChallengeDates()
+    return myPagerepository.fetchVerifiedChallengeDates()
   }
   
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary> {
-    let result = try await repository.fetchFeedHistory(page: page, size: size)
+    let result = try await myPagerepository.fetchFeedHistory(page: page, size: size)
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary> {
-    let result = try await repository.fetchEndedChallenges(page: page, size: size)
+    let result = try await myPagerepository.fetchEndedChallenges(page: page, size: size)
     
     return result.isLast ? .lastPage(result.contents) : .defaults(result.contents)
   }
   
   func loadFeeds(byDate date: String) async throws -> [FeedSummary] {
-    return try await repository.fetchFeeds(byDate: date)
+    return try await myPagerepository.fetchFeeds(byDate: date)
+  }
+  
+  func logOut() {
+    authRepository.removeToken()
   }
 }

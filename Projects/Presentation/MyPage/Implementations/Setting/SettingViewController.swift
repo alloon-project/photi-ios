@@ -23,6 +23,7 @@ final class SettingViewController: UIViewController, ViewControllerable {
   
   private let requestData = PublishRelay<Void>()
   private let didTapSettingMenu = PublishRelay<SettingMenuItem>()
+  private let requestLogOut = PublishRelay<Void>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "설정", displayMode: .dark)
@@ -36,6 +37,14 @@ final class SettingViewController: UIViewController, ViewControllerable {
     tableView.isScrollEnabled = false
     
     return tableView
+  }()
+  
+  private let logOutAlertView: AlertViewController = {
+    let alert = AlertViewController(alertType: .canCancel, title: "정말 로그아웃 하시겠어요?")
+    alert.confirmButtonTitle = "로그아웃 할게요"
+    alert.cancelButtonTitle = "취소할게요"
+    
+    return alert
   }()
   
   // MARK: - Initializers
@@ -99,16 +108,32 @@ private extension SettingViewController {
     let input = SettingViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       requestData: requestData.asSignal(),
-      didTapSettingMenu: didTapSettingMenu.asSignal()
+      didTapSettingMenu: didTapSettingMenu.asSignal(),
+      requestLogOut: requestLogOut.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(for: output)
+  }
+  
+  func viewBind() {
+    logOutAlertView.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.requestLogOut.accept(())
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: SettingViewModel.Output) {
     output.settingMenuItems
       .drive(rx.settingMenuItems)
+      .disposed(by: disposeBag)
+    
+    output.shouldPresentLogoutAlert
+      .emit(with: self) { owner, _ in
+        owner.logOutAlertView.present(to: owner, animted: true)
+      }
       .disposed(by: disposeBag)
   }
 }

@@ -13,16 +13,18 @@ import UseCase
 import Repository
 
 public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
-  private let repository: MyPageRepository
+  private let authRepository: AuthRepository
+  private let myPageRepository: MyPageRepository
   
-  public init(repository: MyPageRepository) {
-    self.repository = repository
+  public init(authRepository: AuthRepository, myPageRepository: MyPageRepository) {
+    self.authRepository = authRepository
+    self.myPageRepository = myPageRepository
   }
 }
 
 public extension ProfileEditUseCaseImpl {
   func loadUserProfile() async throws -> UserProfile {
-    return try await repository.fetchUserProfile()
+    return try await myPageRepository.fetchUserProfile()
   }
   
   func updateProfileImage(_ image: UIImageWrapper) async throws -> URL? {
@@ -30,7 +32,12 @@ public extension ProfileEditUseCaseImpl {
       throw APIError.myPageFailed(reason: .fileTooLarge)
     }
     
-    return try await repository.uploadProfileImage(data, imageType: type)
+    return try await myPageRepository.uploadProfileImage(data, imageType: type)
+  }
+  
+  func withdraw(with password: String) async throws {
+    try await myPageRepository.deleteUserAccount(password: password)
+    authRepository.removeToken()
   }
 }
 
