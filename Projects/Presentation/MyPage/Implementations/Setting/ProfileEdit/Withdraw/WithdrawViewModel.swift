@@ -1,5 +1,5 @@
 //
-//  ResignViewModel.swift
+//  WithdrawViewModel.swift
 //  MyPageImpl
 //
 //  Created by wooseob on 8/30/24.
@@ -9,34 +9,34 @@
 import RxCocoa
 import RxSwift
 
-protocol ResignCoordinatable: AnyObject {
+protocol WithdrawCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachPasswordAuth()
+  func attachWithdrawAuth()
   func didTapCancelButton()
 }
 
-protocol ResignViewModelType: AnyObject {
+protocol WithdrawViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
   var disposeBag: DisposeBag { get }
-  var coodinator: ResignCoordinatable? { get set }
+  var coodinator: WithdrawCoordinatable? { get set }
 }
 
-final class ResignViewModel: ResignViewModelType {
+final class WithdrawViewModel: WithdrawViewModelType {
   let disposeBag = DisposeBag()
   
-  weak var coodinator: ResignCoordinatable?
+  weak var coodinator: WithdrawCoordinatable?
   
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
-    let didTapResignButton: ControlEvent<Void>
+    let didTapWithdrawButton: ControlEvent<Void>
     let didTapCancelButton: ControlEvent<Void>
   }
   
   // MARK: - Output
-  struct Output {}
+  struct Output { }
   
   // MARK: - Initializers
   init() { }
@@ -47,9 +47,9 @@ final class ResignViewModel: ResignViewModelType {
         onwer.coodinator?.didTapBackButton()
       }.disposed(by: disposeBag)
     
-    input.didTapResignButton
+    input.didTapWithdrawButton
       .bind(with: self) { onwer, _ in
-        onwer.coodinator?.attachPasswordAuth()
+        onwer.coodinator?.attachWithdrawAuth()
       }.disposed(by: disposeBag)
     
     input.didTapCancelButton

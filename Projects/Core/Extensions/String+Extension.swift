@@ -13,6 +13,14 @@ public extension String {
     self.matchesPattern(with: "^[a-z0-9!_@$%^&+=]+$")
   }
   
+  var isValidPassword: Bool {
+    let containsAlphabet = self.range(of: "[a-zA-Z]", options: .regularExpression) != nil
+    let containsNumber = self.range(of: "[0-9]", options: .regularExpression) != nil
+    let containsSpecial = self.range(of: "[^a-zA-Z0-9]", options: .regularExpression) != nil
+    let isInValidRange = (8...30).contains(self.count)
+    return containsAlphabet && containsNumber && containsSpecial && isInValidRange
+  }
+  
   func attributedString(
     font: UIFont,
     color: UIColor,
@@ -58,6 +66,7 @@ public extension String {
     let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}"
     return  NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: self)
   }
+
   /// 정규표현식을 통해 Pattern을 검사합니다.
   func matchesPattern(with regex: String) -> Bool {
     return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: self)

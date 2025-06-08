@@ -10,7 +10,7 @@ import Core
 
 protocol ProfileEditListener: AnyObject {
   func didTapBackButtonAtProfileEdit()
-  func isUserResigned()
+  func didFinishWithdrawal()
   func authenticatedFailedAtProfileEdit()
 }
 
@@ -24,21 +24,21 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
   private let viewModel: ProfileEditViewModel
   
   private let changePasswordContainable: ChangePasswordContainable
-  private var changePasswordCoordinator: Coordinating?
+  private var changePasswordCoordinator: ViewableCoordinating?
   
-  private let resignContainable: ResignContainable
-  private var resignCoordinator: Coordinating?
+  private let withdrawContainable: WithdrawContainable
+  private var withdrawCoordinator: ViewableCoordinating?
   
   init(
     viewControllerable: ViewControllerable,
     viewModel: ProfileEditViewModel,
     changePasswordContainable: ChangePasswordContainable,
-    resignContainable: ResignContainable
+    withdrawContainable: WithdrawContainable
   ) {
     self.viewModel = viewModel
     
     self.changePasswordContainable = changePasswordContainable
-    self.resignContainable = resignContainable
+    self.withdrawContainable = withdrawContainable
     
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -61,27 +61,27 @@ extension ProfileEditCoordinator {
     
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
-    self.resignCoordinator = nil
+    self.withdrawCoordinator = nil
   }
 }
 
-// MARK: - Resign
+// MARK: - Withdraw
 extension ProfileEditCoordinator {
-  func attachResign() {
-    guard resignCoordinator == nil else { return }
+  func attachWithdraw() {
+    guard withdrawCoordinator == nil else { return }
     
-    let coordinator = resignContainable.coordinator(listener: self)
+    let coordinator = withdrawContainable.coordinator(listener: self)
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-    self.resignCoordinator = coordinator
+    self.withdrawCoordinator = coordinator
   }
   
-  func detachResign() {
-    guard let coordinator = resignCoordinator else { return }
+  func detachWithdraw() {
+    guard let coordinator = withdrawCoordinator else { return }
     
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
-    self.resignCoordinator = nil
+    self.withdrawCoordinator = nil
   }
 }
 
@@ -108,17 +108,17 @@ extension ProfileEditCoordinator: ChangePasswordListener {
   }
 }
 
-// MARK: - ResignLisenter
-extension ProfileEditCoordinator: ResignListener {
-  func didFisishedResign() {
-    listener?.isUserResigned()
+// MARK: - WithdrawListener
+extension ProfileEditCoordinator: WithdrawListener {
+  func didFinishWithdrawal() {
+    listener?.didFinishWithdrawal()
   }
   
-  func didTapBackButtonAtResign() {
-    detachResign()
+  func didTapBackButtonAtWithdraw() {
+    detachWithdraw()
   }
   
-  func didTapCancelButtonAtResign() {
-    detachResign()
+  func authenticatedFailedAtWithdraw() {
+    listener?.authenticatedFailedAtProfileEdit()
   }
 }
