@@ -29,7 +29,7 @@ public final class ServiceConfiguration {
     return name
   }
   
-  public func setUseName(_ name: String) {
+  public func setUserName(_ name: String) {
     UserDefaults.standard.set(name, forKey: "userName")
   }
 }

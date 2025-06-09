@@ -9,6 +9,7 @@
 import Challenge
 import Core
 import UseCase
+import Kingfisher
 
 protocol ChallengeModifyDependency: Dependency {
   var organizeUseCase: OrganizeUseCase { get }
@@ -17,8 +18,9 @@ protocol ChallengeModifyDependency: Dependency {
 protocol ChallengeModifyContainable: Containable {
   func coordinator(
     listener: ModifyChallengeListener,
-    viewPresentationMdoel: ModifyPresentationModel
-  ) -> ViewableCoordinating
+    viewPresentationMdoel: ModifyPresentationModel,
+    challengeId: Int
+  ) async -> ViewableCoordinating
 }
 
 final class ChallengeModifyContainer:
@@ -33,10 +35,22 @@ final class ChallengeModifyContainer:
 
   func coordinator(
     listener: ModifyChallengeListener,
-    viewPresentationMdoel: ModifyPresentationModel
-  ) -> ViewableCoordinating {
-    let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
-    let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
+    viewPresentationMdoel: ModifyPresentationModel,
+    challengeId: Int
+  ) async -> ViewableCoordinating {
+      await organizeUseCase.configureChallengePayload(.name, value: viewPresentationMdoel.title)
+      await organizeUseCase.configureChallengePayload(.goal, value: viewPresentationMdoel.goal)
+      await organizeUseCase.configureChallengePayload(.proveTime, value: viewPresentationMdoel.verificationTime)
+      await organizeUseCase.configureChallengePayload(.endDate, value: viewPresentationMdoel.deadLine)
+      await organizeUseCase.configureChallengePayload(.rules, value: viewPresentationMdoel.rules)
+      await organizeUseCase.configureChallengePayload(.hashtags, value: viewPresentationMdoel.hashtags)
+      await organizeUseCase.configureChallengePayload(.image, value: viewPresentationMdoel.imageUrlString)
+    
+    let viewModel = ChallengeModifyViewModel(
+      useCase: organizeUseCase,
+      challengeId: challengeId
+    )
+    let viewControllerable = await ChallengeModifyViewController(viewModel: viewModel)
     
     let modifyChallengeNameContainable = ChallengeNameContainer(dependency: self)
     let modifyChallengeGoalContainable = ChallengeGoalContainer(dependency: self)

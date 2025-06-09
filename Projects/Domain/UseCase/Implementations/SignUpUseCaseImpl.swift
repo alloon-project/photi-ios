@@ -57,7 +57,7 @@ public class SignUpUseCaseImpl: SignUpUseCase {
       username: username,
       password: password.trimmingCharacters(in: .whitespacesAndNewlines)
     )
-    .do { ServiceConfiguration.shared.setUseName($0) }
+    .do { ServiceConfiguration.shared.setUserName($0) }
   }
 }
 

@@ -110,7 +110,11 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeName() {
     guard challengeNameCoordinator == nil else { return }
     
-    let coordinater = challengeNameContainable.coordinator(mode: .organize, listener: self)
+    let coordinater = challengeNameContainable.coordinator(
+      mode: .organize,
+      title: nil,
+      listener: self
+    )
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -131,6 +135,9 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     
     let coordinater = challengeGoalContainable.coordinator(
       mode: .organize,
+      goal: nil,
+      proveTime: nil,
+      endDate: nil,
       listener: self
     )
     addChild(coordinater)
@@ -151,7 +158,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeCover() {
     guard challengeCoverCoordinator == nil else { return }
     
-    let coordinater = challengeCoverContainable.coordinator(listener: self)
+    let coordinater = challengeCoverContainable.coordinator(mode: .organize, listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -170,7 +177,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeRule() {
     guard challengeRuleCoordinator == nil else { return }
     
-    let coordinater = challengeRuleContainable.coordinator(listener: self)
+    let coordinater = challengeRuleContainable.coordinator(
+      mode: .organize,
+      rules: nil,
+      listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -189,7 +199,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeHashtag() {
     guard challengeHashtagCoordinator == nil else { return }
     
-    let coordinater = challengeHashtagContainable.coordinator(listener: self)
+    let coordinater = challengeHashtagContainable.coordinator(mode: .organize, listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)

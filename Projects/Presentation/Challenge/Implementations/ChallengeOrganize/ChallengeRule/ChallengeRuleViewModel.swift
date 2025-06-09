@@ -25,6 +25,7 @@ protocol ChallengeRuleViewModelType: AnyObject {
 
 final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
   let disposeBag = DisposeBag()
+  private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeRuleCoordinatable?
@@ -43,7 +44,11 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    mode: ChallengeOrganizeMode,
+    useCase: OrganizeUseCase
+  ) {
+    self.mode = mode
     self.useCase = useCase
   }
   
@@ -70,7 +75,9 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
       .withLatestFrom(input.challengeRules)
       .bind(with: self) { owner, rules in
         owner.coordinator?.didFinishAtChallengeRule(challengeRules: rules)
-        owner.useCase.configureChallengePayload(.rules, value: rules)
+        Task {
+          await owner.useCase.configureChallengePayload(.rules, value: rules)
+        }
       }
       .disposed(by: disposeBag)
     

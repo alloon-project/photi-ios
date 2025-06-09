@@ -15,6 +15,7 @@ protocol ChallengePresentable {
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
   func presentChallengeNotFoundWaring()
   func presentNetworkWarning(reason: String?)
+  func presentFinishModifying()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -106,16 +107,19 @@ extension ChallengeCoordinator {
 
 // MARK: - ChallengeEdit
 extension ChallengeCoordinator {
-  func attachChallengeEdit(presentationModel: ModifyPresentationModel) {
+  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int) async {
     guard modifyCoordinator == nil else { return }
     
-    let coordinator = modifyContainer.coordinator(
+    let coordinator = await modifyContainer.coordinator(
       listener: self,
-      viewPresentationMdoel: presentationModel
+      viewPresentationMdoel: model,
+      challengeId: challengeId
     )
-    addChild(coordinator)
-    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-    self.modifyCoordinator = coordinator
+    await MainActor.run {
+      addChild(coordinator)
+      viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+      self.modifyCoordinator = coordinator
+    }
   }
   
   func detachChallengeEdit() {
@@ -221,9 +225,14 @@ extension ChallengeCoordinator: ReportListener {
 extension ChallengeCoordinator: ModifyChallengeListener {
   func challengeModified() {
     detachChallengeEdit()
+    presenter.presentFinishModifying()
   }
   
   func didTapBackButtonAtModifyChallenge() {
+    detachChallengeEdit()
+  }
+  
+  func didTapAlertButtonAtModifyChallenge() {
     detachChallengeEdit()
   }
 }

@@ -22,8 +22,9 @@ public enum PayloadType {
 }
 
 public protocol OrganizeUseCase {
-  func configureChallengePayload(_ type: PayloadType, value: Any)
-  
+  func configureChallengePayload(_ type: PayloadType, value: Any) async
   func fetchChallengeSampleImages() -> Single<[String]>
   func organizeChallenge() -> Single<ChallengeDetail>
+  func modifyChallenge() -> Single<Void>
+  func setChallengeId(id: Int)
 }

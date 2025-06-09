@@ -167,7 +167,7 @@ private extension ChallengeViewController {
       .disposed(by: disposeBag)
     
     output.dropDownMenus
-      .map { $0.map{ $0.rawValue } }
+      .map { $0.map { $0.rawValue } }
       .drive(dropDownView.rx.dataSource)
       .disposed(by: disposeBag)
     
@@ -225,6 +225,17 @@ extension ChallengeViewController: ChallengePresentable {
   
   func presentNetworkWarning(reason: String?) {
     presentNetworkUnstableAlert(reason: reason)
+  }
+  
+  func presentFinishModifying() {
+    let toastText = "챌린지 수정이 완료됐어요."
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
   }
 }
 
