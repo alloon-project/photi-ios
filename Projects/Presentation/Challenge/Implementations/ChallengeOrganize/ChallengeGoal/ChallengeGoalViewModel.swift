@@ -75,9 +75,11 @@ final class ChallengeGoalViewModel: ChallengeGoalViewModelType {
           proveTime: infos.1,
           endDate: infos.2.toString("YYYY-MM-dd")
         )
-        owner.useCase.configureChallengePayload(.goal, value: infos.0)
-        owner.useCase.configureChallengePayload(.proveTime, value: infos.1)
-        owner.useCase.configureChallengePayload(.endDate, value: infos.2.toString("YYYY-MM-dd"))
+        Task {
+          await owner.useCase.configureChallengePayload(.goal, value: infos.0)
+          await owner.useCase.configureChallengePayload(.proveTime, value: infos.1)
+          await owner.useCase.configureChallengePayload(.endDate, value: infos.2.toString("YYYY-MM-dd"))
+        }
       }
       .disposed(by: disposeBag)
     

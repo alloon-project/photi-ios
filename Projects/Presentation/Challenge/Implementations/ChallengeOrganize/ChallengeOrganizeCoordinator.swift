@@ -135,6 +135,9 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     
     let coordinater = challengeGoalContainable.coordinator(
       mode: .organize,
+      goal: nil,
+      proveTime: nil,
+      endDate: nil,
       listener: self
     )
     addChild(coordinater)

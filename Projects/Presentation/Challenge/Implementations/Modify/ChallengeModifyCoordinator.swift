@@ -154,11 +154,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyGoal() {
     guard modifyGoalCoordinator == nil else { return }
     
-    let coordinater = modifyGoalContainer.coordinator(mode: .modify, listener: self)
+    let coordinater = modifyGoalContainer.coordinator(
+      mode: .modify,
+      goal: self.viewPresentationModel.goal,
+      proveTime: self.viewPresentationModel.verificationTime,
+      endDate: self.viewPresentationModel.deadLine,
+      listener: self
+    )
     addChild(coordinater)
     
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.modifyNameCoordinator = coordinater
+    self.modifyGoalCoordinator = coordinater
   }
   
   func attachModifyCover() {}
@@ -205,10 +211,17 @@ extension ChallengeModifyCoordinator: ChallengeNameListener {
   }
 }
 
+// MARK: ModifyChallenge Goal Listener
 extension ChallengeModifyCoordinator: ChallengeGoalListener {
-  func didTapBackButtonAtChallengeGoal() {}
+  func didTapBackButtonAtChallengeGoal() {
+    detachModifyGoal()
+  }
   
-  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {}
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {
+    detachModifyGoal()
+    presenter.modifyGoal(goal: challengeGoal, verificationTime: proveTime, endDate: endDate)
+  }
+}
 // MARK: ModifyChallenge Rule Listener
 extension ChallengeModifyCoordinator: ChallengeRuleListener {
   func didTapBackButtonAtChallengeRule() {
