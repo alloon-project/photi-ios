@@ -18,7 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
-  func attachChallengeEdit(presentationModel: ModifyPresentationModel)
+  func attachChallengeEdit(presentationModel: ModifyPresentationModel, challengeId: Int)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -113,7 +113,10 @@ final class ChallengeViewModel: ChallengeViewModelType {
           rules: challengeDetail.rules ?? [],
           deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
         )
-        owner.coordinator?.attachChallengeEdit(presentationModel: viewPresentaionModel)
+        owner.coordinator?.attachChallengeEdit(
+          presentationModel: viewPresentaionModel,
+          challengeId: owner.challengeId
+        )
       }
       .disposed(by: disposeBag)
     

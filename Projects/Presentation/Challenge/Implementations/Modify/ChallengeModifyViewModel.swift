@@ -31,7 +31,7 @@ protocol ChallengeModifyViewModelType: AnyObject {
 final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   weak var coordinator: ChallengeModifyCoordinatable?
   private let disposeBag = DisposeBag()
-  
+  private let challengeId: Int
   private let useCase: OrganizeUseCase
   
   private let networkUnstableRelay = PublishRelay<Void>()
@@ -59,8 +59,12 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    useCase: OrganizeUseCase,
+    challengeId: Int
+  ) {
     self.useCase = useCase
+    self.challengeId = challengeId
   }
   
   func transform(input: Input) -> Output {
