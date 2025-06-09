@@ -19,6 +19,8 @@ protocol ChallengeModifyCoordinatable: AnyObject {
   func attachModifyHashtag()
   func attachModifyRule()
   func didTapBackButton()
+  func didTapAlert()
+  func didModifiedChallenge()
 }
 
 protocol ChallengeModifyViewModelType: AnyObject {
@@ -38,7 +40,8 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   private let emptyFileErrorRelay = PublishRelay<String>()
   private let imageTypeErrorRelay = PublishRelay<String>()
   private let fileTooLargeErrorRelay = PublishRelay<String>()
-  
+  private let notChallengeMemberRelay = PublishRelay<String>()
+
   // MARK: - Input
   struct Input {
     let didTapBackButton: ControlEvent<Void>
@@ -48,14 +51,15 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     let didTapChallengeCover: Signal<Void>
     let didTapChallengeRule: Signal<Void>
     let didTapModifyButton: ControlEvent<Void>
+    let didTapConfirmButtonAtAlert: Signal<Void>
   }
   
   // MARK: - Output
   struct Output {
     let networkUnstable: Signal<Void>
-    let emptyFileError: Signal<String>
     let imageTypeError: Signal<String>
     let fileTooLargeError: Signal<String>
+    let notChallengeMember: Signal<String>
   }
   
   // MARK: - Initializers
@@ -104,11 +108,16 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
         owner.modifyChallenge()
       }.disposed(by: disposeBag)
     
+    input.didTapConfirmButtonAtAlert
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.didTapAlert()
+      }.disposed(by: disposeBag)
+    
     return Output(
       networkUnstable: networkUnstableRelay.asSignal(),
-      emptyFileError: emptyFileErrorRelay.asSignal(),
       imageTypeError: imageTypeErrorRelay.asSignal(),
-      fileTooLargeError: fileTooLargeErrorRelay.asSignal()
+      fileTooLargeError: fileTooLargeErrorRelay.asSignal(),
+      notChallengeMember: notChallengeMemberRelay.asSignal()
     )
   }
 }
@@ -117,5 +126,23 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
 private extension ChallengeModifyViewModel {
   func modifyChallenge() {
     // TODO: - Challenge 수정 API 호출
+  func requestFailed(with error: Error) {
+    guard let error = error as? APIError else {
+      return networkUnstableRelay.accept(())
+    }
+    
+    switch error {
+      case let .organazieFailed(reason) where reason == .notChallengeMemeber:
+        let message = "존재하지 않는 챌린지 파티원입니다."
+        notChallengeMemberRelay.accept(message)
+      case let .organazieFailed(reason) where reason == .fileSizeExceed:
+        let message = "파일 사이즈는 8MB 이하만 가능합니다."
+        fileTooLargeErrorRelay.accept(message)
+      case let .organazieFailed(reason) where reason == .imageTypeUnsurported:
+        let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
+        imageTypeErrorRelay.accept(message)
+      default:
+        networkUnstableRelay.accept(())
+    }
   }
 }

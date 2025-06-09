@@ -12,6 +12,7 @@ import Core
 protocol ModifyChallengeListener: AnyObject {
   func challengeModified()
   func didTapBackButtonAtModifyChallenge()
+  func didTapAlertButtonAtModifyChallenge()
 }
 
 protocol ChallengeModifyPresentable {
@@ -165,9 +166,16 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtModifyChallenge()
   }
+  
+  func didModifiedChallenge() {
+    listener?.challengeModified()
+  }
+  
+  func didTapAlert() {
+    listener?.didTapAlertButtonAtModifyChallenge()
+  }
 }
 
-// MARK: ModifyChallengeName Listener
 extension ChallengeModifyCoordinator: ChallengeNameListener {
   func didTapBackButtonAtChallengeName() { }
   

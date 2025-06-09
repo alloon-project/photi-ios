@@ -227,4 +227,8 @@ extension ChallengeCoordinator: ModifyChallengeListener {
   func didTapBackButtonAtModifyChallenge() {
     detachChallengeEdit()
   }
+  
+  func didTapAlertButtonAtModifyChallenge() {
+    detachChallengeEdit()
+  }
 }

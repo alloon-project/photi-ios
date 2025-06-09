@@ -82,6 +82,16 @@ private extension ChallengeOrganizeRepositoryImpl {
           let result = try await provider.request(api, type: responseType.self).value
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
+          } else if result.statusCode == 400 {
+            single(.failure(APIError.organazieFailed(reason: .emptyFileInvalid)))
+          } else if result.statusCode == 401 || result.statusCode == 403 {
+            single(.failure(APIError.authenticationFailed))
+          } else if result.statusCode == 404 {
+            single(.failure(APIError.organazieFailed(reason: .notChallengeMemeber)))
+          } else if result.statusCode == 413 {
+            single(.failure(APIError.organazieFailed(reason: .fileSizeExceed)))
+          } else if result.statusCode == 415 {
+            single(.failure(APIError.organazieFailed(reason: .imageTypeUnsurported)))
           } else {
             single(.failure(APIError.serverError))
           }

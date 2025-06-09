@@ -29,6 +29,7 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private let didTapChallengeGoalRelay = PublishRelay<Void>()
   private let didTapChallengeCoverRelay = PublishRelay<Void>()
   private let didTapChallengeRuleRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -186,12 +187,15 @@ private extension ChallengeModifyViewController {
       didTapChallengeGoal: didTapChallengeGoalRelay.asSignal(),
       didTapChallengeCover: didTapChallengeCoverRelay.asSignal(),
       didTapChallengeRule: didTapChallengeRuleRelay.asSignal(),
-      didTapModifyButton: modifyButton.rx.tap
+      didTapModifyButton: modifyButton.rx.tap,
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
     )
     
     let output = viewModel.transform(input: input)
     
     viewBind()
+    
+    bind(for: output)
   }
   
   func viewBind() {
@@ -230,6 +234,29 @@ private extension ChallengeModifyViewController {
       .bind(with: self) { owner, _ in
         owner.didTapChallengeRuleRelay.accept(())
       }.disposed(by: disposeBag)
+  }
+  
+  func bind(for output: ChallengeModifyViewModel.Output) {
+    output.notChallengeMember
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.fileTooLargeError
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.imageTypeError
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -279,6 +306,16 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
   
   func modifyRules(rules: [String]) {
     ruleView.rules = rules
+  }
+  
+  func presentAlertWaring(message: String) {
+    let alert = AlertViewController(alertType: .confirm, title: message)
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
+    alert.present(to: self, animted: true)
   }
 }
 
