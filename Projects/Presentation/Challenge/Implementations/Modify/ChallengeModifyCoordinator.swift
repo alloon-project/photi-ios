@@ -140,7 +140,11 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyName() {
     guard modifyNameCoordinator == nil else { return }
     
-    let coordinater = modifyNameContainer.coordinator(mode: .modify, listener: self)
+    let coordinater = modifyNameContainer.coordinator(
+      mode: .modify,
+      title: self.viewPresentationModel.title,
+      listener: self
+    )
     addChild(coordinater)
     
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -176,10 +180,16 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   }
 }
 
+// MARK: ModifyChallenge Name Listener
 extension ChallengeModifyCoordinator: ChallengeNameListener {
-  func didTapBackButtonAtChallengeName() { }
+  func didTapBackButtonAtChallengeName() {
+    detachModifyName()
+  }
   
-  func didFisishChallengeName(challengeName: String, isPublic: Bool) {}
+  func didFisishChallengeName(challengeName: String, isPublic: Bool) {
+    detachModifyName()
+    presenter.modifyName(name: challengeName)
+  }
 }
 
 extension ChallengeModifyCoordinator: ChallengeGoalListener {

@@ -110,7 +110,11 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeName() {
     guard challengeNameCoordinator == nil else { return }
     
-    let coordinater = challengeNameContainable.coordinator(mode: .organize, listener: self)
+    let coordinater = challengeNameContainable.coordinator(
+      mode: .organize,
+      title: nil,
+      listener: self
+    )
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)

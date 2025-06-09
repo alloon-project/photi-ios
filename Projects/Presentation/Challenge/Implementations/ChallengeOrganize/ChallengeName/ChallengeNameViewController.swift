@@ -130,6 +130,7 @@ private extension ChallengeNameViewController {
     
     if case .modify = mode {
       navigationBar.title = "챌린지 이름 수정"
+      nextButton.title = "저장하기"
     }
   }
   
@@ -273,7 +274,11 @@ private extension ChallengeNameViewController {
 }
 
 // MARK: - ChallengeNamePresentable
-extension ChallengeNameViewController: ChallengeNamePresentable { }
+extension ChallengeNameViewController: ChallengeNamePresentable {
+  func setChallengeName(_ name: String) {
+    self.challengeNameTextField.text = name
+  }
+}
 
 // MARK: - Private Methods
 private extension ChallengeNameViewController {

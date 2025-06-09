@@ -66,8 +66,10 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
           challengeName: pieceOfChallenge.0,
           isPublic: pieceOfChallenge.1
         )
-        owner.useCase.configureChallengePayload(.name, value: pieceOfChallenge.0)
-        owner.useCase.configureChallengePayload(.isPublic, value: pieceOfChallenge.1)
+        Task {
+          await owner.useCase.configureChallengePayload(.name, value: pieceOfChallenge.0)
+          await owner.useCase.configureChallengePayload(.isPublic, value: pieceOfChallenge.1)
+        }
       }
       .disposed(by: disposeBag)
     

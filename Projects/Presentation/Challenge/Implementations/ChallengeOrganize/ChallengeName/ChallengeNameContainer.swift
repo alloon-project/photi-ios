@@ -16,6 +16,7 @@ protocol ChallengeNameDependency: Dependency {
 protocol ChallengeNameContainable: Containable {
   func coordinator(
     mode: ChallengeOrganizeMode,
+    title: String?,
     listener: ChallengeNameListener
   ) -> ViewableCoordinating
 }
@@ -23,6 +24,7 @@ protocol ChallengeNameContainable: Containable {
 final class ChallengeNameContainer: Container<ChallengeNameDependency>, ChallengeNameContainable {
   func coordinator(
     mode: ChallengeOrganizeMode,
+    title: String?,
     listener: ChallengeNameListener
   ) -> ViewableCoordinating {
     let viewModel = ChallengeNameViewModel(
@@ -36,6 +38,7 @@ final class ChallengeNameContainer: Container<ChallengeNameDependency>, Challeng
     
     let coordinator = ChallengeNameCoordinator(
       viewControllerable: viewControllerable,
+      title: title,
       viewModel: viewModel
     )
     coordinator.listener = listener
