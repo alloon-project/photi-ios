@@ -176,6 +176,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
     self.modifyCoverCoordinator = coordinater
   }
+  
+  func attachModifyHashtag() {
+    guard modifyHashtagCoordinator == nil else { return }
+    
+    let coordinater = modifyHashtagContainer.coordinator(mode: .modify, listener: self)
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyHashtagCoordinator = coordinater
+  }
+  
   func attachModifyRule() {
     guard modifyHashtagCoordinator == nil else { return }
     
@@ -236,6 +247,18 @@ extension ChallengeModifyCoordinator: ChallengeCoverListener {
   func didFinishedChallengeCover(coverImage: UIImageWrapper) {
     detachModifyCover()
     presenter.modifyCover(image: coverImage)
+  }
+}
+
+// MARK: ModifyChallenge Hashtag Listener
+extension ChallengeModifyCoordinator: ChallengeHashtagListener {
+  func didTapBackButtonAtChallengeHashtag() {
+    detachModifyHashtag()
+  }
+  
+  func didFinishChallengeHashtags(challengeHashtags: [String]) {
+    detachModifyHashtag()
+    presenter.modifyHashtags(hashtags: challengeHashtags)
   }
 }
 

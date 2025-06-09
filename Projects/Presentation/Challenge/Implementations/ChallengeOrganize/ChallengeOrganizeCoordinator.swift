@@ -199,7 +199,7 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   func attachChallengeHashtag() {
     guard challengeHashtagCoordinator == nil else { return }
     
-    let coordinater = challengeHashtagContainable.coordinator(listener: self)
+    let coordinater = challengeHashtagContainable.coordinator(mode: .organize, listener: self)
     addChild(coordinater)
     
     navigationControllerable.pushViewController(coordinater.viewControllerable, animated: true)
