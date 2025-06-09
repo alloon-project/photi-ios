@@ -27,10 +27,10 @@ protocol ChallengeCoverViewModelType: AnyObject {
 }
 
 final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
-  private let useCase: OrganizeUseCase
-  
   let disposeBag = DisposeBag()
-  
+  private let mode: ChallengeOrganizeMode
+  private let useCase: OrganizeUseCase
+
   weak var coordinator: ChallengeCoverCoordinatable?
   
   private let sampleImagesRelay = PublishRelay<[String]>()
@@ -53,7 +53,11 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    mode: ChallengeOrganizeMode,
+    useCase: OrganizeUseCase
+  ) {
+    self.mode = mode
     self.useCase = useCase
   }
   
@@ -77,8 +81,10 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
           return
         }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
-        owner.useCase.configureChallengePayload(.image, value: data)
-        owner.useCase.configureChallengePayload(.imageType, value: type)
+        Task {
+          await owner.useCase.configureChallengePayload(.image, value: data)
+          await owner.useCase.configureChallengePayload(.imageType, value: type)
+        }
       }
       .disposed(by: disposeBag)
     
