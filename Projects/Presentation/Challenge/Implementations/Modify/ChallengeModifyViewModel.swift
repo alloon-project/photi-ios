@@ -105,6 +105,7 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     
     input.didTapModifyButton
       .bind(with: self) { owner, _ in
+        owner.useCase.setChallengeId(id: owner.challengeId)
         owner.modifyChallenge()
       }.disposed(by: disposeBag)
     
@@ -125,7 +126,16 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
 // MARK: - Private Methods
 private extension ChallengeModifyViewModel {
   func modifyChallenge() {
-    // TODO: - Challenge 수정 API 호출
+    useCase.modifyChallenge()
+      .observe(on: MainScheduler.instance)
+      .subscribe(with: self) { owner, _ in
+        owner.coordinator?.didModifiedChallenge()
+      } onFailure: { owner, error in
+        print(error)
+        owner.requestFailed(with: error)
+      }.disposed(by: disposeBag)
+  }
+  
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
       return networkUnstableRelay.accept(())
