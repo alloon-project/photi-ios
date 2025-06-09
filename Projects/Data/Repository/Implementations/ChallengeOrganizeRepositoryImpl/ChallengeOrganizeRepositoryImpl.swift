@@ -33,7 +33,7 @@ public extension ChallengeOrganizeRepositoryImpl {
   }
 }
 
-// MARK: - Upload Methods
+// MARK: - Upload & Update Methods
 public extension ChallengeOrganizeRepositoryImpl {
   func challengeOrganize(payload: ChallengeOrganizePayload) -> Single<ChallengeDetail> {
     guard
@@ -47,6 +47,20 @@ public extension ChallengeOrganizeRepositoryImpl {
       responseType: ChallengeOrganizeResponseDTO.self
     )
     .map { dataMapper.mapToChallengeDetail(dto: $0) }
+  }
+  
+  func challengeModify(payload: ChallengeModifyPayload, challengeId: Int) -> Single<Void> {
+    guard
+      let requestDTO = dataMapper.mapToModifyChallenge(payload: payload)
+    else {
+      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+    }
+    
+    return requestAuthorizableAPI(
+      api: ChallengeOrganizeAPI.modifyChallenge(dto: requestDTO, challengeId: challengeId),
+      responseType: SuccessResponseDTO.self
+    )
+    .map { _ in }
   }
 }
 
