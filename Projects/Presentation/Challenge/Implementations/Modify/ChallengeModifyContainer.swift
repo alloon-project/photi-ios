@@ -9,6 +9,7 @@
 import Challenge
 import Core
 import UseCase
+import Kingfisher
 
 protocol ChallengeModifyDependency: Dependency {
   var organizeUseCase: OrganizeUseCase { get }
@@ -37,7 +38,15 @@ final class ChallengeModifyContainer:
     viewPresentationMdoel: ModifyPresentationModel,
     challengeId: Int
   ) -> ViewableCoordinating {
-    let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
+    Task {
+      await organizeUseCase.configureChallengePayload(.name, value: viewPresentationMdoel.title)
+      await organizeUseCase.configureChallengePayload(.goal, value: viewPresentationMdoel.goal)
+      await organizeUseCase.configureChallengePayload(.proveTime, value: viewPresentationMdoel.verificationTime)
+      await organizeUseCase.configureChallengePayload(.endDate, value: viewPresentationMdoel.deadLine)
+      await organizeUseCase.configureChallengePayload(.rules, value: viewPresentationMdoel.rules)
+      await organizeUseCase.configureChallengePayload(.hashtags, value: viewPresentationMdoel.hashtags)
+      await organizeUseCase.configureChallengePayload(.image, value: viewPresentationMdoel.imageUrlString)
+    }
     let viewModel = ChallengeModifyViewModel(
       useCase: organizeUseCase,
       challengeId: challengeId
