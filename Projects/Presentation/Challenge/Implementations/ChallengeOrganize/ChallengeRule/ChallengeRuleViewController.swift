@@ -20,6 +20,7 @@ struct Rule {
 
 final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   // MARK: Variables
+  private let mode: ChallengeOrganizeMode
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeRuleViewModel
   private var defaultRules: [Rule] = [
@@ -86,7 +87,11 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   )
   
   // MARK: - Initialziers
-  init(viewModel: ChallengeRuleViewModel) {
+  init(
+    mode: ChallengeOrganizeMode,
+    viewModel: ChallengeRuleViewModel
+  ) {
+    self.mode = mode
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -122,6 +127,11 @@ private extension ChallengeRuleViewController {
     
     setViewHierarchy()
     setConstraints()
+    
+    if case .modify = mode {
+      navigationBar.title = "챌린지 인증 룰 수정"
+      nextButton.title = "저장하기"
+    }
   }
   
   func setViewHierarchy() {
@@ -141,14 +151,21 @@ private extension ChallengeRuleViewController {
       $0.height.equalTo(56)
     }
     
-    progressBar.snp.makeConstraints {
-      $0.top.equalTo(navigationBar.snp.bottom).offset(8)
-      $0.leading.trailing.equalToSuperview().inset(24)
-    }
-    
-    titleLabel.snp.makeConstraints {
-      $0.top.equalTo(progressBar.snp.bottom).offset(48)
-      $0.leading.equalToSuperview().offset(24)
+    if case .modify = mode {
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(36)
+        $0.leading.equalToSuperview().offset(24)
+      }
+    } else {
+      progressBar.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(8)
+        $0.leading.trailing.equalToSuperview().inset(24)
+      }
+      
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.leading.equalToSuperview().offset(24)
+      }
     }
     
     nextButton.snp.makeConstraints {
@@ -186,7 +203,21 @@ private extension ChallengeRuleViewController {
 }
 
 // MARK: - ChallengeRulePresentable
-extension ChallengeRuleViewController: ChallengeRulePresentable { }
+extension ChallengeRuleViewController: ChallengeRulePresentable {
+  func setChallengeRule(rules: [String]) {
+    var givenRules = rules
+    for (index, rule) in defaultRules.enumerated() where rules.contains(rule.title) {
+      defaultRules[index].isSelected = true
+      givenRules.removeAll(where: { $0 == rule.title })
+    }
+    
+    givenRules.forEach {
+      additionalRules.insert(Rule(title: $0, isSelected: true), at: 0)
+    }
+    
+    selectedRules = rules
+  }
+}
 
 // MARK: - Private Methods
 private extension ChallengeRuleViewController {

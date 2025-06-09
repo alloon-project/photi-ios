@@ -166,6 +166,19 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyHashtag() {}
   
   func attachModifyRule() {}
+  func attachModifyRule() {
+    guard modifyHashtagCoordinator == nil else { return }
+    
+    let coordinater = modifyRuleContainer.coordinator(
+      mode: .modify,
+      rules: viewPresentationModel.rules,
+      listener: self
+    )
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyRuleCoordinator = coordinater
+  }
   
   func didTapBackButton() {
     listener?.didTapBackButtonAtModifyChallenge()
@@ -196,4 +209,14 @@ extension ChallengeModifyCoordinator: ChallengeGoalListener {
   func didTapBackButtonAtChallengeGoal() {}
   
   func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {}
+// MARK: ModifyChallenge Rule Listener
+extension ChallengeModifyCoordinator: ChallengeRuleListener {
+  func didTapBackButtonAtChallengeRule() {
+    detachModifyRule()
+  }
+  
+  func didFinishChallengeRules(challengeRules: [String]) {
+    detachModifyRule()
+    presenter.modifyRules(rules: challengeRules)
+  }
 }
