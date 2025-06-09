@@ -54,7 +54,7 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private let ruleView = ChallengeRuleView()
   private let deadLineView = ChallengeDeadLineView()
   
-  private let modifyButton = FilledRoundButton(type: .secondary, size: .xLarge, text: "수정하기")
+  private let modifyButton = FilledRoundButton(type: .secondary, size: .xLarge, text: "저장하기")
   
   // MARK: - Initializers
   init(viewModel: ChallengeModifyViewModel) {
@@ -218,6 +218,18 @@ private extension ChallengeModifyViewController {
       }.disposed(by: disposeBag)
     
     goalView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeGoalRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    verificationTimeView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeGoalRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    deadLineView.rx.tapGesture()
       .when(.recognized)
       .bind(with: self) { owner, _ in
         owner.didTapChallengeGoalRelay.accept(())
