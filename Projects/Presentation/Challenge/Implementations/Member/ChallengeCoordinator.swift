@@ -15,6 +15,7 @@ protocol ChallengePresentable {
   func didChangeContentOffsetAtMainContainer(_ offset: Double)
   func presentChallengeNotFoundWaring()
   func presentNetworkWarning(reason: String?)
+  func presentFinishModifying()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -222,6 +223,7 @@ extension ChallengeCoordinator: ReportListener {
 extension ChallengeCoordinator: ModifyChallengeListener {
   func challengeModified() {
     detachChallengeEdit()
+    presenter.presentFinishModifying()
   }
   
   func didTapBackButtonAtModifyChallenge() {

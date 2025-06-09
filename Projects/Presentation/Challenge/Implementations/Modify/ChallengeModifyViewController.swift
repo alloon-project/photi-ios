@@ -329,6 +329,17 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
       .disposed(by: disposeBag)
     alert.present(to: self, animted: true)
   }
+  
+  func presentModifyGuide() {
+    let toastText = "수정할 파트를 선택해 주세요~"
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
+  }
 }
 
 // MARK: - UICollectionViewDataSource
