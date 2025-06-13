@@ -20,7 +20,7 @@ protocol ChallengeModifyContainable: Containable {
     listener: ModifyChallengeListener,
     viewPresentationMdoel: ModifyPresentationModel,
     challengeId: Int
-  ) async -> ViewableCoordinating
+  ) -> ViewableCoordinating
 }
 
 final class ChallengeModifyContainer:
@@ -37,20 +37,12 @@ final class ChallengeModifyContainer:
     listener: ModifyChallengeListener,
     viewPresentationMdoel: ModifyPresentationModel,
     challengeId: Int
-  ) async -> ViewableCoordinating {
-      await organizeUseCase.configureChallengePayload(.name, value: viewPresentationMdoel.title)
-      await organizeUseCase.configureChallengePayload(.goal, value: viewPresentationMdoel.goal)
-      await organizeUseCase.configureChallengePayload(.proveTime, value: viewPresentationMdoel.verificationTime)
-      await organizeUseCase.configureChallengePayload(.endDate, value: viewPresentationMdoel.deadLine)
-      await organizeUseCase.configureChallengePayload(.rules, value: viewPresentationMdoel.rules)
-      await organizeUseCase.configureChallengePayload(.hashtags, value: viewPresentationMdoel.hashtags)
-      await organizeUseCase.configureChallengePayload(.image, value: viewPresentationMdoel.imageUrlString)
-    
+  ) -> ViewableCoordinating {
     let viewModel = ChallengeModifyViewModel(
       useCase: organizeUseCase,
       challengeId: challengeId
     )
-    let viewControllerable = await ChallengeModifyViewController(viewModel: viewModel)
+    let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
     
     let modifyChallengeNameContainable = ChallengeNameContainer(dependency: self)
     let modifyChallengeGoalContainable = ChallengeGoalContainer(dependency: self)

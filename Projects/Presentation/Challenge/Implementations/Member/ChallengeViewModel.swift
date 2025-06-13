@@ -18,7 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
-  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int) async
+  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -105,12 +105,10 @@ final class ChallengeViewModel: ChallengeViewModelType {
       .emit(with: self) { owner, _ in
         guard let challengeDetail = owner.challengeDetail else { return }
         let viewPresentaionModel = owner.mapToEditPresentaionModel(challengeDetail)
-        Task {
-          await owner.coordinator?.attachChallengeEdit(
-            model: viewPresentaionModel,
-            challengeId: owner.challengeId
-          )
-        }
+        owner.coordinator?.attachChallengeEdit(
+          model: viewPresentaionModel,
+          challengeId: owner.challengeId
+        )
       }
       .disposed(by: disposeBag)
     

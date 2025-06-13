@@ -66,12 +66,12 @@ final class ChallengeModifyCoordinator: ViewableCoordinator<ChallengeModifyPrese
     modifyHashtagContainer: ChallengeHashtagContainable,
     modifyRuleContainer: ChallengeRuleContainable
   ) {
+    self.viewModel = viewModel
     self.modifyNameContainer = modifyNameContainer
     self.modifyGoalContainer = modifyGoalContainer
     self.modifyCoverContainer = modifyCoverContainer
     self.modifyHashtagContainer = modifyHashtagContainer
     self.modifyRuleContainer = modifyRuleContainer
-    self.viewModel = viewModel
     self.viewPresentationModel = viewPresentationModel
     super.init(viewControllerable)
     viewModel.coordinator = self

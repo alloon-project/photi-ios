@@ -107,19 +107,18 @@ extension ChallengeCoordinator {
 
 // MARK: - ChallengeEdit
 extension ChallengeCoordinator {
-  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int) async {
+  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int) {
     guard modifyCoordinator == nil else { return }
     
-    let coordinator = await modifyContainer.coordinator(
+    let coordinator = modifyContainer.coordinator(
       listener: self,
       viewPresentationMdoel: model,
       challengeId: challengeId
     )
-    await MainActor.run {
-      addChild(coordinator)
-      viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
-      self.modifyCoordinator = coordinator
-    }
+    
+    addChild(coordinator)
+    viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
+    self.modifyCoordinator = coordinator
   }
   
   func detachChallengeEdit() {

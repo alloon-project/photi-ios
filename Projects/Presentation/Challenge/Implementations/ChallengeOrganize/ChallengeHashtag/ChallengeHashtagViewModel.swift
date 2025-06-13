@@ -65,9 +65,7 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       .withLatestFrom(input.selectedHashtags)
       .bind(with: self) { owner, hashtags in
         owner.coordinator?.didFinishedAtChallengeHashtag(challengeHashtags: hashtags)
-        Task {
-          await owner.useCase.configureChallengePayload(.hashtags, value: hashtags)
-        }
+        owner.useCase.configureChallengePayload(.hashtags(hashtags))
       }
       .disposed(by: disposeBag)
 

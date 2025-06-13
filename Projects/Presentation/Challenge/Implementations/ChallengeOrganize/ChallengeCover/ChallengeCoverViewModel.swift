@@ -81,10 +81,8 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
           return
         }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
-        Task {
-          await owner.useCase.configureChallengePayload(.image, value: data)
-          await owner.useCase.configureChallengePayload(.imageType, value: type)
-        }
+        owner.useCase.configureChallengePayload(.image(data))
+        owner.useCase.configureChallengePayload(.imageType(type))
       }
       .disposed(by: disposeBag)
     

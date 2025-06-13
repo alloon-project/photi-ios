@@ -75,9 +75,7 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
       .withLatestFrom(input.challengeRules)
       .bind(with: self) { owner, rules in
         owner.coordinator?.didFinishAtChallengeRule(challengeRules: rules)
-        Task {
-          await owner.useCase.configureChallengePayload(.rules, value: rules)
-        }
+        owner.useCase.configureChallengePayload(.rules(rules))
       }
       .disposed(by: disposeBag)
     
