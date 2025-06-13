@@ -9,20 +9,8 @@
 import RxSwift
 import Entity
 
-public enum PayloadType {
-  case name
-  case isPublic
-  case goal
-  case proveTime
-  case endDate
-  case rules
-  case hashtags
-  case image
-  case imageType
-}
-
 public protocol OrganizeUseCase {
-  func configureChallengePayload(_ type: PayloadType, value: Any) async
+  func configureChallengePayload(_ type: PayloadType)
   func fetchChallengeSampleImages() -> Single<[String]>
   func organizeChallenge() -> Single<ChallengeDetail>
   func modifyChallenge() -> Single<Void>

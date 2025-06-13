@@ -77,42 +77,26 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
     self.repository = repository
   }
   
-  public func configureChallengePayload(_ type: PayloadType, value: Any) async {
+  public func configureChallengePayload(_ type: PayloadType) {
     switch type {
-    case .name:
-      self.name = value as? String
-    case .isPublic:
-      self.isPublic = value as? Bool
-    case .goal:
-      self.goal = value as? String
-    case .proveTime:
-      self.proveTime = value as? String
-    case .endDate:
-      self.endDate = value as? String
-    case .rules:
-      self.rules = value as? [String] ?? []
-    case .hashtags:
-      self.hashtags = value as? [String] ?? []
-    case .image:
-      if let imageData = value as? Data {
-        self.image = value as? Data
-      }
-      if
-        let imageString = value as? String,
-        let url = URL(string: imageString) {
-        Task {
-          do {
-            let image = try await KingfisherManager.shared.retrieveImage(with: url)
-            guard let (data, type) = imageToData(image.image, maxMB: 8) else { return }
-            self.image = data
-            self.imageType = type
-          } catch {
-            print("이미지 변환 실패")
-          }
-        }
-      }
-    case .imageType:
-      self.imageType = value as? String
+    case let .name(value):
+      self.name = value
+    case let .isPublic(value):
+      self.isPublic = value
+    case let .goal(value):
+      self.goal = value
+    case let .proveTime(value):
+      self.proveTime = value
+    case let .endDate(value):
+      self.endDate = value
+    case let .rules(value):
+      self.rules = value
+    case let .hashtags(value):
+      self.hashtags = value
+    case let .image(value):
+      self.image = value
+    case let .imageType(value):
+      self.imageType = value
     }
   }
   

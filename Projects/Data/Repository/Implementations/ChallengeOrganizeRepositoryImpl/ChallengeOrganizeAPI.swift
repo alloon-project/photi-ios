@@ -70,7 +70,6 @@ extension ChallengeOrganizeAPI: TargetType {
         fileExtension: dto.imageType,
         mimeType: "image/\(dto.imageType)"
       )
-      print(dto.jsonString)
       
       let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
       
