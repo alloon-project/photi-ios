@@ -9,6 +9,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import Core
 import Entity
 import UseCase
 
@@ -44,6 +45,7 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
 
   // MARK: - Input
   struct Input {
+    // 동작
     let didTapBackButton: ControlEvent<Void>
     let didTapChallengeName: Signal<Void>
     let didTapChallengeHashtag: Signal<Void>
@@ -52,6 +54,14 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     let didTapChallengeRule: Signal<Void>
     let didTapModifyButton: ControlEvent<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
+    // 값
+    let titleText: Signal<String?>
+    let hashtags: Signal<[String]?>
+    let proveTime: Signal<String?>
+    let goal: Signal<String?>
+    let image: Signal<UIImageWrapper?>
+    let rules: Signal<[String]?>
+    let endDate: Signal<String?>
   }
   
   // MARK: - Output
@@ -114,12 +124,57 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
         owner.coordinator?.didTapAlert()
       }.disposed(by: disposeBag)
     
+    transformData(input: input)
+    
     return Output(
       networkUnstable: networkUnstableRelay.asSignal(),
       imageTypeError: imageTypeErrorRelay.asSignal(),
       fileTooLargeError: fileTooLargeErrorRelay.asSignal(),
       notChallengeMember: notChallengeMemberRelay.asSignal()
     )
+  }
+  
+  func transformData(input: Input) {
+    input.titleText.compactMap { $0 }
+      .emit(with: self) { owner, title in
+        owner.useCase.configureChallengePayload(.name(title))
+      }.disposed(by: disposeBag)
+    
+    input.hashtags.compactMap { $0 }
+      .emit(with: self) { owner, hashtags in
+        owner.useCase.configureChallengePayload(.hashtags(hashtags))
+      }.disposed(by: disposeBag)
+    
+    input.goal.compactMap { $0 }
+      .emit(with: self) { owner, goal in
+        owner.useCase.configureChallengePayload(.goal(goal))
+      }.disposed(by: disposeBag)
+    
+    input.proveTime.compactMap { $0 }
+      .emit(with: self) { owner, proveTime in
+        owner.useCase.configureChallengePayload(.proveTime(proveTime))
+      }.disposed(by: disposeBag)
+    
+    input.image.compactMap { $0 }
+      .emit(with: self) { owner, image in
+        guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
+          let message = "파일 사이즈는 8MB 이하만 가능합니다."
+          owner.fileTooLargeErrorRelay.accept(message)
+          return
+        }
+        owner.useCase.configureChallengePayload(.image(data))
+        owner.useCase.configureChallengePayload(.imageType(type))
+      }.disposed(by: disposeBag)
+    
+    input.rules.compactMap { $0 }
+      .emit(with: self) { owner, rules in
+        owner.useCase.configureChallengePayload(.rules(rules))
+      }.disposed(by: disposeBag)
+    
+    input.endDate.compactMap { $0 }
+      .emit(with: self) { owner, endDate in
+        owner.useCase.configureChallengePayload(.endDate(endDate))
+      }.disposed(by: disposeBag)
   }
 }
 
@@ -154,5 +209,16 @@ private extension ChallengeModifyViewModel {
       default:
         networkUnstableRelay.accept(())
     }
+  }
+  
+  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+    let maxSizeBytes = maxMB * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      return (data, "png")
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      return (data, "jpeg")
+    }
+    return nil
   }
 }
