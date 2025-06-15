@@ -9,6 +9,7 @@
 import Challenge
 import Core
 import UseCase
+import Kingfisher
 
 protocol ChallengeModifyDependency: Dependency {
   var organizeUseCase: OrganizeUseCase { get }
@@ -17,7 +18,8 @@ protocol ChallengeModifyDependency: Dependency {
 protocol ChallengeModifyContainable: Containable {
   func coordinator(
     listener: ModifyChallengeListener,
-    viewPresentationMdoel: ModifyPresentationModel
+    viewPresentationMdoel: ModifyPresentationModel,
+    challengeId: Int
   ) -> ViewableCoordinating
 }
 
@@ -33,9 +35,13 @@ final class ChallengeModifyContainer:
 
   func coordinator(
     listener: ModifyChallengeListener,
-    viewPresentationMdoel: ModifyPresentationModel
+    viewPresentationMdoel: ModifyPresentationModel,
+    challengeId: Int
   ) -> ViewableCoordinating {
-    let viewModel = ChallengeModifyViewModel(useCase: dependency.organizeUseCase)
+    let viewModel = ChallengeModifyViewModel(
+      useCase: organizeUseCase,
+      challengeId: challengeId
+    )
     let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)
     
     let modifyChallengeNameContainable = ChallengeNameContainer(dependency: self)

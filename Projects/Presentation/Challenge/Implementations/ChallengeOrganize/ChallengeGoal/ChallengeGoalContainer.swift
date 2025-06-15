@@ -16,6 +16,9 @@ protocol ChallengeGoalDependency: Dependency {
 protocol ChallengeGoalContainable: Containable {
   func coordinator(
     mode: ChallengeOrganizeMode,
+    goal: String?,
+    proveTime: String?,
+    endDate: String?,
     listener: ChallengeGoalListener
   ) -> ViewableCoordinating
 }
@@ -23,6 +26,9 @@ protocol ChallengeGoalContainable: Containable {
 final class ChallengeGoalContainer: Container<ChallengeGoalDependency>, ChallengeGoalContainable {
   func coordinator(
     mode: ChallengeOrganizeMode,
+    goal: String?,
+    proveTime: String?,
+    endDate: String?,
     listener: ChallengeGoalListener
   ) -> ViewableCoordinating {
     let viewModel = ChallengeGoalViewModel(
@@ -36,6 +42,9 @@ final class ChallengeGoalContainer: Container<ChallengeGoalDependency>, Challeng
     
     let coordinator = ChallengeGoalCoordinator(
       viewControllerable: viewControllerable,
+      goal: goal,
+      proveTime: proveTime,
+      endDate: endDate,
       viewModel: viewModel
     )
     coordinator.listener = listener

@@ -18,7 +18,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport()
-  func attachChallengeEdit(presentationModel: ModifyPresentationModel)
+  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -104,16 +104,11 @@ final class ChallengeViewModel: ChallengeViewModelType {
     input.didTapEditButton
       .emit(with: self) { owner, _ in
         guard let challengeDetail = owner.challengeDetail else { return }
-        let viewPresentaionModel = ModifyPresentationModel(
-          title: challengeDetail.name,
-          hashtags: challengeDetail.hashTags,
-          verificationTime: challengeDetail.proveTime.toString("HH : mm"),
-          goal: challengeDetail.goal,
-          imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
-          rules: challengeDetail.rules ?? [],
-          deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
+        let viewPresentaionModel = owner.mapToEditPresentaionModel(challengeDetail)
+        owner.coordinator?.attachChallengeEdit(
+          model: viewPresentaionModel,
+          challengeId: owner.challengeId
         )
-        owner.coordinator?.attachChallengeEdit(presentationModel: viewPresentaionModel)
       }
       .disposed(by: disposeBag)
     
@@ -138,7 +133,7 @@ private extension ChallengeViewModel {
   func fetchChallenge() async {
     do {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
-      let model = mapToPresentatoinModel(challenge)
+      let model = mapToPresentationModel(challenge)
       challengeDetail = challenge
       challengeModelRelay.accept(model)
       memberCount.accept(challenge.memberCount)
@@ -184,11 +179,23 @@ private extension ChallengeViewModel {
     }
   }
   
-  func mapToPresentatoinModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
+  func mapToPresentationModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
     return .init(
       title: challenge.name,
       hashTags: challenge.hashTags,
       imageURL: challenge.imageUrl
+    )
+  }
+  
+  func mapToEditPresentaionModel(_ challengeDetail: ChallengeDetail) -> ModifyPresentationModel {
+    return ModifyPresentationModel(
+      title: challengeDetail.name,
+      hashtags: challengeDetail.hashTags,
+      verificationTime: challengeDetail.proveTime.toString("HH : mm"),
+      goal: challengeDetail.goal,
+      imageUrlString: challengeDetail.imageUrl?.absoluteString ?? "",
+      rules: challengeDetail.rules ?? [],
+      deadLine: challengeDetail.endDate.toString("yyyy. MM. dd")
     )
   }
 }

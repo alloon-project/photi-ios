@@ -29,6 +29,15 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private let didTapChallengeGoalRelay = PublishRelay<Void>()
   private let didTapChallengeCoverRelay = PublishRelay<Void>()
   private let didTapChallengeRuleRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
+  
+  private let titleTextRelay = BehaviorRelay<String?>(value: nil)
+  private let hashtagsRelay = BehaviorRelay<[String]?>(value: nil)
+  private let proveTimeRelay = BehaviorRelay<String?>(value: nil)
+  private let goalRelay = BehaviorRelay<String?>(value: nil)
+  private let imageRelay = BehaviorRelay<UIImageWrapper?>(value: nil)
+  private let rulesRelay = BehaviorRelay<[String]?>(value: nil)
+  private let endDateRelay = BehaviorRelay<String?>(value: nil)
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -53,7 +62,7 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private let ruleView = ChallengeRuleView()
   private let deadLineView = ChallengeDeadLineView()
   
-  private let modifyButton = FilledRoundButton(type: .secondary, size: .xLarge, text: "수정하기")
+  private let modifyButton = FilledRoundButton(type: .secondary, size: .xLarge, text: "저장하기")
   
   // MARK: - Initializers
   init(viewModel: ChallengeModifyViewModel) {
@@ -186,12 +195,22 @@ private extension ChallengeModifyViewController {
       didTapChallengeGoal: didTapChallengeGoalRelay.asSignal(),
       didTapChallengeCover: didTapChallengeCoverRelay.asSignal(),
       didTapChallengeRule: didTapChallengeRuleRelay.asSignal(),
-      didTapModifyButton: modifyButton.rx.tap
+      didTapModifyButton: modifyButton.rx.tap,
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
+      titleText: titleTextRelay.asSignal(onErrorJustReturn: nil),
+      hashtags: hashtagsRelay.asSignal(onErrorJustReturn: nil),
+      proveTime: proveTimeRelay.asSignal(onErrorJustReturn: nil),
+      goal: goalRelay.asSignal(onErrorJustReturn: nil),
+      image: imageRelay.asSignal(onErrorJustReturn: nil),
+      rules: rulesRelay.asSignal(onErrorJustReturn: nil),
+      endDate: endDateRelay.asSignal(onErrorJustReturn: nil)
     )
     
     let output = viewModel.transform(input: input)
     
     viewBind()
+    
+    bind(for: output)
   }
   
   func viewBind() {
@@ -219,6 +238,18 @@ private extension ChallengeModifyViewController {
         owner.didTapChallengeGoalRelay.accept(())
       }.disposed(by: disposeBag)
     
+    verificationTimeView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeGoalRelay.accept(())
+      }.disposed(by: disposeBag)
+    
+    deadLineView.rx.tapGesture()
+      .when(.recognized)
+      .bind(with: self) { owner, _ in
+        owner.didTapChallengeGoalRelay.accept(())
+      }.disposed(by: disposeBag)
+    
     thumbnailImageView.rx.tapGesture()
       .when(.recognized)
       .bind(with: self) { owner, _ in
@@ -231,6 +262,29 @@ private extension ChallengeModifyViewController {
         owner.didTapChallengeRuleRelay.accept(())
       }.disposed(by: disposeBag)
   }
+  
+  func bind(for output: ChallengeModifyViewModel.Output) {
+    output.notChallengeMember
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.fileTooLargeError
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.imageTypeError
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
+      }
+      .disposed(by: disposeBag)
+  }
 }
 
 // MARK: - NoneMemberChallengePresentable
@@ -242,9 +296,14 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
      goal: String
    ) {
      configureTitleLabel(title)
-     self.hashTags = hashtags
+     hashTags = hashtags
      verificationTimeView.verificationTime = verificationTime
      goalView.goal = goal
+     
+     titleTextRelay.accept(title)
+     hashtagsRelay.accept(hashtags)
+     proveTimeRelay.accept(verificationTime)
+     goalRelay.accept(goal)
    }
    
    func setRightView(
@@ -253,32 +312,76 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
      deadLine: String
    ) {
      if let url = URL(string: imageURLString) {
-       thumbnailImageView.kf.setImage(with: url)
+       thumbnailImageView.kf.setImage(
+        with: url,
+        options: [.callbackQueue(.mainCurrentOrAsync)]
+       ) { [weak self] result in
+         guard let self else { return }
+         switch result {
+         case .success(let imageResult):
+           self.imageRelay.accept(UIImageWrapper(image: imageResult.image))
+         case .failure(let isFail):
+           print(isFail.localizedDescription)
+           self.imageRelay.accept(UIImageWrapper(image: .challengeOrganizeLuckyday))
+         }
+       }
      }
      ruleView.rules = rules
      deadLineView.deadLine = deadLine
+     
+     rulesRelay.accept(rules)
+     endDateRelay.accept(deadLine)
    }
   
   func modifyName(name: String) {
     configureTitleLabel(name)
+    titleTextRelay.accept(name)
   }
   
   func modifyGoal(goal: String, verificationTime: String, endDate: String) {
     goalView.goal = goal
     verificationTimeView.verificationTime = verificationTime
     deadLineView.deadLine = endDate
+    
+    goalRelay.accept(goal)
+    proveTimeRelay.accept(verificationTime)
+    endDateRelay.accept(endDate)
   }
   
   func modifyCover(image: UIImageWrapper) {
     thumbnailImageView.image = image.image
+    imageRelay.accept(image)
   }
   
   func modifyHashtags(hashtags: [String]) {
     self.hashTags = hashtags
+    hashtagsRelay.accept(hashtags)
   }
   
   func modifyRules(rules: [String]) {
     ruleView.rules = rules
+    rulesRelay.accept(rules)
+  }
+  
+  func presentAlertWaring(message: String) {
+    let alert = AlertViewController(alertType: .confirm, title: message)
+    alert.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapConfirmButtonAtAlert.accept(())
+      }
+      .disposed(by: disposeBag)
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentModifyGuide() {
+    let toastText = "수정할 파트를 선택해 주세요~"
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
   }
 }
 

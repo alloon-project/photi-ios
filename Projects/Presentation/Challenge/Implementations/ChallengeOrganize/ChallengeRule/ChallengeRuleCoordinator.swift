@@ -14,20 +14,29 @@ protocol ChallengeRuleListener: AnyObject {
   func didFinishChallengeRules(challengeRules: [String])
 }
 
-protocol ChallengeRulePresentable { }
+protocol ChallengeRulePresentable {
+  func setChallengeRule(rules: [String])
+}
 
 final class ChallengeRuleCoordinator: ViewableCoordinator<ChallengeRulePresentable> {
   weak var listener: ChallengeRuleListener?
-  
+  private var rules: [String]?
   private let viewModel: ChallengeRuleViewModel
   
   init(
     viewControllerable: ViewControllerable,
+    rules: [String]?,
     viewModel: ChallengeRuleViewModel
   ) {
+    self.rules = rules
     self.viewModel = viewModel
     super.init(viewControllerable)
     viewModel.coordinator = self
+  }
+  
+  override func start() {
+    guard let rules else { return }
+    presenter.setChallengeRule(rules: rules)
   }
 }
 

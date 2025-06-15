@@ -14,13 +14,25 @@ protocol ChallengeHashtagDependency: Dependency {
 }
 
 protocol ChallengeHashtagContainable: Containable {
-  func coordinator(listener: ChallengeHashtagListener) -> ViewableCoordinating
+  func coordinator(
+    mode: ChallengeOrganizeMode,
+    listener: ChallengeHashtagListener
+  ) -> ViewableCoordinating
 }
 
 final class ChallengeHashtagContainer: Container<ChallengeHashtagDependency>, ChallengeHashtagContainable {
-  func coordinator(listener: ChallengeHashtagListener) -> ViewableCoordinating {
-    let viewModel = ChallengeHashtagViewModel(useCase: dependency.organizeUseCase)
-    let viewControllerable = ChallengeHashtagViewController(viewModel: viewModel)
+  func coordinator(
+    mode: ChallengeOrganizeMode,
+    listener: ChallengeHashtagListener
+  ) -> ViewableCoordinating {
+    let viewModel = ChallengeHashtagViewModel(
+      mode: mode,
+      useCase: dependency.organizeUseCase
+    )
+    let viewControllerable = ChallengeHashtagViewController(
+      mode: mode,
+      viewModel: viewModel
+    )
     
     let coordinator = ChallengeHashtagCoordinator(
       viewControllerable: viewControllerable,

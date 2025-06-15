@@ -14,6 +14,7 @@ import PhotiNetwork
 public enum ChallengeOrganizeAPI {
   case sampleImages
   case organizeChallenge(dto: ChallengeOrganizeRequestDTO)
+  case modifyChallenge(dto: ChallengeModifyRequestDTO, challengeId: Int)
 }
 
 extension ChallengeOrganizeAPI: TargetType {
@@ -25,6 +26,7 @@ extension ChallengeOrganizeAPI: TargetType {
     switch self {
       case .sampleImages: return "api/challenges/example-images"
       case .organizeChallenge: return "api/challenges"
+      case let .modifyChallenge(_, id): return "api/challenges/\(id)"
     }
   }
   
@@ -32,6 +34,7 @@ extension ChallengeOrganizeAPI: TargetType {
     switch self {
       case .sampleImages: return .get
       case .organizeChallenge: return .post
+      case .modifyChallenge: return .patch
     }
   }
   
@@ -55,6 +58,22 @@ extension ChallengeOrganizeAPI: TargetType {
       let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
             
       return .uploadMultipartFormData(multipart: multipart)
+    case let .modifyChallenge(dto, _):
+      let requestDataPart = MultipartFormDataBodyPart(
+        .jsonString(key: "request", json: dto.jsonString)
+      )
+
+      let imageDataPart = MultipartFormDataBodyPart(
+        .data([
+          "imageFile": dto.image
+        ]),
+        fileExtension: dto.imageType,
+        mimeType: "image/\(dto.imageType)"
+      )
+      
+      let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
+      
+      return .uploadMultipartFormData(multipart: multipart)
     }
   }
   
@@ -66,6 +85,11 @@ extension ChallengeOrganizeAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
       case .organizeChallenge:
+        let data = ChallengeOrganizeResponseDTO.stubData
+        let jsonData = data.data(using: .utf8)
+      
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      case .modifyChallenge:
         let data = ChallengeOrganizeResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
       
