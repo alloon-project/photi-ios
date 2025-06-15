@@ -25,6 +25,7 @@ protocol ChallengeHashtagViewModelType: AnyObject {
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   let disposeBag = DisposeBag()
+  private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
   
   weak var coordinator: ChallengeHashtagCoordinatable?
@@ -45,7 +46,11 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: OrganizeUseCase) {
+  init(
+    mode: ChallengeOrganizeMode,
+    useCase: OrganizeUseCase
+  ) {
+    self.mode = mode
     self.useCase = useCase
   }
   
@@ -60,7 +65,7 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
       .withLatestFrom(input.selectedHashtags)
       .bind(with: self) { owner, hashtags in
         owner.coordinator?.didFinishedAtChallengeHashtag(challengeHashtags: hashtags)
-        owner.useCase.configureChallengePayload(.hashtags, value: hashtags)
+        owner.useCase.configureChallengePayload(.hashtags(hashtags))
       }
       .disposed(by: disposeBag)
 

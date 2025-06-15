@@ -12,6 +12,7 @@ import Core
 protocol ModifyChallengeListener: AnyObject {
   func challengeModified()
   func didTapBackButtonAtModifyChallenge()
+  func didTapAlertButtonAtModifyChallenge()
 }
 
 protocol ChallengeModifyPresentable {
@@ -65,12 +66,12 @@ final class ChallengeModifyCoordinator: ViewableCoordinator<ChallengeModifyPrese
     modifyHashtagContainer: ChallengeHashtagContainable,
     modifyRuleContainer: ChallengeRuleContainable
   ) {
+    self.viewModel = viewModel
     self.modifyNameContainer = modifyNameContainer
     self.modifyGoalContainer = modifyGoalContainer
     self.modifyCoverContainer = modifyCoverContainer
     self.modifyHashtagContainer = modifyHashtagContainer
     self.modifyRuleContainer = modifyRuleContainer
-    self.viewModel = viewModel
     self.viewPresentationModel = viewPresentationModel
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -139,7 +140,11 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyName() {
     guard modifyNameCoordinator == nil else { return }
     
-    let coordinater = modifyNameContainer.coordinator(mode: .modify, listener: self)
+    let coordinater = modifyNameContainer.coordinator(
+      mode: .modify,
+      title: self.viewPresentationModel.title,
+      listener: self
+    )
     addChild(coordinater)
     
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
@@ -149,33 +154,122 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
   func attachModifyGoal() {
     guard modifyGoalCoordinator == nil else { return }
     
-    let coordinater = modifyGoalContainer.coordinator(mode: .modify, listener: self)
+    let coordinater = modifyGoalContainer.coordinator(
+      mode: .modify,
+      goal: self.viewPresentationModel.goal,
+      proveTime: self.viewPresentationModel.verificationTime,
+      endDate: self.viewPresentationModel.deadLine,
+      listener: self
+    )
     addChild(coordinater)
     
     viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.modifyNameCoordinator = coordinater
+    self.modifyGoalCoordinator = coordinater
   }
   
-  func attachModifyCover() {}
+  func attachModifyCover() {
+    guard modifyCoverCoordinator == nil else { return }
+    
+    let coordinater = modifyCoverContainer.coordinator(mode: .modify, listener: self)
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyCoverCoordinator = coordinater
+  }
   
-  func attachModifyHashtag() {}
+  func attachModifyHashtag() {
+    guard modifyHashtagCoordinator == nil else { return }
+    
+    let coordinater = modifyHashtagContainer.coordinator(mode: .modify, listener: self)
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyHashtagCoordinator = coordinater
+  }
   
-  func attachModifyRule() {}
+  func attachModifyRule() {
+    guard modifyHashtagCoordinator == nil else { return }
+    
+    let coordinater = modifyRuleContainer.coordinator(
+      mode: .modify,
+      rules: viewPresentationModel.rules,
+      listener: self
+    )
+    addChild(coordinater)
+    
+    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
+    self.modifyRuleCoordinator = coordinater
+  }
   
   func didTapBackButton() {
     listener?.didTapBackButtonAtModifyChallenge()
   }
+  
+  func didModifiedChallenge() {
+    listener?.challengeModified()
+  }
+  
+  func didTapAlert() {
+    listener?.didTapAlertButtonAtModifyChallenge()
+  }
 }
 
-// MARK: ModifyChallengeName Listener
+// MARK: ModifyChallenge Name Listener
 extension ChallengeModifyCoordinator: ChallengeNameListener {
-  func didTapBackButtonAtChallengeName() { }
+  func didTapBackButtonAtChallengeName() {
+    detachModifyName()
+  }
   
-  func didFisishChallengeName(challengeName: String, isPublic: Bool) {}
+  func didFisishChallengeName(challengeName: String, isPublic: Bool) {
+    detachModifyName()
+    presenter.modifyName(name: challengeName)
+  }
 }
 
+// MARK: ModifyChallenge Goal Listener
 extension ChallengeModifyCoordinator: ChallengeGoalListener {
-  func didTapBackButtonAtChallengeGoal() {}
+  func didTapBackButtonAtChallengeGoal() {
+    detachModifyGoal()
+  }
   
-  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {}
+  func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {
+    detachModifyGoal()
+    presenter.modifyGoal(goal: challengeGoal, verificationTime: proveTime, endDate: endDate)
+  }
+}
+
+// MARK: ModifyChallenge Cover Listener
+extension ChallengeModifyCoordinator: ChallengeCoverListener {
+  func didTapBackButtonAtChallengeCover() {
+    detachModifyCover()
+  }
+  
+  func didFinishedChallengeCover(coverImage: UIImageWrapper) {
+    detachModifyCover()
+    presenter.modifyCover(image: coverImage)
+  }
+}
+
+// MARK: ModifyChallenge Hashtag Listener
+extension ChallengeModifyCoordinator: ChallengeHashtagListener {
+  func didTapBackButtonAtChallengeHashtag() {
+    detachModifyHashtag()
+  }
+  
+  func didFinishChallengeHashtags(challengeHashtags: [String]) {
+    detachModifyHashtag()
+    presenter.modifyHashtags(hashtags: challengeHashtags)
+  }
+}
+
+// MARK: ModifyChallenge Rule Listener
+extension ChallengeModifyCoordinator: ChallengeRuleListener {
+  func didTapBackButtonAtChallengeRule() {
+    detachModifyRule()
+  }
+  
+  func didFinishChallengeRules(challengeRules: [String]) {
+    detachModifyRule()
+    presenter.modifyRules(rules: challengeRules)
+  }
 }

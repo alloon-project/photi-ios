@@ -14,6 +14,8 @@ public protocol ChallengeOrganizeDataMapper {
   func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
   func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
   -> ChallengeOrganizeRequestDTO?
+  func mapToModifyChallenge(payload: ChallengeModifyPayload)
+  -> ChallengeModifyRequestDTO?
   func mapToChallengeDetail(
     dto: ChallengeOrganizeResponseDTO
   ) -> ChallengeDetail
@@ -30,6 +32,16 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
   -> ChallengeOrganizeRequestDTO? {
     guard let jsonString = payload.toJSONString() else { return nil }
     return ChallengeOrganizeRequestDTO(
+      jsonString: jsonString,
+      image: payload.image,
+      imageType: payload.imageType
+    )
+  }
+  
+  public func mapToModifyChallenge(payload: ChallengeModifyPayload)
+  -> ChallengeModifyRequestDTO? {
+    guard let jsonString = payload.toJSONString() else { return nil }
+    return ChallengeModifyRequestDTO(
       jsonString: jsonString,
       image: payload.image,
       imageType: payload.imageType

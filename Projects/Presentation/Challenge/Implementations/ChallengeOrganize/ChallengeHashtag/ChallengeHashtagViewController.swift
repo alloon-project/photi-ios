@@ -15,6 +15,7 @@ import DesignSystem
 
 final class ChallengeHashtagViewController: UIViewController, ViewControllerable {
   // MARK: - Variables
+  private let mode: ChallengeOrganizeMode
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHashtagViewModel
   
@@ -56,7 +57,11 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   )
   
   // MARK: - Initialziers
-  init(viewModel: ChallengeHashtagViewModel) {
+  init(
+    mode: ChallengeOrganizeMode,
+    viewModel: ChallengeHashtagViewModel
+  ) {
+    self.mode = mode
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -93,6 +98,11 @@ private extension ChallengeHashtagViewController {
     setViewHierarchy()
     setConstraints()
     addHashtagTextField.commentViews = [commentView]
+    
+    if case .modify = mode {
+      navigationBar.title = "챌린지 해시태그 수정"
+      nextButton.title = "저장하기"
+    }
   }
   
   func setViewHierarchy() {
@@ -113,14 +123,21 @@ private extension ChallengeHashtagViewController {
       $0.height.equalTo(56)
     }
     
-    progressBar.snp.makeConstraints {
-      $0.top.equalTo(navigationBar.snp.bottom).offset(8)
-      $0.leading.trailing.equalToSuperview().inset(24)
-    }
-    
-    titleLabel.snp.makeConstraints {
-      $0.top.equalTo(progressBar.snp.bottom).offset(48)
-      $0.leading.equalToSuperview().offset(24)
+    if case .modify = mode {
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(36)
+        $0.leading.equalToSuperview().offset(24)
+      }
+    } else {
+      progressBar.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(8)
+        $0.leading.trailing.equalToSuperview().inset(24)
+      }
+      
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.leading.equalToSuperview().offset(24)
+      }
     }
     
     addHashtagTextField.snp.makeConstraints {
