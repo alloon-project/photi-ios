@@ -47,10 +47,14 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
 
 // MARK: - ChangePassword
 extension ProfileEditCoordinator {
-  func attachChangePassword() {
+  func attachChangePassword(userName: String, userEmail: String) {
     guard changePasswordCoordinator == nil else { return }
     
-    let coordinator = changePasswordContainable.coordinator(listener: self)
+    let coordinator = changePasswordContainable.coordinator(
+      userName: userName,
+      userEmail: userEmail,
+      listener: self
+    )
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.changePasswordCoordinator = coordinator
