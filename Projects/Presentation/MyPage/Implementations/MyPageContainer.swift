@@ -8,6 +8,7 @@
 
 import Challenge
 import Core
+import LogIn
 import MyPage
 import Report
 import UseCase
@@ -17,6 +18,7 @@ public protocol MyPageDependency: Dependency {
   var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
+  var resetPasswordContainable: ResetPasswordContainable { get }
   var reportContainable: ReportContainable { get }
 }
 
@@ -32,6 +34,7 @@ public final class MyPageContainer:
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var reportContainable: ReportContainable { dependency.reportContainable }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
+  var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   var myPageUseCase: MyPageUseCase { dependency.myPageUseCase }
   
   public func coordinator(listener: MyPageListener) -> ViewableCoordinating {

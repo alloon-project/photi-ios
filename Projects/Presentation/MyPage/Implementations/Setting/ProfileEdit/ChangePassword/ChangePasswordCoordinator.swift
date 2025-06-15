@@ -22,6 +22,7 @@ final class ChangePasswordCoordinator: ViewableCoordinator<ChangePasswordPresent
   private let userName: String
   private let userEmail: String
   private let viewModel: ChangePasswordViewModel
+  
   private let resetPasswordContainable: ResetPasswordContainable
   private var resetPasswordCoordinator: Coordinating?
   
@@ -49,5 +50,37 @@ extension ChangePasswordCoordinator: ChangePasswordCoordinatable {
   
   func didChangedPassword() {
     listener?.didChangedPassword()
+  }
+  
+  func attachResetPassword() {
+    guard resetPasswordCoordinator == nil else { return }
+    
+    let coordinator = resetPasswordContainable.coordinator(
+      userEmail: userEmail,
+      userName: userName,
+      navigation: viewControllerable,
+      listener: self
+    )
+
+    addChild(coordinator)
+    resetPasswordCoordinator = coordinator
+  }
+  
+  func detachResetPassword() {
+    guard let coordinator = resetPasswordCoordinator else { return }
+    
+    removeChild(coordinator)
+    resetPasswordCoordinator = nil
+  }
+}
+
+// MARK: - ResetPasswordListener
+extension ChangePasswordCoordinator: ResetPasswordListener {
+  func didFinishResetPassword() {
+    listener?.didChangedPassword()
+  }
+  
+  func didCancelResetPassword() {
+    detachResetPassword()
   }
 }
