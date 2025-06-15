@@ -74,7 +74,7 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
   
   private let invalidCurrentPasswordCommentView = CommentView(
     .warning,
-    text: "기존 비밀번호가  일치하지 않아요",
+    text: "기존 비밀번호가 일치하지 않아요",
     icon: .closeRed,
     isActivate: true
   )
@@ -255,6 +255,7 @@ private extension ChangePasswordViewController {
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         guard owner.newPasswordTextField.commentViews != owner.newPassWordCommentViews else { return }
+        owner.newPasswordTextField.mode = .default
         owner.newPasswordTextField.commentViews = owner.newPassWordCommentViews
       }
       .disposed(by: disposeBag)
@@ -311,7 +312,8 @@ private extension ChangePasswordViewController {
     
     output.duplicatePassword
       .emit(with: self) { owner, _ in
-        owner.newPasswordCheckTextField.commentViews = owner.newPassWordCommentViews
+        owner.newPasswordTextField.mode = .error
+        owner.newPasswordTextField.commentViews = [owner.duplicatePasswordCommentView]
       }
       .disposed(by: disposeBag)
   }
