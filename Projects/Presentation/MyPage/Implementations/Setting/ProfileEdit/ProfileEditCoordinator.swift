@@ -108,6 +108,14 @@ extension ProfileEditCoordinator: ChangePasswordListener {
   
   func didChangedPassword() {
     detachChangePassword()
+    guard
+      let navigationController = viewControllerable.uiviewController.navigationController,
+      let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
+      viewControllerables.count >= 3
+    else { return }
+
+    let remainingVCs = Array(viewControllerables.prefix(3))
+    viewControllerable.setViewControllers(remainingVCs, animated: true)
     presenter.displayToastView()
   }
 }

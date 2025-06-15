@@ -116,18 +116,14 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       }
       .disposed(by: disposeBag)
     
+    let passwords = Observable.combineLatest(
+      input.currentPassword, input.newPassword
+    )
+    
     input.didTapChangePasswordButton
-      .withLatestFrom(Observable.combineLatest(
-        input.currentPassword,
-        input.newPassword,
-        input.reEnteredPassword
-      ))
+      .withLatestFrom(passwords)
       .subscribe(with: self) { owner, info in
-        owner.changePassword(
-          password: info.0,
-          newPassword: info.1,
-          newPasswordReEnter: info.2
-        )
+        owner.changePassword(from: info.0, to: info.1)
       }
       .disposed(by: disposeBag)
   }
@@ -135,9 +131,9 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
 
 // MARK: - Private Methods
 private extension ChangePasswordViewModel {
-  func changePassword(
-    password: String,
-    newPassword: String,
-    newPasswordReEnter: String
-  ) { }
+  func changePassword(from password: String, to newPassword: String) {
+    guard password != newPassword else { return duplicatePasswordRelay.accept(()) }
+    
+    // TODO: - API 연동 예정
+  }
 }
