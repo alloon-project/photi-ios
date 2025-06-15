@@ -19,7 +19,6 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
   
   private let viewModel: ChangePasswordViewModel
   private let disposeBag = DisposeBag()
-  private let alertRelay = PublishRelay<Void>()
   private let didTapContinueButton = PublishRelay<Void>()
   private var isKeyboardDisplay: Bool = false
   private var keyboardOffSet: CGFloat?
@@ -87,11 +86,29 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
     isActivate: true
   )
   
-  private let containAlphabetCommentView = CommentView(.condition, text: "영문 포함", icon: .checkGray400)
-  private let containNumberCommentView = CommentView(.condition, text: "숫자 포함", icon: .checkGray400)
-  private let containSpecialCommentView = CommentView(.condition, text: "특수문자 포함", icon: .checkGray400)
-  private let validRangeCommentView = CommentView(.condition, text: "8~30자", icon: .checkGray400)
-  private let correnspondPasswordCommentView = CommentView(.condition, text: "새 비밀번호 일치", icon: .checkGray400)
+  private let containAlphabetCommentView = CommentView(
+    .condition, text: "영문 포함", icon: .checkGray400
+  )
+  private let containNumberCommentView = CommentView(
+    .condition, text: "숫자 포함", icon: .checkGray400
+  )
+  private let containSpecialCommentView = CommentView(
+    .condition, text: "특수문자 포함", icon: .checkGray400
+  )
+  private let validRangeCommentView = CommentView(
+    .condition, text: "8~30자", icon: .checkGray400
+  )
+  
+  private let correnspondNewPasswordCommentView = CommentView(
+    .condition, text: "새 비밀번호 일치", icon: .checkGray400
+  )
+  
+  private lazy var newPassWordCommentViews = [
+    containAlphabetCommentView,
+    containNumberCommentView,
+    containSpecialCommentView,
+    validRangeCommentView
+  ]
   
   // MARK: - Initializers
   init(viewModel: ChangePasswordViewModel) {
@@ -138,13 +155,8 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
 private extension ChangePasswordViewController {
   func setupUI() {
     view.backgroundColor = .white
-    newPasswordTextField.commentViews = [
-      containAlphabetCommentView,
-      containNumberCommentView,
-      containSpecialCommentView,
-      validRangeCommentView
-    ]
-    newPasswordCheckTextField.commentViews = [correnspondPasswordCommentView]
+    newPasswordTextField.commentViews = newPassWordCommentViews
+    newPasswordCheckTextField.commentViews = [correnspondNewPasswordCommentView]
     
     setViewHierarchy()
     setConstraints()
@@ -170,6 +182,7 @@ private extension ChangePasswordViewController {
       $0.top.equalTo(view.safeAreaLayoutGuide)
       $0.height.equalTo(56)
     }
+    
     currentPasswordTitleLabel.snp.makeConstraints {
       $0.top.equalTo(navigationBar.snp.bottom).offset(24)
       $0.leading.equalToSuperview().offset(24)
@@ -179,26 +192,32 @@ private extension ChangePasswordViewController {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(currentPasswordTitleLabel.snp.bottom).offset(24)
     }
+    
     newPasswordTitleLabel.snp.makeConstraints {
       $0.top.equalTo(currentPasswordTextField.snp.bottom).offset(48)
       $0.leading.equalToSuperview().offset(24)
     }
+    
     newPasswordTextField.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(newPasswordTitleLabel.snp.bottom).offset(24)
     }
+    
     newPasswordCheckTitleLabel.snp.makeConstraints {
       $0.top.equalTo(newPasswordTextField.snp.bottom).offset(48)
       $0.leading.equalToSuperview().offset(24)
     }
+    
     newPasswordCheckTextField.snp.makeConstraints {
       $0.top.equalTo(newPasswordCheckTitleLabel.snp.bottom).offset(24)
       $0.leading.trailing.equalToSuperview().inset(24)
     }
+    
     changePasswordButton.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.bottom.equalToSuperview().inset(56)
     }
+    
     forgotPasswordButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalTo(changePasswordButton.snp.top).offset(-14)
@@ -214,12 +233,31 @@ private extension ChangePasswordViewController {
       newPassword: newPasswordTextField.rx.text,
       reEnteredPassword: newPasswordCheckTextField.rx.text,
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      didTapChangePasswordButton: changePasswordButton.rx.tap,
-      didAppearAlert: alertRelay
+      didTapForgetPasswordButton: forgotPasswordButton.rx.tap,
+      didTapChangePasswordButton: changePasswordButton.rx.tap
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
+  }
+  
+  func viewBind() {
+    currentPasswordTextField.rx.text
+      .distinctUntilChanged()
+      .bind(with: self) { owner, _ in
+        guard !owner.currentPasswordTextField.commentViews.isEmpty else { return }
+        owner.currentPasswordTextField.commentViews = []
+      }
+      .disposed(by: disposeBag)
+    
+    newPasswordTextField.rx.text
+      .distinctUntilChanged()
+      .bind(with: self) { owner, _ in
+        guard owner.newPasswordTextField.commentViews != owner.newPassWordCommentViews else { return }
+        owner.newPasswordTextField.commentViews = owner.newPassWordCommentViews
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(output: ChangePasswordViewModel.Output) {
@@ -239,30 +277,42 @@ private extension ChangePasswordViewController {
       .drive(validRangeCommentView.rx.isActivate)
       .disposed(by: disposeBag)
     
-    output.isValidPassword
+    output.isValidNewPassword
       .map { !$0 }
       .drive(newPasswordCheckTextField.rx.isHidden)
       .disposed(by: disposeBag)
     
-    output.isValidPassword
+    output.isValidNewPassword
       .map { !$0 }
       .drive(newPasswordCheckTitleLabel.rx.isHidden)
       .disposed(by: disposeBag)
     
-    output.isValidPassword
+    output.isValidNewPassword
       .filter { $0 == false }
       .drive(with: self) { owner, _ in
         owner.newPasswordCheckTextField.text = ""
-        owner.correnspondPasswordCommentView.isActivate = false
+        owner.correnspondNewPasswordCommentView.isActivate = false
       }
       .disposed(by: disposeBag)
     
-    output.correspondPassword
-      .drive(correnspondPasswordCommentView.rx.isActivate)
+    output.correspondNewPassword
+      .drive(correnspondNewPasswordCommentView.rx.isActivate)
       .disposed(by: disposeBag)
     
     output.isEnabledNextButton
       .drive(changePasswordButton.rx.isEnabled)
+      .disposed(by: disposeBag)
+    
+    output.invalidCurrentPassword
+      .emit(with: self) { owner, _ in
+        owner.currentPasswordTextField.commentViews = [owner.invalidCurrentPasswordCommentView]
+      }
+      .disposed(by: disposeBag)
+    
+    output.duplicatePassword
+      .emit(with: self) { owner, _ in
+        owner.newPasswordCheckTextField.commentViews = owner.newPassWordCommentViews
+      }
       .disposed(by: disposeBag)
   }
 }
@@ -292,7 +342,7 @@ extension ChangePasswordViewController: KeyboardListener {
       self.view.frame.origin.y = 0
     }
   }
-}
+} 
 
 // MARK: - Private Methods
 private extension ChangePasswordViewController { }
