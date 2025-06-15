@@ -110,6 +110,14 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
     bind()
   }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    if case .modify = mode {
+      proveTimeRelay.accept(proveTimeTextField.text ?? "")
+      endDateRelay.accept(dateTextField.endDate ?? Date())
+    }
+  }
+  
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     super.touchesEnded(touches, with: event)
@@ -141,6 +149,7 @@ private extension ChallengeGoalViewController {
     
     if case .modify = mode {
       navigationBar.title = "챌린지 소개 수정"
+      nextButton.title = "저장하기"
     }
   }
   
@@ -261,7 +270,13 @@ private extension ChallengeGoalViewController {
 }
 
 // MARK: - ChallengeGoalPresentable
-extension ChallengeGoalViewController: ChallengeGoalPresentable { }
+extension ChallengeGoalViewController: ChallengeGoalPresentable {
+  func setChallengeGoal(goal: String, proveTime: String, endDate: String) {
+    self.challengeGoalTextView.text = goal
+    self.proveTimeTextField.text = proveTime
+    self.dateTextField.endDate = endDate.toDate()
+  }
+}
 
 // MARK: - Private Methods
 private extension ChallengeGoalViewController {

@@ -16,6 +16,7 @@ import DesignSystem
 
 final class ChallengeCoverViewController: UIViewController, ViewControllerable, PhotoRequestable {
   // MARK: - Properties
+  private let mode: ChallengeOrganizeMode
   private var cellDataSources = [SampleImageCellPresentaionModel(imageUrlString: "Photo")] {
     didSet {
       imageCollectionView.reloadData()
@@ -73,7 +74,11 @@ final class ChallengeCoverViewController: UIViewController, ViewControllerable, 
   )
   
   // MARK: - Initialziers
-  init(viewModel: ChallengeCoverViewModel) {
+  init(
+    mode: ChallengeOrganizeMode,
+    viewModel: ChallengeCoverViewModel
+  ) {
+    self.mode = mode
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
@@ -110,6 +115,11 @@ private extension ChallengeCoverViewController {
     view.backgroundColor = .white
     setViewHierarchy()
     setConstraints()
+    
+    if case .modify = mode {
+      navigationBar.title = "대표 이미지 수정"
+      nextButton.title = "저장하기"
+    }
   }
   
   func setViewHierarchy() {
@@ -130,14 +140,21 @@ private extension ChallengeCoverViewController {
       $0.height.equalTo(56)
     }
     
-    progressBar.snp.makeConstraints {
-      $0.top.equalTo(navigationBar.snp.bottom).offset(8)
-      $0.leading.trailing.equalToSuperview().inset(24)
-    }
-    
-    titleLabel.snp.makeConstraints {
-      $0.top.equalTo(progressBar.snp.bottom).offset(48)
-      $0.leading.equalToSuperview().offset(24)
+    if case .modify = mode {
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(36)
+        $0.leading.equalToSuperview().offset(24)
+      }
+    } else {
+      progressBar.snp.makeConstraints {
+        $0.top.equalTo(navigationBar.snp.bottom).offset(8)
+        $0.leading.trailing.equalToSuperview().inset(24)
+      }
+      
+      titleLabel.snp.makeConstraints {
+        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.leading.equalToSuperview().offset(24)
+      }
     }
     
     mainImageView.snp.makeConstraints {
