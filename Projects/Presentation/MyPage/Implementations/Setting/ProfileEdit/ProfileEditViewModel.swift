@@ -154,5 +154,10 @@ private extension ProfileEditViewModel {
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  func navitate(to item: ProfileEditMenuItem) { }
+  func navitate(to item: ProfileEditMenuItem) {
+    switch item {
+      case .editPassword: coordinator?.attachChangePassword()
+      default: break
+    }
+  }
 }

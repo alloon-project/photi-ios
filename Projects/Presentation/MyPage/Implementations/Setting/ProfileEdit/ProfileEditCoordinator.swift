@@ -61,7 +61,7 @@ extension ProfileEditCoordinator {
     
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
-    self.withdrawCoordinator = nil
+    self.changePasswordCoordinator = nil
   }
 }
 
