@@ -17,8 +17,7 @@ public enum InquiryAPI {
 
 extension InquiryAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {

@@ -16,9 +16,13 @@ import DesignSystem
 final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  // MARK: - Variables
+  // MARK: - Properties
+  private var selectedIndexPath: IndexPath? {
+    didSet {
+      reasonTableView.reloadData()
+    }
+  }
   private var targetId: Int?
-  private var selectedSection: Int?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
@@ -195,17 +199,17 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: viewModel.reportType.contents[indexPath.row])
+    let isSelected = indexPath == selectedIndexPath
+    cell.configure(with: viewModel.reportType.contents[indexPath.row], isSelected: isSelected)
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard selectedSection != indexPath.section else { return }
+    guard selectedIndexPath != indexPath else { return }
     
     self.setupDetailContentUI()
-    selectedSection = indexPath.section
+    selectedIndexPath = indexPath
     selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
-    selectRow(at: indexPath)
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
@@ -225,16 +229,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 // MARK: - Private Methods
-private extension ReportViewController {
-  func deselectAllCell() {
-    self.reasonTableView.visibleCells.forEach { $0.isSelected = false }
-  }
-  
-  func selectRow(at indexPath: IndexPath) {
-    deselectAllCell()
-    self.reasonTableView.cellForRow(ReportReasonTableViewCell.self, at: indexPath).isSelected = true
-  }
-}
+private extension ReportViewController {}
 
 // MARK: - Setup Keyboard Observer
 private extension ReportViewController {
