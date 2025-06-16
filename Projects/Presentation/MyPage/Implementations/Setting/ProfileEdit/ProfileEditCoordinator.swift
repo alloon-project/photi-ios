@@ -47,10 +47,14 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
 
 // MARK: - ChangePassword
 extension ProfileEditCoordinator {
-  func attachChangePassword() {
+  func attachChangePassword(userName: String, userEmail: String) {
     guard changePasswordCoordinator == nil else { return }
     
-    let coordinator = changePasswordContainable.coordinator(listener: self)
+    let coordinator = changePasswordContainable.coordinator(
+      userName: userName,
+      userEmail: userEmail,
+      listener: self
+    )
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.changePasswordCoordinator = coordinator
@@ -61,7 +65,7 @@ extension ProfileEditCoordinator {
     
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
-    self.withdrawCoordinator = nil
+    self.changePasswordCoordinator = nil
   }
 }
 
@@ -104,6 +108,14 @@ extension ProfileEditCoordinator: ChangePasswordListener {
   
   func didChangedPassword() {
     detachChangePassword()
+    guard
+      let navigationController = viewControllerable.uiviewController.navigationController,
+      let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
+      viewControllerables.count >= 3
+    else { return }
+
+    let remainingVCs = Array(viewControllerables.prefix(3))
+    viewControllerable.setViewControllers(remainingVCs, animated: true)
     presenter.displayToastView()
   }
 }

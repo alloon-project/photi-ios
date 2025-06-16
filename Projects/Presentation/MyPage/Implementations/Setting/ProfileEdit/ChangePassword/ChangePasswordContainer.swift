@@ -7,26 +7,39 @@
 //
 
 import Core
+import LogIn
 import UseCase
 
 protocol ChangePasswordDependency: Dependency {
   var changePasswordUseCase: ChangePasswordUseCase { get }
+  var resetPasswordContainable: ResetPasswordContainable { get }
 }
 
 protocol ChangePasswordContainable: Containable {
-  func coordinator(listener: ChangePasswordListener) -> ViewableCoordinating
+  func coordinator(
+    userName: String,
+    userEmail: String,
+    listener: ChangePasswordListener
+  ) -> ViewableCoordinating
 }
 
 final class ChangePasswordContainer:
   Container<ChangePasswordDependency>,
   ChangePasswordContainable {
-  func coordinator(listener: ChangePasswordListener) -> ViewableCoordinating {
+  func coordinator(
+    userName: String,
+    userEmail: String,
+    listener: ChangePasswordListener
+  ) -> ViewableCoordinating {
     let viewModel = ChangePasswordViewModel(useCase: dependency.changePasswordUseCase)
     let viewControllerable = ChangePasswordViewController(viewModel: viewModel)
     
     let coordinator = ChangePasswordCoordinator(
+      userName: userName,
+      userEmail: userEmail,
       viewControllerable: viewControllerable,
-      viewModel: viewModel
+      viewModel: viewModel,
+      resetPasswordContainable: dependency.resetPasswordContainable
     )
     coordinator.listener = listener
     return coordinator

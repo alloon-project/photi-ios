@@ -16,94 +16,59 @@ protocol FindPasswordListener: AnyObject {
 
 protocol FindPasswordPresentable { }
 
-final class FindPasswordCoordinator: ViewableCoordinator<FindPasswordPresentable>, FindPasswordCoordinatable {
+final class FindPasswordCoordinator: ViewableCoordinator<FindPasswordPresentable> {
   weak var listener: FindPasswordListener?
 
-  private let viewModel: any FindPasswordViewModelType
+  private let viewModel: FindPasswordViewModel
   
-  // MARK: - Temp Password
-  private let tempPasswordContainable: TempPasswordContainable
-  private var tempPasswordCoordinator: ViewableCoordinating?
-  
-  // MARK: - New Password
-  private let newPasswordContainable: NewPasswordContainable
-  private var newPasswordCoordinator: ViewableCoordinating?
+  private let resetPasswordContainable: ResetPasswordContainable
+  private var resetPasswordCoordinator: Coordinating?
   
   init(
     viewControllerable: ViewControllerable,
     viewModel: FindPasswordViewModel,
-    tempPasswordContainable: TempPasswordContainable,
-    newPasswordContainable: NewPasswordContainable
+    resetPasswordContainable: ResetPasswordContainable
   ) {
     self.viewModel = viewModel
-    self.tempPasswordContainable = tempPasswordContainable
-    self.newPasswordContainable = newPasswordContainable
-    
+    self.resetPasswordContainable = resetPasswordContainable
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  // MARK: - Temp Password
-  func attachTempPassword(userEmail: String, userName: String) {
-    guard tempPasswordCoordinator == nil else { return }
-    
-    let coordinater = tempPasswordContainable.coordinator(
-      listener: self,
-      userEmail: userEmail,
-      userName: userName
-    )
-    addChild(coordinater)
-    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.tempPasswordCoordinator = coordinater
-  }
-  
-  func detachTempPassword() {
-    guard let coordinater = tempPasswordCoordinator else { return }
-    
-    self.tempPasswordCoordinator = nil
-    viewControllerable.popViewController(animated: true)
-    removeChild(coordinater)
-  }
-  
-  // MARK: - New Password
-  func attatchNewPassword() {
-    guard newPasswordCoordinator == nil else { return }
-    
-    let coordinater = newPasswordContainable.coordinator(listener: self)
-    addChild(coordinater)
-    viewControllerable.pushViewController(coordinater.viewControllerable, animated: true)
-    self.newPasswordCoordinator = coordinater
-  }
-  
-  func detachNewPassword() {
-    guard let coordinater = newPasswordCoordinator else { return }
-    
-    self.newPasswordCoordinator = nil
-    viewControllerable.popViewController(animated: true)
-    removeChild(coordinater)
-  }
-  
+}
+
+// MARK: - FindPasswordCoordinatable
+extension FindPasswordCoordinator: FindPasswordCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtFindPassword()
   }
-}
-
-extension FindPasswordCoordinator: TempPasswordListener {
-  func didFinishTempPassword() {
-    attatchNewPassword()
+  
+  func attachResetPassword(userEmail: String, userName: String) {
+    guard resetPasswordCoordinator == nil else { return }
+    
+    let coordinator = resetPasswordContainable.coordinator(
+      userEmail: userEmail,
+      userName: userName,
+      navigation: viewControllerable,
+      listener: self
+    )
+    addChild(coordinator)
+    self.resetPasswordCoordinator = coordinator
   }
   
-  func didTapBackButtonAtTempPassword() {
-    detachTempPassword()
+  func detachResetPassword() {
+    guard let coordinator = resetPasswordCoordinator else { return }
+    removeChild(coordinator)
+    self.resetPasswordCoordinator = nil
   }
 }
 
-extension FindPasswordCoordinator: NewPasswordListener {
-  func didTapBackButtonAtNewPassword() {
-    detachNewPassword()
+// MARK: - ResetPasswordListener
+extension FindPasswordCoordinator: ResetPasswordListener {
+  func didCancelResetPassword() {
+    detachResetPassword()
   }
   
-  func didFinishUpdatePassword() {
+  func didFinishResetPassword() {
     listener?.didFinishUpdatePassword()
   }
 }

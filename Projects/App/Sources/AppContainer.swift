@@ -35,6 +35,7 @@ final class AppContainer:
   Container<AppDependency>,
   AppContainable,
   LogInDependency,
+  ResetPasswordDependency,
   HomeDependency,
   SearchChallengeDependency,
   MyPageDependency,
@@ -65,6 +66,10 @@ final class AppContainer:
   // MARK: - Containable
   lazy var loginContainable: LogInContainable = {
     return LogInContainer(dependency: self)
+  }()
+  
+  lazy var resetPasswordContainable: ResetPasswordContainable = {
+    return ResetPasswordContainer(dependency: self)
   }()
   
   lazy var challengeOrganizeContainable: ChallengeOrganizeContainable = {

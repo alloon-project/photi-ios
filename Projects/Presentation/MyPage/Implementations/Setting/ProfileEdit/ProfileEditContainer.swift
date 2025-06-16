@@ -7,11 +7,13 @@
 //
 
 import Core
+import LogIn
 import UseCase
 
 protocol ProfileEditDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
+  var resetPasswordContainable: ResetPasswordContainable { get }
 }
 
 protocol ProfileEditContainable: Containable {
@@ -25,6 +27,7 @@ final class ProfileEditContainer:
   WithdrawDependency {
   var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUseCase }
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
+  var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   
   func coordinator(listener: ProfileEditListener) -> ViewableCoordinating {
     let viewModel = ProfileEditViewModel(useCase: dependency.profileEditUseCase)

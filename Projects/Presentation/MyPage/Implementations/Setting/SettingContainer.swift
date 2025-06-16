@@ -7,6 +7,7 @@
 //
 
 import Core
+import LogIn
 import UseCase
 import Report
 
@@ -14,6 +15,7 @@ protocol SettingDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
   var changePasswordUseCase: ChangePasswordUseCase { get }
+  var resetPasswordContainable: ResetPasswordContainable { get }
   var myPageUseCase: MyPageUseCase { get }
 }
 
@@ -27,6 +29,7 @@ final class SettingContainer:
   ProfileEditDependency {
   var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
+  var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   
   func coordinator(listener: SettingListener) -> ViewableCoordinating {
     let viewModel = SettingViewModel(useCase: dependency.myPageUseCase)
