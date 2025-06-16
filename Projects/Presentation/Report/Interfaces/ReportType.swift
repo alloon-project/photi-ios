@@ -9,9 +9,9 @@
 import Foundation
 
 public enum ReportType {
-  case challenge
-  case member
-  case feed
+  case challenge(_ id: Int)
+  case member(_ id: Int)
+  case feed(_ id: Int)
   case inquiry
   
   public var title: String {
