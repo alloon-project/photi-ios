@@ -7,10 +7,7 @@
 //
 
 import RxSwift
-import DataMapper
 
 public protocol InquiryRepository {
-  init(dataMapper: InquiryDataMapper)
-  
   func inquiry(type: String, content: String) -> Single<Void>
 }

@@ -14,7 +14,6 @@ import Report
 protocol SettingDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
-  var changePasswordUseCase: ChangePasswordUseCase { get }
   var resetPasswordContainable: ResetPasswordContainable { get }
   var myPageUseCase: MyPageUseCase { get }
 }
@@ -27,7 +26,6 @@ final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
   ProfileEditDependency {
-  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   

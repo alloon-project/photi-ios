@@ -7,11 +7,8 @@
 //
 
 import RxSwift
-import DataMapper
 
 public protocol ReportRepository {
-  init(dataMapper: ReportDataMapper)
-  
   func report(
     category: String,
     reason: String,

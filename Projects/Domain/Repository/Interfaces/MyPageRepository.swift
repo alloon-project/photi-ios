@@ -19,4 +19,5 @@ public protocol MyPageRepository {
   func fetchUserProfile() async throws -> UserProfile
   func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL?
   func deleteUserAccount(password: String) async throws
+  func updatePassword(from password: String, to newPassword: String) async throws
 }

@@ -18,6 +18,7 @@ public protocol MyPageDataMapper {
   func mapToChallengeSummaryFromEnded(dto: [EndedChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToFeedSummaryFromFeedsByDate(dtos: [FeedByDateResponseDTO]) -> [FeedSummary]
   func mapToUserProfile(dto: UserProfileResponseDTO) -> UserProfile
+  func mapToChangePasswordRequestDTO(password: String, newPassword: String) -> ChangePasswordRequestDTO
 }
 
 public struct MyPageDataMapperImpl: MyPageDataMapper {
@@ -88,6 +89,14 @@ public extension MyPageDataMapperImpl {
       imageUrl: imageURL(from: dto.imageUrl),
       name: dto.username,
       email: dto.email
+    )
+  }
+  
+  func mapToChangePasswordRequestDTO(password: String, newPassword: String) -> ChangePasswordRequestDTO {
+    return ChangePasswordRequestDTO(
+      password: password,
+      newPassword: newPassword,
+      newPasswordReEnter: newPassword
     )
   }
 }

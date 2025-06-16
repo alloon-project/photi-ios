@@ -11,7 +11,7 @@ import LogIn
 import UseCase
 
 protocol ChangePasswordDependency: Dependency {
-  var changePasswordUseCase: ChangePasswordUseCase { get }
+  var profileEditUseCase: ProfileEditUseCase { get }
   var resetPasswordContainable: ResetPasswordContainable { get }
 }
 
@@ -31,7 +31,7 @@ final class ChangePasswordContainer:
     userEmail: String,
     listener: ChangePasswordListener
   ) -> ViewableCoordinating {
-    let viewModel = ChangePasswordViewModel(useCase: dependency.changePasswordUseCase)
+    let viewModel = ChangePasswordViewModel(useCase: dependency.profileEditUseCase)
     let viewControllerable = ChangePasswordViewController(viewModel: viewModel)
     
     let coordinator = ChangePasswordCoordinator(

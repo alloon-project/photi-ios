@@ -12,7 +12,6 @@ import UseCase
 
 protocol ProfileEditDependency: Dependency {
   var profileEditUseCase: ProfileEditUseCase { get }
-  var changePasswordUseCase: ChangePasswordUseCase { get }
   var resetPasswordContainable: ResetPasswordContainable { get }
 }
 
@@ -25,8 +24,7 @@ final class ProfileEditContainer:
   ProfileEditContainable,
   ChangePasswordDependency,
   WithdrawDependency {
-  var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUseCase }
-  var changePasswordUseCase: ChangePasswordUseCase { dependency.changePasswordUseCase }
+  var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   
   func coordinator(listener: ProfileEditListener) -> ViewableCoordinating {
