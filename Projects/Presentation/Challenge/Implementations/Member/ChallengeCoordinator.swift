@@ -98,7 +98,7 @@ extension ChallengeCoordinator {
   func attachReport(reportType: ReportType) {
     guard reportCoordinator == nil else { return }
     
-    let coordinator = reportContainer.coordinator(listener: self, reportType: .challenge)
+    let coordinator = reportContainer.coordinator(listener: self, reportType: reportType)
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.reportCoordinator = coordinator
@@ -144,8 +144,8 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
     listener?.leaveChallenge(challengeId: challengeId)
   }
   
-  func attachChallengeReport() {
-    attachReport(reportType: .challenge)
+  func attachChallengeReport(challengeId: Int) {
+    attachReport(reportType: .challenge(challengeId))
   }
   
   func authenticatedFailed() {
@@ -172,7 +172,7 @@ extension ChallengeCoordinator: FeedListener {
   }
   
   func requestReportAtFeed(feedId: Int) {
-    attachReport(reportType: .feed)
+    attachReport(reportType: .feed(feedId))
   }
   
   func deleteFeed(challengeId: Int, feedId: Int) {
