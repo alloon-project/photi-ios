@@ -118,6 +118,10 @@ extension ProfileEditCoordinator: ChangePasswordListener {
     viewControllerable.setViewControllers(remainingVCs, animated: true)
     presenter.displayToastView()
   }
+  
+  func authenticationFailedAtChangePassword() {
+    listener?.authenticatedFailedAtProfileEdit()
+  }
 }
 
 // MARK: - WithdrawListener

@@ -7,10 +7,7 @@
 //
 
 import RxSwift
-import Repository
 
 public protocol InquiryUseCase {
-  init(repository: InquiryRepository)
-  
   func inquiry(type: String, content: String) -> Single<Void>
 }

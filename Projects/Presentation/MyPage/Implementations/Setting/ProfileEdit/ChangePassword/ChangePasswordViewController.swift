@@ -247,6 +247,7 @@ private extension ChangePasswordViewController {
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         guard !owner.currentPasswordTextField.commentViews.isEmpty else { return }
+        owner.currentPasswordTextField.mode = .default
         owner.currentPasswordTextField.commentViews = []
       }
       .disposed(by: disposeBag)
@@ -306,6 +307,7 @@ private extension ChangePasswordViewController {
     
     output.invalidCurrentPassword
       .emit(with: self) { owner, _ in
+        owner.currentPasswordTextField.mode = .error
         owner.currentPasswordTextField.commentViews = [owner.invalidCurrentPasswordCommentView]
       }
       .disposed(by: disposeBag)
@@ -314,6 +316,12 @@ private extension ChangePasswordViewController {
       .emit(with: self) { owner, _ in
         owner.newPasswordTextField.mode = .error
         owner.newPasswordTextField.commentViews = [owner.duplicatePasswordCommentView]
+      }
+      .disposed(by: disposeBag)
+    
+    output.networkUnstable
+      .emit(with: self) { owner, _ in
+        owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
   }

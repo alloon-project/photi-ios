@@ -20,6 +20,7 @@ public enum MyPageAPI {
   case userInformation
   case uploadProfileImage(_ data: Data, imageType: String)
   case withdrawUser(password: String)
+  case changePassword(dto: ChangePasswordRequestDTO)
 }
 
 extension MyPageAPI: TargetType {
@@ -37,13 +38,14 @@ extension MyPageAPI: TargetType {
       case .userInformation: return "api/users"
       case .uploadProfileImage: return "api/users/image"
       case .withdrawUser: return "api/users"
+      case .changePassword: return "api/users/password"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
       case .uploadProfileImage: return .post
-      case .withdrawUser: return .patch
+      case .withdrawUser, .changePassword: return .patch
       default: return .get
     }
   }
@@ -73,6 +75,9 @@ extension MyPageAPI: TargetType {
         )
         
         return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
+        
+      case let .changePassword(dto):
+          return .requestJSONEncodable(dto)
     }
   }
   
@@ -114,7 +119,7 @@ extension MyPageAPI: TargetType {
         
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
         
-      case .withdrawUser:
+      case .withdrawUser, .changePassword:
         let data = """
           {
             "code": "200 OK",

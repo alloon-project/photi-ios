@@ -10,7 +10,7 @@ import Core
 import UseCase
 
 protocol WithdrawDependency: Dependency {
-  var profileEditUsecase: ProfileEditUseCase { get }
+  var profileEditUseCase: ProfileEditUseCase { get }
 }
 
 protocol WithdrawContainable: Containable {
@@ -21,7 +21,7 @@ final class WithdrawContainer:
   Container<WithdrawDependency>,
   WithdrawContainable,
   WithdrawAuthDependency {
-  var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUsecase }
+  var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUseCase }
   
   func coordinator(listener: WithdrawListener) -> ViewableCoordinating {
     let viewModel = WithdrawViewModel()

@@ -96,7 +96,7 @@ private extension WithdrawAuthViewModel {
     switch error {
       case .authenticationFailed:
         coordinator?.authenticatedFailed()
-      case let .myPageFailed(reason) where reason == .passwordMatchInvalid:
+      case let .myPageFailed(reason) where reason == .loginUnAuthenticated:
         didFailPasswordVerificationRelay.accept(())
       case let .myPageFailed(reason) where reason == .userNotFound:
         coordinator?.authenticatedFailed()

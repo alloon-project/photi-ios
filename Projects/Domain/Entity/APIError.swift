@@ -62,6 +62,7 @@ extension APIError {
 extension APIError {
   public enum MyPageFailedReason {
     case userNotFound
+    case loginUnAuthenticated
     case passwordMatchInvalid
     case fileTooLarge
     case invalidFileFormat

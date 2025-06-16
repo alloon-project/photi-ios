@@ -98,6 +98,17 @@ public extension MyPageRepositoyImpl {
     
     try await executeSingle(single)
   }
+  
+  func updatePassword(from password: String, to newPassword: String) async throws {
+    let dto = dataMapper.mapToChangePasswordRequestDTO(password: password, newPassword: newPassword)
+    
+    let single = requestAuthorizableAPI(
+      api: MyPageAPI.changePassword(dto: dto),
+      responseType: SuccessResponseDTO.self
+    )
+    
+    try await executeSingle(single)
+  }
 }
 
 // MARK: - Private Methods
@@ -118,6 +129,8 @@ private extension MyPageRepositoyImpl {
           let result = try await provider.request(api, type: responseType.self).value
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
+          } else if result.statusCode == 400 {
+              single(.failure(map400ToAPIError(result.code, result.message)))
           } else if result.statusCode == 401 {
             single(.failure(map401ToAPIError(result.code, result.message)))
           } else if result.statusCode == 403 {
@@ -143,9 +156,17 @@ private extension MyPageRepositoyImpl {
     }
   }
   
+  func map400ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "PASSWORD_MATCH_INVALID" {
+      return APIError.myPageFailed(reason: .loginUnAuthenticated)
+    } else {
+      return APIError.clientError(code: code, message: message)
+    }
+  }
+  
   func map401ToAPIError(_ code: String, _ message: String) -> APIError {
     if code == "LOGIN_UNAUTHENTICATED" {
-      return APIError.myPageFailed(reason: .passwordMatchInvalid)
+      return APIError.myPageFailed(reason: .loginUnAuthenticated)
     } else if code == "TOKEN_UNAUTHENTICATED" {
       return APIError.authenticationFailed
     } else {

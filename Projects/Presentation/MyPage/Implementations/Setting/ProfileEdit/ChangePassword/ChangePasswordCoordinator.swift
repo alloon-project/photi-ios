@@ -12,6 +12,7 @@ import LogIn
 protocol ChangePasswordListener: AnyObject {
   func didTapBackButtonAtChangePassword()
   func didChangedPassword()
+  func authenticationFailedAtChangePassword()
 }
 
 protocol ChangePasswordPresentable { }
@@ -71,6 +72,10 @@ extension ChangePasswordCoordinator: ChangePasswordCoordinatable {
     
     removeChild(coordinator)
     resetPasswordCoordinator = nil
+  }
+  
+  func authenticationFailed() {
+    listener?.authenticationFailedAtChangePassword()
   }
 }
 

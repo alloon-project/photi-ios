@@ -33,7 +33,6 @@ let project = Project.make(
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
 				.Project.Domain.Entity,
-				.Project.Domain.Repository,
 				.SPM.RxSwift
 			]
 		),
@@ -44,7 +43,6 @@ let project = Project.make(
 			sources: ["Repository/Interfaces/**"],
 			dependencies: [
 				.Project.Domain.Entity,
-				.Project.Data.DataMapper,
 				.SPM.RxSwift
 			]
 		)

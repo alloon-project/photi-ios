@@ -7,11 +7,8 @@
 //
 
 import RxSwift
-import Repository
 
 public protocol ReportUseCase {
-  init(repository: ReportRepository)
-  
   func report(
     category: String,
     reason: String,
