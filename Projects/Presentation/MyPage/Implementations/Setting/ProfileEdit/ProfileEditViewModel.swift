@@ -15,7 +15,7 @@ import UseCase
 
 protocol ProfileEditCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachChangePassword()
+  func attachChangePassword(userName: String, userEmail: String)
   func attachWithdraw()
   func authenticatedFailed()
 }
@@ -31,7 +31,7 @@ protocol ProfileEditViewModelType: AnyObject {
 
 final class ProfileEditViewModel: ProfileEditViewModelType {
   weak var coordinator: ProfileEditCoordinatable?
-
+  
   private let useCase: ProfileEditUseCase
   private let disposeBag = DisposeBag()
   
@@ -39,6 +39,9 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   private let profileImageUrlRelay = BehaviorRelay<URL?>(value: nil)
   private let isSuccessedUploadImageRelay = PublishRelay<Bool>()
   private let networkUnstableRelay = PublishRelay<Void>()
+  
+  private var userName: String?
+  private var userEmail: String?
   
   // MARK: - Input
   struct Input {
@@ -106,7 +109,8 @@ private extension ProfileEditViewModel {
   func loadUserProfile() async {
     do {
       let profile = try await useCase.loadUserProfile()
-      
+      userName = profile.name
+      userEmail = profile.email
       let menuItems: [ProfileEditMenuItem] = [.id(profile.name), .email(profile.email), .editPassword]
       
       profileEditMenuItemsRelay.accept(menuItems)
@@ -154,5 +158,12 @@ private extension ProfileEditViewModel {
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  func navitate(to item: ProfileEditMenuItem) { }
+  func navitate(to item: ProfileEditMenuItem) {
+    switch item {
+      case .editPassword:
+        guard let userName, let userEmail else { return }
+        coordinator?.attachChangePassword(userName: userName, userEmail: userEmail)
+      default: break
+    }
+  }
 }

@@ -14,7 +14,7 @@ import UseCase
 
 protocol FindPasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func attachTempPassword(userEmail: String, userName: String)
+  func attachResetPassword(userEmail: String, userName: String)
 }
 
 protocol FindPasswordViewModelType {
@@ -98,7 +98,7 @@ private extension FindPasswordViewModel {
   @MainActor func requestTempoaryPassword(id: String, email: String) async {
     do {
       try await useCase.sendTemporaryPassword(to: email, userName: id).value
-      coordinator?.attachTempPassword(userEmail: email, userName: id)
+      coordinator?.attachResetPassword(userEmail: email, userName: id)
     } catch {
       requestFailed(with: error)
     }

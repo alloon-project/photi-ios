@@ -12,13 +12,9 @@ import Entity
 
 public protocol ChallengeOrganizeDataMapper {
   func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
-  func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
-  -> ChallengeOrganizeRequestDTO?
-  func mapToModifyChallenge(payload: ChallengeModifyPayload)
-  -> ChallengeModifyRequestDTO?
-  func mapToChallengeDetail(
-    dto: ChallengeOrganizeResponseDTO
-  ) -> ChallengeDetail
+  func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO?
+  func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO?
+  func mapToChallengeDetail(dto: ChallengeOrganizeResponseDTO) -> ChallengeDetail
 }
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
@@ -28,8 +24,7 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
     return dto.list.map { $0 }
   }
   
-  public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload)
-  -> ChallengeOrganizeRequestDTO? {
+  public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO? {
     guard let jsonString = payload.toJSONString() else { return nil }
     return ChallengeOrganizeRequestDTO(
       jsonString: jsonString,
@@ -38,8 +33,7 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
     )
   }
   
-  public func mapToModifyChallenge(payload: ChallengeModifyPayload)
-  -> ChallengeModifyRequestDTO? {
+  public func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO? {
     guard let jsonString = payload.toJSONString() else { return nil }
     return ChallengeModifyRequestDTO(
       jsonString: jsonString,
