@@ -27,7 +27,7 @@ protocol ChangePasswordViewModelType {
 }
 
 final class ChangePasswordViewModel: ChangePasswordViewModelType {
-  private let useCase: ChangePasswordUseCase
+  private let useCase: ProfileEditUseCase
   private let disposeBag = DisposeBag()
   
   weak var coordinator: ChangePasswordCoordinatable?
@@ -59,7 +59,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: ChangePasswordUseCase) {
+  init(useCase: ProfileEditUseCase) {
     self.useCase = useCase
   }
   
