@@ -16,6 +16,7 @@ protocol ChallengePresentable {
   func presentChallengeNotFoundWaring()
   func presentNetworkWarning(reason: String?)
   func presentFinishModifying()
+  func presentChallengeReported()
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -212,6 +213,11 @@ extension ChallengeCoordinator: ParticipantListener {
 
 // MARK: - ReportListener
 extension ChallengeCoordinator: ReportListener {
+  func didInquiryApplicated() {
+    detachReport()
+    presenter.presentChallengeReported()
+  }
+  
   func detachReport() {
     guard let coordinator = reportCoordinator else { return }
     removeChild(coordinator)
