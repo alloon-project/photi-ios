@@ -39,6 +39,10 @@ public extension ProfileEditUseCaseImpl {
     try await myPageRepository.deleteUserAccount(password: password)
     authRepository.removeToken()
   }
+  
+  func changePassword(from password: String, to newPassword: String) async throws {
+    try await myPageRepository.updatePassword(from: password, to: newPassword)
+  }
 }
 
 // MARK: - Private Methods
