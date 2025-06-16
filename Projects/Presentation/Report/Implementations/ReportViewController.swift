@@ -22,7 +22,6 @@ final class ReportViewController: UIViewController, ViewControllerable {
       reasonTableView.reloadData()
     }
   }
-  private var targetId: Int?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
@@ -155,8 +154,7 @@ private extension ReportViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapReportButton: reportButton.rx.tap,
       reasonAndType: selectedRowRelay.asObservable(),
-      content: detailContentTextView.rx.text,
-      targetId: targetId
+      content: detailContentTextView.rx.text
     )
     
     let output = viewModel.transform(input: input)
@@ -285,12 +283,5 @@ private extension ReportViewController {
     if view.frame.origin.y != 0 {
       view.frame.origin.y = 0
     }
-  }
-}
-
-// MARK: - Internal Methods
-extension ReportViewController {
-  func setTargetId(_ id: Int) {
-    self.targetId = id
   }
 }
