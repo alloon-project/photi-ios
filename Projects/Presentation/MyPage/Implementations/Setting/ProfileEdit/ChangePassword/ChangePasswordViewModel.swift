@@ -15,6 +15,7 @@ protocol ChangePasswordCoordinatable: AnyObject {
   func didTapBackButton()
   func didChangedPassword()
   func attachResetPassword()
+  func authenticationFailed()
 }
 
 protocol ChangePasswordViewModelType {
@@ -34,6 +35,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   
   private let invalidCurrentPasswordRelay = PublishRelay<Void>()
   private let duplicatePasswordRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -56,6 +58,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     let isEnabledNextButton: Driver<Bool>
     let invalidCurrentPassword: Signal<Void>
     let duplicatePassword: Signal<Void>
+    let networkUnstable: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -99,7 +102,8 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
       correspondNewPassword: correspondNewPassword.asDriver(onErrorJustReturn: false),
       isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
       invalidCurrentPassword: invalidCurrentPasswordRelay.asSignal(),
-      duplicatePassword: duplicatePasswordRelay.asSignal()
+      duplicatePassword: duplicatePasswordRelay.asSignal(),
+      networkUnstable: networkUnstableRelay.asSignal()
     )
   }
   
@@ -123,7 +127,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     input.didTapChangePasswordButton
       .withLatestFrom(passwords)
       .subscribe(with: self) { owner, info in
-        owner.changePassword(from: info.0, to: info.1)
+        Task { await owner.changePassword(from: info.0, to: info.1) }
       }
       .disposed(by: disposeBag)
   }
@@ -131,9 +135,26 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
 
 // MARK: - Private Methods
 private extension ChangePasswordViewModel {
-  func changePassword(from password: String, to newPassword: String) {
+  @MainActor func changePassword(from password: String, to newPassword: String) async {
     guard password != newPassword else { return duplicatePasswordRelay.accept(()) }
+      
+    do {
+      try await useCase.changePassword(from: password, to: newPassword)
+      coordinator?.didChangedPassword()
+    } catch {
+      requestFailed(with: error)
+    }
+  }
+  
+  @MainActor func requestFailed(with error: Error) {
+    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
     
-    // TODO: - API 연동 예정
+    switch error {
+      case let .myPageFailed(reason) where reason == .loginUnAuthenticated:
+        invalidCurrentPasswordRelay.accept(())
+      case .authenticationFailed:
+        coordinator?.authenticationFailed()
+      default: networkUnstableRelay.accept(())
+    }
   }
 }
