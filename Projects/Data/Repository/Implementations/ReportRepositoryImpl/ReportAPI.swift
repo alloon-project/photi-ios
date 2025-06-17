@@ -17,14 +17,13 @@ public enum ReportAPI {
 
 extension ReportAPI: TargetType {
   public var baseURL: URL {
-    //    return ServiceConfiguration.baseUrl
-    return URL(string: "http://localhost:8080")!
+    return ServiceConfiguration.shared.baseUrl
   }
   
   public var path: String {
     switch self {
-      case .report:
-        return "api/reports"
+      case let .report(_, id):
+        return "api/reports/\(id)"
     }
   }
   
@@ -36,10 +35,8 @@ extension ReportAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case let .report(dto, targetId):
-      return .requestCompositeParameters(
-        bodyParameters: dto.toDictionary,
-        urlParameters: ["targetId": targetId])
+      case let .report(dto, _):
+      return .requestJSONEncodable(dto)
     }
   }
 }

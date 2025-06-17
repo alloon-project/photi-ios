@@ -28,8 +28,10 @@ public struct InquiryRepositoryImpl: InquiryRepository {
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .never)
-            .request(InquiryAPI.inquiry(dto: requestDTO)).value
+          let result = try await Provider(
+            stubBehavior: .never,
+            session: .init(interceptor: AuthenticationInterceptor())
+          ).request(InquiryAPI.inquiry(dto: requestDTO)).value
           
           if result.statusCode == 201 {
             single(.success(()))
