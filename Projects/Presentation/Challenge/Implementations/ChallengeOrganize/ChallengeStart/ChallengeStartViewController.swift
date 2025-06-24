@@ -123,7 +123,7 @@ private extension ChallengeStartViewController {
     }
   
     startImageView.snp.makeConstraints {
-      $0.top.equalTo(announceLabel.snp.bottom).offset(84)
+      $0.centerY.equalToSuperview()
       $0.leading.equalToSuperview().offset(24)
       $0.trailing.equalToSuperview().inset(24)
       $0.height.equalTo(250)
