@@ -109,7 +109,7 @@ public enum ReportType {
   public var category: String? {
     switch self {
     case .challenge:
-      "CHALLANGE"
+      "CHALLENGE"
     case .member:
       "CHALLENGE_MEMBER"
     case .feed:
