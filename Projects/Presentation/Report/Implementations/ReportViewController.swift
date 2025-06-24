@@ -17,11 +17,7 @@ final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
   // MARK: - Properties
-  private var selectedIndexPath: IndexPath? {
-    didSet {
-      reasonTableView.reloadData()
-    }
-  }
+  private var selectedIndexPath: IndexPath?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
@@ -203,11 +199,20 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard selectedIndexPath != indexPath else { return }
-    
-    self.setupDetailContentUI()
-    selectedIndexPath = indexPath
-    selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
+      guard selectedIndexPath != indexPath else { return }
+
+      let previousIndexPath = selectedIndexPath
+      selectedIndexPath = indexPath
+      selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
+
+      setupDetailContentUI()
+
+      var indexPathsToReload = [indexPath]
+      if let previous = previousIndexPath {
+          indexPathsToReload.append(previous)
+      }
+      
+      tableView.reloadRows(at: indexPathsToReload, with: .none)
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
