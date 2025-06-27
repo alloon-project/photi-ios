@@ -59,14 +59,14 @@ private extension HomeCoordinator {
     addChild(coordinator)
     navigationControllerable.setViewControllers([coordinator.viewControllerable], animated: animated)
     
-    self.noneChallengeHomeCoordinator = coordinator
+    self.challengeHomeCoordinator = coordinator
   }
   
   @MainActor func detachChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
-    self.noneChallengeHomeCoordinator = nil
+    self.challengeHomeCoordinator = nil
   }
 }
 
