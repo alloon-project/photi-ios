@@ -136,7 +136,7 @@ extension HomeCoordinator: NoneChallengeHomeListener {
     listener?.authenticatedFailedAtHome()
   }
 
-  func requstConvertInitialHome() {
+  func requestConvertInitialHome() {
     navigationControllerable.navigationController.showTabBar(animted: true)
     Task {
       await detachNoneChallengeHome()
