@@ -29,6 +29,7 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   private let disposeBag = DisposeBag()
   private let viewModel: ChallengeHomeViewModel
   
+  private let viewDidAppearRelay = PublishRelay<Void>()
   private let requestData = PublishRelay<Void>()
   private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
   private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
@@ -87,6 +88,11 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     super.viewWillAppear(animated)
     requestData.accept(())
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    viewDidAppearRelay.accept(())
+  }
 }
 
 // MARK: - UI Methods
@@ -143,6 +149,7 @@ private extension ChallengeHomeViewController {
 private extension ChallengeHomeViewController {
   func bind() {
     let input = ChallengeHomeViewModel.Input(
+      viewDidAppear: viewDidAppearRelay.asSignal(),
       requestData: requestData.asSignal(),
       didTapChallenge: bottomView.didTapChallenge,
       uploadChallengeFeed: uploadChallengeFeed.asSignal(),

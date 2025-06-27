@@ -16,12 +16,12 @@ protocol ChallengeHomeDependency: Dependency {
 }
 
 protocol ChallengeHomeContainable: Containable {
-  func coordinator(listener: ChallengeHomeListener) -> ViewableCoordinating
+  func coordinator(listener: ChallengeHomeListener, challengeId: Int?) -> ViewableCoordinating
 }
 
 final class ChallengeHomeContainer: Container<ChallengeHomeDependency>, ChallengeHomeContainable {
-  func coordinator(listener: ChallengeHomeListener) -> ViewableCoordinating {
-    let viewModel = ChallengeHomeViewModel(useCase: dependency.homeUseCase)
+  func coordinator(listener: ChallengeHomeListener, challengeId: Int? = nil) -> ViewableCoordinating {
+    let viewModel = ChallengeHomeViewModel(useCase: dependency.homeUseCase, firstJoinedChallengeId: challengeId)
     let viewControllerable = ChallengeHomeViewController(viewModel: viewModel)
     
     let coordinator = ChallengeHomeCoordinator(
