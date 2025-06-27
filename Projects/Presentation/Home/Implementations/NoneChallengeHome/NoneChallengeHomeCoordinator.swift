@@ -12,6 +12,7 @@ import Core
 protocol NoneChallengeHomeListener: AnyObject {
   func authenticatedFailedAtNoneChallengeHome()
   func requestConvertInitialHome()
+  func didJoinChallenge(challengeId: Int)
 }
 
 protocol NoneChallengeHomePresentable {
@@ -73,7 +74,7 @@ extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
   }
   
   func didJoinChallenge(id: Int) {
-    listener?.requestConvertInitialHome()
+    listener?.didJoinChallenge(challengeId: id)
   }
   
   func authenticatedFailedAtNoneMemberChallenge() {
