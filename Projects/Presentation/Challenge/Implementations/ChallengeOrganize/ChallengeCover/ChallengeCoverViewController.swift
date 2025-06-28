@@ -52,6 +52,7 @@ final class ChallengeCoverViewController: UIViewController, ViewControllerable, 
     imageView.image = .challengeOrganizeLuckyday
     imageView.layer.cornerRadius = 16
     imageView.layer.masksToBounds = true
+    imageView.contentMode = .scaleAspectFill
     return imageView
   }()
   
@@ -173,11 +174,10 @@ private extension ChallengeCoverViewController {
     }
     
     mainImageView.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
       $0.height.lessThanOrEqualTo(UIScreen.main.bounds.width - 48)
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
       $0.bottom.lessThanOrEqualTo(imageCollectionView.snp.top).offset(-24)
-      $0.width.equalTo(mainImageView.snp.height)
+      $0.leading.trailing.equalToSuperview().inset(24)
     }
   }
 }
