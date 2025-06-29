@@ -3,4 +3,4 @@ git_url("https://github.com/alloon-project/private-alloon-ios")
 storage_mode("git")
 
 type("appstore") # The default type, can be: appstore, adhoc, enterprise or development
-username("thrdud0423@gmail.com") # Your Apple Developer Portal username
+username("wcbe9745@icloud.com") # Your Apple Developer Portal username
