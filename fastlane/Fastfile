@@ -12,7 +12,7 @@ platform :ios do
     
     upload_to_testflight(skip_waiting_for_build_processing: true)
     download_dsyms(
-      app_identifier: "com.photi-prod",
+      app_identifier: "com.photi.product",
       output_directory: "./Projects/App/Outputs/Archives/PROD"
     )
   end
@@ -28,7 +28,7 @@ platform :ios do
     
     upload_to_testflight(skip_waiting_for_build_processing: true)
     download_dsyms(
-      app_identifier: "com.photi-dev",
+      app_identifier: "com.photi.develop",
       output_directory: "./Projects/App/Outputs/Archives/DEV"
     )
   end
@@ -37,12 +37,12 @@ platform :ios do
   lane :profiles do
     match(
       type: "appstore",
-      app_identifier:["com.photi-prod"],
+      app_identifier:["com.photi.product"],
       readonly: true
     )
     match(
       type: "appstore",
-      app_identifier:["com.photi-dev"],
+      app_identifier:["com.photi.develop"],
       readonly: true
     )
   end
@@ -63,7 +63,7 @@ def update_and_build_app(scheme = "")
     update_app_identifier(
       xcodeproj: "./Projects/App/Photi.xcodeproj",
       plist_path: "Info.plist",
-      app_identifier: "com.photi-prod"
+      app_identifier: "com.photi.product"
     )
 
     build_app(
@@ -75,7 +75,7 @@ def update_and_build_app(scheme = "")
         method: "app-store",
         signingStyle: 'manual',
         provisioningProfiles: {
-          "com.photi-prod": "match AppStore com.photi-prod",
+          "com.photi.product": "match AppStore com.photi.product",
         }
       } 
     )
@@ -84,7 +84,7 @@ def update_and_build_app(scheme = "")
     update_app_identifier(
       xcodeproj: "./Projects/App/Photi.xcodeproj",
       plist_path: "Info.plist",
-      app_identifier: "com.photi-dev"
+      app_identifier: "com.photi.develop"
     )
 
     build_app(
@@ -96,7 +96,7 @@ def update_and_build_app(scheme = "")
         method: "app-store",
         signingStyle: 'manual',
         provisioningProfiles: {
-          "com.photi-dev": "match AppStore com.photi-dev",
+          "com.photi.develop": "match AppStore com.photi.develop",
         }
       } 
     )
