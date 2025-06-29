@@ -133,7 +133,8 @@ final class AppContainer:
   lazy var searchUseCase: SearchUseCase = {
     return SearchUseCaseImpl(
       challengeRepository: challengeRepository,
-      searchHistoryRepository: searchHistoryRepository
+      searchHistoryRepository: searchHistoryRepository,
+      authRepository: authRepository
     )
   }()
   

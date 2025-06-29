@@ -191,7 +191,7 @@ private extension ChallengeGoalViewController {
       }
       
       titleLabel.snp.makeConstraints {
-        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.top.equalTo(progressBar.snp.bottom).offset(36)
         $0.leading.equalToSuperview().offset(24)
       }
     }
@@ -203,7 +203,7 @@ private extension ChallengeGoalViewController {
     }
     
     setProveTimeLabel.snp.makeConstraints {
-      $0.top.equalTo(challengeGoalTextView.snp.bottom).offset(51)
+      $0.top.equalTo(challengeGoalTextView.snp.bottom).offset(24)
       $0.leading.equalTo(challengeGoalTextView)
     }
     

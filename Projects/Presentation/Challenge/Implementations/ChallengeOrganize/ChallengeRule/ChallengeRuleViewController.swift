@@ -65,7 +65,8 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
     layout.scrollDirection = .vertical
     layout.minimumLineSpacing = 8
     layout.minimumInteritemSpacing = 8
-    layout.itemSize = .init(width: 160, height: 57)
+    let cellWidth = (UIScreen.main.bounds.width - 8 - 24 * 2) / 2
+    layout.itemSize = .init(width: cellWidth, height: 57)
     layout.sectionInset = .init(top: 16, left: 0, bottom: 16, right: 0)
     
     let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)

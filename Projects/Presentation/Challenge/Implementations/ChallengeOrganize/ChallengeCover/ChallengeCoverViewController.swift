@@ -52,6 +52,7 @@ final class ChallengeCoverViewController: UIViewController, ViewControllerable, 
     imageView.image = .challengeOrganizeLuckyday
     imageView.layer.cornerRadius = 16
     imageView.layer.masksToBounds = true
+    imageView.contentMode = .scaleAspectFill
     return imageView
   }()
   
@@ -127,9 +128,9 @@ private extension ChallengeCoverViewController {
       navigationBar,
       progressBar,
       titleLabel,
-      mainImageView,
+      nextButton,
       imageCollectionView,
-      nextButton
+      mainImageView
     )
   }
   
@@ -144,35 +145,39 @@ private extension ChallengeCoverViewController {
       titleLabel.snp.makeConstraints {
         $0.top.equalTo(navigationBar.snp.bottom).offset(36)
         $0.leading.equalToSuperview().offset(24)
+        $0.height.equalTo(20)
       }
     } else {
       progressBar.snp.makeConstraints {
         $0.top.equalTo(navigationBar.snp.bottom).offset(8)
         $0.leading.trailing.equalToSuperview().inset(24)
+        $0.height.equalTo(6)
       }
       
       titleLabel.snp.makeConstraints {
-        $0.top.equalTo(progressBar.snp.bottom).offset(48)
+        $0.top.equalTo(progressBar.snp.bottom).offset(36)
         $0.leading.equalToSuperview().offset(24)
+        $0.height.equalTo(20)
       }
-    }
-    
-    mainImageView.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
-      $0.trailing.equalToSuperview().inset(24)
-      $0.top.equalTo(titleLabel.snp.bottom).offset(24)
-      $0.height.equalTo(UIScreen.main.bounds.width - 48)
-    }
-    
-    imageCollectionView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview()
-      $0.top.equalTo(mainImageView.snp.bottom).offset(28)
-      $0.height.equalTo(96)
     }
     
     nextButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().offset(-56)
+      $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-24)
+      $0.height.equalTo(56)
+    }
+    
+    imageCollectionView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalTo(nextButton.snp.top).offset(-24)
+      $0.height.equalTo(96)
+    }
+    
+    mainImageView.snp.makeConstraints {
+      $0.height.lessThanOrEqualTo(UIScreen.main.bounds.width - 48)
+      $0.top.equalTo(titleLabel.snp.bottom).offset(24)
+      $0.bottom.lessThanOrEqualTo(imageCollectionView.snp.top).offset(-24)
+      $0.leading.trailing.equalToSuperview().inset(24)
     }
   }
 }

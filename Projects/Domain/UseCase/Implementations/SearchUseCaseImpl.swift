@@ -14,14 +14,21 @@ import Repository
 public final class SearchUseCaseImpl: SearchUseCase {
   private let challengeRepository: ChallengeRepository
   private let searchHistoryRepository: SearchHistoryRepository
+  private let authRepository: AuthRepository
   private let maximumChallengeCount = 20
   
   public init(
     challengeRepository: ChallengeRepository,
-    searchHistoryRepository: SearchHistoryRepository
+    searchHistoryRepository: SearchHistoryRepository,
+    authRepository: AuthRepository
   ) {
     self.challengeRepository = challengeRepository
     self.searchHistoryRepository = searchHistoryRepository
+    self.authRepository = authRepository
+  }
+  
+  public func isLogin() async -> Bool {
+    return (try? await authRepository.isLogIn()) ?? false
   }
 }
 

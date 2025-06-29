@@ -16,6 +16,7 @@ protocol SearchChallengeCoordinatable: AnyObject {
   func didStartSearch()
   func attachChallenge(id: Int)
   func attachNonememberChallenge(id: Int)
+  func attachLogin()
 }
 
 protocol SearchChallengeViewModelType: AnyObject {
@@ -39,6 +40,7 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   struct Input {
     let didTapChallengeOrganizeButton: ControlEvent<Void>
     let didTapSearchBar: Signal<Void>
+    let didTapLogInButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -55,7 +57,7 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   func transform(input: Input) -> Output {
     input.didTapChallengeOrganizeButton
       .bind(with: self) { owner, _ in
-        Task { await owner.routeToChallengeOrganizeIfPossible() }
+        owner.handleChallengeOrganizeSelection()
       }.disposed(by: disposeBag)
     
     input.didTapSearchBar
@@ -89,5 +91,13 @@ private extension SearchChallengeViewModel {
     let isPossible = await useCase.isPossibleToCreateChallenge()
     
     isPossible ? coordinator?.attachChallengeOrganize() : exceedMaxChallengeCountRelay.accept(())
+  }
+  
+  func handleChallengeOrganizeSelection() {
+    Task {
+      let isLogin = await useCase.isLogin()
+
+      await isLogin ? routeToChallengeOrganizeIfPossible() : coordinator?.attachLogin()
+    }
   }
 }
