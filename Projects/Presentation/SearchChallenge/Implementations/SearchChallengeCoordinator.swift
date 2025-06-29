@@ -12,6 +12,7 @@ import SearchChallenge
 
 protocol SearchChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...)
+  func presentLogInAlertView(to navigationControllerable: NavigationControllerable)
 }
 
 final class SearchChallengeCoordinator: ViewableCoordinator<SearchChallengePresentable> {
@@ -173,6 +174,10 @@ extension SearchChallengeCoordinator {
 extension SearchChallengeCoordinator: SearchChallengeCoordinatable {
   func didStartSearch() {
     attachSearchResult()
+  }
+  
+  func attachLogin() {
+    listener?.attachLoginPopup()
   }
 }
 

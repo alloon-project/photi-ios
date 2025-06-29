@@ -26,4 +26,5 @@ public protocol SearchUseCase {
   @discardableResult func saveSearchKeyword(_ keyword: String) -> [String]
   @discardableResult func deleteSearchKeyword(_ keyword: String) -> [String]
   func clearSearchHistory()
+  func isLogin() async -> Bool
 }
