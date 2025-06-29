@@ -17,13 +17,25 @@ final class SearchChallengeViewController: UIViewController, ViewControllerable 
   private let disposeBag = DisposeBag()
   private let viewModel: SearchChallengeViewModel
   private var segmentIndex: Int = 0
-  
+  private let didTapLogInButton = PublishRelay<Void>()
+
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
   private let challengeOrganizeButton = FloatingButton(type: .primary, size: .xLarge)
   private let searchBar = PhotiSearchBar(placeholder: "챌린지, 해시태그를 검색해보세요")
   private let segmentControl = CenterSegmentControl(items: ["추천순", "최신순"])
   private let mainContentView = UIView()
+  
+  private let logInAlertView: AlertViewController = {
+    let alertVC = AlertViewController(
+      alertType: .canCancel,
+      title: "로그인하고 다양한 챌린지에\n참여해보세요!"
+    )
+    alertVC.confirmButtonTitle = "로그인하기"
+    alertVC.cancelButtonTitle = "나중에 할래요"
+    
+    return alertVC
+  }()
   
   // MARK: - Initializers
   init(viewModel: SearchChallengeViewModel) {
@@ -52,6 +64,12 @@ extension SearchChallengeViewController: SearchChallengePresentable {
     segmentViewControllers = viewControllerables.map(\.uiviewController)
     
     attachViewController(segmentIndex: segmentIndex)
+  }
+  
+  func presentLogInAlertView(to navigationControllerable: NavigationControllerable) {
+    guard !logInAlertView.isPresenting else { return }
+    
+    logInAlertView.present(to: navigationControllerable.navigationController, animted: true)
   }
 }
 
@@ -104,12 +122,19 @@ private extension SearchChallengeViewController {
   func bind() {
     let input = SearchChallengeViewModel.Input(
       didTapChallengeOrganizeButton: challengeOrganizeButton.rx.tap,
-      didTapSearchBar: searchBar.rx.tapGesture().when(.recognized).map { _ in () }.asSignal(onErrorJustReturn: ())
+      didTapSearchBar: searchBar.rx.tapGesture().when(.recognized).map { _ in () }.asSignal(onErrorJustReturn: ()),
+      didTapLogInButton: didTapLogInButton.asSignal()
     )
     
     let output = viewModel.transform(input: input)
     bind(output: output)
     viewBind()
+    
+    logInAlertView.rx.didTapConfirmButton
+      .bind(with: self) { owner, _ in
+        owner.didTapLogInButton.accept(())
+      }
+      .disposed(by: disposeBag)
   }
   
   func viewBind() {

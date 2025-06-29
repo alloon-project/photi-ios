@@ -199,6 +199,14 @@ extension AppCoordinator: SearchChallengeListener {
       await presenter.presentTokenExpiredAlertView(to: homeNavigationControllerable)
     }
   }
+  
+  func attachLoginPopup() {
+    Task {
+      await reloadAllTab()
+      await presenter.changeNavigationControllerToHome()
+      await presenter.presentTabMyPageWithoutLogInAlertView(to: homeNavigationControllerable)
+    }
+  }
 }
 
 // MARK: - MyPageListener
