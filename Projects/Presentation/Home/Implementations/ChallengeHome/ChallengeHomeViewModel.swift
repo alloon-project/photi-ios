@@ -36,6 +36,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   weak var coordinator: ChallengeHomeCoordinatable?
   private let disposeBag = DisposeBag()
   private let useCase: HomeUseCase
+  private var firstJoinedChallengeId: Int?
   
   private let myChallengeFeedsRelay = BehaviorRelay<[MyChallengeFeedPresentationModel]>(value: [])
   private let myChallengesRelay = BehaviorRelay<[MyChallengePresentationModel]>(value: [])
@@ -46,6 +47,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
 
   // MARK: - Input
   struct Input {
+    let viewDidAppear: Signal<Void>
     let requestData: Signal<Void>
     let didTapChallenge: Signal<Int>
     let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
@@ -63,8 +65,9 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: HomeUseCase) {
+  init(useCase: HomeUseCase, firstJoinedChallengeId: Int? = nil) {
     self.useCase = useCase
+    self.firstJoinedChallengeId = firstJoinedChallengeId
   }
   
   func reloadData() {
@@ -72,6 +75,13 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   }
   
   func transform(input: Input) -> Output {
+    input.viewDidAppear
+      .emit(with: self) { owner, _ in
+        guard let id = owner.firstJoinedChallengeId else { return }
+        owner.coordinator?.attachChallenge(id: id)
+        owner.firstJoinedChallengeId = nil
+      }.disposed(by: disposeBag)
+    
     input.requestData
       .emit(with: self) { owner, _ in
         owner.fetchInitialData()
