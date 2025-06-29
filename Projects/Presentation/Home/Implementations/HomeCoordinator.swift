@@ -52,21 +52,21 @@ final class HomeCoordinator: Coordinator {
 
 // MARK: - ChallengeHome
 private extension HomeCoordinator {
-  @MainActor func attachChallengeHome(animated: Bool = true) {
+  @MainActor func attachChallengeHome(animated: Bool = true, challengeId: Int? = nil) {
     guard challengeHomeCoordinator == nil else { return }
     
-    let coordinator = challengeHomeContainer.coordinator(listener: self)
+    let coordinator = challengeHomeContainer.coordinator(listener: self, challengeId: challengeId)
     addChild(coordinator)
     navigationControllerable.setViewControllers([coordinator.viewControllerable], animated: animated)
     
-    self.noneChallengeHomeCoordinator = coordinator
+    self.challengeHomeCoordinator = coordinator
   }
   
   @MainActor func detachChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
-    self.noneChallengeHomeCoordinator = nil
+    self.challengeHomeCoordinator = nil
   }
 }
 
@@ -136,11 +136,18 @@ extension HomeCoordinator: NoneChallengeHomeListener {
     listener?.authenticatedFailedAtHome()
   }
 
-  func requstConvertInitialHome() {
+  func requestConvertInitialHome() {
     navigationControllerable.navigationController.showTabBar(animted: true)
     Task {
       await detachNoneChallengeHome()
       await attachInitialScreenIfNeeded()
+    }
+  }
+  
+  func didJoinChallenge(challengeId: Int) {
+    Task {
+      await detachNoneChallengeHome()
+      await attachChallengeHome(animated: false, challengeId: challengeId)
     }
   }
 }
