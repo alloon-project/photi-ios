@@ -14,7 +14,7 @@ let project = Project.make(
 		.make(
 			name: "Photi-DEV",
 			product: .app,
-			bundleId: "com.photi-dev",
+			bundleId: "com.photi.develop",
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
@@ -47,7 +47,7 @@ let project = Project.make(
 		.make(
 			name: "Photi-PROD",
 			product: .app,
-			bundleId: "com.photi-prod",
+			bundleId: "com.photi.product",
 			infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
