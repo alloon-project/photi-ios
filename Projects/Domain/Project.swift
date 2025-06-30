@@ -13,7 +13,7 @@ let project = Project.make(
 	targets: [
 		.make(
 			name: "Entity",
-      product: .framework,
+            product: .framework,
 			bundleId: "com.photi.entity",
 			sources: ["Entity/**"]
 		),
@@ -32,8 +32,9 @@ let project = Project.make(
 			bundleId: "com.photi.useCase",
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
-				.Project.Domain.Entity,
-				.SPM.RxSwift
+                .Project.Domain.Entity,
+                .Project.Core,
+                .SPM.RxSwift
 			]
 		),
 		.make(
