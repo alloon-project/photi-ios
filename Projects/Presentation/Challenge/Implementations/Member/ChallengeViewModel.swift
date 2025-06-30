@@ -17,7 +17,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func didTapConfirmButtonAtAlert()
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
-  func attachChallengeReport()
+  func attachChallengeReport(challengeId: Int)
   func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
 }
 
@@ -91,7 +91,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapReportButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachChallengeReport()
+        owner.coordinator?.attachChallengeReport(challengeId: owner.challengeId)
       }
       .disposed(by: disposeBag)
     

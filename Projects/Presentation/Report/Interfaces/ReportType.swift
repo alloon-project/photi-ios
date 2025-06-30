@@ -9,9 +9,9 @@
 import Foundation
 
 public enum ReportType {
-  case challenge
-  case member
-  case feed
+  case challenge(_ id: Int)
+  case member(_ id: Int)
+  case feed(_ id: Int)
   case inquiry
   
   public var title: String {
@@ -109,7 +109,7 @@ public enum ReportType {
   public var category: String? {
     switch self {
     case .challenge:
-      "CHALLANGE"
+      "CHALLENGE"
     case .member:
       "CHALLENGE_MEMBER"
     case .feed:

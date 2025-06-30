@@ -16,9 +16,8 @@ import DesignSystem
 final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: ReportViewModel
-  // MARK: - Variables
-  private var targetId: Int?
-  private var selectedSection: Int?
+  // MARK: - Properties
+  private var selectedIndexPath: IndexPath?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
   
@@ -151,8 +150,7 @@ private extension ReportViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapReportButton: reportButton.rx.tap,
       reasonAndType: selectedRowRelay.asObservable(),
-      content: detailContentTextView.rx.text,
-      targetId: targetId
+      content: detailContentTextView.rx.text
     )
     
     let output = viewModel.transform(input: input)
@@ -195,17 +193,26 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ReportReasonTableViewCell.self, for: indexPath)
-    cell.configure(with: viewModel.reportType.contents[indexPath.row])
+    let isSelected = indexPath == selectedIndexPath
+    cell.configure(with: viewModel.reportType.contents[indexPath.row], isSelected: isSelected)
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    guard selectedSection != indexPath.section else { return }
-    
-    self.setupDetailContentUI()
-    selectedSection = indexPath.section
-    selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
-    selectRow(at: indexPath)
+      guard selectedIndexPath != indexPath else { return }
+
+      let previousIndexPath = selectedIndexPath
+      selectedIndexPath = indexPath
+      selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
+
+      setupDetailContentUI()
+
+      var indexPathsToReload = [indexPath]
+      if let previous = previousIndexPath {
+          indexPathsToReload.append(previous)
+      }
+      
+      tableView.reloadRows(at: indexPathsToReload, with: .none)
   }
   
   func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
@@ -225,16 +232,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 // MARK: - Private Methods
-private extension ReportViewController {
-  func deselectAllCell() {
-    self.reasonTableView.visibleCells.forEach { $0.isSelected = false }
-  }
-  
-  func selectRow(at indexPath: IndexPath) {
-    deselectAllCell()
-    self.reasonTableView.cellForRow(ReportReasonTableViewCell.self, at: indexPath).isSelected = true
-  }
-}
+private extension ReportViewController {}
 
 // MARK: - Setup Keyboard Observer
 private extension ReportViewController {
@@ -290,12 +288,5 @@ private extension ReportViewController {
     if view.frame.origin.y != 0 {
       view.frame.origin.y = 0
     }
-  }
-}
-
-// MARK: - Internal Methods
-extension ReportViewController {
-  func setTargetId(_ id: Int) {
-    self.targetId = id
   }
 }

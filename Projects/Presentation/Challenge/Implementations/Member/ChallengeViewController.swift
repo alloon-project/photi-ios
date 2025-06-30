@@ -237,6 +237,17 @@ extension ChallengeViewController: ChallengePresentable {
     
     toastView.present(to: self)
   }
+  
+  func presentChallengeReported() {
+    let toastText = "신고가 완료됐어요. 꼼꼼히 확인하고,\n회원님의 이메일로 결과를 보내드릴게요."
+    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    toastView.setConstraints {
+      $0.bottom.equalToSuperview().inset(64)
+      $0.centerX.equalToSuperview()
+    }
+    
+    toastView.present(to: self)
+  }
 }
 
 // MARK: - DropDownDelegate
