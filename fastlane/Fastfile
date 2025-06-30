@@ -38,12 +38,12 @@ platform :ios do
     match(
       type: "appstore",
       app_identifier:["com.photi.product"],
-      readonly: true
+      readonly: false
     )
     match(
       type: "appstore",
       app_identifier:["com.photi.develop"],
-      readonly: true
+      readonly: false
     )
   end
 end
