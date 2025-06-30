@@ -22,7 +22,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>$(MARKETING_VERSION)</string>
+	<string>202506302135</string>
 	<key>NSCameraUsageDescription</key>
 	<string>~를 사용하기 위해서 카메라 권한이 필요합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
