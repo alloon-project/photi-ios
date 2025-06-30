@@ -30,7 +30,7 @@ public final class ToastView: UIView {
   // MARK: - UI Compnents
   private let label = {
     let label = UILabel()
-    label.numberOfLines = 2
+    label.numberOfLines = 0
     return label
   }()
   private let iconView = UIImageView()
