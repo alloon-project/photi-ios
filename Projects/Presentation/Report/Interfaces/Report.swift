@@ -14,4 +14,5 @@ public protocol ReportContainable: Containable {
 
 public protocol ReportListener: AnyObject { 
   func detachReport()
+  func didInquiryApplicated()
 }

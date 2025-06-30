@@ -16,7 +16,9 @@ protocol SettingListener: AnyObject {
   func didLogOut()
 }
 
-protocol SettingPresentable { }
+protocol SettingPresentable {
+  func presentInquiryApplicated()
+}
 
 final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   weak var listener: SettingListener?
@@ -118,6 +120,11 @@ extension SettingCoordinator: ProfileEditListener {
 
 // MARK: - Report
 extension SettingCoordinator: ReportListener {
+  func didInquiryApplicated() {
+    detachInquiry()
+    presenter.presentInquiryApplicated()
+  }
+  
   func detachReport() {
     detachInquiry()
   }

@@ -34,8 +34,10 @@ public struct ReportRepositoryImpl: ReportRepository {
     return Single.create { single in
       Task {
         do {
-          let result = try await Provider(stubBehavior: .never)
-            .request(ReportAPI.report(dto: requestDTO, targetId: targetId)).value
+          let result = try await Provider(
+            stubBehavior: .never,
+            session: .init(interceptor: AuthenticationInterceptor())
+          ).request(ReportAPI.report(dto: requestDTO, targetId: targetId)).value
           
           if result.statusCode == 201 {
             single(.success(()))

@@ -44,7 +44,6 @@ final class ReportViewModel: ReportViewModelType {
     let didTapReportButton: ControlEvent<Void>
     let reasonAndType: Observable<String> // 신고 이유 및 문의 내용 타입
     let content: ControlProperty<String> // 신고 및 문의 상세내용
-    let targetId: Int? // 신고 상세아이디
   }
   
   // MARK: - Output
@@ -80,15 +79,12 @@ final class ReportViewModel: ReportViewModelType {
       .withLatestFrom(Observable.combineLatest(input.reasonAndType, input.content))
       .bind(with: self) { owner, reasonWithContent in
         switch owner.reportType {
-        case .challenge, .member, .feed:
-          guard
-            let targetId = input.targetId
-          else { return }
+        case .challenge(let id), .member(let id), .feed(let id):
           owner.requestReport(
             category: owner.reportType.category ?? "CHALLENGE",
             reason: reasonWithContent.0,
             content: reasonWithContent.1,
-            targetId: targetId
+            targetId: id
           )
         case .inquiry:
           owner.requestInquiry(
@@ -98,6 +94,7 @@ final class ReportViewModel: ReportViewModelType {
         }
       }
       .disposed(by: disposeBag)
+    
     return Output(
       requestFailed: requestFailedRelay.asSignal(),
       title: reportType.title,

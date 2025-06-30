@@ -28,7 +28,11 @@ public final class ToastView: UIView {
   private var workItem: DispatchWorkItem?
   
   // MARK: - UI Compnents
-  private let label = UILabel()
+  private let label = {
+    let label = UILabel()
+    label.numberOfLines = 0
+    return label
+  }()
   private let iconView = UIImageView()
   private lazy var tipView: TipView? = nil
   
