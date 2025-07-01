@@ -74,7 +74,7 @@ final class ChallengePreviewViewController: UIViewController, ViewControllerable
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    presentHashtagLimitToastView()
+    presentPreviewToastView()
   }
 }
 
@@ -263,12 +263,12 @@ private extension ChallengePreviewViewController {
     present(viewController, animated: false)
   }
   
-  func presentHashtagLimitToastView() {
+  func presentPreviewToastView() {
     let toastText = "완성된 챌린지를 확인해볼까요? 찰칵~"
-    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    let toastView = ToastView(tipPosition: .leftTop, text: toastText, icon: .bulbWhite)
     toastView.setConstraints { [weak self] in
       guard let self else { return }
-      $0.top.equalTo(self.hashTagCollectionView.snp.bottom).offset(18)
+      $0.top.equalTo(self.hashTagCollectionView.snp.bottom)
       $0.centerX.equalToSuperview()
     }
     
