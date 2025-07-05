@@ -132,7 +132,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
 // MARK: - UI Methods
 private extension FeedCommentViewController {
   func setupUI() {
-    imageView.contentMode = .scaleAspectFit
+    imageView.contentMode = .scaleAspectFill
     setViewHierarchy()
     setConstraints()
   }
