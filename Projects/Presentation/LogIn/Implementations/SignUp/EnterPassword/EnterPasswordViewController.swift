@@ -139,7 +139,7 @@ private extension EnterPasswordViewController {
     }
     
     passwordTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordTitleLabel.snp.bottom).offset(24)
     }
     
@@ -149,7 +149,7 @@ private extension EnterPasswordViewController {
     }
     
     passwordCheckTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordCheckTitleLabel.snp.bottom).offset(24)
     }
     
