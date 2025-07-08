@@ -44,6 +44,9 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     return imageView
   }()
   
+  private let scrollView = UIScrollView()
+  private let contentView = UIView()
+  
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.numberOfLines = 0
@@ -103,6 +106,9 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
 private extension NoneChallengeHomeViewController {
   func setupUI() {
     view.backgroundColor = .white
+    scrollView.showsHorizontalScrollIndicator = false
+    scrollView.showsVerticalScrollIndicator = false
+    
     setViewHierarchy()
     setConstraints()
     
@@ -110,11 +116,16 @@ private extension NoneChallengeHomeViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(logoImageView, titleLabel, subTitleLabel, challengeImageCollectionView)
-    view.addSubviews(challengeInformationView, createChallengeInformationView)
+    view.addSubviews(logoImageView, scrollView)
+    scrollView.addSubview(contentView)
+    contentView.addSubviews(titleLabel, subTitleLabel, challengeImageCollectionView)
+    contentView.addSubviews(challengeInformationView, createChallengeInformationView)
   }
   
   func setConstraints() {
+    let tabBarMinY = tabBarController?.tabBar.frame.minY ?? 0
+    let tabBarHeight = view.frame.height - tabBarMinY
+
     logoImageView.snp.makeConstraints {
       $0.top.equalToSuperview().offset(44)
       $0.trailing.equalToSuperview()
@@ -122,8 +133,19 @@ private extension NoneChallengeHomeViewController {
       $0.height.equalTo(56)
     }
     
+    scrollView.snp.makeConstraints {
+      $0.top.equalTo(logoImageView.snp.bottom)
+      $0.leading.trailing.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(tabBarHeight)
+    }
+    
+    contentView.snp.makeConstraints {
+      $0.edges.equalToSuperview()
+      $0.width.equalToSuperview()
+    }
+    
     titleLabel.snp.makeConstraints {
-      $0.top.equalTo(logoImageView.snp.bottom).offset(24)
+      $0.top.equalToSuperview().offset(24)
       $0.leading.equalToSuperview().offset(24)
     }
     
@@ -142,6 +164,7 @@ private extension NoneChallengeHomeViewController {
       $0.top.equalTo(challengeImageCollectionView.snp.bottom).offset(24)
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.height.equalTo(244)
+      $0.bottom.equalToSuperview().inset(16)
     }
     
     createChallengeInformationView.snp.makeConstraints {
