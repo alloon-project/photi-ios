@@ -140,7 +140,7 @@ public final class CalendarView: UIView {
     self.defaultSelectedDates = defaultSelectedDates
     
     super.init(frame: .zero)
-
+    
     setupUI()
     calendarCollectionView.dataSource = self
     calendarCollectionView.delegate = self
@@ -178,12 +178,22 @@ private extension CalendarView {
     headerView.text = "\(startDate.year)년 \(startDate.month)월"
     headerView.leftDisabled = true
     
+    headerView.leftArrowButton.addTarget(
+      self,
+      action: #selector(didTapLeftArrowButton),
+      for: .touchUpInside
+    )
+    headerView.rightArrowButton.addTarget(
+      self,
+      action: #selector(didTapRightArrowButton),
+      for: .touchUpInside
+    )
     headerView.closeButton.addTarget(
       self,
       action: #selector(didTapCloseButton),
       for: .touchUpInside
     )
-      
+    
     setViewHierarchy()
     setConstraints()
   }
@@ -197,13 +207,13 @@ private extension CalendarView {
       $0.top.leading.trailing.equalToSuperview()
       $0.height.equalTo(64)
     }
-
+    
     weekView.snp.makeConstraints {
       $0.top.equalTo(headerView.snp.bottom)
       $0.leading.equalTo(calendarCollectionView).offset(itemHeight/2 - 7)
       $0.height.equalTo(42)
     }
-
+    
     calendarCollectionView.snp.makeConstraints {
       $0.top.equalTo(weekView.snp.bottom)
       $0.size.bottom.equalTo(calendarSize)
@@ -224,7 +234,7 @@ extension CalendarView: UICollectionViewDataSource {
   ) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(CalendarCell.self, for: indexPath)
     cell.configure(
-      dataSource[indexPath.row], 
+      dataSource[indexPath.row],
       selectionMode: seletectionMode,
       itemHeight: itemHeight,
       itemSpacing: itemSpacing,
@@ -263,8 +273,8 @@ extension CalendarView: UICollectionViewDelegateFlowLayout {
 extension CalendarView {
   public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     let page = Int(scrollView.contentOffset.x / scrollView.frame.size.width)
-      headerView.leftDisabled = page == 0
-      headerView.rightDisabled = page == dataSource.count - 1
+    headerView.leftDisabled = page == 0
+    headerView.rightDisabled = page == dataSource.count - 1
     if let date = dataSource[page].first {
       setHeaderViewTitle(date)
     }
@@ -273,6 +283,38 @@ extension CalendarView {
 
 // MARK: - Private Methods
 private extension CalendarView {
+  @objc func didTapLeftArrowButton() {
+    guard let visibleIndexPath = calendarCollectionView.indexPathsForVisibleItems.first else { return }
+    let previousItem = visibleIndexPath.item - 1
+    guard previousItem >= 0 else { return } // 첫 페이지면 무시
+    
+    let previousIndexPath = IndexPath(item: previousItem, section: 0)
+    calendarCollectionView.scrollToItem(at: previousIndexPath, at: .centeredHorizontally, animated: true)
+    
+    headerView.leftDisabled = previousItem == 0
+    headerView.rightDisabled = previousItem == dataSource.count - 1
+    
+    if let date = dataSource[previousItem].first {
+      setHeaderViewTitle(date)
+    }
+  }
+  
+  @objc func didTapRightArrowButton() {
+    guard let visibleIndexPath = calendarCollectionView.indexPathsForVisibleItems.first else { return }
+    let nextItem = visibleIndexPath.item + 1
+    guard nextItem < dataSource.count else { return } // 마지막 페이지이면 무시
+    
+    let nextIndexPath = IndexPath(item: nextItem, section: 0)
+    calendarCollectionView.scrollToItem(at: nextIndexPath, at: .centeredHorizontally, animated: true)
+    
+    headerView.leftDisabled = nextItem == 0
+    headerView.rightDisabled = nextItem == dataSource.count - 1
+    
+    if let date = dataSource[nextItem].first {
+      setHeaderViewTitle(date)
+    }
+  }
+  
   @objc func didTapCloseButton() {
     delegate?.didTapCloseButton()
   }
@@ -295,7 +337,7 @@ private extension CalendarView {
         setHeaderViewTitle(CalendarDate(date: date))
         headerView.leftDisabled = pageIndex == 0
         headerView.rightDisabled = pageIndex == dataSource.count - 1
-
+        
         break
       }
     }
