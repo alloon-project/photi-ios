@@ -29,6 +29,7 @@ final class ChallengeImageCell: UICollectionViewCell {
     imageView.layer.cornerRadius = 10
     imageView.clipsToBounds = true
     imageView.layer.masksToBounds = true
+    imageView.contentMode = .scaleAspectFill
     return imageView
   }()
   private let pinImageView = UIImageView(image: .pinBlue.withRenderingMode(.alwaysOriginal))
