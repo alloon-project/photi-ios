@@ -17,7 +17,7 @@ final class EnterPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterPasswordViewModel
   
-  private let bottomSheetTitle = "얼른 서비스 이용을 위한\n필수 약관에 동의해주세요"
+  private let bottomSheetTitle = "포티 서비스 이용을 위한\n필수 약관에 동의해주세요"
   private let bottomSheetDataSource = ["서비스 이용약관 동의", "개인정보 수집 및 이용 동의"]
   
   private let didTapContinueButton = PublishRelay<Void>()

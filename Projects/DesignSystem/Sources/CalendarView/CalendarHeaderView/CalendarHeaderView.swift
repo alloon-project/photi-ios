@@ -19,19 +19,30 @@ final class CalendarHeaderView: UIView {
   
   var leftDisabled: Bool = false {
     didSet {
-      leftImageView.image = leftDisabled ? .chevronBackGray400 : .chevronBackGray700
+      leftArrowButton.isEnabled = !leftDisabled
     }
   }
   
   var rightDisabled: Bool = false {
     didSet {
-      rightImageView.image = rightDisabled ? .chevronForwardGray400 : .chevronForwardGray700
+      rightArrowButton.isEnabled = !rightDisabled
     }
   }
   
   // MARK: - UI Components
-  private let leftImageView = UIImageView(image: .chevronBackGray400)
-  private let rightImageView = UIImageView(image: .chevronForwardGray700)
+  let leftArrowButton = {
+    let button = UIButton()
+    button.setImage(.chevronBackGray400, for: .disabled)
+    button.setImage(.chevronBackGray700, for: .normal)
+    return button
+  }()
+  
+  let rightArrowButton = {
+    let button = UIButton()
+    button.setImage(.chevronForwardGray400, for: .disabled)
+    button.setImage(.chevronForwardGray700, for: .normal)
+    return button
+  }()
   
   let closeButton: UIButton = {
     let button = UIButton()
@@ -67,7 +78,7 @@ private extension CalendarHeaderView {
   }
   
   func setViewHierarchy() {
-    addSubviews(leftImageView, label, rightImageView, closeButton)
+    addSubviews(leftArrowButton, label, rightArrowButton, closeButton)
   }
   
   func setConstraints() {
@@ -76,12 +87,12 @@ private extension CalendarHeaderView {
       $0.width.equalTo(116)
     }
     
-    leftImageView.snp.makeConstraints {
+    leftArrowButton.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.trailing.equalTo(label.snp.leading).offset(-6)
     }
     
-    rightImageView.snp.makeConstraints {
+    rightArrowButton.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.leading.equalTo(label.snp.trailing).offset(6)
     }
@@ -89,7 +100,7 @@ private extension CalendarHeaderView {
     closeButton.snp.makeConstraints {
       $0.centerY.equalToSuperview()
       $0.width.height.equalTo(24)
-      $0.leading.equalTo(rightImageView.snp.trailing).offset(43)
+      $0.leading.equalTo(rightArrowButton.snp.trailing).offset(43)
     }
   }
 }
