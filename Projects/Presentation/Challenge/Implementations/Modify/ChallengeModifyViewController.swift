@@ -86,6 +86,7 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
+    presentModifyGuideToastView()
   }
 }
 
@@ -373,9 +374,9 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
     alert.present(to: self, animted: true)
   }
   
-  func presentModifyGuide() {
+  func presentModifyGuideToastView() {
     let toastText = "수정할 파트를 선택해 주세요~"
-    let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
+    let toastView = ToastView(tipPosition: .centerTop, text: toastText, icon: .bulbWhite)
     toastView.setConstraints {
       $0.bottom.equalToSuperview().inset(64)
       $0.centerX.equalToSuperview()

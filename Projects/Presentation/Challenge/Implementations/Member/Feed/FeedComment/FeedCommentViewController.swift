@@ -223,6 +223,12 @@ private extension FeedCommentViewController {
         owner.didTapReturnButton()
       }
       .disposed(by: disposeBag)
+    
+    topView.rx.didTapOptionButton
+      .bind(with: self) { owner, _ in
+        owner.configureDropDown()
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for output: FeedCommentViewModel.Output) {
@@ -293,13 +299,6 @@ private extension FeedCommentViewController {
     
     output.dropDownOptions
       .drive(rx.dropDownOptions)
-      .disposed(by: disposeBag)
-    
-    output.isEditable
-      .drive(with: self) { owner, isEditable in
-        owner.topView.isEnbledOptionButton = isEditable
-        if isEditable { owner.configureDropDown() }
-      }
       .disposed(by: disposeBag)
   }
   

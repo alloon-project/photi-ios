@@ -106,7 +106,10 @@ private extension EnterPasswordViewController {
   func setupUI() {
     self.view.backgroundColor = .white
     passwordTextField.commentViews = [
-      containAlphabetCommentView, containNumberCommentView, containSpecialCommentView, validRangeCommentView
+      containAlphabetCommentView,
+      containNumberCommentView,
+      containSpecialCommentView,
+      validRangeCommentView
     ]
     
     passwordCheckTextField.commentViews = [correnspondPasswordCommentView]
@@ -117,7 +120,13 @@ private extension EnterPasswordViewController {
   }
   
   func setViewHierarchy() {
-    self.view.addSubviews(navigationBar, progressBar, passwordTitleLabel, passwordTextField, nextButton)
+    self.view.addSubviews(
+      navigationBar,
+      progressBar,
+      passwordTitleLabel,
+      passwordTextField,
+      nextButton
+    )
     self.view.addSubviews(passwordCheckTitleLabel, passwordCheckTextField)
   }
   
@@ -139,7 +148,7 @@ private extension EnterPasswordViewController {
     }
     
     passwordTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordTitleLabel.snp.bottom).offset(24)
     }
     
@@ -149,7 +158,7 @@ private extension EnterPasswordViewController {
     }
     
     passwordCheckTextField.snp.makeConstraints {
-      $0.leading.equalToSuperview().offset(24)
+      $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(passwordCheckTitleLabel.snp.bottom).offset(24)
     }
     
