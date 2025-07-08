@@ -28,6 +28,7 @@ final class ChallengePreviewViewController: UIViewController, ViewControllerable
     
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
+  private let scrollView = UIScrollView()
   private let mainContainerView = UIView()
   private let leftView = UIView()
   private let rightView = UIView()
@@ -66,7 +67,7 @@ final class ChallengePreviewViewController: UIViewController, ViewControllerable
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .white
-    
+    scrollView.showsVerticalScrollIndicator = false
     hashTagCollectionView.dataSource = self
     setupUI()
     bind()
@@ -86,7 +87,8 @@ private extension ChallengePreviewViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, mainContainerView, organizeButton)
+    view.addSubviews(navigationBar, scrollView, organizeButton)
+    scrollView.addSubview(mainContainerView)
     mainContainerView.addSubviews(leftView, rightView)
     leftView.addSubviews(
       challengeTitleLabel,
@@ -105,9 +107,20 @@ private extension ChallengePreviewViewController {
       $0.height.equalTo(Constants.navigationHeight)
     }
     
-    mainContainerView.snp.makeConstraints {
-      $0.top.equalTo(navigationBar.snp.bottom).offset(13)
+    organizeButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(48)
+    }
+    
+    scrollView.snp.makeConstraints {
+      $0.top.equalTo(navigationBar.snp.bottom)
+      $0.leading.trailing.equalToSuperview().inset(20)
+      $0.bottom.equalTo(organizeButton.snp.top)
+    }
+    
+    mainContainerView.snp.makeConstraints {
+      $0.top.bottom.equalToSuperview()
+      $0.width.equalToSuperview()
     }
     
     leftView.snp.makeConstraints {
@@ -118,17 +131,14 @@ private extension ChallengePreviewViewController {
     
     rightView.snp.makeConstraints {
       $0.leading.equalTo(leftView.snp.trailing).offset(16)
-      $0.trailing.top.bottom.equalToSuperview()
+      $0.height.equalTo(565)
+      $0.trailing.top.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(16)
       $0.width.equalTo(136)
     }
     
     setLeftViewsConstraints()
     setRightViewsConstraints()
-    
-    organizeButton.snp.makeConstraints {
-      $0.centerX.equalToSuperview()
-      $0.bottom.equalToSuperview().inset(48)
-    }
   }
   
   func setLeftViewsConstraints() {
@@ -144,7 +154,7 @@ private extension ChallengePreviewViewController {
     }
 
     verificationTimeView.snp.makeConstraints {
-      $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(18)
+      $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(43)
       $0.height.equalTo(71)
       $0.leading.trailing.equalToSuperview()
     }

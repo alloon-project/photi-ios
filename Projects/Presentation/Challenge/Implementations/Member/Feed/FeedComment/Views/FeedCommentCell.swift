@@ -83,7 +83,7 @@ private extension FeedCommentCell {
       $0.top.equalToSuperview().offset(14)
     }
 
-    userNameLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+    userNameLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
     commentLabel.snp.makeConstraints {
       $0.leading.equalTo(userNameLabel.snp.trailing).offset(8)
       $0.trailing.equalToSuperview().offset(-10)

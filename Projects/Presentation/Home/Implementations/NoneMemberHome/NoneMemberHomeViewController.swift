@@ -58,6 +58,7 @@ final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
 private extension NoneMemberHomeViewController {
   func setupUI() {
     view.backgroundColor = .white
+    mainImageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
     setViewHierarchy()
     setConstraints()
   }
@@ -67,6 +68,8 @@ private extension NoneMemberHomeViewController {
   }
   
   func setConstraints() {
+    let tabBarMinY = tabBarController?.tabBar.frame.minY ?? 0
+    let tabBarHeight = view.frame.height - tabBarMinY
     navigationBar.snp.makeConstraints {
       $0.top.equalTo(view.safeAreaLayoutGuide)
       $0.trailing.leading.equalToSuperview()
@@ -79,14 +82,16 @@ private extension NoneMemberHomeViewController {
     }
     
     mainImageView.snp.makeConstraints {
-      $0.leading.trailing.equalToSuperview()
+      $0.leading.trailing.lessThanOrEqualToSuperview()
+      $0.centerX.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(24)
-      $0.height.equalTo(407)
+      $0.height.lessThanOrEqualTo(407)
     }
     
     loginButton.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(mainImageView.snp.bottom).offset(16)
+      $0.bottom.lessThanOrEqualToSuperview().inset(tabBarHeight + 16)
     }
   }
 }

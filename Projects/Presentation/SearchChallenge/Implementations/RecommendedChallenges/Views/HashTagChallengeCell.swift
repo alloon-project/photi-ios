@@ -64,6 +64,7 @@ private extension HashTagChallengeCell {
     selectionStyle = .none
     thumbnailView.layer.cornerRadius = 8
     thumbnailView.clipsToBounds = true
+    thumbnailView.contentMode = .scaleAspectFill
 
     setViewHierarchy()
     setConstraints()
