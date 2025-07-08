@@ -62,6 +62,7 @@ private extension ChallengeCardCell {
   func setupUI() {
     thumbnailView.layer.cornerRadius = 8
     thumbnailView.clipsToBounds = true
+    thumbnailView.contentMode = .scaleAspectFill
     setViewHierarchy()
     setConstraints()
   }
