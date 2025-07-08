@@ -154,7 +154,7 @@ private extension ChallengePreviewViewController {
     }
 
     verificationTimeView.snp.makeConstraints {
-      $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(18)
+      $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(43)
       $0.height.equalTo(71)
       $0.leading.trailing.equalToSuperview()
     }
