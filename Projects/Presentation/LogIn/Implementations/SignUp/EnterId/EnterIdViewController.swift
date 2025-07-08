@@ -104,7 +104,14 @@ private extension EnterIdViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, progressBar, titleLabel, subTitleLabel, idTextField, nextButton)
+    view.addSubviews(
+      navigationBar,
+      progressBar,
+      titleLabel,
+      subTitleLabel,
+      idTextField,
+      nextButton
+    )
   }
   
   func setConstraints() {

@@ -159,4 +159,10 @@ extension Reactive where Base: FeedCommentTopView {
     
     return .init(events: source)
   }
+  
+  var didTapOptionButton: ControlEvent<Bool> {
+    let source = base.optionButton.rx.tap.map { _ in base.optionButton.isSelected }
+    
+    return .init(events: source)
+  }
 }
