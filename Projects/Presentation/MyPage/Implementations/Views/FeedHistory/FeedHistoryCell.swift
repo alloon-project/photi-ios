@@ -60,6 +60,7 @@ private extension FeedHistoryCell {
     challengeTitleChip.snp.makeConstraints {
       $0.top.equalTo(feedImageView.snp.bottom).offset(8)
       $0.leading.bottom.equalToSuperview()
+      $0.height.equalTo(23)
       $0.trailing.lessThanOrEqualTo(shareButton.snp.leading).inset(16)
     }
     
