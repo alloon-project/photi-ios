@@ -144,3 +144,4 @@ node_modules
 **/fastlane/FastlaneRunner
 
 **/fastlane/README.md
+fastlane/.env
