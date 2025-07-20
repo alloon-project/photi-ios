@@ -25,8 +25,12 @@ final class ChallengeTitleView: UIView {
     return layer
   }()
   
-  private let imageView = UIImageView()
-  
+  private let imageView = {
+    let imageView = UIImageView()
+    imageView.contentMode = .scaleAspectFill
+    
+    return imageView
+  }()
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .center

@@ -43,6 +43,7 @@ final class HomeMyChallengeCell: UITableViewCell {
     let imageView = UIImageView()
     imageView.layer.cornerRadius = 6
     imageView.clipsToBounds = true
+    imageView.contentMode = .scaleAspectFill
     
     return imageView
   }()

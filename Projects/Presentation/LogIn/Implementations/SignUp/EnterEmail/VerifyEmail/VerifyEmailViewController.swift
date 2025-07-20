@@ -45,6 +45,36 @@ final class VerifyEmailViewController: UIViewController, ViewControllerable {
   private let resendButton = TextButton(text: "재전송", size: .xSmall, type: .primary)
   
   private let lineTextField = LineTextField(placeholder: "숫자 4자리", type: .helper)
+  private let informationView = {
+    let view = UIView()
+    view.backgroundColor = .blue0
+    view.layer.cornerRadius = 12
+    
+    return view
+  }()
+  private let informationTitleLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = "이메일이 오지 않는 경우".attributedString(
+      font: .caption1,
+      color: .gray900
+    )
+    
+    return label
+  }()
+  private let informationContentLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = """
+    · 입력하신 이메일 주소가 정확한지 확인해 주세요.
+    · 스팸 메일함을 확인해 주세요.
+    · 재전송 요청 버튼을 눌러 메일을 다시 받아주세요.
+    """.attributedString(
+      font: .caption1,
+      color: .gray700
+    )
+    label.numberOfLines = 3
+    return label
+  }()
+  
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
   
   private let veriftCodeErrorCommentView = CommentView(
@@ -96,7 +126,8 @@ private extension VerifyEmailViewController {
   
   func setViewHierarchy() {
     view.addSubviews(navigationBar, progressBar, titleLabel, emailLabel, userEmailLabel, resendButton)
-    view.addSubviews(lineTextField, nextButton)
+    view.addSubviews(lineTextField, informationView, nextButton)
+    informationView.addSubviews(informationTitleLabel, informationContentLabel)
   }
   
   func setConstraints() {
@@ -135,6 +166,21 @@ private extension VerifyEmailViewController {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(resendButton.snp.bottom).offset(16)
       $0.leading.trailing.equalToSuperview().inset(24)
+    }
+    
+    informationView.snp.makeConstraints {
+      $0.leading.trailing.equalTo(lineTextField)
+      $0.top.equalTo(lineTextField.snp.bottom).offset(32)
+      $0.height.equalTo(108)
+    }
+    
+    informationTitleLabel.snp.makeConstraints {
+      $0.leading.top.trailing.equalToSuperview().inset(16)
+    }
+    
+    informationContentLabel.snp.makeConstraints {
+      $0.bottom.equalToSuperview().inset(16)
+      $0.leading.trailing.equalToSuperview().inset(16)
     }
     
     nextButton.snp.makeConstraints {

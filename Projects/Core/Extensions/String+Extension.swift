@@ -10,7 +10,7 @@ import UIKit
 
 public extension String {
   var isValidateId: Bool {
-    self.matchesPattern(with: "^[a-z0-9!_@$%^&+=]+$")
+    self.matchesPattern(with: "^[a-z0-9_]+$")
   }
   
   var isValidPassword: Bool {
