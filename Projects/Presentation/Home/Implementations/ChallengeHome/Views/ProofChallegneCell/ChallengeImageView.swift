@@ -29,8 +29,12 @@ final class ChallengeImageView: UIView {
     view.layer.cornerRadius = 8
     return view
   }()
-  fileprivate let imageView = UIImageView()
-  
+  fileprivate let imageView =  {
+    let imageView = UIImageView()
+    imageView.contentMode = .scaleAspectFill
+    
+    return imageView
+  }()
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)

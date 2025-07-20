@@ -25,7 +25,12 @@ final class FeedCell: UICollectionViewCell {
     return layer
   }()
   
-  private let imageView = UIImageView()
+  private let imageView = {
+    let imageView = UIImageView()
+    imageView.contentMode = .scaleAspectFill
+    
+    return imageView
+  }()
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
   fileprivate let likeButton = FeedLikeButton()
