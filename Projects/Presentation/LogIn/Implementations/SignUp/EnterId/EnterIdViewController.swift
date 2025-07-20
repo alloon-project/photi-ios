@@ -33,7 +33,7 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
   
   private let subTitleLabel: UILabel = {
     let label = UILabel()
-    label.attributedText = "알파벳 소문자, 숫자, 특수문자만 사용 가능해요".attributedString(
+    label.attributedText = "알파벳 소문자, 숫자, 특수문자(_)만 사용 가능해요".attributedString(
       font: .caption1,
       color: .gray700
     )
