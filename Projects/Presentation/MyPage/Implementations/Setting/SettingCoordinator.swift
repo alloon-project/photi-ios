@@ -30,7 +30,7 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   
   private let reportContainable: ReportContainable
   private var reportCoordinator: ViewableCoordinating?
-  
+    
   init(
     viewControllerable: ViewControllerable,
     viewModel: SettingViewModel,
@@ -83,14 +83,26 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   }
   
   // MARK: - Service Term
-  func attachServiceTerms() {}
-  
-  func detachServiceTerms() {}
+  func attachServiceTerms() {
+    let termUrl = ServiceConfiguration.shared.termsUrl
+    let webViewController = WebViewController(url: termUrl)
+    viewControllerable.present(
+      webViewController,
+      animated: true,
+      modalPresentationStyle: .pageSheet
+    )
+  }
   
   // MARK: - Privacy
-  func attachPrivacy() {}
-  
-  func detachPrivacy() {}
+  func attachPrivacy() {
+    let privacyUrl = ServiceConfiguration.shared.privacyUrl
+    let webviewController = WebViewController(url: privacyUrl)
+    viewControllerable.present(
+      webviewController,
+      animated: true,
+      modalPresentationStyle: .pageSheet
+    )
+  }
 }
 
 // MARK: - Coordinatable

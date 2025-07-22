@@ -41,6 +41,7 @@ final class SettingContainer:
       profileEditContainable: profileEdit,
       reportContainable: dependency.reportContainable
     )
+    
     coordinator.listener = listener
     
     return coordinator
