@@ -33,7 +33,6 @@ final class ChallengeStartCoordinator: ViewableCoordinator<ChallengeStartPresent
 extension ChallengeStartCoordinator: ChallengeStartCoordinatable {
   func didFisishChallengeStart() {
     listener?.didFinishChallengeStart()
-
   }
   
   func didTapBackButton() {

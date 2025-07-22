@@ -18,7 +18,6 @@ protocol ChallengeStartContainable: Containable {
 final class ChallengeStartContainer:
   Container<ChallengeStartDependency>,
   ChallengeStartContainable {
-  
   func coordinator(listener: ChallengeStartListener) -> ViewableCoordinating {
     let viewModel = ChallengeStartViewModel()
     let viewControllerable = ChallengeStartViewController(viewModel: viewModel)
