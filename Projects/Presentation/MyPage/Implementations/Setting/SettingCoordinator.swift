@@ -31,16 +31,21 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   private let reportContainable: ReportContainable
   private var reportCoordinator: ViewableCoordinating?
   
+  private let webViewContainable: WebViewContainable
+  private var webViewCoordinator: ViewableCoordinating?
+  
   init(
     viewControllerable: ViewControllerable,
     viewModel: SettingViewModel,
     profileEditContainable: ProfileEditContainable,
-    reportContainable: ReportContainable
+    reportContainable: ReportContainable,
+    webViewContainable: WebViewContainable
   ) {
     self.viewModel = viewModel
     
     self.profileEditContainable = profileEditContainable
     self.reportContainable = reportContainable
+    self.webViewContainable = webViewContainable
     
     super.init(viewControllerable)
     viewModel.coordinator = self
@@ -83,14 +88,40 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
   }
   
   // MARK: - Service Term
-  func attachServiceTerms() {}
-  
-  func detachServiceTerms() {}
+  func attachServiceTerms() {
+    guard webViewCoordinator == nil else { return }
+    let termUrl = "https://octagonal-caboc-47d.notion.site/f1dc17026f884c2ebe90437b0ee9fa63?pvs=143"
+    let coordinator = webViewContainable.coordinator(
+      listener: self,
+      url: termUrl
+    )
+    addChild(coordinator)
+    viewControllerable.present(
+      coordinator.viewControllerable,
+      animated: true,
+      modalPresentationStyle: .pageSheet
+    )
+    
+    self.reportCoordinator = coordinator
+  }
   
   // MARK: - Privacy
-  func attachPrivacy() {}
-  
-  func detachPrivacy() {}
+  func attachPrivacy() {
+    guard webViewCoordinator == nil else { return }
+    let privacyUrl = "https://octagonal-caboc-47d.notion.site/16c7071e9b43802fac6beedbac719400?pvs=143"
+    let coordinator = webViewContainable.coordinator(
+      listener: self,
+      url: privacyUrl
+    )
+    addChild(coordinator)
+    viewControllerable.present(
+      coordinator.viewControllerable,
+      animated: true,
+      modalPresentationStyle: .pageSheet
+    )
+    
+    self.reportCoordinator = coordinator
+  }
 }
 
 // MARK: - Coordinatable
@@ -129,3 +160,6 @@ extension SettingCoordinator: ReportListener {
     detachInquiry()
   }
 }
+
+// MAKR: - WebView
+extension SettingCoordinator: WebViewListener {}
