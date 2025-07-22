@@ -25,8 +25,7 @@ protocol SettingContainable: Containable {
 final class SettingContainer:
   Container<SettingDependency>,
   SettingContainable,
-  ProfileEditDependency,
-  WebViewDependency {
+  ProfileEditDependency {
   var profileEditUseCase: ProfileEditUseCase { dependency.profileEditUseCase }
   var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
   
@@ -35,14 +34,12 @@ final class SettingContainer:
     let viewControllerable = SettingViewController(viewModel: viewModel)
     
     let profileEdit = ProfileEditContainer(dependency: self)
-    let webView = WebViewContainer(dependency: self)
     
     let coordinator = SettingCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       profileEditContainable: profileEdit,
-      reportContainable: dependency.reportContainable,
-      webViewContainable: webView
+      reportContainable: dependency.reportContainable
     )
     
     coordinator.listener = listener

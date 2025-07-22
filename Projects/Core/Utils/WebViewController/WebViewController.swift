@@ -1,8 +1,8 @@
 //
 //  WebViewController.swift
-//  Presentation
+//  Core
 //
-//  Created by 임우섭 on 7/21/25.
+//  Created by 임우섭 on 7/22/25.
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
@@ -11,19 +11,17 @@ import WebKit
 import RxCocoa
 import RxSwift
 import SnapKit
-import Core
 
-final class WebViewController: UIViewController, ViewControllerable {
+public final class WebViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
-  private let viewModel: WebViewViewModel
   private var url: URL?
   // MARK: - UI Components
   private let webView = WKWebView()
   
   // MARK: - Initializers
-  init(viewModel: WebViewViewModel) {
-    self.viewModel = viewModel
+  public init(url: URL) {
+    self.url = url
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -33,11 +31,10 @@ final class WebViewController: UIViewController, ViewControllerable {
   }
   
   // MARK: - View LifeCycle
-  override func viewDidLoad() {
+  public override func viewDidLoad() {
     super.viewDidLoad()
     
     setupUI()
-    bind()
     setupWebView()
   }
 }
@@ -67,27 +64,5 @@ private extension WebViewController {
     guard let url = self.url else { return }
     let urlRequest = URLRequest(url: url)
     self.webView.load(urlRequest)
-  }
-}
-
-// MARK: - Bind Methods
-private extension WebViewController {
-  func bind() {
-    let input = WebViewViewModel.Input()
-    
-    let output = viewModel.transform(input: input)
-    viewBind()
-    bind(for: output)
-  }
-  
-  func viewBind() {}
-  
-  func bind(for output: WebViewViewModel.Output) {}
-}
-
-// MARK: - WebViewPresentable
-extension WebViewController: WebViewPresentable {
-  func setUrl(_ urlString: String) {
-    self.url = URL(string: urlString)
   }
 }
