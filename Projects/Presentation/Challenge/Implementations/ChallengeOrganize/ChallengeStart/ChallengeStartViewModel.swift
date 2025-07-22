@@ -47,13 +47,11 @@ final class ChallengeStartViewModel: ChallengeStartViewModelType {
       }
       .disposed(by: disposeBag)
     
-    
     input.didTapStartButton
       .bind(with: self) { owner, _ in
         owner.coordinator?.didFisishChallengeStart()
       }.disposed(by: disposeBag)
     
-   
     // Output 반환
     return Output()
   }

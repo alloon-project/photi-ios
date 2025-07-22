@@ -9,6 +9,10 @@
 	</dict>
 	<key>BaseURL</key>
 	<string>$(BASE_URL)</string>
+	<key>PrivacyURL</key>
+	<string>https://octagonal-caboc-47d.notion.site/16c7071e9b43802fac6beedbac719400?pvs=143</string>
+	<key>ServiceTermsURL</key>
+	<string>https://octagonal-caboc-47d.notion.site/f1dc17026f884c2ebe90437b0ee9fa63?pvs=143</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
