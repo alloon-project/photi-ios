@@ -21,7 +21,6 @@ public struct VerifyCodeRequestDTO: Encodable {
   }
 }
 
-#if DEBUG
 extension VerifyCodeRequestDTO {
   public static let stubData =
  """
@@ -34,4 +33,3 @@ extension VerifyCodeRequestDTO {
  }
  """
 }
-#endif
