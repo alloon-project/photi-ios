@@ -14,7 +14,6 @@ public struct RequestVerificationCodeReqeustDTO: Encodable {
   }
 }
 
-#if DEBUG
 extension RequestVerificationCodeReqeustDTO {
   public static let stubData =
  """
@@ -27,4 +26,3 @@ extension RequestVerificationCodeReqeustDTO {
  }
  """
 }
-#endif

@@ -22,7 +22,6 @@ public struct RegisterRequestDTO: Encodable {
   }
 }
 
-#if DEBUG
 extension RegisterRequestDTO {
   public static let stubData =
  """
@@ -35,4 +34,3 @@ extension RegisterRequestDTO {
  }
  """
 }
-#endif

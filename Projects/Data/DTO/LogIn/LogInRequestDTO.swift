@@ -16,7 +16,6 @@ public struct LogInRequestDTO: Encodable {
   }
 }
 
-#if DEBUG
 extension LogInRequestDTO {
   public static let stubData =
  """
@@ -32,4 +31,3 @@ extension LogInRequestDTO {
  }
  """
 }
-#endif
