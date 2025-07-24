@@ -275,7 +275,17 @@ private extension EnterPasswordViewController {
 }
 
 extension EnterPasswordViewController: ListBottomSheetDelegate {
-  func didTapIcon(at index: Int) {  }
+  func didTapIcon(_ bottomSheet: ListBottomSheetViewController, at index: Int) {
+    let url = index == 0 ? ServiceConfiguration.shared.termsUrl : ServiceConfiguration.shared.privacyUrl
+    let webviewController = WebViewController(url: url)
+    webviewController.modalPresentationStyle = .pageSheet
+    
+    if let sheet = webviewController.sheetPresentationController {
+      sheet.prefersGrabberVisible = true
+  }
+
+    bottomSheet.present(webviewController, animated: true)
+  }
   
   func didTapButton(_ bottomSheet: ListBottomSheetViewController) {
     bottomSheet.dismissBottomSheet()
