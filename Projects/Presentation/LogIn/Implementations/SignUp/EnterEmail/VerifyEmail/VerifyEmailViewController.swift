@@ -125,9 +125,23 @@ private extension VerifyEmailViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, progressBar, titleLabel, emailLabel, userEmailLabel, resendButton)
-    view.addSubviews(lineTextField, informationView, nextButton)
-    informationView.addSubviews(informationTitleLabel, informationContentLabel)
+    view.addSubviews(
+      navigationBar,
+      progressBar,
+      titleLabel,
+      emailLabel,
+      userEmailLabel,
+      resendButton
+    )
+    view.addSubviews(
+      lineTextField,
+      informationView,
+      nextButton
+    )
+    informationView.addSubviews(
+      informationTitleLabel,
+      informationContentLabel
+    )
   }
   
   func setConstraints() {
