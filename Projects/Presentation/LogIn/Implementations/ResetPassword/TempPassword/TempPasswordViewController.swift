@@ -60,6 +60,36 @@ final class TempPasswordViewController: UIViewController, ViewControllerable {
     icon: .closeRed
   )
   
+  private let informationView = {
+    let view = UIView()
+    view.backgroundColor = .blue0
+    view.layer.cornerRadius = 12
+    
+    return view
+  }()
+  private let informationTitleLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = "이메일이 오지 않는 경우".attributedString(
+      font: .caption1,
+      color: .gray900
+    )
+    
+    return label
+  }()
+  private let informationContentLabel: UILabel = {
+    let label = UILabel()
+    label.attributedText = """
+    · 입력하신 이메일 주소가 정확한지 확인해 주세요.
+    · 스팸 메일함을 확인해 주세요.
+    · 재전송 요청 버튼을 눌러 메일을 다시 받아주세요.
+    """.attributedString(
+      font: .caption1,
+      color: .gray700
+    )
+    label.numberOfLines = 3
+    return label
+  }()
+  
   // MARK: - Initalizers
   init(viewModel: TempPasswordViewModel) {
     self.viewModel = viewModel
@@ -103,7 +133,12 @@ private extension TempPasswordViewController {
       userEmailLabel,
       resendButton,
       tempPasswordTextField,
+      informationView,
       nextButton
+    )
+    informationView.addSubviews(
+      informationTitleLabel,
+      informationContentLabel
     )
   }
   
@@ -137,6 +172,21 @@ private extension TempPasswordViewController {
     tempPasswordTextField.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(24)
       $0.top.equalTo(userEmailLabel.snp.bottom).offset(24)
+    }
+    
+    informationView.snp.makeConstraints {
+      $0.leading.trailing.equalTo(tempPasswordTextField)
+      $0.top.equalTo(tempPasswordTextField.snp.bottom).offset(16)
+      $0.height.equalTo(108)
+    }
+    
+    informationTitleLabel.snp.makeConstraints {
+      $0.leading.top.trailing.equalToSuperview().inset(16)
+    }
+    
+    informationContentLabel.snp.makeConstraints {
+      $0.bottom.equalToSuperview().inset(16)
+      $0.leading.trailing.equalToSuperview().inset(16)
     }
     
     nextButton.snp.makeConstraints {
