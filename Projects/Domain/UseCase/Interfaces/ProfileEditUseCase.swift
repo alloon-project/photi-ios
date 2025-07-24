@@ -15,4 +15,5 @@ public protocol ProfileEditUseCase {
   func updateProfileImage(_ image: UIImageWrapper) async throws -> URL?
   func withdraw(with password: String) async throws
   func changePassword(from password: String, to newPassword: String) async throws
+  func sendTemporaryPassword(to email: String, userName: String) async throws
 }

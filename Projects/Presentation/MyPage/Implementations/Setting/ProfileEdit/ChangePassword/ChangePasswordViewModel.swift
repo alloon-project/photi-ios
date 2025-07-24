@@ -14,7 +14,7 @@ import UseCase
 protocol ChangePasswordCoordinatable: AnyObject {
   func didTapBackButton()
   func didChangedPassword()
-  func attachResetPassword()
+  func attachResetPassword(email: String, name: String)
   func authenticationFailed()
 }
 
@@ -30,6 +30,9 @@ protocol ChangePasswordViewModelType {
 final class ChangePasswordViewModel: ChangePasswordViewModelType {
   private let useCase: ProfileEditUseCase
   private let disposeBag = DisposeBag()
+  
+  private let name: String
+  private let email: String
   
   weak var coordinator: ChangePasswordCoordinatable?
   
@@ -62,7 +65,9 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: ProfileEditUseCase) {
+  init(email: String, name: String, useCase: ProfileEditUseCase) {
+    self.email = email
+    self.name = name
     self.useCase = useCase
   }
   
@@ -116,7 +121,7 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     
     input.didTapForgetPasswordButton
       .bind(with: self) { owner, _ in
-        owner.coordinator?.attachResetPassword()
+        Task { await owner.requestTempoaryPassword() }
       }
       .disposed(by: disposeBag)
     
@@ -143,6 +148,15 @@ private extension ChangePasswordViewModel {
       coordinator?.didChangedPassword()
     } catch {
       requestFailed(with: error)
+    }
+  }
+  
+  @MainActor func requestTempoaryPassword() async {
+    do {
+      try await useCase.sendTemporaryPassword(to: email, userName: name)
+      coordinator?.attachResetPassword(email: email, name: name)
+    } catch {
+      networkUnstableRelay.accept(())
     }
   }
   

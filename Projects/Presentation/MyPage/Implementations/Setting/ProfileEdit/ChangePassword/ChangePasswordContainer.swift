@@ -31,12 +31,10 @@ final class ChangePasswordContainer:
     userEmail: String,
     listener: ChangePasswordListener
   ) -> ViewableCoordinating {
-    let viewModel = ChangePasswordViewModel(useCase: dependency.profileEditUseCase)
+    let viewModel = ChangePasswordViewModel(email: userEmail, name: userName, useCase: dependency.profileEditUseCase)
     let viewControllerable = ChangePasswordViewController(viewModel: viewModel)
     
     let coordinator = ChangePasswordCoordinator(
-      userName: userName,
-      userEmail: userEmail,
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       resetPasswordContainable: dependency.resetPasswordContainable
