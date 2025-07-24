@@ -14,10 +14,16 @@ import Repository
 
 public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
   private let authRepository: AuthRepository
+  private let loginRepository: LogInRepository
   private let myPageRepository: MyPageRepository
   
-  public init(authRepository: AuthRepository, myPageRepository: MyPageRepository) {
+  public init(
+    authRepository: AuthRepository,
+    loginRepository: LogInRepository,
+    myPageRepository: MyPageRepository
+  ) {
     self.authRepository = authRepository
+    self.loginRepository = loginRepository
     self.myPageRepository = myPageRepository
   }
 }
@@ -42,6 +48,10 @@ public extension ProfileEditUseCaseImpl {
   
   func changePassword(from password: String, to newPassword: String) async throws {
     try await myPageRepository.updatePassword(from: password, to: newPassword)
+  }
+  
+  func sendTemporaryPassword(to email: String, userName: String) async throws {
+    try await loginRepository.requestTemporaryPassword(email: email, userName: userName).value
   }
 }
 
