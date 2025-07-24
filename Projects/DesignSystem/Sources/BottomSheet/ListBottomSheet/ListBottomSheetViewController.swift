@@ -13,7 +13,7 @@ import SnapKit
 import Core
 
 public protocol ListBottomSheetDelegate: AnyObject {
-  func didTapIcon(at index: Int)
+  func didTapIcon(_ bottomSheet: ListBottomSheetViewController, at index: Int)
   func didTapButton(_ bottomSheet: ListBottomSheetViewController)
 }
 
@@ -177,7 +177,7 @@ extension ListBottomSheetViewController: UITableViewDataSource {
     
     cell.rx.didTapIcon
       .bind(with: self) { owner, _ in
-        owner.delegate?.didTapIcon(at: indexPath.section)
+        owner.delegate?.didTapIcon(owner, at: indexPath.section)
       }
       .disposed(by: disposeBag)
     
