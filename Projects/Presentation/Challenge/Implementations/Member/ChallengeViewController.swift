@@ -37,7 +37,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   private let navigationOptionButton = PhotiNavigationButton.optionButton
   private lazy var navigationBar = PhotiNavigationBar(
     leftView: .backButton,
-    rigthItems: [.shareButton, navigationOptionButton],
+    rigthItems: [navigationOptionButton],
     displayMode: .white
   )
   private let titleView = ChallengeTitleView()
