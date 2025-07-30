@@ -28,9 +28,9 @@
 	<key>CFBundleVersion</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>NSCameraUsageDescription</key>
-	<string>~를 사용하기 위해서 카메라 권한이 필요합니다.</string>
+	<string>프로필 사진을 촬영하거나 챌린지 인증 사진을 제출하기 위해 카메라 권한이 필요합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>사진 접근 권한이 필요합니다.</string>
+	<string>프로필 사진으로 사용할 이미지를 선택하기 위해 사진 접근 권한이 필요합니다.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
