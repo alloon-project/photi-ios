@@ -75,6 +75,8 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     setupUI()
     bind()
+    
+    idTextField.textField.delegate = self
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -230,3 +232,22 @@ private extension EnterIdViewController {
 
 // MARK: - EnterIdPresentable
 extension EnterIdViewController: EnterIdPresentable { }
+
+// MARK: - UITextField Delegate
+extension EnterIdViewController: UITextFieldDelegate {
+    func textField(
+      _ textField: UITextField,
+      shouldChangeCharactersIn range: NSRange,
+      replacementString string: String
+    ) -> Bool {
+        // 입력될 전체 문자열을 구함
+        if let currentText = textField.text as NSString? {
+            let updatedText = currentText.replacingCharacters(in: range, with: string)
+            
+            // 정규식 검사: 소문자, 숫자, 언더스코어(_)만 허용
+            let regex = "^[a-z0-9_]*$"
+            return updatedText.range(of: regex, options: .regularExpression) != nil
+        }
+        return true
+    }
+}
