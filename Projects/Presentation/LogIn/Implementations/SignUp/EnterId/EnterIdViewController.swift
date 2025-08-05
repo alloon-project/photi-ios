@@ -45,7 +45,7 @@ final class EnterIdViewController: UIViewController, ViewControllerable {
   private let nextButton = FilledRoundButton(type: .primary, size: .xLarge, text: "다음")
 
   private let idFormWarningView = CommentView(
-    .warning, text: "알파벳 소문자, 숫자, 특수문자만 사용 가능해요", icon: .closeRed, isActivate: true
+    .warning, text: "알파벳 소문자, 숫자, 특수문자(_)만 사용 가능해요", icon: .closeRed, isActivate: true
   )
   private let duplicateIdWardningView = CommentView(
     .warning, text: "이미 사용중인 아이디예요", icon: .closeRed, isActivate: true

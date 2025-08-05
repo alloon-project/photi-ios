@@ -81,12 +81,17 @@ final class EnterIdViewModel: EnterIdViewModelType {
       }
       .disposed(by: disposeBag)
     
+    let isDuplicateButtonEnabled = input.userId
+      .map { $0.count }
+      .map { $0 >= 5 && $0 <= 20 }
+      .asSignal(onErrorJustReturn: false)
+    
     return Output(
       inValidIdForm: inValidIdFormRelay.asSignal(),
       duplicateId: duplicateIdRelay.asSignal(),
       validId: validIdRelay.asSignal(),
       unAvailableId: unAvailableIdRelay.asSignal(),
-      isDuplicateButtonEnabled: input.userId.map { !$0.isEmpty }.asSignal(onErrorJustReturn: false),
+      isDuplicateButtonEnabled: isDuplicateButtonEnabled,
       networkUnstable: networkUnstableRelay.asSignal()
     )
   }
