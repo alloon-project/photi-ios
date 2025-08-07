@@ -13,6 +13,7 @@ import UseCase
 protocol NoneChallengeHomeDependency: Dependency {
   var homeUseCase: HomeUseCase { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
+  var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
 }
 
 protocol NoneChallengeHomeContainable: Containable {
@@ -29,7 +30,8 @@ final class NoneChallengeHomeContainer:
     let coordinator = NoneChallengeHomeCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
-      noneMemberChallengeContainer: dependency.noneMemberChallengeContainable
+      noneMemberChallengeContainer: dependency.noneMemberChallengeContainable,
+      challengeOrganizeContainer: dependency.challengeOrganizeContainable
     )
     coordinator.listener = listener
     

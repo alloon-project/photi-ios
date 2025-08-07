@@ -150,6 +150,13 @@ extension HomeCoordinator: NoneChallengeHomeListener {
       await attachChallengeHome(animated: false, challengeId: challengeId)
     }
   }
+  
+  func didCreateChallenge(challengeId: Int) {
+    Task {
+      await detachNoneChallengeHome()
+      await attachChallengeHome(animated: false, challengeId: challengeId)
+    }
+  }
 }
 
 // MARK: - Private Methods
