@@ -11,7 +11,7 @@ import SnapKit
 import DesignSystem
 
 final class NoneChallengeHomeHashTagCell: UICollectionViewCell {
-  private let chip = TextChip(type: .gray, size: .large)
+  private let chip = TextChip(type: .gray, size: .medium)
   
   override init(frame: CGRect) {
     super.init(frame: .zero)
