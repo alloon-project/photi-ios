@@ -55,6 +55,7 @@ final class HomeMyChallengeCell: UITableViewCell {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     setupUI()
     selectionStyle = .none
+    hashTagCollectionView.delegate = self
     hashTagCollectionView.dataSource = self
   }
   
@@ -148,6 +149,20 @@ extension HomeMyChallengeCell: UICollectionViewDataSource {
     cell.configure(type: .text(size: .medium, type: .white), text: text)
     
     return cell
+  }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+extension HomeMyChallengeCell: UICollectionViewDelegateFlowLayout {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let label = UILabel()
+    label.attributedText = hashTags[indexPath.row].attributedString(font: .caption1, color: .white)
+    label.sizeToFit()
+    return .init(width: label.frame.width + 16, height: label.frame.height + 12)
   }
 }
 
