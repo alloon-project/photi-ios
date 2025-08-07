@@ -209,12 +209,18 @@ private extension ChallengePreviewViewController {
     output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
     
     output.emptyFileError
       .emit(with: self) { owner, message in
         owner.presentEmptyImageAlert(message: message)
-      }.disposed(by: disposeBag)
+      }
+      .disposed(by: disposeBag)
+    
+    output.isLoading
+      .emit { $0 ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop() }
+      .disposed(by: disposeBag)
   }
 }
 
