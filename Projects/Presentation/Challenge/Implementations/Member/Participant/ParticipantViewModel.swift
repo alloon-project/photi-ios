@@ -58,7 +58,7 @@ final class ParticipantViewModel: ParticipantViewModelType {
   func transform(input: Input) -> Output {
     input.requestData
       .emit(with: self) { owner, _ in
-        owner.fetchParticipants()
+        Task { await owner.fetchParticipants() }
       }
       .disposed(by: disposeBag)
     
@@ -80,15 +80,14 @@ final class ParticipantViewModel: ParticipantViewModelType {
 
 // MARK: - Private Methods
 private extension ParticipantViewModel {
-  func fetchParticipants() {
-    useCase.fetchChallengeMembers(challengeId: challengeId)
-      .subscribe(with: self) { owner, members in
-        let models = members.map { owner.mapToPresentationModel($0) }
-        owner.participants.accept(models)
-      } onFailure: { _, error in
-        print("error!!!:\(error)")
-      }
-      .disposed(by: disposeBag)
+  @MainActor func fetchParticipants() async {
+    do {
+      let members = try await useCase.fetchChallengeMembers(challengeId: challengeId).value
+      let models = members.map { mapToPresentationModel($0) }
+      participants.accept(models)
+    } catch {
+      requestFailed(with: error)
+    }    
   }
   
   func mapToPresentationModel(_ member: ChallengeMember) -> ParticipantPresentationModel {
