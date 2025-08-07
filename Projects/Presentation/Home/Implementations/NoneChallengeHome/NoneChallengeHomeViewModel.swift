@@ -36,6 +36,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   struct Input {
     let viewDidLoad: Signal<Void>
     let requestJoinChallenge: Signal<Int>
+    let requestCreateChallenge: Signal<Void>
   }
   
   // MARK: - Output
