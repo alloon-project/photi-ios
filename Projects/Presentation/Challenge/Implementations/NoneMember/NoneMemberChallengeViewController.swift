@@ -67,6 +67,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
+    hashTagCollectionView.delegate = self
     hashTagCollectionView.dataSource = self
     setupUI()
     bind()
@@ -326,7 +327,21 @@ extension NoneMemberChallengeViewController: UICollectionViewDataSource {
   }
 }
 
-// MARK: -
+// MARK: - UICollectionViewDelegateFlowLayout
+extension NoneMemberChallengeViewController: UICollectionViewDelegateFlowLayout {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let label = UILabel()
+    label.attributedText = hashTags[indexPath.row].attributedString(font: .caption1, color: .white)
+    label.sizeToFit()
+    return .init(width: label.frame.width + 16, height: label.frame.height + 12)
+  }
+}
+
+// MARK: - InvitationCodeViewControllerDelegate
 extension NoneMemberChallengeViewController: InvitationCodeViewControllerDelegate {
   func didTapUnlockButton(_ viewController: InvitationCodeViewController, code: String) {
     codeRelay.accept(code)
