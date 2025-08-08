@@ -34,6 +34,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let modelMapper = FeedPresentatoinModelMapper()
   private let disposeBag = DisposeBag()
   private let useCase: FeedUseCase
+  private let challengeName: String
   private let challengeId: Int
   private let feedId: Int
   
@@ -53,6 +54,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let commentRelay = PublishRelay<FeedCommentPresentationModel>()
   private let uploadCommentSuccessRelay = PublishRelay<(String, Int)>()
   private let uploadCommentFailedRelay = PublishRelay<String>()
+  private let instagramStoryInformationRelay: BehaviorRelay<(URL?, String)> = .init(value: (nil, ""))
   
   // MARK: - Input
   struct Input {
@@ -60,7 +62,6 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
     let requestComments: Signal<Void>
     let requestData: Signal<Void>
     let didTapLikeButton: Signal<Bool>
-    let didTapShareButton: Signal<Void>
     let didTapDeleteButton: Signal<Void>
     let didTapReportButton: Signal<Void>
     let requestDeleteComment: Signal<Int>
@@ -70,6 +71,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   // MARK: - Output
   struct Output {
     let feedImageURL: Driver<URL?>
+    let instagramStoryInformation: Driver<(URL?, String)>
     let updateTime: Driver<String>
     let isEditable: Driver<Bool>
     let author: Driver<AuthorPresentationModel>
@@ -87,10 +89,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   // MARK: - Initializers
   init(
     useCase: FeedUseCase,
+    challengeName: String,
     challengeId: Int,
     feedID: Int
   ) {
     self.useCase = useCase
+    self.challengeName = challengeName
     self.challengeId = challengeId
     self.feedId = feedID
   }
@@ -116,11 +120,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
         owner.coordinator?.requestReport(id: owner.feedId)
       }
       .disposed(by: disposeBag)
-    
+
     let isEditable = authorRelay.map { $0.name == ServiceConfiguration.shared.userName }
     
     return Output(
       feedImageURL: feedImageURLRelay.asDriver(),
+      instagramStoryInformation: instagramStoryInformationRelay.asDriver(),
       updateTime: updateTimeRelay.asDriver(),
       isEditable: isEditable.asDriver(onErrorJustReturn: false),
       author: authorRelay.asDriver(),
@@ -207,6 +212,7 @@ private extension FeedCommentViewModel {
     updateTimeRelay.accept(updateTime)
     likeCountRelay.accept(result.likeCount)
     isLikeRelay.accept(result.isLike)
+    instagramStoryInformationRelay.accept((result.imageURL, challengeName))
   }
   
   func fetchFeedComments() async {

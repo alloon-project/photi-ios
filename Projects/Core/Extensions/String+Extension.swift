@@ -25,6 +25,7 @@ public extension String {
     font: UIFont,
     color: UIColor,
     alignment: NSTextAlignment = .left,
+    lineBreakingMode: NSLineBreakMode = .byTruncatingTail,
     letterSpacing: CGFloat = -0.025,
     lineHeight: CGFloat? = nil
   ) -> NSAttributedString {
@@ -32,6 +33,7 @@ public extension String {
       font: font,
       color: color,
       alignment: alignment,
+      lineBreadMode: lineBreakingMode,
       letterSpacing: letterSpacing,
       lineHeight: lineHeight
     )
