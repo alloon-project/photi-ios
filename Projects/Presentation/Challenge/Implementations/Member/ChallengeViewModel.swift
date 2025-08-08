@@ -77,12 +77,6 @@ final class ChallengeViewModel: ChallengeViewModelType {
   }
   
   func transform(input: Input) -> Output {
-    input.viewDidLoad
-      .emit(with: self) { owner, _ in
-        Task { await owner.fetchChallenge() }
-      }
-      .disposed(by: disposeBag)
-    
     input.didTapBackButton
       .emit(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
@@ -128,9 +122,9 @@ final class ChallengeViewModel: ChallengeViewModelType {
   }
 }
 
-// MARK: - API Methods
-private extension ChallengeViewModel {
-  func fetchChallenge() async {
+// MARK: - Internel Methods
+extension ChallengeViewModel {
+  func fetchChallenge() async -> ChallengeDetail? {
     do {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
       let model = mapToPresentationModel(challenge)
@@ -140,11 +134,17 @@ private extension ChallengeViewModel {
       challengeName = challenge.name
       
       configureDropDownMenus(creator: challenge.creator)
+      
+      return challenge
     } catch {
       requestFailed(with: error)
+      return nil
     }
   }
-  
+}
+
+// MARK: - API Methods
+private extension ChallengeViewModel {
   func leaveChallenge() {
     useCase.leaveChallenge(id: challengeId)
       .observe(on: MainScheduler.instance)

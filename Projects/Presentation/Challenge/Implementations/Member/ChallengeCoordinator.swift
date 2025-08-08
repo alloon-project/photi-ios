@@ -62,13 +62,15 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
   }
   
   override func start() {
-    attachSegments()
+    Task { await attachSegments() }
   }
   
-  func attachSegments() {
+  @MainActor func attachSegments() async {
+    guard let challengeName = await viewModel.fetchChallenge()?.name else { return }
     let challengeId = viewModel.challengeId
-    let challengeName = viewModel.challengeName
+    
     let feedCoordinator = feedContainer.coordinator(
+      challengeName: challengeName,
       challengeId: challengeId,
       listener: self,
       presentType: presentType

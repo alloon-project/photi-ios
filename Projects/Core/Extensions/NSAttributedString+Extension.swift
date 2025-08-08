@@ -13,6 +13,7 @@ public extension NSAttributedString {
     font: UIFont,
     color: UIColor,
     alignment: NSTextAlignment = .left,
+    lineBreadMode: NSLineBreakMode = .byTruncatingTail,
     letterSpacing: CGFloat = -0.025,
     lineHeight: CGFloat? = nil
   ) -> [NSAttributedString.Key: Any] {
@@ -21,6 +22,7 @@ public extension NSAttributedString {
     paragraphStyle.alignment = alignment
     paragraphStyle.maximumLineHeight = lineHeight
     paragraphStyle.minimumLineHeight = lineHeight
+    paragraphStyle.lineBreakMode = lineBreadMode
     
     let attributes: [NSAttributedString.Key: Any] = [
       .font: font,

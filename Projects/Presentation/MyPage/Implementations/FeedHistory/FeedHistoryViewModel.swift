@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Entity
@@ -33,6 +34,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   private var currentPage = 0
 
   private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
+  private let requestOpenInsagramStoryRelay = PublishRelay<(URL?, String)>()
   private let networkUnstableRelay = PublishRelay<Void>()
   
   // MARK: - Input
@@ -46,6 +48,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   // MARK: - Output
   struct Output {
     let feeds: Driver<[FeedCardPresentationModel]>
+    let requestOpenInsagramStory: Signal<(URL?, String)>
     let networkUnstable: Signal<Void>
   }
   
@@ -73,8 +76,17 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapShareButton
+      .emit(with: self) { owner, info in
+        guard let feedCard = owner.feedCard(challengeId: info.challengeId, feedId: info.feedId) else { return }
+        
+        owner.requestOpenInsagramStoryRelay.accept((feedCard.feedImageUrl, feedCard.challengeTitle))
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       feeds: feedsRelay.asDriver(),
+      requestOpenInsagramStory: requestOpenInsagramStoryRelay.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal()
     )
   }
@@ -128,5 +140,9 @@ private extension FeedHistoryViewModel {
       challengeTitle: feedHistory.name,
       provedDate: date
     )
+  }
+  
+  func feedCard(challengeId: Int, feedId: Int) -> FeedCardPresentationModel? {
+    return feedsRelay.value.first { $0.challengeId == challengeId && $0.feedId == feedId }
   }
 }
