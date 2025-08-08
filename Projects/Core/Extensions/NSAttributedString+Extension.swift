@@ -15,7 +15,7 @@ public extension NSAttributedString {
     alignment: NSTextAlignment = .left,
     lineBreadMode: NSLineBreakMode = .byTruncatingTail,
     letterSpacing: CGFloat = -0.025,
-    lineHeight: CGFloat? = nil,
+    lineHeight: CGFloat? = nil
   ) -> [NSAttributedString.Key: Any] {
     let lineHeight = lineHeight ?? font.lineHeight
     let paragraphStyle = NSMutableParagraphStyle()
