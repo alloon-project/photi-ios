@@ -27,6 +27,7 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   weak var listener: FeedListener?
   
   private var viewDidAppeared: Bool = false
+  private let challengeName: String
   private let challengeId: Int
   private let viewModel: FeedViewModel
   private let initialPresentType: ChallengePresentType
@@ -35,12 +36,14 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
   private var feedCommentCoordinator: ViewableCoordinating?
   
   init(
+    challengeName: String,
     challengeId: Int,
     viewControllerable: ViewControllerable,
     viewModel: FeedViewModel,
     initialPresentType: ChallengePresentType,
     feedCommentContainer: FeedCommentContainable
   ) {
+    self.challengeName = challengeName
     self.challengeId = challengeId
     self.viewModel = viewModel
     self.initialPresentType = initialPresentType
@@ -63,6 +66,7 @@ extension FeedCoordinator: FeedCoordinatable {
     guard feedCommentCoordinator == nil else { return }
     let coordinator = feedCommentContainer.coordinator(
       listener: self,
+      challengeName: challengeName,
       challengeId: challengeId,
       feedId: feedId
     )

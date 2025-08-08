@@ -16,6 +16,7 @@ protocol FeedCommentDependency: Dependency {
 protocol FeedCommentContainable: Containable {
   func coordinator(
     listener: FeedCommentListener,
+    challengeName: String,
     challengeId: Int,
     feedId: Int
   ) -> ViewableCoordinating
@@ -24,11 +25,13 @@ protocol FeedCommentContainable: Containable {
 final class FeedCommentContainer: Container<FeedCommentDependency>, FeedCommentContainable {
   func coordinator(
     listener: FeedCommentListener,
+    challengeName: String,
     challengeId: Int,
     feedId: Int
   ) -> ViewableCoordinating {
     let viewModel = FeedCommentViewModel(
       useCase: dependency.feedUseCase,
+      challengeName: challengeName,
       challengeId: challengeId,
       feedID: feedId
     )

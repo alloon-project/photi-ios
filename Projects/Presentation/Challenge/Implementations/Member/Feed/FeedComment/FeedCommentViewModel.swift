@@ -34,6 +34,7 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   private let modelMapper = FeedPresentatoinModelMapper()
   private let disposeBag = DisposeBag()
   private let useCase: FeedUseCase
+  private let challengeName: String
   private let challengeId: Int
   private let feedId: Int
   
@@ -87,10 +88,12 @@ final class FeedCommentViewModel: FeedCommentViewModelType {
   // MARK: - Initializers
   init(
     useCase: FeedUseCase,
+    challengeName: String,
     challengeId: Int,
     feedID: Int
   ) {
     self.useCase = useCase
+    self.challengeName = challengeName
     self.challengeId = challengeId
     self.feedId = feedID
   }

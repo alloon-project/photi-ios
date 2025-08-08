@@ -17,6 +17,7 @@ protocol FeedDependency: Dependency {
 
 protocol FeedContainable: Containable {
   func coordinator(
+    challengeName: String,
     challengeId: Int,
     listener: FeedListener,
     presentType: ChallengePresentType
@@ -30,6 +31,7 @@ final class FeedContainer:
   var feedUseCase: FeedUseCase { dependency.feedUseCase }
 
   func coordinator(
+    challengeName: String,
     challengeId: Int,
     listener: FeedListener,
     presentType: ChallengePresentType
@@ -40,6 +42,7 @@ final class FeedContainer:
     let feedCommentContainer = FeedCommentContainer(dependency: self)
     
     let coordinator = FeedCoordinator(
+      challengeName: challengeName,
       challengeId: challengeId,
       viewControllerable: viewControllerable,
       viewModel: viewModel,
