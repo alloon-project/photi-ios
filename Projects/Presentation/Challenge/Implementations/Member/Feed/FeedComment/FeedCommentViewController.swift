@@ -200,7 +200,6 @@ private extension FeedCommentViewController {
       requestComments: requestComments.asSignal(),
       requestData: requestDataRelay.asSignal(),
       didTapLikeButton: didTapLikeButton,
-      didTapShareButton: didTapShareButton.asSignal(),
       didTapDeleteButton: didTapDeleteFeedButton.asSignal(),
       didTapReportButton: didTapReportButton.asSignal(),
       requestDeleteComment: requestDeleteCommentRelay.asSignal(),
@@ -259,6 +258,13 @@ private extension FeedCommentViewController {
         owner.append(model: model)
       }
       .disposed(by: disposeBag)
+    
+    didTapShareButton
+      .withLatestFrom(output.instagramStoryInformation)
+      .bind(with: self) { owner, info in
+        Task { await owner.openInstagramToShareStory(url: info.0, challengeName: info.1) }
+      }
+    .disposed(by: disposeBag)
     
     output.deleteComment
       .emit(with: self) { owner, id in
@@ -481,7 +487,7 @@ extension FeedCommentViewController: DropDownDelegate {
     if dropDownOptions.count == 1 {
       didTapReportButton.accept(())
     } else if didSelectRowAt == 0 {
-      didTapReportButton.accept(())
+      didTapShareButton.accept(())
     } else {
       presentDeleteWaringAlert()
     }
@@ -610,5 +616,44 @@ private extension FeedCommentViewController {
     
     blurView.frame = window.frame
     window.addSubview(blurView)
+  }
+  
+  @MainActor func openInstagramToShareStory(url: URL?, challengeName: String) async {
+    do {
+      guard
+        let url = url,
+        let result = try? await KingfisherManager.shared.retrieveImage(with: url)
+      else { throw InstagramStoryManager.InstagramStoryError.failedConvertToData }
+      
+      let storyView = InstagramStoryView()
+      storyView.configure(image: result.image, title: challengeName)
+      storyView.frame.size = .init(width: 346, height: 646)
+      
+      let instagramURL = try InstagramStoryManager.shared.prepareInstagramStoryShare(view: storyView)
+      UIApplication.shared.open(instagramURL, options: [:], completionHandler: nil)
+    } catch {
+      guard let error = error as? InstagramStoryManager.InstagramStoryError else { return }
+      
+      switch error {
+        case .failedConvertToData: presentConverToStoryDataAlert()
+        case .notInstalled: presentFailedOpenInstagramToShareStoryAlert()
+      }
+    }
+  }
+  
+  func presentConverToStoryDataAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "인스타그램 스토리 변환에 실패했어요. 잠시 후에 다시 시도해 주세요."
+    )
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentFailedOpenInstagramToShareStoryAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "인스타그램이 설치되어 있지 않아 스토리 공유를 할 수 없습니다."
+    )
+    alert.present(to: self, animted: true)
   }
 }
