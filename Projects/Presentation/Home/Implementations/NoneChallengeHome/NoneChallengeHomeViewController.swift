@@ -34,7 +34,8 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
   
   private let viewDidLoadRelay = PublishRelay<Void>()
   private let requestJoinChallenge = PublishRelay<Int>()
-  
+  private let requestCreateChallenge = PublishRelay<Void>()
+
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
     let imageView = UIImageView()
@@ -178,7 +179,8 @@ private extension NoneChallengeHomeViewController {
   func bind() {
     let input = NoneChallengeHomeViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
-      requestJoinChallenge: requestJoinChallenge.asSignal()
+      requestJoinChallenge: requestJoinChallenge.asSignal(),
+      requestCreateChallenge: requestCreateChallenge.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -189,6 +191,10 @@ private extension NoneChallengeHomeViewController {
   func viewBind() {
     challengeInformationView.rx.didTapJoinButton
       .bind(to: requestJoinChallenge)
+      .disposed(by: disposeBag)
+    
+    createChallengeInformationView.rx.didTapCreateButton
+      .bind(to: requestCreateChallenge)
       .disposed(by: disposeBag)
   }
   

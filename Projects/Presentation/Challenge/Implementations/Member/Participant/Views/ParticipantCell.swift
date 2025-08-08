@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import RxCocoa
 import RxSwift
 import Core
@@ -50,20 +51,11 @@ final class ParticipantCell: UITableViewCell {
   
   // MARK: - Configure Methods
   func configure(with model: ParticipantPresentationModel) {
-    userNameLabel.attributedText = model.name.attributedString(
-      font: .body1Bold,
-      color: .photiBlack
-    )
-    
-    durationLabel.attributedText = model.duration.attributedString(
-      font: .body2,
-      color: .gray500
-    )
-    
-    editButton.isHidden = !model.isSelf
-    ownerBadge.isHidden = !model.isChallengeOwner
-
+    configureNameLabel(model.name)
+    configureDurationLabel(model.duration)
+    configureVisibility(isSelf: model.isSelf, isOwner: model.isChallengeOwner)
     participantGoalView.configure(goalText: model.goal)
+    configureProfileImage(from: model.avatarURL)
   }
 }
 
@@ -123,6 +115,39 @@ private extension ParticipantCell {
       $0.leading.trailing.bottom.equalToSuperview()
       $0.height.equalTo(54)
       $0.top.equalTo(participantStackView.snp.bottom).offset(8)
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension ParticipantCell {
+  private func configureNameLabel(_ name: String) {
+    userNameLabel.attributedText = name.attributedString(
+      font: .body1Bold,
+      color: .photiBlack
+    )
+  }
+
+  private func configureDurationLabel(_ duration: String) {
+    durationLabel.attributedText = duration.attributedString(
+      font: .body2,
+      color: .gray500
+    )
+  }
+
+  private func configureVisibility(isSelf: Bool, isOwner: Bool) {
+    editButton.isHidden = !isSelf
+    ownerBadge.isHidden = !isOwner
+  }
+
+  private func configureProfileImage(from url: URL?) {
+    guard let url else { return }
+
+    KingfisherManager.shared.retrieveImage(with: url) { [weak self] result in
+      guard case let .success(image) = result else { return }
+      DispatchQueue.main.async {
+        self?.userProfileView.configureImage(image.image)
+      }
     }
   }
 }

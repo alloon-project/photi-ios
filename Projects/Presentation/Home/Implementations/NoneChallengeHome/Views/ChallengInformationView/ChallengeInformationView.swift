@@ -30,7 +30,7 @@ final class ChallengeInformationView: UIView {
     contentCount: .two(firstTitle: "인증 시간", secondTitle: "챌린지 종료")
   )
   
-  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center)
+  private let hashTagCollectionView = HashTagCollectionView(allignMent: .center, shouldRegisterDefaultCell: false)
   private let participateCountView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
@@ -47,6 +47,7 @@ final class ChallengeInformationView: UIView {
     super.init(frame: .zero)
     setupUI()
     
+    hashTagCollectionView.delegate = self
     hashTagCollectionView.dataSource = self
   }
   
@@ -77,6 +78,7 @@ final class ChallengeInformationView: UIView {
 // MARK: - UI Methods
 private extension ChallengeInformationView {
   func setupUI() {
+    hashTagCollectionView.registerCell(NoneChallengeHomeHashTagCell.self)
     setViewHeirarchy()
     setConstraints()
   }
@@ -148,12 +150,23 @@ extension ChallengeInformationView: UICollectionViewDataSource {
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueCell(HashTagCell.self, for: indexPath)
-    cell.configure(
-      type: .text(size: .medium, type: .gray),
-      text: hashTags[indexPath.row]
-    )
+    let cell = collectionView.dequeueCell(NoneChallengeHomeHashTagCell.self, for: indexPath)
+    cell.configure(with: hashTags[indexPath.row])
     return cell
+  }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+extension ChallengeInformationView: UICollectionViewDelegateFlowLayout {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let label = UILabel()
+    label.attributedText = hashTags[indexPath.row].attributedString(font: .caption1, color: .white)
+    label.sizeToFit()
+    return .init(width: label.frame.width + 16, height: label.frame.height + 12)
   }
 }
 

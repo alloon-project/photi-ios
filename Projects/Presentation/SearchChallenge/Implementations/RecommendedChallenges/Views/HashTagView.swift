@@ -154,9 +154,10 @@ extension HashTagView: UICollectionViewDelegateFlowLayout {
     layout collectionViewLayout: UICollectionViewLayout,
     sizeForItemAt indexPath: IndexPath
   ) -> CGSize {
-    tempChip.text = hashTags[indexPath.row]
-    
-   return tempChip.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+    let label = UILabel()
+    label.attributedText = hashTags[indexPath.row].attributedString(font: .caption1, color: .white)
+    label.sizeToFit()
+    return .init(width: label.frame.width + 16, height: label.frame.height + 12)
   }
 }
 

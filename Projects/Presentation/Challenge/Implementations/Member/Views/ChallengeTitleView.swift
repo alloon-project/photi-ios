@@ -45,6 +45,7 @@ final class ChallengeTitleView: UIView {
   init() {
     super.init(frame: .zero)
     setupUI()
+    hashTagCollectionView.delegate = self
     hashTagCollectionView.dataSource = self
   }
   
@@ -114,6 +115,20 @@ extension ChallengeTitleView: UICollectionViewDataSource {
     cell.configure(type: .text(size: .medium, type: .white), text: text)
     
     return cell
+  }
+}
+
+// MARK: - UICollectionViewDelegateFlowLayout
+extension ChallengeTitleView: UICollectionViewDelegateFlowLayout {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let label = UILabel()
+    label.attributedText = hashTags[indexPath.row].attributedString(font: .caption1, color: .white)
+    label.sizeToFit()
+    return .init(width: label.frame.width + 16, height: label.frame.height + 12)
   }
 }
 

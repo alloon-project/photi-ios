@@ -15,6 +15,7 @@ public protocol HomeDependency: Dependency {
   var homeUseCae: HomeUseCase { get }
   var challengeContainable: ChallengeContainable { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
+  var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
 }
 
 public final class HomeContainer:
@@ -26,6 +27,7 @@ public final class HomeContainer:
   var homeUseCase: HomeUseCase { dependency.homeUseCae }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { dependency.noneMemberChallengeContainable }
   var challengeContainable: ChallengeContainable { dependency.challengeContainable }
+  var challengeOrganizeContainable: ChallengeOrganizeContainable { dependency.challengeOrganizeContainable }
   
   public func coordinator(navigationControllerable: NavigationControllerable, listener: HomeListener) -> Coordinating {
     let challengeHome = ChallengeHomeContainer(dependency: self)
