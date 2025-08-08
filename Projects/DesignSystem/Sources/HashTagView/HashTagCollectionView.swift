@@ -26,14 +26,14 @@ public final class HashTagCollectionView: UICollectionView {
   private let layout: UICollectionViewFlowLayout
   
   // MARK: - Initializers
-  public init(allignMent: Allignment) {
+  public init(allignMent: Allignment, shouldRegisterDefaultCell: Bool = true) {
     self.allignMent = allignMent
     self.layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .horizontal
     layout.minimumLineSpacing = spacing
     layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
     super.init(frame: .zero, collectionViewLayout: layout)
-    self.registerCell(HashTagCell.self)
+    if shouldRegisterDefaultCell { self.registerCell(HashTagCell.self) }
     
     setupUI()
   }

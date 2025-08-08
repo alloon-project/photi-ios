@@ -32,6 +32,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   private let useCase: OrganizeUseCase
   private let networkUnstableRelay = PublishRelay<Void>()
   private let emptyFileErrorRelay = PublishRelay<String>()
+  private let isLoadingRelay = PublishRelay<Bool>()
   
   // MARK: - Input
   struct Input {
@@ -41,6 +42,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   
   // MARK: - Output
   struct Output {
+    let isLoading: Signal<Bool>
     let networkUnstable: Signal<Void>
     let emptyFileError: Signal<String>
   }
@@ -60,11 +62,12 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
     input.didTapOrganizeButton
       .throttle(.seconds(5), latest: false, scheduler: MainScheduler.instance)
       .bind(with: self) { owner, _ in
-        owner.organizeChallenge()
+        Task { await owner.organizeChallenge() }
       }
       .disposed(by: disposeBag)
     
     return Output(
+      isLoading: isLoadingRelay.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal(),
       emptyFileError: emptyFileErrorRelay.asSignal()
       )
@@ -76,15 +79,17 @@ private extension ChallengePreviewViewModel {}
 
 // MARK: - API Methods
 private extension ChallengePreviewViewModel {
-  func organizeChallenge() {
-    useCase.organizeChallenge()
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, challenge in
-        owner.coordinator?.didFinishOrganizeChallenge(challengeId: challenge.id)
-      } onFailure: { owner, error in
-        print(error)
-        owner.requestFailed(with: error)
-      }.disposed(by: disposeBag)
+  @MainActor func organizeChallenge() async {
+    isLoadingRelay.accept(true)
+    
+    do {
+      let challenge = try await useCase.organizeChallenge().value
+      isLoadingRelay.accept(false)
+      coordinator?.didFinishOrganizeChallenge(challengeId: challenge.id)
+    } catch {
+      requestFailed(with: error)
+      isLoadingRelay.accept(false)
+    }
   }
   
   func requestFailed(with error: Error) {

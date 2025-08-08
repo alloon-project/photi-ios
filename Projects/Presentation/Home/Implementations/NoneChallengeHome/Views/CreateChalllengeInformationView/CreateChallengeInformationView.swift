@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
 import SnapKit
 import Core
 import DesignSystem
@@ -34,7 +36,7 @@ final class CreateChallengeInformationView: UIView {
     image: .homeMemberFire
   )
   
-  private let createChallengeButton = LineRoundButton(text: "챌린지 만들기", type: .primary, size: .small)
+  fileprivate let createChallengeButton = LineRoundButton(text: "챌린지 만들기", type: .primary, size: .small)
   
   // MARK: - Initializers
   init() {
@@ -81,5 +83,11 @@ private extension CreateChallengeInformationView {
       $0.top.equalTo(rightContentView.snp.bottom).offset(10)
       $0.bottom.equalToSuperview()
     }
+  }
+}
+
+extension Reactive where Base: CreateChallengeInformationView {
+  var didTapCreateButton: ControlEvent<Void> {
+    return base.createChallengeButton.rx.tap
   }
 }

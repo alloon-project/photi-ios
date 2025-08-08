@@ -13,6 +13,7 @@ import UseCase
 
 protocol NoneChallengeHomeCoordinatable: AnyObject {
   func attachNoneMemberChallenge(challengeId: Int)
+  func attachChallengeOrganize()
 }
 
 protocol NoneChallengeHomeViewModelType: AnyObject {
@@ -36,6 +37,7 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   struct Input {
     let viewDidLoad: Signal<Void>
     let requestJoinChallenge: Signal<Int>
+    let requestCreateChallenge: Signal<Void>
   }
   
   // MARK: - Output
@@ -62,6 +64,12 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.requestCreateChallenge
+      .emit(with: self) { owner, _ in
+        owner.coordinator?.attachChallengeOrganize()
+      }
+      .disposed(by: disposeBag)
+
     return Output(
       challenges: challengesRelay.asSignal(),
       requestFailed: requestFailedRelay.asSignal()
