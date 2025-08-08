@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Kingfisher
 import RxCocoa
 import RxSwift
 import SnapKit
@@ -27,11 +28,11 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
   private var datasource: DataSourceType?
-
+  
   private let requestData = PublishRelay<Void>()
   private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
   private let didTapShareButton = PublishRelay<(challengeId: Int, feedId: Int)>()
-
+  
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let topView: UIView = {
@@ -54,10 +55,10 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     collectionView.contentInsetAdjustmentBehavior = .never
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.showsVerticalScrollIndicator = false
-
+    
     return collectionView
   }()
- 
+  
   // MARK: - Initializers
   init(viewModel: FeedHistoryViewModel) {
     self.viewModel = viewModel
@@ -79,7 +80,7 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     
     requestData.accept(())
   }
-
+  
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
@@ -168,6 +169,12 @@ private extension FeedHistoryViewController {
         owner.presentNetworkUnstableAlert()
       }
       .disposed(by: disposeBag)
+    
+    output.requestOpenInsagramStory
+      .emit(with: self) { owner, info in
+        Task { await owner.openInstagramToShareStory(url: info.0, challengeName: info.1) }
+      }
+      .disposed(by: disposeBag)
   }
   
   func bind(for cell: FeedHistoryCell, model: FeedCardPresentationModel) {
@@ -237,7 +244,7 @@ private extension FeedHistoryViewController {
   func compositionalLayout() -> UICollectionViewCompositionalLayout {
     return .init { _, environment in
       let itemSpacing = Constants.itemSpacing
-
+      
       let availableWidth = environment.container.effectiveContentSize.width
       let itemWidth = (availableWidth - itemSpacing) / 2
       let itemHeight = itemWidth * 1.195
@@ -276,5 +283,47 @@ extension FeedHistoryViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
     didTapFeed.accept((item.challengeId, item.feedId))
+  }
+}
+
+// MARK: - Private Methods
+private extension FeedHistoryViewController {
+  @MainActor func openInstagramToShareStory(url: URL?, challengeName: String) async {
+    do {
+      guard
+        let url = url,
+        let result = try? await KingfisherManager.shared.retrieveImage(with: url)
+      else { throw InstagramStoryManager.InstagramStoryError.failedConvertToData }
+      
+      let storyView = InstagramStoryView()
+      storyView.configure(image: result.image, title: challengeName)
+      storyView.frame.size = .init(width: 346, height: 646)
+      
+      let instagramURL = try InstagramStoryManager.shared.prepareInstagramStoryShare(view: storyView)
+      UIApplication.shared.open(instagramURL, options: [:], completionHandler: nil)
+    } catch {
+      guard let error = error as? InstagramStoryManager.InstagramStoryError else { return }
+      
+      switch error {
+        case .failedConvertToData: presentConverToStoryDataAlert()
+        case .notInstalled: presentFailedOpenInstagramToShareStoryAlert()
+      }
+    }
+  }
+  
+  func presentConverToStoryDataAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "인스타그램 스토리 변환에 실패했어요. 잠시 후에 다시 시도해 주세요."
+    )
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentFailedOpenInstagramToShareStoryAlert() {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "인스타그램이 설치되어 있지 않아 스토리 공유를 할 수 없습니다."
+    )
+    alert.present(to: self, animted: true)
   }
 }
