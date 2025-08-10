@@ -42,7 +42,7 @@ public extension HTTPHeader {
   
   /// `Refresh-Token`헤더를 리턴합니다.
   static func refreshToken(_ token: String) -> HTTPHeader {
-    HTTPHeader(name: "Refresh-Token", value: "Bearer \(token)")
+    HTTPHeader(name: "Refresh-Token", value: "\(token)")
   }
 }
 
