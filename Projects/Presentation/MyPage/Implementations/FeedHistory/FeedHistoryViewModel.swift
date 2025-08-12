@@ -36,6 +36,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
   private let requestOpenInsagramStoryRelay = PublishRelay<(URL?, String)>()
   private let networkUnstableRelay = PublishRelay<Void>()
+  private let deletedChallengeRelay = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -49,6 +50,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   struct Output {
     let feeds: Driver<[FeedCardPresentationModel]>
     let requestOpenInsagramStory: Signal<(URL?, String)>
+    let deletedChallenge: Signal<Void>
     let networkUnstable: Signal<Void>
   }
   
@@ -66,7 +68,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
     
     input.didTapFeed
       .emit(with: self) { owner, id in
-        owner.coordinator?.attachChallengeWithFeed(challengeId: id.challengeId, feedId: id.feedId)
+        owner.moveToFeedIfActive(challengeId: id.challengeId, feedId: id.feedId)
       }
       .disposed(by: disposeBag)
     
@@ -87,6 +89,7 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
     return Output(
       feeds: feedsRelay.asDriver(),
       requestOpenInsagramStory: requestOpenInsagramStoryRelay.asSignal(),
+      deletedChallenge: deletedChallengeRelay.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal()
     )
   }
@@ -138,11 +141,22 @@ private extension FeedHistoryViewModel {
       feedId: feedHistory.feedId,
       feedImageUrl: feedHistory.imageUrl,
       challengeTitle: feedHistory.name,
-      provedDate: date
+      provedDate: date,
+      isDeleted: feedHistory.isDeleted
     )
   }
   
   func feedCard(challengeId: Int, feedId: Int) -> FeedCardPresentationModel? {
     return feedsRelay.value.first { $0.challengeId == challengeId && $0.feedId == feedId }
+  }
+  
+  func moveToFeedIfActive(challengeId: Int, feedId: Int) {
+    guard let card = feedCard(challengeId: challengeId, feedId: feedId) else { return }
+    
+    if card.isDeleted {
+      deletedChallengeRelay.accept(())
+    } else {
+      coordinator?.attachChallengeWithFeed(challengeId: challengeId, feedId: feedId)
+    }
   }
 }
