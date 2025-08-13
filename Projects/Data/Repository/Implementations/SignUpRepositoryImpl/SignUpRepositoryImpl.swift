@@ -121,6 +121,8 @@ private extension SignUpRepositoryImpl {
       return .signUpFailed(reason: .invalidUserName)
     } else if code == "EXISTING_USERNAME" {
       return .signUpFailed(reason: .userNameAlreadyExists)
+    } else if code == "DELETED_USER" {
+      return .signUpFailed(reason: .deletedUser)
     } else {
       return .clientError(code: code, message: message)
     }
