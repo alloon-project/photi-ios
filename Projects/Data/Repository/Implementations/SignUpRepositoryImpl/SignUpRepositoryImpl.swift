@@ -19,8 +19,11 @@ public struct SignUpRepositoryImpl: SignUpRepository {
   public init(dataMapper: SignUpDataMapper) {
     self.dataMapper = dataMapper
   }
-  
-  public func requestVerificationCode(email: String) -> Single<Void> {
+}
+
+// MARK: - API Methods
+public extension SignUpRepositoryImpl {
+  func requestVerificationCode(email: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToRequestVerificationRequestDTO(email: email)
     return requestAPI(
       SignUpAPI.requestVerificationCode(dto: requestDTO),
@@ -30,7 +33,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func verifyCode(email: String, code: String) -> Single<Void> {
+  func verifyCode(email: String, code: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToVerifyCodeRequestDTO(email: email, code: code)
     return requestAPI(
       SignUpAPI.verifyCode(dto: requestDTO),
@@ -40,7 +43,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func verifyUseName(_ userName: String) -> Single<Void> {
+  func verifyUseName(_ userName: String) -> Single<Void> {
     return requestAPI(
       SignUpAPI.verifyUserName(userName),
       responseType: SuccessResponseDTO.self,
@@ -49,7 +52,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func register(
+  func register(
     email: String,
     username: String,
     password: String
@@ -67,7 +70,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { $0.username }
   }
 }
-
+  
 // MARK: - Private Methods
 private extension SignUpRepositoryImpl {
   func requestAPI<T: Decodable>(
