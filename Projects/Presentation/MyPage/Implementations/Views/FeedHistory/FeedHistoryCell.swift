@@ -38,6 +38,7 @@ final class FeedHistoryCell: UICollectionViewCell {
   func configure(with model: FeedCardPresentationModel) {
     feedImageView.configure(with: model)
     challengeTitleChip.text = model.challengeTitle
+    shareButton.isHidden = model.isDeleted
   }
 }
 

@@ -16,6 +16,7 @@ public struct FeedSummary {
   public let proveTime: Date
   public let invitationCode: String
   public let name: String
+  public let isDeleted: Bool
   
   public init(
     feedId: Int,
@@ -23,7 +24,8 @@ public struct FeedSummary {
     imageUrl: URL?,
     createdDate: Date,
     invitationCode: String,
-    name: String
+    name: String,
+    isDeleted: Bool
   ) {
     self.feedId = feedId
     self.challengeId = challengeId
@@ -31,6 +33,8 @@ public struct FeedSummary {
     self.createdDate = createdDate
     self.invitationCode = invitationCode
     self.name = name
+    self.isDeleted = isDeleted
+
     self.proveTime = Date()
   }
   
@@ -49,5 +53,6 @@ public struct FeedSummary {
 
     self.createdDate = Date()
     self.invitationCode = ""
+    self.isDeleted = false
   }
 }

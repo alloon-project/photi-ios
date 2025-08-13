@@ -48,7 +48,8 @@ public extension MyPageDataMapperImpl {
         imageUrl: imageURL(from: $0.imageUrl),
         createdDate: $0.createdDate.toDate("yyyy-MM-dd") ?? Date(),
         invitationCode: $0.invitationCode,
-        name: $0.name
+        name: $0.name,
+        isDeleted: $0.isDeleted
       )
     }
   }

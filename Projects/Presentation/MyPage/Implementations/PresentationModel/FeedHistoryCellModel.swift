@@ -14,6 +14,7 @@ struct FeedCardPresentationModel: Hashable {
   let feedImageUrl: URL?
   let challengeTitle: String
   let provedDate: String
+  let isDeleted: Bool
   
   func hash(into hasher: inout Hasher) {
     hasher.combine(challengeId)

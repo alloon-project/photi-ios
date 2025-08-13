@@ -13,6 +13,7 @@ public struct FeedHistoryResponseDTO: Decodable {
   public let createdDate: String
   public let name: String
   public let invitationCode: String
+  public let isDeleted: Bool
 }
 
 public extension FeedHistoryResponseDTO {
