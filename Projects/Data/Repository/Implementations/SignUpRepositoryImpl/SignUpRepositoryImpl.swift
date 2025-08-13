@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import DataMapper
 import DTO
@@ -68,6 +69,14 @@ public extension SignUpRepositoryImpl {
       behavior: .never
     )
     .map { $0.username }
+  }
+  
+  func fetchWithdrawalDate(email: String) -> Single<Date> {
+    return requestAPI(
+      SignUpAPI.deletedDate(email: email),
+      responseType: DeletedDateResponseDTO.self
+    )
+    .map { $0.deletedDate.toDate("YYYY-MM-dd") ?? Date() }
   }
 }
   
