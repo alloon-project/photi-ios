@@ -192,7 +192,7 @@ private extension LogInViewController {
     
     output.networkUnstable
       .emit(with: self) { owner, _ in
-        owner.presentNetworkUnstableAlert()
+        owner.presentNetworkUnstableToastView()
       }
       .disposed(by: disposeBag)
     
