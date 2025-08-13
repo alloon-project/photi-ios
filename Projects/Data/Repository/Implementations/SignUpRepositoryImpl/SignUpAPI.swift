@@ -16,6 +16,7 @@ public enum SignUpAPI {
   case verifyCode(dto: VerifyCodeRequestDTO)
   case verifyUserName(String)
   case register(dto: RegisterRequestDTO)
+  case deletedDate(email: String)
 }
 
 extension SignUpAPI: TargetType {
@@ -33,12 +34,14 @@ extension SignUpAPI: TargetType {
         return "api/users/username"
       case .register:
         return "api/users/register"
+      case .deletedDate:
+        return "api/users/deleted-date"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .requestVerificationCode:
+      case .requestVerificationCode, .deletedDate:
         return .post
       case .verifyCode:
         return .patch
@@ -66,6 +69,12 @@ extension SignUpAPI: TargetType {
           parameters: dto.toDictionary,
           encoding: JSONEncoding.default
         )
+      case let .deletedDate(email):
+        let parameters = ["email": email]
+        return .requestParameters(
+          parameters: parameters,
+          encoding: JSONEncoding.default
+        )
     }
   }
   
@@ -91,6 +100,12 @@ extension SignUpAPI: TargetType {
         
       case .register:
         let responseData = RegisterRequestDTO.stubData
+        let jsonData = responseData.data(using: .utf8)
+        
+        return .networkResponse(200, jsonData ?? Data(), "", "")
+        
+      case .deletedDate:
+        let responseData = DeletedDateResponseDTO.stubData
         let jsonData = responseData.data(using: .utf8)
         
         return .networkResponse(200, jsonData ?? Data(), "", "")

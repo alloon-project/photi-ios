@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Foundation
 import RxSwift
 import DataMapper
 import DTO
@@ -19,8 +20,11 @@ public struct SignUpRepositoryImpl: SignUpRepository {
   public init(dataMapper: SignUpDataMapper) {
     self.dataMapper = dataMapper
   }
-  
-  public func requestVerificationCode(email: String) -> Single<Void> {
+}
+
+// MARK: - API Methods
+public extension SignUpRepositoryImpl {
+  func requestVerificationCode(email: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToRequestVerificationRequestDTO(email: email)
     return requestAPI(
       SignUpAPI.requestVerificationCode(dto: requestDTO),
@@ -30,7 +34,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func verifyCode(email: String, code: String) -> Single<Void> {
+  func verifyCode(email: String, code: String) -> Single<Void> {
     let requestDTO = dataMapper.mapToVerifyCodeRequestDTO(email: email, code: code)
     return requestAPI(
       SignUpAPI.verifyCode(dto: requestDTO),
@@ -40,7 +44,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func verifyUseName(_ userName: String) -> Single<Void> {
+  func verifyUseName(_ userName: String) -> Single<Void> {
     return requestAPI(
       SignUpAPI.verifyUserName(userName),
       responseType: SuccessResponseDTO.self,
@@ -49,7 +53,7 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     .map { _ in () }
   }
   
-  public func register(
+  func register(
     email: String,
     username: String,
     password: String
@@ -66,8 +70,16 @@ public struct SignUpRepositoryImpl: SignUpRepository {
     )
     .map { $0.username }
   }
+  
+  func fetchWithdrawalDate(email: String) -> Single<Date> {
+    return requestAPI(
+      SignUpAPI.deletedDate(email: email),
+      responseType: DeletedDateResponseDTO.self
+    )
+    .map { $0.deletedDate.toDate("YYYY-MM-dd") ?? Date() }
+  }
 }
-
+  
 // MARK: - Private Methods
 private extension SignUpRepositoryImpl {
   func requestAPI<T: Decodable>(
@@ -121,6 +133,8 @@ private extension SignUpRepositoryImpl {
       return .signUpFailed(reason: .invalidUserName)
     } else if code == "EXISTING_USERNAME" {
       return .signUpFailed(reason: .userNameAlreadyExists)
+    } else if code == "DELETED_USER" {
+      return .signUpFailed(reason: .deletedUser)
     } else {
       return .clientError(code: code, message: message)
     }
