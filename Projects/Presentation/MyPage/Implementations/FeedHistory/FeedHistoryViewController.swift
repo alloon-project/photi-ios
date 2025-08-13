@@ -58,7 +58,8 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     
     return collectionView
   }()
-  
+  private let deletedChallengeToastView = ToastView(tipPosition: .none, text: "탈퇴한 챌린지예요", icon: .closeRed)
+
   // MARK: - Initializers
   init(viewModel: FeedHistoryViewModel) {
     self.viewModel = viewModel
@@ -173,6 +174,12 @@ private extension FeedHistoryViewController {
     output.requestOpenInsagramStory
       .emit(with: self) { owner, info in
         Task { await owner.openInstagramToShareStory(url: info.0, challengeName: info.1) }
+      }
+      .disposed(by: disposeBag)
+    
+    output.deletedChallenge
+      .emit(with: self) { owner, _ in
+        owner.presentDeletedChallengeToastView()
       }
       .disposed(by: disposeBag)
   }
@@ -325,5 +332,14 @@ private extension FeedHistoryViewController {
       title: "인스타그램이 설치되어 있지 않아 스토리 공유를 할 수 없습니다."
     )
     alert.present(to: self, animted: true)
+  }
+  
+  func presentDeletedChallengeToastView() {
+    deletedChallengeToastView.setConstraints {
+      $0.centerX.equalToSuperview()
+      $0.bottom.equalToSuperview().inset(64)
+    }
+    
+    deletedChallengeToastView.present(at: view)
   }
 }
