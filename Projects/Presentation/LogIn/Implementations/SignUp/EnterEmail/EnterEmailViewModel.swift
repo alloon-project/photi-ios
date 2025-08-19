@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Foundation
 import RxCocoa
 import RxSwift
 import Entity
@@ -32,6 +33,9 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   
   private let duplicateEmailRelay = PublishRelay<Void>()
   private let networkUnstableRelay = PublishRelay<Void>()
+  private let rejoinAvaildableDayRelay = PublishRelay<Int>()
+  
+  private var lastRequestedEmail: String?
   
   // MARK: - Input
   struct Input {
@@ -48,6 +52,7 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     let isOverMaximumText: Signal<Bool>
     let isEnabledNextButton: Signal<Bool>
     let duplicateEmail: Signal<Void>
+    let rejoinAvaildableDay: Signal<Int>
     let networkUnstable: Signal<Void>
   }
   
@@ -66,7 +71,7 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
     input.didTapNextButton
       .withLatestFrom(input.userEmail)
       .bind(with: self) { owner, email in
-        owner.requestVerificationCode(email: email)
+        Task { await owner.requestVerificationCode(email: email) }
       }
       .disposed(by: disposeBag)
     
@@ -87,6 +92,7 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
       isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
       isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
       duplicateEmail: duplicateEmailRelay.asSignal(),
+      rejoinAvaildableDay: rejoinAvaildableDayRelay.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal()
     )
   }
@@ -94,20 +100,26 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
 
 // MARK: - Private Methods
 private extension EnterEmailViewModel {
-  func requestVerificationCode(email: String) {
-    useCase.requestVerificationCode(email: email)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.useCase.configureEmail(email)
-          owner.coordinator?.attachVerifyEmail(userEmail: email)
-        },
-        onFailure: { owner, error in
-          owner.requestFailed(error: error)
-        }
-      )
-      .disposed(by: disposeBag)
+  func requestVerificationCode(email: String) async {
+    do {
+      lastRequestedEmail = email
+      try await useCase.requestVerificationCode(email: email).value
+      await MainActor.run {
+        useCase.configureEmail(email)
+        coordinator?.attachVerifyEmail(userEmail: email)
+      }
+    } catch {
+      await MainActor.run { requestFailed(error: error) }
+    }
+  }
+  
+  func remainingRejoinDays(email: String) async {
+    do {
+      let days = try await useCase.remainingRejoinDays(email: email)
+      rejoinAvaildableDayRelay.accept(days)
+    } catch {
+      await MainActor.run { requestFailed(error: error) }
+    }
   }
   
   func requestFailed(error: Error) {
@@ -118,6 +130,10 @@ private extension EnterEmailViewModel {
     switch error {
       case let .signUpFailed(reason) where reason == .emailAlreadyExists:
         duplicateEmailRelay.accept(())
+      case let .signUpFailed(reason) where reason == .deletedUser:
+        if let email = lastRequestedEmail {
+          Task { await remainingRejoinDays(email: email) }
+        }
       default:
         networkUnstableRelay.accept(())
     }

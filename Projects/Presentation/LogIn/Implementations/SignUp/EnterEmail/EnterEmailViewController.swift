@@ -169,6 +169,12 @@ private extension EnterEmailViewController {
       }
       .disposed(by: disposeBag)
     
+    output.rejoinAvaildableDay
+      .emit(with: self) { owner, day in
+        owner.presentRejoinWarningAlert(dayCount: day)
+      }
+      .disposed(by: disposeBag)
+    
     output.duplicateEmail
       .emit(with: self) { owner, _ in
         owner.convertLineTextField(commentView: owner.duplicateEmailWarningView)
@@ -190,5 +196,15 @@ private extension EnterEmailViewController {
       emailTextField.commentViews = []
       emailTextField.mode = .success
     }
+  }
+  
+  func presentRejoinWarningAlert(dayCount: Int) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "탈퇴 처리된 계정이에요",
+      subTitle: "탈퇴한 이메일 계정으로는\n\(dayCount)일 뒤 재가입 가능해요."
+    )
+    
+    alert.present(to: self, animted: true)
   }
 }

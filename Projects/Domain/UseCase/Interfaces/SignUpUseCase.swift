@@ -15,5 +15,6 @@ public protocol SignUpUseCase {
   func requestVerificationCode(email: String) -> Single<Void>
   func verifyCode(email: String, code: String) -> Single<Void>
   func verifyUserName(_ useName: String) -> Single<Void>
+  func remainingRejoinDays(email: String) async throws -> Int
   func register(password: String) -> Single<String>
 }
