@@ -13,24 +13,44 @@ import Core
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   private var appCoordinator: Coordinating?
+  private let appContainer = AppContainer(dependency: AppDependency())
   var window: UIWindow?
   
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
-    let appContainer = AppContainer(dependency: AppDependency())
+    configureWindowForSplash()
+    return true
+  }
+}
+
+// MARK: - Private Methods
+private extension AppDelegate {
+  func configureWindowForSplash() {
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    let viewModel = SplashViewModel(useCase: appContainer.appUseCase)
+    let viewController = SplashViewController(viewModel: viewModel)
+    
+    window.rootViewController = viewController
+    window.makeKeyAndVisible()
+    viewModel.listener = self
+    self.window = window
+  }
+  
+  func launchMainApp() {
+    guard let window else { return }
     let appCoordinator = appContainer.coordinator()
     
     appCoordinator.start()
     
-    let window = UIWindow(frame: UIScreen.main.bounds)
     window.rootViewController = appCoordinator.viewControllerable.uiviewController
-    window.makeKeyAndVisible()
-    self.window = window
     self.appCoordinator = appCoordinator
-    
-    return true
   }
-  
+}
+
+extension AppDelegate: SplashListener {
+  func didFinishSplash() {
+    launchMainApp()
+  }
 }

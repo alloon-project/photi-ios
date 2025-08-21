@@ -44,7 +44,7 @@ final class AppContainer:
   NoneMemberChallengeDependency,
   ChallengeOrganizeDependency {
   func coordinator() -> ViewableCoordinating {
-    let viewModel = AppViewModel(useCase: AppUseCaseImpl(repository: authRepository))
+    let viewModel = AppViewModel(useCase: appUseCase)
     let viewControllerable = AppViewController(viewModel: viewModel)
     
     let home = HomeContainer(dependency: self)
