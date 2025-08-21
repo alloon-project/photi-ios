@@ -12,7 +12,7 @@ import DTO
 import PhotiNetwork
 
 public enum AppAPI {
-  case appVersion(_ version: String)
+  case appVersion(dto: AppVersionRequestDTO)
 }
 
 extension AppAPI: TargetType {
@@ -34,9 +34,8 @@ extension AppAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case let .appVersion(version):
-        let parameters = ["os": "iOS", "appVersion": "\(version)"]
-        return .requestJSONEncodable(parameters)
+      case let .appVersion(dto):
+        return .requestJSONEncodable(dto)
     }
   }
   
