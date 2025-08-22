@@ -35,6 +35,7 @@ final public class AlertViewController: UIViewController {
   private let type: AlertType
   private let mainTitle: String
   private let subTitle: String?
+  private let shouldDismissOnConfirm: Bool
   
   // MARK: - UI Components
   private let dimmedView: UIView = {
@@ -75,11 +76,13 @@ final public class AlertViewController: UIViewController {
   public init(
     alertType: AlertType,
     title: String,
-    subTitle: String? = nil
+    subTitle: String? = nil,
+    shouldDismissOnConfirm: Bool = true,
   ) {
     self.type = alertType
     self.mainTitle = title
     self.subTitle = subTitle
+    self.shouldDismissOnConfirm = shouldDismissOnConfirm
     
     // alertType에 따라 button의 사이즈가 달라집니다.
     switch alertType {
@@ -98,9 +101,10 @@ final public class AlertViewController: UIViewController {
   public convenience init(
     alertType: AlertType,
     title: String,
-    attributedSubTitle: NSAttributedString
+    attributedSubTitle: NSAttributedString,
+    shouldDismissOnConfirm: Bool = true
   ) {
-    self.init(alertType: alertType, title: title, subTitle: "")
+    self.init(alertType: alertType, title: title, subTitle: "", shouldDismissOnConfirm: shouldDismissOnConfirm)
     subTitleLabel.attributedText = attributedSubTitle
   }
   
@@ -252,7 +256,9 @@ private extension AlertViewController {
   }
   
   func confirmButtonDidTap() {
-    self.dismiss(animated: true)
+    if shouldDismissOnConfirm {
+      self.dismiss(animated: true)
+    }
   }
   
   func cancelButtonDidTap() {
