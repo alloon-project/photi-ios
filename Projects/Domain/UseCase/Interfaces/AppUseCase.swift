@@ -8,4 +8,5 @@
 
 public protocol AppUseCase {
   func isLogIn() async -> Bool
+  func isAppForceUpdateRequired() async throws -> Bool
 }
