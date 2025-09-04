@@ -242,4 +242,8 @@ public extension Reactive where Base: PhotiNavigationBar {
   var didTapBackButton: ControlEvent<Void> {
     return base.backButton.rx.tap
   }
+  
+  var didTapShareButton: ControlEvent<Void> {
+    return base.rightItems.filter { $0 == PhotiNavigationButton.shareButton }.first!.rx.tap
+  }
 }
