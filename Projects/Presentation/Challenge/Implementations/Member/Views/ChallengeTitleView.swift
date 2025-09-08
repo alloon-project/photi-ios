@@ -70,6 +70,10 @@ extension ChallengeTitleView {
     setTitle(model.title)
     hashTags = model.hashTags
   }
+  
+  func getTitleImage() -> UIImage? {
+    self.imageView.image
+  }
 }
 
 // MARK: - UI Methods
