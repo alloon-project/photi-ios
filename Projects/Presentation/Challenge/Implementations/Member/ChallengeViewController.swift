@@ -34,11 +34,11 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
+  private let shareButton = PhotiNavigationButton.shareButton
   private let navigationOptionButton = PhotiNavigationButton.optionButton
   private lazy var navigationBar = PhotiNavigationBar(
     leftView: .backButton,
-    rigthItems: [navigationOptionButton],
-    //rigthItems: [.shareButton, navigationOptionButton],
+    rigthItems: [shareButton, navigationOptionButton],
     displayMode: .white
   )
   private let titleView = ChallengeTitleView()
@@ -50,6 +50,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     view.backgroundColor = .white
     return view
   }()
+  
   
   // MARK: - Initializers
   init(viewModel: ChallengeViewModel) {
@@ -140,7 +141,8 @@ private extension ChallengeViewController {
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
       didTapLeaveButton: didTapLeaveButton.asSignal(),
       didTapReportButton: didTapReportButton.asSignal(),
-      didTapEditButton: didTapEditButton.asSignal()
+      didTapEditButton: didTapEditButton.asSignal(),
+      didTapShareButton: shareButton.rx.tap.asSignal()
     )
     
     let output = viewModel.transform(input: input)
@@ -249,12 +251,23 @@ extension ChallengeViewController: ChallengePresentable {
     
     toastView.present(to: self)
   }
+  
+  func presentShareActivity(challengeId: Int, inviteCode: String?, challengeName: String) {
+    let provider = ShareableChallengeProvider(
+      image: titleView.getTitleImage() ?? .challengeOrganizeMain,
+      challengeName: challengeName,
+      challengeId: challengeId,
+      invitationCode: inviteCode
+    )
+    let activityVC = UIActivityViewController(activityItems: [provider], applicationActivities: nil)
+    self.present(activityVC, animated: true)
+  }
 }
 
 // MARK: - DropDownDelegate
 extension ChallengeViewController: DropDownDelegate {
   func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
-    let data = dropDown.dataSource[didSelectRowAt]    
+    let data = dropDown.dataSource[didSelectRowAt]
     guard let menu = DropDownMenu(rawValue: data) else { return }
     
     switch menu {
