@@ -37,6 +37,7 @@ public protocol ChallengeRepository {
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
   func challengeCount() async throws -> Int
   
+  func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool
   func joinChallenge(id: Int, goal: String) -> Single<Void>
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>

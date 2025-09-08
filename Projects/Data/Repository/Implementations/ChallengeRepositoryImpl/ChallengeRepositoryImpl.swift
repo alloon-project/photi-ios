@@ -122,10 +122,10 @@ public extension ChallengeRepositoryImpl {
   
   func challengeCount() async throws -> Int {
     let result = try await requestAuthorizableAPI(
-        api: ChallengeAPI.challengeCount,
-        responseType: ChallengeCountResponseDTO.self
-      ).value
-      
+      api: ChallengeAPI.challengeCount,
+      responseType: ChallengeCountResponseDTO.self
+    ).value
+    
     return result.challengeCnt
   }
   
@@ -134,10 +134,10 @@ public extension ChallengeRepositoryImpl {
       api: ChallengeAPI.challengeProveMemberCount(challengeId: challengeId),
       responseType: ChallengeProveMemberCountResponseDTO.self
     ).value
-        
+    
     return result.feedMemberCnt
   }
-    
+  
   func fetchMyChallenges(page: Int, size: Int) -> Single<[ChallengeSummary]> {
     return requestAuthorizableAPI(
       api: ChallengeAPI.myChallenges(page: page, size: size),
@@ -160,6 +160,15 @@ public extension ChallengeRepositoryImpl {
       responseType: [ChallengeMemberResponseDTO].self
     )
     .map { dataMapper.mapToChallengeMembers(dto: $0) }
+  }
+  
+  func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation {
+    let result = try await requestAuthorizableAPI(
+      api: ChallengeAPI.fetchInviitationCode(id: id),
+      responseType: FetchInvitaionCodeResponseDTO.self
+    ).value
+  
+    return dataMapper.mapToChallengeInvitaion(dto: result)
   }
 }
 
