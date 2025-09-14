@@ -241,5 +241,5 @@ private extension PhotiNavigationBar {
 public extension Reactive where Base: PhotiNavigationBar {
   var didTapBackButton: ControlEvent<Void> {
     return base.backButton.rx.tap
-  }
+  } 
 }

@@ -31,6 +31,12 @@ final class ChallengeTitleView: UIView {
     
     return imageView
   }()
+
+  // 변경
+  var titleImage: UIImage? {
+    return imageView.image
+  }
+  
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.textAlignment = .center

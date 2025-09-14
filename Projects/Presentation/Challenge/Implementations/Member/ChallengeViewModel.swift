@@ -19,6 +19,7 @@ protocol ChallengeCoordinatable: AnyObject {
   func leaveChallenge(challengeId: Int)
   func attachChallengeReport(challengeId: Int)
   func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
+  func didTapShareButton(challengeId: Int, inviteCode: String?, challengeName: String)
 }
 
 protocol ChallengeViewModelType: AnyObject {
@@ -59,6 +60,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
     let didTapLeaveButton: Signal<Void>
     let didTapReportButton: Signal<Void>
     let didTapEditButton: Signal<Void>
+    let didTapShareButton: Signal<Void>
   }
   
   // MARK: - Output
@@ -112,6 +114,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
       }
       .disposed(by: disposeBag)
     
+    input.didTapShareButton
+      .emit(with: self) { owner, _ in
+        owner.shareChallenge()
+      }
+      .disposed(by: disposeBag)
+    
     return Output(
       challengeInfo: challengeModelRelay.asDriver(),
       memberCount: memberCount.asDriver(),
@@ -141,6 +149,19 @@ extension ChallengeViewModel {
       return nil
     }
   }
+  
+  func shareChallenge() {
+    guard
+      let challengeDetail = self.challengeDetail,
+      let isPublic = challengeDetail.isPublic
+    else { return }
+    
+    if isPublic { // 전체 공개일경우 바로 공유하기
+      coordinator?.didTapShareButton(challengeId: self.challengeId, inviteCode: nil, challengeName: self.challengeName)
+    } else { // 친구 공개일경우 초대코드 조회해서 공유하기
+      fetchChallengeInviteCode()
+    }
+  }
 }
 
 // MARK: - API Methods
@@ -155,16 +176,33 @@ private extension ChallengeViewModel {
       }
       .disposed(by: disposeBag)
   }
-
+  
+  func fetchChallengeInviteCode() {
+    Task {
+      do {
+        let invitation = try await useCase.fetchInvitationCode(id: challengeId)
+        await MainActor.run {
+          coordinator?.didTapShareButton(
+            challengeId: self.challengeId,
+            inviteCode: invitation.invitationCode,
+            challengeName: invitation.name
+          )
+        }
+      } catch {
+        requestFailed(with: error)
+      }
+    }
+  }
+  
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else { return networkUnstable.accept(()) }
     
     switch error {
-      case .authenticationFailed:
-        coordinator?.authenticatedFailed()
-      case let .challengeFailed(reason) where reason == .challengeNotFound:
-        challengeNotFoundRelay.accept(())
-      default: networkUnstable.accept(())
+    case .authenticationFailed:
+      coordinator?.authenticatedFailed()
+    case let .challengeFailed(reason) where reason == .challengeNotFound:
+      challengeNotFoundRelay.accept(())
+    default: networkUnstable.accept(())
     }
   }
 }
