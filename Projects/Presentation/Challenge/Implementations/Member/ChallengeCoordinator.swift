@@ -17,6 +17,7 @@ protocol ChallengePresentable {
   func presentNetworkWarning(reason: String?)
   func presentFinishModifying()
   func presentChallengeReported()
+  func presentShareActivity(challengeId: Int, inviteCode: String?, challengeName: String)
 }
 
 final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
@@ -153,6 +154,14 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   
   func authenticatedFailed() {
     listener?.authenticatedFailedAtChallenge()
+  }
+  
+  func didTapShareButton(challengeId: Int, inviteCode: String?, challengeName: String) {
+    presenter.presentShareActivity(
+      challengeId: challengeId,
+      inviteCode: inviteCode,
+      challengeName: challengeName
+    )
   }
 }
 

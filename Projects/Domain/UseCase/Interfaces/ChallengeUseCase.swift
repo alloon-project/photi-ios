@@ -28,6 +28,7 @@ public protocol ChallengeUseCase {
     size: Int,
     orderType: ChallengeFeedsOrderType
   ) async throws -> PageState<[Feed]>
+  func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool
   func joinChallenge(id: Int, goal: String) -> Single<Void>
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>

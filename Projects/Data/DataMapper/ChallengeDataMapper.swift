@@ -23,6 +23,7 @@ public protocol ChallengeDataMapper {
   func mapToFeedComment(dto: FeedCommentResponseDTO) -> FeedComment
   func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription
   func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember]
+  func mapToChallengeInvitaion(dto: FetchInvitaionCodeResponseDTO) -> ChallengeInvitation
 }
 
 public struct ChallengeDataMapperImpl: ChallengeDataMapper {
@@ -213,6 +214,10 @@ public extension ChallengeDataMapperImpl {
       author: dto.username,
       comment: dto.comment
     )
+  }
+  
+  func mapToChallengeInvitaion(dto: FetchInvitaionCodeResponseDTO) -> ChallengeInvitation {
+    return .init(name: dto.name, invitationCode: dto.invitationCode)
   }
 }
 

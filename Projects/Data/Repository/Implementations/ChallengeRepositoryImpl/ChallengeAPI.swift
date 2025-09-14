@@ -20,6 +20,7 @@ public enum ChallengeAPI {
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
   case searchChallengesByName(_ name: String, page: Int, size: Int)
   case searchChallengesByHashtag(_ hashtag: String, page: Int, size: Int)
+  case fetchInviitationCode(id: Int)
   case verifyInvitationCode(id: Int, _ code: String)
   case joinChallenge(id: Int, goal: String)
   case uploadChallengeProof(id: Int, image: Data, imageType: String)
@@ -49,6 +50,7 @@ extension ChallengeAPI: TargetType {
       case .myChallenges: return "api/users/my-challenges"
       case let .joinChallenge(id, _): return "api/challenges/\(id)/join"
       case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
+      case let .fetchInviitationCode(id): return "api/challenges/\(id)/invitation-code"
       case let .verifyInvitationCode(id, _): return "api/challenges/\(id)/invitation-code-match"
       case let .uploadChallengeProof(id, _, _): return "api/challenges/\(id)/feeds"
       case let .isProve(challengeId): return "api/users/challenges/\(challengeId)/prove"
@@ -63,7 +65,7 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges, .popularHashTags: return .get
       case .challengeDetail, .challengesByHashTag, .recentChallenges: return .get
-      case .myChallenges, .verifyInvitationCode: return .get
+      case .myChallenges, .fetchInviitationCode, .verifyInvitationCode: return .get
       case .searchChallengesByName, .searchChallengesByHashtag: return .get
       case .joinChallenge, .uploadChallengeProof: return .post
       case .isProve, .challengeCount, .challengeProveMemberCount: return .get
@@ -75,7 +77,7 @@ extension ChallengeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags, .challengeProveMemberCount:
+      case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags, .challengeProveMemberCount, .fetchInviitationCode:
         return .requestPlain
         
       case .isProve, .challengeDescription, .challengeMember, .leaveChallenge:
@@ -100,7 +102,7 @@ extension ChallengeAPI: TargetType {
       case let .updateChallengeGoal(goal, _):
         let parameters = ["goal": goal]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
-        
+      
       case let .verifyInvitationCode(_, code):
         let parameters = ["invitationCode": code]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
@@ -216,6 +218,19 @@ extension ChallengeAPI: TargetType {
         let data = SearchChallengeByHashtagResponseDTO.stubData
         let jsonData = data.data(using: .utf8)
         
+        return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
+      case .fetchInviitationCode(id: let id):
+        let data = """
+          {
+            "code": "200 OK",
+            "message": "성공",
+            "data": {
+              "name": "신나게 하는 러닝 챌린지",
+              "invitationCode": "478DS"
+            }
+          }
+          """
+        let jsonData = data.data(using: .utf8)
         return .networkResponse(200, jsonData ?? Data(), "OK", "성공")
     }
   }

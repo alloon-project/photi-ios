@@ -79,6 +79,10 @@ public extension ChallengeUseCaseImpl {
 
 // MARK: - Upload & Update Methods
 public extension ChallengeUseCaseImpl {
+  func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation {
+    return try await challengeRepository.fetchInvitationCode(id: id)
+  }
+  
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool {
     return try await challengeRepository.verifyInvitationCode(id: id, code: code)
   }
