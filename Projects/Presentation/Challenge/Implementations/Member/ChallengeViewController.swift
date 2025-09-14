@@ -254,7 +254,7 @@ extension ChallengeViewController: ChallengePresentable {
   
   func presentShareActivity(challengeId: Int, inviteCode: String?, challengeName: String) {
     let provider = ShareableChallengeProvider(
-      image: titleView.getTitleImage() ?? .challengeOrganizeMain,
+      image: titleView.titleImage ?? .challengeOrganizeMain,
       challengeName: challengeName,
       challengeId: challengeId,
       invitationCode: inviteCode
