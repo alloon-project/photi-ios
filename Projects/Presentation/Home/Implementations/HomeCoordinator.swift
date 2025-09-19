@@ -63,7 +63,7 @@ private extension HomeCoordinator {
   }
   
   @MainActor func detachChallengeHome() {
-    guard let coordinator = noneChallengeHomeCoordinator else { return }
+    guard let coordinator = challengeHomeCoordinator else { return }
     
     removeChild(coordinator)
     self.challengeHomeCoordinator = nil

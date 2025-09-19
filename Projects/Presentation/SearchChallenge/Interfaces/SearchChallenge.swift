@@ -15,4 +15,5 @@ public protocol SearchChallengeContainable: Containable {
 public protocol SearchChallengeListener: AnyObject {
   func authenticatedFailedAtSearchChallenge()
   func attachLoginPopup()
+  func didLoginAtSearchChallenge()
 }

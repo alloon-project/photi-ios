@@ -12,6 +12,7 @@ import Core
 protocol SearchResultListener: AnyObject {
   func didTapBackButtonAtSearchResult()
   func authenticatedFailedAtSearchResult()
+  func didLoginAtSearchResult()
 }
 
 @MainActor protocol SearchResultPresentable {
@@ -198,5 +199,9 @@ extension SearchResultCoordinator: NoneMemberChallengeListener {
   
   func authenticatedFailedAtNoneMemberChallenge() {
     listener?.authenticatedFailedAtSearchResult()
+  }
+  
+  func didLoginAtNoneMemberChallenge() {
+    listener?.didLoginAtSearchResult()
   }
 }
