@@ -644,7 +644,8 @@ private extension FeedCommentViewController {
   func presentConverToStoryDataAlert() {
     let alert = AlertViewController(
       alertType: .confirm,
-      title: "인스타그램 스토리 변환에 실패했어요. 잠시 후에 다시 시도해 주세요."
+      title: "스토리 변환에 실패했어요",
+      subTitle: "인스타그램 스토리 변환에 실패했어요.\n 잠시 후에 다시 시도해 주세요."
     )
     alert.present(to: self, animted: true)
   }
@@ -652,7 +653,8 @@ private extension FeedCommentViewController {
   func presentFailedOpenInstagramToShareStoryAlert() {
     let alert = AlertViewController(
       alertType: .confirm,
-      title: "인스타그램이 설치되어 있지 않아 스토리 공유를 할 수 없습니다."
+      title: "인스타그램이 설치되어 있지 않아요",
+      subTitle: "인스타그램이 설치되어 있지 않아\n 스토리 공유를 할 수 없어요."
     )
     alert.present(to: self, animted: true)
   }
