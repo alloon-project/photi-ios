@@ -207,6 +207,14 @@ extension AppCoordinator: SearchChallengeListener {
       await presenter.presentTabMyPageWithoutLogInAlertView(to: homeNavigationControllerable)
     }
   }
+  
+  func didLoginAtSearchChallenge() {
+    Task {
+      await MainActor.run {
+        homeCoorinator?.start()
+      }
+    }
+  }
 }
 
 // MARK: - MyPageListener
