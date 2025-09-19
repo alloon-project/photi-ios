@@ -18,4 +18,9 @@ public protocol NoneMemberChallengeListener: AnyObject {
   func didJoinChallenge(id: Int)
   func authenticatedFailedAtNoneMemberChallenge()
   func shouldDismissNoneMemberChallenge()
+  func didLoginAtNoneMemberChallenge()
+}
+
+public extension NoneMemberChallengeListener {
+  func didLoginAtNoneMemberChallenge() {}
 }
