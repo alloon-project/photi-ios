@@ -216,6 +216,10 @@ extension SearchChallengeCoordinator: SearchResultListener {
   func didTapBackButtonAtSearchResult() {
     detachSearchResult()
   }
+  
+  func didLoginAtSearchResult() {
+    listener?.didLoginAtSearchChallenge()
+  }
 }
 
 // MARK: - ChallengeListener
@@ -271,5 +275,9 @@ extension SearchChallengeCoordinator: NoneMemberChallengeListener {
   
   func authenticatedFailedAtNoneMemberChallenge() {
     listener?.authenticatedFailedAtSearchChallenge()
+  }
+  
+  func didLoginAtNoneMemberChallenge() {
+    listener?.didLoginAtSearchChallenge()
   }
 }
