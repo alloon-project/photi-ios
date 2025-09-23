@@ -155,7 +155,7 @@ extension NoneMemberChallengeCoordinator: LogInListener {
   func didFinishLogIn(userName: String) {
     detachLogIn(animted: false)
     detachLogInGuide(animted: true)
-    
+    listener?.didLoginAtNoneMemberChallenge()
     Task { @MainActor [weak self] in
       guard let self else { return }
       let isJoined = await viewModel.isJoinedChallenge()
