@@ -186,7 +186,6 @@ private extension ChallengeModifyViewModel {
       .subscribe(with: self) { owner, _ in
         owner.coordinator?.didModifiedChallenge()
       } onFailure: { owner, error in
-        print(error)
         owner.requestFailed(with: error)
       }.disposed(by: disposeBag)
   }

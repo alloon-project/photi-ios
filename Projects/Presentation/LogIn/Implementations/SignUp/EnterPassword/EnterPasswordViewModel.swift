@@ -122,7 +122,6 @@ private extension EnterPasswordViewModel {
         owner.coordinator?.didTapContinueButton(userName: userName)
       },
       onFailure: { owner, error in
-        print(error)
         owner.requestFailed(with: error)
       }
     )
