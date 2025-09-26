@@ -6,11 +6,11 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import RxCocoa
-import Core
 import UseCase
 
-protocol HashTagResultDependency: Dependency {
+protocol HashTagResultDependency {
   var searchUseCase: SearchUseCase { get }
 }
 
