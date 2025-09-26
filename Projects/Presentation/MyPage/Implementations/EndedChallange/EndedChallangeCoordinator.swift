@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 
 protocol EndedChallengeListener: AnyObject {
   func didTapBackButtonAtEndedChallenge()
@@ -47,7 +47,7 @@ final class EndedChallengeCoordinator: ViewableCoordinator<EndedChallangePresent
 }
 
 // MARK: - Challenge
-extension EndedChallengeCoordinator {
+@MainActor extension EndedChallengeCoordinator {
   func attachChallenge(id: Int) {
     guard challengeCoordinator == nil else { return }
     
@@ -88,14 +88,14 @@ extension EndedChallengeCoordinator: ChallengeListener {
   }
   
   func didTapBackButtonAtChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func shouldDismissChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func leaveChallenge(challengeId: Int) {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
 }

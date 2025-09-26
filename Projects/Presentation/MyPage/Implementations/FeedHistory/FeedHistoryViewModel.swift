@@ -13,8 +13,8 @@ import Entity
 import UseCase
 
 protocol FeedHistoryCoordinatable: AnyObject {
+  @MainActor func attachChallengeWithFeed(challengeId: Int, feedId: Int)
   func didTapBackButton()
-  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
   func authenticateFailed()
 }
 
@@ -156,7 +156,7 @@ private extension FeedHistoryViewModel {
     if card.isDeleted {
       deletedChallengeRelay.accept(())
     } else {
-      coordinator?.attachChallengeWithFeed(challengeId: challengeId, feedId: feedId)
+      Task { await coordinator?.attachChallengeWithFeed(challengeId: challengeId, feedId: feedId) }
     }
   }
 }
