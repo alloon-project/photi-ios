@@ -8,6 +8,7 @@
 
 import UIKit
 import PhotosUI
+import Coordinator
 import Kingfisher
 import RxCocoa
 import RxGesture
