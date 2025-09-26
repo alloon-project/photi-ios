@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol EnterIdListener: AnyObject {
   func didTapBackButtonAtEnterId()
