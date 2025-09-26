@@ -6,12 +6,12 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import Home
 import UseCase
 
-public protocol HomeDependency: Dependency {
+public protocol HomeDependency {
   var homeUseCae: HomeUseCase { get }
   var challengeContainable: ChallengeContainable { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
