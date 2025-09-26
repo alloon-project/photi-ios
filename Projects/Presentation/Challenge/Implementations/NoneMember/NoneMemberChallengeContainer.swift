@@ -6,12 +6,12 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import LogIn
 import UseCase
 
-public protocol NoneMemberChallengeDependency: Dependency {
+public protocol NoneMemberChallengeDependency {
   var challengeUseCase: ChallengeUseCase { get }
   var loginContainable: LogInContainable { get }
 }
