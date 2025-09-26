@@ -6,11 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import UseCase
 
-protocol NoneChallengeHomeDependency: Dependency {
+protocol NoneChallengeHomeDependency {
   var homeUseCase: HomeUseCase { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
   var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
