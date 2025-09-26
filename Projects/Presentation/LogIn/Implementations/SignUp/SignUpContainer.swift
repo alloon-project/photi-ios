@@ -6,11 +6,11 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 import UseCase
 
-protocol SignUpDependency: Dependency {
+protocol SignUpDependency {
   var signUpUseCase: SignUpUseCase { get }
 }
 
