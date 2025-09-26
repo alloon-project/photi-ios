@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 
 protocol ChallengeHomeListener: AnyObject {
   func authenticatedFailedAtChallengeHome()
@@ -45,7 +45,7 @@ final class ChallengeHomeCoordinator: ViewableCoordinator<ChallengeHomePresentab
 }
 
 // MARK: - Challenge
-extension ChallengeHomeCoordinator {
+@MainActor extension ChallengeHomeCoordinator {
   func attachChallenge(id: Int) {
     guard challengeCoordinator == nil else { return }
     
@@ -91,15 +91,15 @@ extension ChallengeHomeCoordinator: ChallengeListener {
   }
   
   func didTapBackButtonAtChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func shouldDismissChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
 
   func leaveChallenge(challengeId: Int) {
-    detachChallenge()
+    Task { await detachChallenge() }
     viewModel.reloadData()
   }
 }
