@@ -31,7 +31,7 @@ let dependencies = Dependencies(
 				),
         .remote(
           url: "https://github.com/jungseokyoung-cloud/Coordinator.git",
-          requirement: .exact("1.1.2")
+          requirement: .exact("1.1.3")
         )
 		],
 		platforms: [.iOS]
