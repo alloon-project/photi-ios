@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
+import Coordinator
 import Core
 import Challenge
 
@@ -30,13 +30,13 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   weak var listener: ChallengeOrganizeListener?
   
   private let navigationControllerable: NavigationControllerable
-
+  
   private let challengeStartContainable: ChallengeStartContainable
   private var challengeStartCoordinator: Coordinating?
   
   private let challengeNameContainable: ChallengeNameContainable
   private var challengeNameCoordinator: Coordinating?
-
+  
   private let challengeGoalContainable: ChallengeGoalContainable
   private var challengeGoalCoordinator: Coordinating?
   
@@ -74,20 +74,24 @@ final class ChallengeOrganizeCoordinator: Coordinator {
   }
   
   override func start() {
-    attachChallengeStart()
+    Task { await attachChallengeStart() }
   }
   
   override func stop() {
-    detachChallengePreview(animated: false)
-    detachChallengeHashtag(animated: false)
-    detachChallengeRule(animated: false)
-    detachChallengeCover(animated: false)
-    detachChallengeGoal(animated: false)
-    detachChallengeName(animated: false)
-    self.navigationControllerable.popViewController(animated: false)
+    Task { @MainActor in
+      detachChallengePreview(animated: false)
+      detachChallengeHashtag(animated: false)
+      detachChallengeRule(animated: false)
+      detachChallengeCover(animated: false)
+      detachChallengeGoal(animated: false)
+      detachChallengeName(animated: false)
+      self.navigationControllerable.popViewController(animated: false)
+    }
   }
-  
-  // MARK: - ChallengeStart
+}
+
+// MARK: - ChallengeStart
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeStart() {
     guard challengeStartCoordinator == nil else { return }
     
@@ -105,8 +109,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeStartCoordinator = nil
   }
+}
   
-  // MARK: - ChallengeName
+// MARK: - ChallengeName
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeName() {
     guard challengeNameCoordinator == nil else { return }
     
@@ -128,8 +134,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeNameCoordinator = nil
   }
-  
-  // MARK: - ChallengeGoal
+}
+
+// MARK: - ChallengeGoal
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeGoal() {
     guard challengeGoalCoordinator == nil else { return }
     
@@ -153,8 +161,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeGoalCoordinator = nil
   }
-  
-  // MARK: - ChallengeCover
+}
+
+// MARK: - ChallengeCover
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeCover() {
     guard challengeCoverCoordinator == nil else { return }
     
@@ -172,8 +182,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeCoverCoordinator = nil
   }
-  
-  // MARK: - ChallengeRule
+}
+
+// MARK: - ChallengeRule
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeRule() {
     guard challengeRuleCoordinator == nil else { return }
     
@@ -194,8 +206,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeRuleCoordinator = nil
   }
-  
-  // MARK: - ChallengeHashtag
+}
+
+// MARK: - ChallengeHashtag
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengeHashtag() {
     guard challengeHashtagCoordinator == nil else { return }
     
@@ -213,8 +227,10 @@ final class ChallengeOrganizeCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: animated)
     self.challengeHashtagCoordinator = nil
   }
-  
-  // MARK: - ChallengePreview
+}
+
+// MARK: - ChallengePreview
+@MainActor extension ChallengeOrganizeCoordinator {
   func attachChallengePreview() {
     guard challengePreviewCoordinator == nil else { return }
     
@@ -257,82 +273,82 @@ final class ChallengeOrganizeCoordinator: Coordinator {
 // MARK: ChallengeStartListener
 extension ChallengeOrganizeCoordinator: ChallengeStartListener {
   func didTapBackButtonAtChallengeStart() {
-    detachChallengeStart(animated: true)
+    Task { await detachChallengeStart(animated: true) }
     listener?.didTapBackButtonAtChallengeOrganize()
   }
   
   func didFinishChallengeStart() {
-    attachChallengeName()
+    Task { await attachChallengeName() }
   }
 }
 
 // MARK: ChallengeNameListener
 extension ChallengeOrganizeCoordinator: ChallengeNameListener {
   func didTapBackButtonAtChallengeName() {
-    detachChallengeName(animated: true)
+    Task { await detachChallengeName(animated: true) }
   }
   
   func didFisishChallengeName(challengeName: String, isPublic: Bool) {
     self.challengeName = challengeName
     self.isPublic = isPublic
-    attachChallengeGoal()
+    Task { await attachChallengeGoal() }
   }
 }
 
 // MARK: ChallengeGoalListener
 extension ChallengeOrganizeCoordinator: ChallengeGoalListener {
   func didTapBackButtonAtChallengeGoal() {
-    detachChallengeGoal(animated: true)
+    Task { await detachChallengeGoal(animated: true) }
   }
   
   func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {
     self.challengeGoal = challengeGoal
     self.challengeProveTime = proveTime
     self.challengeEndDate = endDate
-    attachChallengeCover()
+    Task { await attachChallengeCover() }
   }
 }
 
 // MARK: ChallengeCoverListener
 extension ChallengeOrganizeCoordinator: ChallengeCoverListener {
   func didTapBackButtonAtChallengeCover() {
-    detachChallengeCover(animated: true)
+    Task { await detachChallengeCover(animated: true) }
   }
   
   func didFinishedChallengeCover(coverImage: UIImageWrapper) {
     self.challengeCover = coverImage
-    attachChallengeRule()
+    Task { await attachChallengeRule() }
   }
 }
 
 // MARK: ChallengeRuleListener
 extension ChallengeOrganizeCoordinator: ChallengeRuleListener {
   func didTapBackButtonAtChallengeRule() {
-    detachChallengeRule(animated: true)
+    Task { await detachChallengeRule(animated: true) }
   }
   
   func didFinishChallengeRules(challengeRules: [String]) {
     self.challengeRule = challengeRules
-    attachChallengeHashtag()
+    Task { await attachChallengeHashtag() }
   }
 }
 
 // MARK: ChallengeHashTagListener
 extension ChallengeOrganizeCoordinator: ChallengeHashtagListener {
   func didTapBackButtonAtChallengeHashtag() {
-    detachChallengeHashtag(animated: true)
+    Task { await detachChallengeHashtag(animated: true) }
   }
   
   func didFinishChallengeHashtags(challengeHashtags: [String]) {
     self.challengeHashtags = challengeHashtags
-    attachChallengePreview()
+    Task { await attachChallengePreview() }
   }
 }
 
 // MARK: ChallengePreviewListener
 extension ChallengeOrganizeCoordinator: ChallengePreviewListener {
   func didTapBackButtonAtChallengePreview() {
-    detachChallengePreview(animated: true)
+    Task { await detachChallengePreview(animated: true) }
   }
   
   func didFinishOrganizeChallenge(challengeId: Int) {
