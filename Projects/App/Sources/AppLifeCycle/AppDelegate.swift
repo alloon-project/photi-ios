@@ -8,7 +8,7 @@
 //
 
 import UIKit
-import Core
+import Coordinator
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -20,6 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
+    UIViewController.swizzleLifecycle()
     configureWindowForSplash()
     return true
   }
