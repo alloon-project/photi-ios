@@ -6,11 +6,11 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import UseCase
 
-protocol SearchResultDependency: Dependency {
+protocol SearchResultDependency {
   var searchUseCase: SearchUseCase { get }
   var challengeContainable: ChallengeContainable { get }
   var noneMemberChallengeContainable: NoneMemberChallengeContainable { get }
