@@ -14,9 +14,9 @@ import Entity
 import UseCase
 
 protocol FeedsByDateCoordinatable: AnyObject {
+  @MainActor func attachChallengeWithFeed(challengeId: Int, feedId: Int)
   func didTapBackButton()
   func authenticateFailed()
-  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
 
 protocol FeedsByDateViewModelType: AnyObject {
@@ -69,7 +69,7 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
     
     input.didTapFeed
       .emit(with: self) { owner, ids in
-        owner.coordinator?.attachChallengeWithFeed(challengeId: ids.challengeId, feedId: ids.feedId)
+        Task { await owner.coordinator?.attachChallengeWithFeed(challengeId: ids.challengeId, feedId: ids.feedId) }
       }
       .disposed(by: disposeBag)
     
