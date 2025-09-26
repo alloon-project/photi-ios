@@ -14,7 +14,7 @@ import Entity
 import UseCase
 
 protocol FeedCoordinatable: AnyObject {
-  func attachFeedDetail(challengeId: Int, feedId: Int)
+  @MainActor func attachFeedDetail(challengeId: Int, feedId: Int)
   func didChangeContentOffset(_ offset: Double)
   func authenticatedFailed()
   func networkUnstable()
@@ -109,7 +109,7 @@ final class FeedViewModel: FeedViewModelType {
        
     input.didTapFeed
       .emit(with: self) { owner, feedId in
-        owner.coordinator?.attachFeedDetail(challengeId: owner.challengeId, feedId: feedId)
+        Task { await owner.coordinator?.attachFeedDetail(challengeId: owner.challengeId, feedId: feedId) }
       }
       .disposed(by: disposeBag)
     

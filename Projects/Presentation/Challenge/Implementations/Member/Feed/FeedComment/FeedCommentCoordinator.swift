@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol FeedCommentListener: AnyObject {
   func requestReportAtFeedComment(feedId: Int)
