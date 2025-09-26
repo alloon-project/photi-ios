@@ -6,10 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol WithdrawAuthDependency: Dependency {
+protocol WithdrawAuthDependency {
   var profileEditUsecase: ProfileEditUseCase { get }
 }
 
