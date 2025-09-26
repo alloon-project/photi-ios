@@ -6,12 +6,12 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 import UseCase
 import Report
 
-protocol SettingDependency: Dependency {
+protocol SettingDependency {
   var profileEditUseCase: ProfileEditUseCase { get }
   var reportContainable: ReportContainable { get }
   var resetPasswordContainable: ResetPasswordContainable { get }

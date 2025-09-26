@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Coordinator
 import RxCocoa
 import RxSwift
 import SnapKit
@@ -135,6 +136,18 @@ private extension SettingViewController {
         owner.logOutAlertView.present(to: owner, animted: true)
       }
       .disposed(by: disposeBag)
+    
+    output.presentPrivacyPolicy
+      .emit(with: self) { owner, _ in
+        owner.presentPrivacyPolicyWebView()
+      }
+      .disposed(by: disposeBag)
+    
+    output.presentServiceTerms
+      .emit(with: self) { owner, _ in
+        owner.presentServiceTermsWebView()
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -171,5 +184,24 @@ extension SettingViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let item = settingMenuItems[indexPath.row]
     didTapSettingMenu.accept(item)
+  }
+}
+
+// MARK: - Private Methods
+private extension SettingViewController {
+  func presentPrivacyPolicyWebView() {
+    let privacyUrl = ServiceConfiguration.shared.privacyUrl
+    presentWebView(with: privacyUrl)
+  }
+  
+  func presentServiceTermsWebView() {
+    let serviceTermsUrl = ServiceConfiguration.shared.termsUrl
+    presentWebView(with: serviceTermsUrl)
+  }
+  
+  func presentWebView(with url: URL) {
+    let webviewController = WebViewController(url: url)
+    webviewController.modalPresentationStyle = .pageSheet
+    present(webviewController, animated: true)
   }
 }

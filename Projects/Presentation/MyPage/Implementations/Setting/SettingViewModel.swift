@@ -13,11 +13,9 @@ import Core
 import UseCase
 
 protocol SettingCoordinatable: AnyObject {
+  @MainActor func attachProfileEdit()
+  @MainActor func attachInquiry()
   func didTapBackButton()
-  func attachProfileEdit()
-  func attachInquiry()
-  func attachServiceTerms()
-  func attachPrivacy()
   func didFinishLogOut()
 }
 
@@ -44,6 +42,8 @@ final class SettingViewModel: SettingViewModelType {
   
   private let settingMenuItemsRelay = BehaviorRelay<[SettingMenuItem]>(value: [])
   private let shouldPresentLogoutAlert = PublishRelay<Void>()
+  private let presentPrivacyPolicy = PublishRelay<Void>()
+  private let presentServiceTerms = PublishRelay<Void>()
   
   // MARK: - Input
   struct Input {
@@ -57,6 +57,8 @@ final class SettingViewModel: SettingViewModelType {
   struct Output {
     let settingMenuItems: Driver<[SettingMenuItem]>
     let shouldPresentLogoutAlert: Signal<Void>
+    let presentPrivacyPolicy: Signal<Void>
+    let presentServiceTerms: Signal<Void>
   }
   
   // MARK: - Initializers
@@ -79,7 +81,7 @@ final class SettingViewModel: SettingViewModelType {
 
     input.didTapSettingMenu
       .emit(with: self) { owner, menu in
-        owner.navigate(for: menu)
+        Task { await owner.navigate(for: menu) }
       }
       .disposed(by: disposeBag)
     
@@ -91,19 +93,21 @@ final class SettingViewModel: SettingViewModelType {
     
     return Output(
       settingMenuItems: settingMenuItemsRelay.asDriver(),
-      shouldPresentLogoutAlert: shouldPresentLogoutAlert.asSignal()
+      shouldPresentLogoutAlert: shouldPresentLogoutAlert.asSignal(),
+      presentPrivacyPolicy: presentPrivacyPolicy.asSignal(),
+      presentServiceTerms: presentServiceTerms.asSignal()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension SettingViewModel {
-  func navigate(for settingMenu: SettingMenuItem) {
+  @MainActor func navigate(for settingMenu: SettingMenuItem) {
     switch settingMenu {
       case .editProfile: coordinator?.attachProfileEdit()
       case .contactSupport: coordinator?.attachInquiry()
-      case .termsOfService: coordinator?.attachServiceTerms()
-      case .privacyPolicy: coordinator?.attachPrivacy()
+      case .termsOfService: presentServiceTerms.accept(())
+      case .privacyPolicy: presentPrivacyPolicy.accept(())
       case .logout: shouldPresentLogoutAlert.accept(())
       default: break
     }
