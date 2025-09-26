@@ -6,10 +6,10 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol TempPasswordDependency: Dependency {
+protocol TempPasswordDependency {
   var loginUseCase: LogInUseCase { get }
 }
 
