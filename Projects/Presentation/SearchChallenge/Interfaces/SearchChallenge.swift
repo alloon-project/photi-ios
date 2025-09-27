@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 public protocol SearchChallengeContainable: Containable {
   func coordinator(listener: SearchChallengeListener) -> ViewableCoordinating

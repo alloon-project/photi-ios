@@ -11,9 +11,9 @@ import RxSwift
 import UseCase
 
 protocol SearchResultCoordinatable: AnyObject {
+  @MainActor func attachChallenge(id: Int)
+  @MainActor func attachNonememberChallenge(id: Int)
   func didTapBackButton()
-  func attachChallenge(id: Int)
-  func attachNonememberChallenge(id: Int)
 }
 
 protocol SearchResultViewModelType: AnyObject {

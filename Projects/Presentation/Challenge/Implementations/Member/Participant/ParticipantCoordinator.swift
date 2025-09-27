@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol ParticipantListener: AnyObject {
   func didChangeContentOffsetAtParticipant(_ offset: Double)
@@ -45,7 +45,7 @@ extension ParticipantCoordinator: ParticipantCoordinatable {
   }
   
   func didTapEditButton(goal: String) {
-    attachEditChallengeGoal(goal: goal)
+    Task { await attachEditChallengeGoal(goal: goal) }
   }
   
   func authenticatedFailed() {
@@ -58,7 +58,7 @@ extension ParticipantCoordinator: ParticipantCoordinatable {
 }
 
 // MARK: - EditChallengeGoal
-extension ParticipantCoordinator {
+@MainActor extension ParticipantCoordinator {
   func attachEditChallengeGoal(goal: String) {
     guard editChallengeGoalCoordinator == nil else { return }
     
@@ -88,12 +88,14 @@ extension ParticipantCoordinator {
 // MARK: - EditChallengeGoalListener
 extension ParticipantCoordinator: EnterChallengeGoalListener {
   func didTapBackButtonAtEnterChallengeGoal() {
-    detachEditChallengeGoal()
+    Task { await detachEditChallengeGoal() }
   }
   
   func didFinishEnteringGoal(_ goal: String) {
-    detachEditChallengeGoal { [weak self] in
-      self?.presenter.didUpdateGoal(goal)
+    Task { @MainActor in
+      detachEditChallengeGoal { [weak self] in
+        self?.presenter.didUpdateGoal(goal)
+      }
     }
   }
   

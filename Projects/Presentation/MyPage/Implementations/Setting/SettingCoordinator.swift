@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Core
 import Report
 
@@ -45,8 +46,10 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  // MARK: - Profile Edit
+}
+
+// MARK: - Profile Edit
+@MainActor extension SettingCoordinator {
   func attachProfileEdit() {
     guard profileEditCoordinator == nil else { return }
     
@@ -63,8 +66,10 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
     viewControllerable.popViewController(animated: true)
     self.profileEditCoordinator = nil
   }
-  
-  // MARK: - Inquiry
+}
+
+// MARK: - Inquiry
+@MainActor extension SettingCoordinator {
   func attachInquiry() {
     guard reportCoordinator == nil else { return }
     
@@ -80,28 +85,6 @@ final class SettingCoordinator: ViewableCoordinator<SettingPresentable> {
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.reportCoordinator = nil
-  }
-  
-  // MARK: - Service Term
-  func attachServiceTerms() {
-    let termUrl = ServiceConfiguration.shared.termsUrl
-    let webViewController = WebViewController(url: termUrl)
-    viewControllerable.present(
-      webViewController,
-      animated: true,
-      modalPresentationStyle: .pageSheet
-    )
-  }
-  
-  // MARK: - Privacy
-  func attachPrivacy() {
-    let privacyUrl = ServiceConfiguration.shared.privacyUrl
-    let webviewController = WebViewController(url: privacyUrl)
-    viewControllerable.present(
-      webviewController,
-      animated: true,
-      modalPresentationStyle: .pageSheet
-    )
   }
 }
 
@@ -122,7 +105,7 @@ extension SettingCoordinator: ProfileEditListener {
   }
   
   func didTapBackButtonAtProfileEdit() {
-    detachProfileEdit()
+    Task { await detachProfileEdit() }
   }
   
   func authenticatedFailedAtProfileEdit() {
@@ -133,11 +116,11 @@ extension SettingCoordinator: ProfileEditListener {
 // MARK: - Report
 extension SettingCoordinator: ReportListener {
   func didInquiryApplicated() {
-    detachInquiry()
+    Task { await detachInquiry() }
     presenter.presentInquiryApplicated()
   }
   
-  func detachReport() {
-    detachInquiry()
+  func didTapBackButtonAtReport() {
+    Task { await detachInquiry() }
   }
 }

@@ -13,7 +13,7 @@ import Entity
 import UseCase
 
 protocol EnterEmailCoordinatable: AnyObject {
-  func attachVerifyEmail(userEmail: String)
+  @MainActor func attachVerifyEmail(userEmail: String)
   func didTapBackButton()
 }
 

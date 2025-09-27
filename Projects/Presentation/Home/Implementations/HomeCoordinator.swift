@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Coordinator
 import RxSwift
-import Core
 import Entity
 import Home
 import UseCase
@@ -51,8 +51,8 @@ final class HomeCoordinator: Coordinator {
 }
 
 // MARK: - ChallengeHome
-private extension HomeCoordinator {
-  @MainActor func attachChallengeHome(animated: Bool = true, challengeId: Int? = nil) {
+@MainActor private extension HomeCoordinator {
+  func attachChallengeHome(animated: Bool = true, challengeId: Int? = nil) {
     guard challengeHomeCoordinator == nil else { return }
     
     let coordinator = challengeHomeContainer.coordinator(listener: self, challengeId: challengeId)
@@ -62,7 +62,7 @@ private extension HomeCoordinator {
     self.challengeHomeCoordinator = coordinator
   }
   
-  @MainActor func detachChallengeHome() {
+  func detachChallengeHome() {
     guard let coordinator = challengeHomeCoordinator else { return }
     
     removeChild(coordinator)
@@ -71,8 +71,8 @@ private extension HomeCoordinator {
 }
 
 // MARK: - NoneChallengeHome
-private extension HomeCoordinator {
-  @MainActor func attachNoneChallengeHome(animated: Bool = true) {
+@MainActor private extension HomeCoordinator {
+  func attachNoneChallengeHome(animated: Bool = true) {
     guard noneChallengeHomeCoordinator == nil else { return }
     
     let coordinator = noneChallengeHomeContainer.coordinator(listener: self)
@@ -82,7 +82,7 @@ private extension HomeCoordinator {
     self.noneChallengeHomeCoordinator = coordinator
   }
   
-  @MainActor func detachNoneChallengeHome() {
+  func detachNoneChallengeHome() {
     guard let coordinator = noneChallengeHomeCoordinator else { return }
     
     removeChild(coordinator)
@@ -91,8 +91,8 @@ private extension HomeCoordinator {
 }
 
 // MARK: - NoneMemberHome
-private extension HomeCoordinator {
-  @MainActor func attachNoneMemberHome(animated: Bool = true) {
+@MainActor private extension HomeCoordinator {
+  func attachNoneMemberHome(animated: Bool = true) {
     guard noneMemberHomeCoordinator == nil else { return }
     let coordinator = noneMemberHomeContainer.coordinator(listener: self)
     addChild(coordinator)
@@ -101,7 +101,7 @@ private extension HomeCoordinator {
     self.noneMemberHomeCoordinator = coordinator
   }
   
-  @MainActor func detachNoneMemberHome() {
+  func detachNoneMemberHome() {
     guard let coordinator = noneMemberHomeCoordinator else { return }
     
     removeChild(coordinator)

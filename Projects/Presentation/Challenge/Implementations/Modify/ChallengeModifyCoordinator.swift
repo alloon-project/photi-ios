@@ -6,6 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
 import Core
 
@@ -92,51 +93,23 @@ final class ChallengeModifyCoordinator: ViewableCoordinator<ChallengeModifyPrese
   }
 }
 
-// MARK: - Detach
-private extension ChallengeModifyCoordinator {
-  func detachModifyName() {
-    guard let coordinator = modifyNameCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.modifyNameCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+// MARK: - ChallengeModifyCoordinatable
+extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtModifyChallenge()
   }
   
-  func detachModifyGoal() {
-    guard let coordinator = modifyGoalCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.modifyGoalCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+  func didModifiedChallenge() {
+    listener?.challengeModified()
   }
   
-  func detachModifyCover() {
-    guard let coordinator = modifyCoverCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.modifyCoverCoordinator = nil
-    viewControllerable.popViewController(animated: true)
-  }
-  
-  func detachModifyHashtag() {
-    guard let coordinator = modifyHashtagCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.modifyHashtagCoordinator = nil
-    viewControllerable.popViewController(animated: true)
-  }
-  
-  func detachModifyRule() {
-    guard let coordinator = modifyRuleCoordinator else { return }
-    
-    removeChild(coordinator)
-    self.modifyRuleCoordinator = nil
-    viewControllerable.popViewController(animated: true)
+  func didTapAlert() {
+    listener?.didTapAlertButtonAtModifyChallenge()
   }
 }
 
-// MARK: - ChallengeModifyCoordinatable
-extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
+// MARK: - ModifyName
+@MainActor extension ChallengeModifyCoordinator {
   func attachModifyName() {
     guard modifyNameCoordinator == nil else { return }
     
@@ -151,6 +124,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     self.modifyNameCoordinator = coordinater
   }
   
+  func detachModifyName() {
+    guard let coordinator = modifyNameCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyNameCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: - ModifyGoal
+@MainActor extension ChallengeModifyCoordinator {
   func attachModifyGoal() {
     guard modifyGoalCoordinator == nil else { return }
     
@@ -167,6 +151,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     self.modifyGoalCoordinator = coordinater
   }
   
+  func detachModifyGoal() {
+    guard let coordinator = modifyGoalCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyGoalCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: - ModifyCover
+@MainActor extension ChallengeModifyCoordinator {
   func attachModifyCover() {
     guard modifyCoverCoordinator == nil else { return }
     
@@ -177,6 +172,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     self.modifyCoverCoordinator = coordinater
   }
   
+  func detachModifyCover() {
+    guard let coordinator = modifyCoverCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyCoverCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: - ModifyHashtag
+@MainActor extension ChallengeModifyCoordinator {
   func attachModifyHashtag() {
     guard modifyHashtagCoordinator == nil else { return }
     
@@ -187,6 +193,17 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     self.modifyHashtagCoordinator = coordinater
   }
   
+  func detachModifyHashtag() {
+    guard let coordinator = modifyHashtagCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyHashtagCoordinator = nil
+    viewControllerable.popViewController(animated: true)
+  }
+}
+
+// MARK: - ModifyRule
+@MainActor extension ChallengeModifyCoordinator {
   func attachModifyRule() {
     guard modifyHashtagCoordinator == nil else { return }
     
@@ -201,27 +218,23 @@ extension ChallengeModifyCoordinator: ChallengeModifyCoordinatable {
     self.modifyRuleCoordinator = coordinater
   }
   
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtModifyChallenge()
-  }
-  
-  func didModifiedChallenge() {
-    listener?.challengeModified()
-  }
-  
-  func didTapAlert() {
-    listener?.didTapAlertButtonAtModifyChallenge()
+  func detachModifyRule() {
+    guard let coordinator = modifyRuleCoordinator else { return }
+    
+    removeChild(coordinator)
+    self.modifyRuleCoordinator = nil
+    viewControllerable.popViewController(animated: true)
   }
 }
 
 // MARK: ModifyChallenge Name Listener
 extension ChallengeModifyCoordinator: ChallengeNameListener {
   func didTapBackButtonAtChallengeName() {
-    detachModifyName()
+    Task { await detachModifyName() }
   }
   
   func didFisishChallengeName(challengeName: String, isPublic: Bool) {
-    detachModifyName()
+    Task { await detachModifyName() }
     presenter.modifyName(name: challengeName)
   }
 }
@@ -229,11 +242,11 @@ extension ChallengeModifyCoordinator: ChallengeNameListener {
 // MARK: ModifyChallenge Goal Listener
 extension ChallengeModifyCoordinator: ChallengeGoalListener {
   func didTapBackButtonAtChallengeGoal() {
-    detachModifyGoal()
+    Task { await detachModifyGoal() }
   }
   
   func didFisishChallengeGoal(challengeGoal: String, proveTime: String, endDate: String) {
-    detachModifyGoal()
+    Task { await detachModifyGoal() }
     presenter.modifyGoal(goal: challengeGoal, verificationTime: proveTime, endDate: endDate)
   }
 }
@@ -241,11 +254,11 @@ extension ChallengeModifyCoordinator: ChallengeGoalListener {
 // MARK: ModifyChallenge Cover Listener
 extension ChallengeModifyCoordinator: ChallengeCoverListener {
   func didTapBackButtonAtChallengeCover() {
-    detachModifyCover()
+    Task { await detachModifyCover() }
   }
   
   func didFinishedChallengeCover(coverImage: UIImageWrapper) {
-    detachModifyCover()
+    Task { await detachModifyCover() }
     presenter.modifyCover(image: coverImage)
   }
 }
@@ -253,11 +266,11 @@ extension ChallengeModifyCoordinator: ChallengeCoverListener {
 // MARK: ModifyChallenge Hashtag Listener
 extension ChallengeModifyCoordinator: ChallengeHashtagListener {
   func didTapBackButtonAtChallengeHashtag() {
-    detachModifyHashtag()
+    Task { await detachModifyHashtag() }
   }
   
   func didFinishChallengeHashtags(challengeHashtags: [String]) {
-    detachModifyHashtag()
+    Task { await detachModifyHashtag() }
     presenter.modifyHashtags(hashtags: challengeHashtags)
   }
 }
@@ -265,11 +278,11 @@ extension ChallengeModifyCoordinator: ChallengeHashtagListener {
 // MARK: ModifyChallenge Rule Listener
 extension ChallengeModifyCoordinator: ChallengeRuleListener {
   func didTapBackButtonAtChallengeRule() {
-    detachModifyRule()
+    Task { await detachModifyRule() }
   }
   
   func didFinishChallengeRules(challengeRules: [String]) {
-    detachModifyRule()
+    Task { await detachModifyRule() }
     presenter.modifyRules(rules: challengeRules)
   }
 }

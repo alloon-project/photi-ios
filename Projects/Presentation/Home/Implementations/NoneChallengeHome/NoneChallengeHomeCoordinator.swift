@@ -6,8 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Challenge
+import Coordinator
 import Core
+import Challenge
 
 protocol NoneChallengeHomeListener: AnyObject {
   func authenticatedFailedAtNoneChallengeHome()
@@ -50,8 +51,8 @@ final class NoneChallengeHomeCoordinator: ViewableCoordinator<NoneChallengeHomeP
   }
 }
 
-// MARK: - NoneMemberHomeCoordinatable
-extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
+// MARK: - NoneMemeberChallenge
+@MainActor extension NoneChallengeHomeCoordinator {
   func attachNoneMemberChallenge(challengeId: Int) {
     guard noneMemberChallengeCoordinator == nil else { return }
     
@@ -68,7 +69,10 @@ extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
     viewControllerable.uiviewController.showTabBar(animted: true)
     noneMemberChallengeCoordinator = nil
   }
-  
+}
+
+// MARK: - ChallengeOrganize
+@MainActor extension NoneChallengeHomeCoordinator {
   func attachChallengeOrganize() {
     guard challengeOrganizeCoordinator == nil else { return }
     
@@ -94,10 +98,13 @@ extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable {
   }
 }
 
+// MARK: - NoneMemberHomeCoordinatable
+extension NoneChallengeHomeCoordinator: NoneChallengeHomeCoordinatable { }
+
 // MARK: - NoneMemberChallengeListener
 extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
-    detachNoneMemberChallenge()
+    Task { await detachNoneMemberChallenge() }
   }
   
   func alreadyJoinedChallenge(id: Int) {
@@ -113,18 +120,18 @@ extension NoneChallengeHomeCoordinator: NoneMemberChallengeListener {
   }
   
   func shouldDismissNoneMemberChallenge() {
-    detachNoneMemberChallenge()
+    Task { await detachNoneMemberChallenge() }
   }
 }
 
 // MARK: - ChallengeOrganizeListener
 extension NoneChallengeHomeCoordinator: ChallengeOrganizeListener {
   func didTapBackButtonAtChallengeOrganize() {
-    detachChallengeOrganize(animated: true)
+    Task { await detachChallengeOrganize(animated: true) }
   }
   
   func didOrganizedChallenge(challengeId: Int) {
-    detachChallengeOrganize(animated: false)
+    Task { await detachChallengeOrganize(animated: false) }
     listener?.didCreateChallenge(challengeId: challengeId)
   }
 }

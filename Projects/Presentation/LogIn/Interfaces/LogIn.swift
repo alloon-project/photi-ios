@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 public protocol LogInContainable: Containable {
   func coordinator(listener: LogInListener) -> ViewableCoordinating

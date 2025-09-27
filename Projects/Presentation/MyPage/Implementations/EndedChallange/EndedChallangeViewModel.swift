@@ -12,8 +12,8 @@ import Entity
 import UseCase
 
 protocol EndedChallengeCoordinatable: AnyObject {
+  @MainActor func attachChallenge(id: Int)
   func didTapBackButton()
-  func attachChallenge(id: Int)
   func authenticateFailed()
 }
 
@@ -69,7 +69,7 @@ final class EndedChallengeViewModel: EndedChallengeViewModelType {
     
     input.didTapChallenge
       .emit(with: self) { owner, id in
-        owner.coordinator?.attachChallenge(id: id)
+        Task { await owner.coordinator?.attachChallenge(id: id) }
       }
       .disposed(by: disposeBag)
     

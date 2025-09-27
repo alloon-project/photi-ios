@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol EnterEmailListener: AnyObject {
   func didTapBackButtonAtEnterEmail()
@@ -37,10 +37,12 @@ final class EnterEmailCoordinator: ViewableCoordinator<EnterEmailPresentable> {
   }
   
   override func stop() {
-    detachVerifyEmail()
+    Task { await detachVerifyEmail() }
   }
-  
-  // MARK: - VerifyEmail
+}
+
+// MARK: - VerifyEmail
+@MainActor extension EnterEmailCoordinator {
   func attachVerifyEmail(userEmail: String) {
     guard verifyEmailCoordinator == nil else { return }
     
@@ -71,11 +73,11 @@ extension EnterEmailCoordinator: EnterEmailCoordinatable {
 // MARK: - VerifyEmailListener
 extension EnterEmailCoordinator: VerifyEmailListener {
   func didTapBackButtonAtVerifyEmail() {
-    detachVerifyEmail()
+    Task { await detachVerifyEmail() }
   }
   
   func didFinishVerifyEmail(with verificationCode: String) {
-    guard let email else { return }
+    guard email != nil else { return }
     
     listener?.didFinishEnterEmail()
   }

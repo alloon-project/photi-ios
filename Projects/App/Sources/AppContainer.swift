@@ -6,9 +6,9 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Coordinator
 import Challenge
 import ChallengeImpl
-import Core
 import DataMapper
 import Home
 import HomeImpl
@@ -25,7 +25,7 @@ import SearchChallengeImpl
 import UseCase
 import UseCaseImpl
 
-final class AppDependency: Dependency { }
+final class AppDependency { }
 
 protocol AppContainable: Containable {
   func coordinator() -> ViewableCoordinating

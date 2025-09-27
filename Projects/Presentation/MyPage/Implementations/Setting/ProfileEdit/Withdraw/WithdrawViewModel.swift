@@ -10,8 +10,8 @@ import RxCocoa
 import RxSwift
 
 protocol WithdrawCoordinatable: AnyObject {
+  @MainActor func attachWithdrawAuth()
   func didTapBackButton()
-  func attachWithdrawAuth()
   func didTapCancelButton()
 }
 
@@ -49,7 +49,7 @@ final class WithdrawViewModel: WithdrawViewModelType {
     
     input.didTapWithdrawButton
       .bind(with: self) { onwer, _ in
-        onwer.coodinator?.attachWithdrawAuth()
+        Task { await onwer.coodinator?.attachWithdrawAuth() }
       }.disposed(by: disposeBag)
     
     input.didTapCancelButton

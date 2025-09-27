@@ -14,9 +14,9 @@ import Entity
 import UseCase
 
 protocol ProfileEditCoordinatable: AnyObject {
+  @MainActor func attachChangePassword(userName: String, userEmail: String)
+  @MainActor func attachWithdraw()
   func didTapBackButton()
-  func attachChangePassword(userName: String, userEmail: String)
-  func attachWithdraw()
   func authenticatedFailed()
 }
 
@@ -79,7 +79,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     
     input.didTapProfileEditMenu
       .emit(with: self) { owner, item in
-        owner.navitate(to: item)
+        Task { await owner.navitate(to: item) }
       }
       .disposed(by: disposeBag)
     
@@ -91,7 +91,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     
     input.didTapWithdrawButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachWithdraw()
+        Task { await owner.coordinator?.attachWithdraw() }
       }
       .disposed(by: disposeBag)
     
@@ -158,7 +158,7 @@ private extension ProfileEditViewModel {
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  func navitate(to item: ProfileEditMenuItem) {
+  @MainActor func navitate(to item: ProfileEditMenuItem) {
     switch item {
       case .editPassword:
         guard let userName, let userEmail else { return }

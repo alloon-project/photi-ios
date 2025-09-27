@@ -6,11 +6,11 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import Report
 import UseCase
 
-public protocol ReportDependency: Dependency {
+public protocol ReportDependency {
   var reportUseCase: ReportUseCase { get }
   var inquiryUseCase: InquiryUseCase { get }
 }

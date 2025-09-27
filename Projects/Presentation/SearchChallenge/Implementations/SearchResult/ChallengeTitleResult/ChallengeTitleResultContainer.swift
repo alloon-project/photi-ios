@@ -6,11 +6,11 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import RxCocoa
-import Core
 import UseCase
 
-protocol ChallengeTitleResultDependency: Dependency {
+protocol ChallengeTitleResultDependency {
   var searchUseCase: SearchUseCase { get }
 }
 

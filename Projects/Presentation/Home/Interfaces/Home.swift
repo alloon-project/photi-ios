@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 public protocol HomeContainable: Containable {
   func coordinator(navigationControllerable: NavigationControllerable, listener: HomeListener) -> Coordinating

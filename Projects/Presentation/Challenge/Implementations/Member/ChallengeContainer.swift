@@ -6,12 +6,12 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import Report
 import UseCase
 
-public protocol ChallengeDependency: Dependency {
+public protocol ChallengeDependency {
   var reportContainable: ReportContainable { get }
   var challengeUseCase: ChallengeUseCase { get }
   var feedUseCase: FeedUseCase { get }

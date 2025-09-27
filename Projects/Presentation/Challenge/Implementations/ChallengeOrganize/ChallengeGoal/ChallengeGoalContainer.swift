@@ -6,10 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol ChallengeGoalDependency: Dependency {
+protocol ChallengeGoalDependency {
   var organizeUseCase: OrganizeUseCase { get }
 }
 

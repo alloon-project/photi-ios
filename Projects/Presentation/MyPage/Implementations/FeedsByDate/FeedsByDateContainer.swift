@@ -7,11 +7,11 @@
 //
 
 import Foundation
+import Coordinator
 import Challenge
-import Core
 import UseCase
 
-protocol FeedsByDateDependency: Dependency {
+protocol FeedsByDateDependency {
   var myPageUseCase: MyPageUseCase { get }
   var challengeContainable: ChallengeContainable { get }
 }

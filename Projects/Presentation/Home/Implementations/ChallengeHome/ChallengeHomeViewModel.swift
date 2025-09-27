@@ -14,10 +14,10 @@ import Entity
 import UseCase
 
 protocol ChallengeHomeCoordinatable: AnyObject {
+  @MainActor func attachChallenge(id: Int)
+  @MainActor func attachChallengeWithFeed(challengeId: Int, feedId: Int)
   func authenticatedFailed()
   func requestNoneChallengeHome()
-  func attachChallenge(id: Int)
-  func attachChallengeWithFeed(challengeId: Int, feedId: Int)
 }
 
 protocol ChallengeHomeViewModelType: AnyObject {
@@ -78,7 +78,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     input.viewDidAppear
       .emit(with: self) { owner, _ in
         guard let id = owner.firstJoinedChallengeId else { return }
-        owner.coordinator?.attachChallenge(id: id)
+        Task { await owner.coordinator?.attachChallenge(id: id) }
         owner.firstJoinedChallengeId = nil
       }.disposed(by: disposeBag)
     
@@ -96,13 +96,13 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     
     input.didTapChallenge
       .emit(with: self) { owner, id in
-        owner.coordinator?.attachChallenge(id: id)
+        Task { await owner.coordinator?.attachChallenge(id: id) }
       }
       .disposed(by: disposeBag)
     
     input.didTapFeed
       .emit(with: self) { owner, infos in
-        owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1)
+        Task { await  owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1) }
       }
       .disposed(by: disposeBag)
     

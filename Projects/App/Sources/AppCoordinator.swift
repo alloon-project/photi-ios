@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Coordinator
 import Core
 import Home
 import LogIn
@@ -131,7 +132,7 @@ private extension AppCoordinator {
     guard searchChallengeCoordinator == nil else { return }
     
     let coordinator = searchChallengeContainer.coordinator(listener: self)
-    searchChallengeNavigationControllerable.setViewControllers([coordinator.viewControllerable])
+    searchChallengeNavigationControllerable.setViewControllers([coordinator.viewControllerable], animated: true)
     addChild(coordinator)
     self.searchChallengeCoordinator = coordinator
   }
@@ -149,7 +150,7 @@ private extension AppCoordinator {
     guard myPageCoordinator == nil else { return }
     
     let coordinator = myPageContainer.coordinator(listener: self)
-    myPageNavigationControllerable.setViewControllers([coordinator.viewControllerable])
+    myPageNavigationControllerable.setViewControllers([coordinator.viewControllerable], animated: true)
     addChild(coordinator)
     self.myPageCoordinator = coordinator
   }

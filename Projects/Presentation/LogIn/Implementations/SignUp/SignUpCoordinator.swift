@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 
 protocol SignUpViewModelable { }
@@ -45,16 +45,20 @@ final class SignUpCoordinator: Coordinator {
   
   override func start() {
     navigationControllerable.navigationController.navigationBar.isHidden = true
-    attachEnterEmail()
+    Task { await attachEnterEmail() }
   }
   
   override func stop() {
-    detachEnterPassword()
-    detachEnterId()
-    detachEnterEmail()
+    Task {
+      await detachEnterPassword()
+      await detachEnterId()
+      await detachEnterEmail()
+    }
   }
-  
-  // MARK: - EnterEmail
+}
+ 
+// MARK: - EnterEmail
+@MainActor extension SignUpCoordinator {
   func attachEnterEmail() {
     guard enterEmailCoordinator == nil else { return }
     
@@ -71,8 +75,10 @@ final class SignUpCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: true)
     self.enterEmailCoordinator = nil
   }
-  
-  // MARK: - EnterId
+}
+
+// MARK: - EnterId
+@MainActor extension SignUpCoordinator {
   func attachEnterId() {
     guard enterIdCoordinator == nil else { return }
     
@@ -90,8 +96,10 @@ final class SignUpCoordinator: Coordinator {
     navigationControllerable.popViewController(animated: false)
     self.enterIdCoordinator = nil
   }
-  
-  // MARK: - EnterPassword
+}
+
+// MARK: - EnterPassword
+@MainActor extension SignUpCoordinator {
   func attachEnterPassword() {
     guard enterPasswordCoordinator == nil else { return }
     
@@ -114,30 +122,31 @@ final class SignUpCoordinator: Coordinator {
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
   func didTapBackButtonAtEnterEmail() {
-    detachEnterEmail()
+    Task { await detachEnterEmail() }
+    
     listener?.didTapBackButtonAtSignUp()
   }
   
   func didFinishEnterEmail() {
-    attachEnterId()
+    Task { await attachEnterId() }
   }
 }
 
 // MARK: - EnterIdListener
 extension SignUpCoordinator: EnterIdListener {
   func didTapBackButtonAtEnterId() {
-    detachEnterId()
+    Task { await detachEnterId() }
   }
   
   func didFinishEnterId() {
-    attachEnterPassword()
+    Task { await attachEnterPassword() }
   }
 }
 
 // MARK: - EnterPasswordListner
 extension SignUpCoordinator: EnterPasswordListener {
   func didTapBackButtonAtEnterPassword() {
-    detachEnterPassword()
+    Task { await detachEnterPassword() }
   }
   
   func didFinishEnterPassword(userName: String) {

@@ -6,9 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
-protocol LogInGuideDependency: Dependency { }
+protocol LogInGuideDependency { }
 
 protocol LogInGuideContainable: Containable {
   func coordinator(listener: LogInGuideListener) -> ViewableCoordinating

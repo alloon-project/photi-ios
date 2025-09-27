@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Core
+import Coordinator
 import MyPage
 
 protocol MyPagePresentable { }
@@ -50,7 +50,7 @@ final class MyPageCoordinator: ViewableCoordinator<MyPagePresentable> {
 }
 
 // MARK: - Setting
-extension MyPageCoordinator {
+@MainActor extension MyPageCoordinator {
   func attachSetting() {
     guard settingCoordinator == nil else { return }
     
@@ -71,7 +71,7 @@ extension MyPageCoordinator {
 }
 
 // MARK: - FeedHistory
-extension MyPageCoordinator {
+@MainActor extension MyPageCoordinator {
   func attachFeedHistory(count: Int) {
     guard feedHistoryCoordinator == nil else { return }
     
@@ -94,7 +94,7 @@ extension MyPageCoordinator {
 }
 
 // MARK: - EndedChallenge
-extension MyPageCoordinator {
+@MainActor extension MyPageCoordinator {
   func attachEndedChallenge(count: Int) {
     guard endedChallengeCoordinator == nil else { return }
     
@@ -114,7 +114,7 @@ extension MyPageCoordinator {
 }
 
 // MARK: - FeedsByDate
-extension MyPageCoordinator {
+@MainActor extension MyPageCoordinator {
   func attachFeedsBy(date: Date) {
     guard feedsByDateCoordinator == nil else { return }
     
@@ -142,12 +142,12 @@ extension MyPageCoordinator: MyPageCoordinatable {
 // MARK: - SettingListener
 extension MyPageCoordinator: SettingListener {
   func didFinishWithdrawal() {
-    detachSetting()
+    Task { await detachSetting() }
     listener?.didFinishWithdrawal()
   }
   
   func didTapBackButtonAtSetting() {
-    detachSetting()
+    Task { await detachSetting() }
   }
   
   func authenticatedFailedAtSetting() {
@@ -166,14 +166,14 @@ extension MyPageCoordinator: FeedHistoryListener {
   }
   
   func didTapBackButtonAtFeedHistory() {
-    detachFeedHistory()
+    Task { await detachFeedHistory() }
   }
 }
 
 // MARK: - EndedChallengeListener
 extension MyPageCoordinator: EndedChallengeListener {
   func didTapBackButtonAtEndedChallenge() {
-    detachEndedChallenge()
+    Task { await detachEndedChallenge() }
   }
   
   func authenticatedFailedAtEndedChallenge() {
@@ -184,7 +184,7 @@ extension MyPageCoordinator: EndedChallengeListener {
 // MARK: - FeedsByDateListener
 extension MyPageCoordinator: FeedsByDateListener {
   func didTapBackButtonAtFeedsByDate() {
-    detachFeedsByDate()
+    Task { await detachFeedsByDate() }
   }
   
   func authenticateFailedAtFeedsByDate() {

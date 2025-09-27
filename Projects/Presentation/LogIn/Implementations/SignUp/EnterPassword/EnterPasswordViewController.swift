@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Coordinator
 import RxCocoa
 import RxSwift
 import SnapKit

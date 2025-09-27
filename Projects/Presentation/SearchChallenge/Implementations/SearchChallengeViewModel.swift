@@ -12,11 +12,11 @@ import Entity
 import UseCase
 
 protocol SearchChallengeCoordinatable: AnyObject {
-  func attachChallengeOrganize()
+  @MainActor func attachChallengeOrganize()
+  @MainActor func attachChallenge(id: Int)
+  @MainActor func attachNonememberChallenge(id: Int)
+  @MainActor func attachLogin()
   func didStartSearch()
-  func attachChallenge(id: Int)
-  func attachNonememberChallenge(id: Int)
-  func attachLogin()
 }
 
 protocol SearchChallengeViewModelType: AnyObject {

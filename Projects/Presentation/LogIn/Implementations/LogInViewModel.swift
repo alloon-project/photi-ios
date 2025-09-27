@@ -12,9 +12,9 @@ import Entity
 import UseCase
 
 protocol LogInCoordinatable: AnyObject {
-  func attachSignUp()
-  func attachFindId()
-  func attachFindPassword()
+  @MainActor func attachSignUp()
+  @MainActor func attachFindId()
+  @MainActor func attachFindPassword()
   func didFinishLogIn(userName: String)
   func didTapBackButton()
 }
@@ -67,19 +67,19 @@ final class LogInViewModel: LogInViewModelType {
   func transform(input: Input) -> Output {
     input.didTapSignUpButton
       .bind(with: self) { owner, _ in
-        owner.coordinator?.attachSignUp()
+        Task { await owner.coordinator?.attachSignUp() }
       }
       .disposed(by: disposeBag)
     
     input.didTapFindIdButton
       .bind(with: self) { owner, _ in
-        owner.coordinator?.attachFindId()
+        Task { await owner.coordinator?.attachFindId() }
       }
       .disposed(by: disposeBag)
     
     input.didTapFindPasswordButton
       .bind(with: self) { owner, _ in
-        owner.coordinator?.attachFindPassword()
+        Task { await owner.coordinator?.attachFindPassword() }
       }
       .disposed(by: disposeBag)
     

@@ -6,10 +6,10 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol EnterPasswordDependency: Dependency { 
+protocol EnterPasswordDependency { 
   var signUpUseCase: SignUpUseCase { get }
 }
 

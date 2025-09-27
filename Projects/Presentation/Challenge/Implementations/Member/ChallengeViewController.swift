@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Coordinator
 import RxSwift
 import RxCocoa
 import Core
@@ -50,7 +51,6 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     view.backgroundColor = .white
     return view
   }()
-  
   
   // MARK: - Initializers
   init(viewModel: ChallengeViewModel) {

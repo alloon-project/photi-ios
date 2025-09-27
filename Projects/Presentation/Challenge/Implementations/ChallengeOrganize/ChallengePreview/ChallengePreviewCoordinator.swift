@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
+import Coordinator
 import Core
 
 protocol ChallengePreviewListener: AnyObject {

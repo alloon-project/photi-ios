@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol WithdrawListener: AnyObject {
   func didTapBackButtonAtWithdraw()
@@ -36,12 +36,8 @@ final class WithdrawCoordinator: ViewableCoordinator<WithdrawPresentable> {
   }
 }
 
-// MARK: - Coordinatable
-extension WithdrawCoordinator: WithdrawCoordinatable {
-  func didTapBackButton() {
-    listener?.didTapBackButtonAtWithdraw()
-  }
-  
+// MARK: - WithdrawAuth
+@MainActor extension WithdrawCoordinator {
   func attachWithdrawAuth() {
     guard withdrawAuthCoordinator == nil else { return }
     
@@ -51,12 +47,19 @@ extension WithdrawCoordinator: WithdrawCoordinatable {
     self.withdrawAuthCoordinator = coordinator
   }
   
-  func detachResignPassword() {
+  func withdrawAuthPassword() {
     guard let coordinator = withdrawAuthCoordinator else { return }
     
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.withdrawAuthCoordinator = nil
+  }
+}
+
+// MARK: - Coordinatable
+extension WithdrawCoordinator: WithdrawCoordinatable {
+  func didTapBackButton() {
+    listener?.didTapBackButtonAtWithdraw()
   }
   
   func didTapCancelButton() {
@@ -67,7 +70,7 @@ extension WithdrawCoordinator: WithdrawCoordinatable {
 // MARK: - WithdrawAuthListener
 extension WithdrawCoordinator: WithdrawAuthListener {
   func didTapBackButtonAtWithdrawAuth() {
-    detachResignPassword()
+    Task { await withdrawAuthPassword() }
   }
   
   func didFinishWithdrawal() {

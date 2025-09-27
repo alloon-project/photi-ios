@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
-protocol ChallengeStartDependency: Dependency {
-}
+protocol ChallengeStartDependency { }
 
 protocol ChallengeStartContainable: Containable {
   func coordinator(listener: ChallengeStartListener) -> ViewableCoordinating

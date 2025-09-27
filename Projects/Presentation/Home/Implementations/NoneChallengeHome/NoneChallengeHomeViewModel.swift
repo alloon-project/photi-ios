@@ -12,8 +12,8 @@ import Entity
 import UseCase
 
 protocol NoneChallengeHomeCoordinatable: AnyObject {
-  func attachNoneMemberChallenge(challengeId: Int)
-  func attachChallengeOrganize()
+  @MainActor func attachNoneMemberChallenge(challengeId: Int)
+  @MainActor func attachChallengeOrganize()
 }
 
 protocol NoneChallengeHomeViewModelType: AnyObject {
@@ -60,13 +60,13 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
     
     input.requestJoinChallenge
       .emit(with: self) { owner, id in
-        owner.coordinator?.attachNoneMemberChallenge(challengeId: id)
+        Task { await owner.coordinator?.attachNoneMemberChallenge(challengeId: id) }
       }
       .disposed(by: disposeBag)
     
     input.requestCreateChallenge
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachChallengeOrganize()
+        Task { await owner.coordinator?.attachChallengeOrganize() }
       }
       .disposed(by: disposeBag)
 

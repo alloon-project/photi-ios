@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Coordinator
 import Kingfisher
 import RxSwift
 import RxCocoa

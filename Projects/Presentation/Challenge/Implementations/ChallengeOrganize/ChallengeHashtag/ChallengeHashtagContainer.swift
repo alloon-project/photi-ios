@@ -6,10 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol ChallengeHashtagDependency: Dependency {
+protocol ChallengeHashtagDependency {
   var organizeUseCase: OrganizeUseCase { get }
 }
 

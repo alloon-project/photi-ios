@@ -6,12 +6,12 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import UseCase
 import Kingfisher
 
-protocol ChallengeModifyDependency: Dependency {
+protocol ChallengeModifyDependency {
   var organizeUseCase: OrganizeUseCase { get }
 }
 

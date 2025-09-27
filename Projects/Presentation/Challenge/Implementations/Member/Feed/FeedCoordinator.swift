@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 
 protocol FeedListener: AnyObject {
   func didChangeContentOffsetAtFeed(_ offset: Double)
@@ -56,12 +56,12 @@ final class FeedCoordinator: ViewableCoordinator<FeedPresentable> {
     guard case let .presentWithFeed(feedId) = initialPresentType, !viewDidAppeared else { return }
     
     viewDidAppeared = true
-    attachFeedDetail(challengeId: challengeId, feedId: feedId)
+    Task { await attachFeedDetail(challengeId: challengeId, feedId: feedId) }
   }
 }
 
-// MARK: - FeedCoordinatable
-extension FeedCoordinator: FeedCoordinatable {
+// MARK: - FeedDetail
+@MainActor extension FeedCoordinator {
   func attachFeedDetail(challengeId: Int, feedId: Int) {
     guard feedCommentCoordinator == nil else { return }
     let coordinator = feedCommentContainer.coordinator(
@@ -80,7 +80,6 @@ extension FeedCoordinator: FeedCoordinatable {
     )
   }
   
-  // MARK: - Detach
   func detachFeedDetail(completion: (() -> Void)? = nil) {
     guard let coordinator = feedCommentCoordinator else { return }
     
@@ -90,7 +89,10 @@ extension FeedCoordinator: FeedCoordinatable {
     }
     self.feedCommentCoordinator = nil
   }
-  
+}
+
+// MARK: - FeedCoordinatable
+extension FeedCoordinator: FeedCoordinatable {
   func didChangeContentOffset(_ offset: Double) {
     listener?.didChangeContentOffsetAtFeed(offset)
   }
@@ -111,32 +113,40 @@ extension FeedCoordinator: FeedCoordinatable {
 // MARK: - Listener
 extension FeedCoordinator: FeedCommentListener {
   func requestDismissAtFeedComment() {
-    detachFeedDetail()
+    Task { await detachFeedDetail() }
   }
   
   func deleteFeed(id: Int) {
-    detachFeedDetail { [weak self] in
-      self?.presenter.deleteFeed(feedId: id)
+    Task { @MainActor in
+      detachFeedDetail { [weak self] in
+        self?.presenter.deleteFeed(feedId: id)
+      }
+      viewModel.updateIsProveIfNeeded()
+      listener?.deleteFeed(challengeId: challengeId, feedId: id)
     }
-    viewModel.updateIsProveIfNeeded()
-    listener?.deleteFeed(challengeId: challengeId, feedId: id)
   }
   
   func authenticatedFailedAtFeedComment() {
-    detachFeedDetail { [weak self] in
-      self?.listener?.authenticatedFailedAtFeed()
+    Task { @MainActor in
+      detachFeedDetail { [weak self] in
+        self?.listener?.authenticatedFailedAtFeed()
+      }
     }
   }
   
   func networkUnstableAtFeedComment(reason: String?) {
-    detachFeedDetail { [weak self] in
-      self?.listener?.networkUnstableAtFeed(reason: reason)
+    Task { @MainActor in
+      detachFeedDetail { [weak self] in
+        self?.listener?.networkUnstableAtFeed(reason: reason)
+      }
     }
   }
   
   func requestReportAtFeedComment(feedId: Int) {
-    detachFeedDetail { [weak self] in
-      self?.listener?.requestReportAtFeed(feedId: feedId)
+    Task { @MainActor in
+      detachFeedDetail { [weak self] in
+        self?.listener?.requestReportAtFeed(feedId: feedId)
+      }
     }
   }
   

@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import Challenge
 
 protocol FeedsByDateListener: AnyObject {
@@ -40,7 +40,7 @@ final class FeedsByDateCoordinator: ViewableCoordinator<FeedsByDatePresentable> 
 }
 
 // MARK: - Challenge
-extension FeedsByDateCoordinator {
+@MainActor extension FeedsByDateCoordinator {
   func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
     guard challengeCoordinator == nil else { return }
     
@@ -81,15 +81,15 @@ extension FeedsByDateCoordinator: ChallengeListener {
   }
   
   func didTapBackButtonAtChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func shouldDismissChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func leaveChallenge(challengeId: Int) {
-    detachChallenge()
+    Task { await detachChallenge() }
     presenter.deleteAllFeeds(challengeId: challengeId)
   }
   

@@ -6,9 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
-protocol NoneMemberHomeDependency: Dependency { }
+protocol NoneMemberHomeDependency { }
 
 protocol NoneMemberHomeContainable: Containable {
   func coordinator(listener: NoneMemberHomeListener) -> ViewableCoordinating

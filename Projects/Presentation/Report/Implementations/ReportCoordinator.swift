@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import Report
 
 protocol ReportPresentable { }
@@ -34,6 +34,6 @@ extension ReportCoordinator: ReportCoordinatable {
   }
   
   func didTapBackButtonAtReport() {
-    listener?.detachReport()
+    listener?.didTapBackButtonAtReport()
   }
 }

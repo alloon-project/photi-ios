@@ -6,8 +6,6 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Foundation
-
 public enum ReportType {
   case challenge(_ id: Int)
   case member(_ id: Int)

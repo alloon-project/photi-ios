@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-import Core
+import Coordinator
 
 protocol ChallengeRuleListener: AnyObject {
   func didTapBackButtonAtChallengeRule()

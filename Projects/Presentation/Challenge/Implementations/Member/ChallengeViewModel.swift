@@ -13,12 +13,12 @@ import Entity
 import UseCase
 
 protocol ChallengeCoordinatable: AnyObject {
+  @MainActor func attachChallengeReport(challengeId: Int)
+  @MainActor func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
   func didTapBackButton()
   func didTapConfirmButtonAtAlert()
   func authenticatedFailed()
   func leaveChallenge(challengeId: Int)
-  func attachChallengeReport(challengeId: Int)
-  func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int)
   func didTapShareButton(challengeId: Int, inviteCode: String?, challengeName: String)
 }
 
@@ -87,7 +87,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapReportButton
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachChallengeReport(challengeId: owner.challengeId)
+        Task { await owner.coordinator?.attachChallengeReport(challengeId: owner.challengeId) }
       }
       .disposed(by: disposeBag)
     
@@ -101,10 +101,12 @@ final class ChallengeViewModel: ChallengeViewModelType {
       .emit(with: self) { owner, _ in
         guard let challengeDetail = owner.challengeDetail else { return }
         let viewPresentaionModel = owner.mapToEditPresentaionModel(challengeDetail)
-        owner.coordinator?.attachChallengeEdit(
-          model: viewPresentaionModel,
-          challengeId: owner.challengeId
-        )
+        Task { await
+          owner.coordinator?.attachChallengeEdit(
+            model: viewPresentaionModel,
+            challengeId: owner.challengeId
+          )
+        }
       }
       .disposed(by: disposeBag)
     

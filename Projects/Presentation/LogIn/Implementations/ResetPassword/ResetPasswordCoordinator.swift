@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 
 final class ResetPasswordCoordinator: Coordinator {
@@ -39,17 +39,19 @@ final class ResetPasswordCoordinator: Coordinator {
   }
   
   override func start() {
-    attachTempPassword(userEmail: userEmail, userName: userName)
+    Task { await attachTempPassword(userEmail: userEmail, userName: userName) }
   }
   
   override func stop() {
-    detachNewPassword(animated: false)
-    detachTempPassword(animated: false)
+    Task {
+      await detachNewPassword(animated: false)
+      await detachTempPassword(animated: false)
+    }
   }
 }
 
 // MARK: - Temp Password
-private extension ResetPasswordCoordinator {
+@MainActor private extension ResetPasswordCoordinator {
   func attachTempPassword(userEmail: String, userName: String) {
     guard tempPasswordCoordinator == nil else { return }
     
@@ -73,7 +75,7 @@ private extension ResetPasswordCoordinator {
 }
 
 // MARK: - New Password
-private extension ResetPasswordCoordinator {
+@MainActor private extension ResetPasswordCoordinator {
   func attatchNewPassword() {
     guard newPasswordCoordinator == nil else { return }
     
@@ -93,19 +95,19 @@ private extension ResetPasswordCoordinator {
 }
 
 extension ResetPasswordCoordinator: TempPasswordListener {
- func didFinishTempPassword() {
-   attatchNewPassword()
- }
- 
- func didTapBackButtonAtTempPassword() {
-   detachTempPassword(animated: true)
-   listener?.didCancelResetPassword()
- }
+  func didFinishTempPassword() {
+    Task { await attatchNewPassword() }
+  }
+  
+  func didTapBackButtonAtTempPassword() {
+    Task { await detachTempPassword(animated: true) }
+    listener?.didCancelResetPassword()
+  }
 }
 
 extension ResetPasswordCoordinator: NewPasswordListener {
   func didTapBackButtonAtNewPassword() {
-    detachNewPassword(animated: true)
+    Task { await detachTempPassword(animated: true) }
   }
   
   func didFinishUpdatePassword() {
