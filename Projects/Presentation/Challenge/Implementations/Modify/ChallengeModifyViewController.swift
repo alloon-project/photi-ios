@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Coordinator
 import RxCocoa
 import RxSwift
 import SnapKit
@@ -322,7 +323,6 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
          case .success(let imageResult):
            self.imageRelay.accept(UIImageWrapper(image: imageResult.image))
          case .failure(let isFail):
-           print(isFail.localizedDescription)
            self.imageRelay.accept(UIImageWrapper(image: .challengeOrganizeLuckyday))
          }
        }

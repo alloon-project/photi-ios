@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 protocol ProfileEditListener: AnyObject {
   func didTapBackButtonAtProfileEdit()
@@ -46,7 +46,7 @@ final class ProfileEditCoordinator: ViewableCoordinator<ProfileEditPresentable> 
 }
 
 // MARK: - ChangePassword
-extension ProfileEditCoordinator {
+@MainActor extension ProfileEditCoordinator {
   func attachChangePassword(userName: String, userEmail: String) {
     guard changePasswordCoordinator == nil else { return }
     
@@ -70,7 +70,7 @@ extension ProfileEditCoordinator {
 }
 
 // MARK: - Withdraw
-extension ProfileEditCoordinator {
+@MainActor extension ProfileEditCoordinator {
   func attachWithdraw() {
     guard withdrawCoordinator == nil else { return }
     
@@ -103,20 +103,22 @@ extension ProfileEditCoordinator: ProfileEditCoordinatable {
 // MARK: - ChangePasswordListener
 extension ProfileEditCoordinator: ChangePasswordListener {
   func didTapBackButtonAtChangePassword() {
-    detachChangePassword()
+    Task { await detachChangePassword() }
   }
   
   func didChangedPassword() {
-    detachChangePassword()
-    guard
-      let navigationController = viewControllerable.uiviewController.navigationController,
-      let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
-      viewControllerables.count >= 3
-    else { return }
-
-    let remainingVCs = Array(viewControllerables.prefix(3))
-    viewControllerable.setViewControllers(remainingVCs, animated: true)
-    presenter.displayToastView()
+    Task { @MainActor in
+      detachChangePassword()
+      guard
+        let navigationController = viewControllerable.uiviewController.navigationController,
+        let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
+        viewControllerables.count >= 3
+      else { return }
+      
+      let remainingVCs = Array(viewControllerables.prefix(3))
+      viewControllerable.setViewControllers(remainingVCs, animated: true)
+      presenter.displayToastView()
+    }
   }
   
   func authenticationFailedAtChangePassword() {
@@ -131,7 +133,7 @@ extension ProfileEditCoordinator: WithdrawListener {
   }
   
   func didTapBackButtonAtWithdraw() {
-    detachWithdraw()
+    Task { await detachWithdraw() }
   }
   
   func authenticatedFailedAtWithdraw() {

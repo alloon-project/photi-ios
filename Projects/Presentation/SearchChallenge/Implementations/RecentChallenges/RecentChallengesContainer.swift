@@ -6,10 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol RecentChallengesDependency: Dependency {
+protocol RecentChallengesDependency {
   var searchUseCase: SearchUseCase { get }
 }
 

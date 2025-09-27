@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 public protocol MyPageContainable: Containable {
   func coordinator(listener: MyPageListener) -> ViewableCoordinating

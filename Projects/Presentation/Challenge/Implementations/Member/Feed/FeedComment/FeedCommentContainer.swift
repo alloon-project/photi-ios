@@ -6,10 +6,10 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
-protocol FeedCommentDependency: Dependency {
+protocol FeedCommentDependency {
   var feedUseCase: FeedUseCase { get }
 }
 

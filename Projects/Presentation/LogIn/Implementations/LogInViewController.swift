@@ -7,10 +7,11 @@
 //
 
 import UIKit
+import Coordinator
 import RxSwift
 import SnapKit
-import DesignSystem
 import Core
+import DesignSystem
 
 final class LogInViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()

@@ -13,10 +13,10 @@ import Entity
 import UseCase
 
 protocol MyPageCoordinatable: AnyObject {
-  func attachSetting()
-  func attachEndedChallenge(count: Int)
-  func attachFeedHistory(count: Int)
-  func attachFeedsBy(date: Date)
+  @MainActor func attachSetting()
+  @MainActor func attachEndedChallenge(count: Int)
+  @MainActor func attachFeedHistory(count: Int)
+  @MainActor func attachFeedsBy(date: Date)
   func authenticatedFailed()
 }
 
@@ -72,14 +72,14 @@ final class MyPageViewModel: MyPageViewModelType {
   func transform(input: Input) -> Output {
     input.didTapSettingButton
       .bind(with: self) { owner, _ in
-        owner.coordinator?.attachSetting()
+        Task { await owner.coordinator?.attachSetting() }
       }.disposed(by: disposeBag)
     
     input.didTapAuthCountBox
       .withLatestFrom(feedHistoryCount)
       .filter { $0 > 0 }
       .bind(with: self) { owner, count in
-        owner.coordinator?.attachFeedHistory(count: count)
+        Task { await owner.coordinator?.attachFeedHistory(count: count) }
       }
       .disposed(by: disposeBag)
     
@@ -87,14 +87,14 @@ final class MyPageViewModel: MyPageViewModelType {
       .withLatestFrom(endedChallengeCount)
       .filter { $0 > 0 }
       .bind(with: self) { owner, count in
-        owner.coordinator?.attachEndedChallenge(count: count)
+        Task { await owner.coordinator?.attachEndedChallenge(count: count) }
       }
       .disposed(by: disposeBag)
     
     input.didTapDate
       .emit(with: self) { owner, date in
         guard owner.verifiedChallengeDates.value.contains(date) else { return }
-        owner.coordinator?.attachFeedsBy(date: date)
+        Task { await owner.coordinator?.attachFeedsBy(date: date) }
       }
       .disposed(by: disposeBag)
     

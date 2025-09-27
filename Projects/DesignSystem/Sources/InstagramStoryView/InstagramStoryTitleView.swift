@@ -28,7 +28,6 @@ final class InstagramStoryTitleView: UIView {
 
   // MARK: - Configure
   func configure(with title: String) {
-    print("title: \(title)")
     titleLabel.attributedText = title.attributedString(font: .heading3, color: .green700, alignment: .center)
   }
 }

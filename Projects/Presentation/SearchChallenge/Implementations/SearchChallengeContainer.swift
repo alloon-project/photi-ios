@@ -6,12 +6,12 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import Challenge
 import SearchChallenge
 import UseCase
 
-public protocol SearchChallengeDependency: Dependency {
+public protocol SearchChallengeDependency {
   var challengeOrganizeContainable: ChallengeOrganizeContainable { get }
   var searchUseCase: SearchUseCase { get }
   var challengeContainable: ChallengeContainable { get }

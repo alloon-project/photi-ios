@@ -14,11 +14,11 @@ import Entity
 import UseCase
 
 protocol ChallengeModifyCoordinatable: AnyObject {
-  func attachModifyName()
-  func attachModifyGoal()
-  func attachModifyCover()
-  func attachModifyHashtag()
-  func attachModifyRule()
+  @MainActor func attachModifyName()
+  @MainActor func attachModifyGoal()
+  @MainActor func attachModifyCover()
+  @MainActor func attachModifyHashtag()
+  @MainActor func attachModifyRule()
   func didTapBackButton()
   func didTapAlert()
   func didModifiedChallenge()
@@ -90,27 +90,27 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     
     input.didTapChallengeName
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachModifyName()
+        Task { await owner.coordinator?.attachModifyName() }
       }.disposed(by: disposeBag)
     
     input.didTapChallengeHashtag
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachModifyHashtag()
+        Task { await owner.coordinator?.attachModifyHashtag() }
       }.disposed(by: disposeBag)
     
     input.didTapChallengeGoal
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachModifyGoal()
+        Task { await owner.coordinator?.attachModifyGoal() }
       }.disposed(by: disposeBag)
     
     input.didTapChallengeCover
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachModifyCover()
+        Task { await owner.coordinator?.attachModifyCover() }
       }.disposed(by: disposeBag)
     
     input.didTapChallengeRule
       .emit(with: self) { owner, _ in
-        owner.coordinator?.attachModifyRule()
+        Task { await owner.coordinator?.attachModifyRule() }
       }.disposed(by: disposeBag)
     
     input.didTapModifyButton
@@ -186,7 +186,6 @@ private extension ChallengeModifyViewModel {
       .subscribe(with: self) { owner, _ in
         owner.coordinator?.didModifiedChallenge()
       } onFailure: { owner, error in
-        print(error)
         owner.requestFailed(with: error)
       }.disposed(by: disposeBag)
   }

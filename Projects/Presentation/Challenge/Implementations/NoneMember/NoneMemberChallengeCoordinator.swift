@@ -7,8 +7,8 @@
 //
 
 import Foundation
+import Coordinator
 import Challenge
-import Core
 import LogIn
 
 @MainActor protocol NoneMemberChallengePresentable {
@@ -48,7 +48,7 @@ final class NoneMemberChallengeCoordinator: ViewableCoordinator<NoneMemberChalle
 }
 
 // MARK: - ChallengeGoal
-extension NoneMemberChallengeCoordinator {
+@MainActor extension NoneMemberChallengeCoordinator {
   func attachEnterChallengeGoal(challengeName: String, challengeID: Int) {
     guard enterChallengeGoalCoordinator == nil else { return }
     
@@ -74,7 +74,7 @@ extension NoneMemberChallengeCoordinator {
 }
 
 // MARK: - LogInGuide
-extension NoneMemberChallengeCoordinator {
+@MainActor extension NoneMemberChallengeCoordinator {
   func attachLogInGuide() {
     guard logInGuideCoordinator == nil else { return }
     
@@ -94,7 +94,7 @@ extension NoneMemberChallengeCoordinator {
 }
 
 // MARK: - LogIn
-extension NoneMemberChallengeCoordinator {
+@MainActor extension NoneMemberChallengeCoordinator {
   func attachLogIn() {
     guard logInCoordinator == nil else { return }
     
@@ -131,7 +131,7 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
   }
   
   func didTapBackButtonAtEnterChallengeGoal() {
-    detachEnterChallengeGoal()
+    Task { await detachEnterChallengeGoal() }
   }
   
   func authenticatedFailedAtEnterChallengeGoal() {
@@ -142,19 +142,21 @@ extension NoneMemberChallengeCoordinator: EnterChallengeGoalListener {
 // MARK: - LogInGuideListener
 extension NoneMemberChallengeCoordinator: LogInGuideListener {
   func didTapBackButtonAtLogInGuide() {
-    detachLogInGuide(animted: true)
+    Task { await detachLogInGuide(animted: true) }
   }
   
   func didTapLogInButtonAtLogInGuide() {
-    attachLogIn()
+    Task { await attachLogIn() }
   }
 }
 
 // MARK: - LogInListener
 extension NoneMemberChallengeCoordinator: LogInListener {
   func didFinishLogIn(userName: String) {
-    detachLogIn(animted: false)
-    detachLogInGuide(animted: true)
+    Task { @MainActor in
+      detachLogIn(animted: false)
+      detachLogInGuide(animted: true)
+    }
     listener?.didLoginAtNoneMemberChallenge()
     Task { @MainActor [weak self] in
       guard let self else { return }
@@ -165,7 +167,7 @@ extension NoneMemberChallengeCoordinator: LogInListener {
   }
   
   func didTapBackButtonAtLogIn() {
-    detachLogIn(animted: true)
+    Task { await detachLogIn(animted: true) }
   }
 }
 

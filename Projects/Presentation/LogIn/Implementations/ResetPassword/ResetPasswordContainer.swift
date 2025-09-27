@@ -6,11 +6,11 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 import UseCase
 
-public protocol ResetPasswordDependency: Dependency {
+public protocol ResetPasswordDependency {
   var logInUseCase: LogInUseCase { get }
 }
 

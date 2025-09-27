@@ -6,13 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 
 public protocol ReportContainable: Containable {
   func coordinator(listener: ReportListener, reportType: ReportType) -> ViewableCoordinating
 }
 
 public protocol ReportListener: AnyObject { 
-  func detachReport()
+  func didTapBackButtonAtReport()
   func didInquiryApplicated()
 }

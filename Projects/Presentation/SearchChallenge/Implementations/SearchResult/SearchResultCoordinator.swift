@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 
 protocol SearchResultListener: AnyObject {
   func didTapBackButtonAtSearchResult()
@@ -81,7 +81,7 @@ final class SearchResultCoordinator: ViewableCoordinator<SearchResultPresentable
 }
 
 // MARK: - Challenge
-extension SearchResultCoordinator {
+@MainActor extension SearchResultCoordinator {
   func attachChallenge(id: Int) {
     guard challengeCoordinator == nil else { return }
     let coordinater = challengeContainable.coordinator(
@@ -103,7 +103,7 @@ extension SearchResultCoordinator {
 }
 
 // MARK: - NoneMemberChallenge
-extension SearchResultCoordinator {
+@MainActor extension SearchResultCoordinator {
   func attachNonememberChallenge(id: Int) {
     guard noneMemberchallengeCoordinator == nil else { return }
     let coordinater = noneMemberChallengeContainable.coordinator(listener: self, challengeId: id)
@@ -149,15 +149,15 @@ extension SearchResultCoordinator: HashTagResultListener {
 // MARK: - ChallengeListener
 extension SearchResultCoordinator: ChallengeListener {
   func didTapBackButtonAtChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func shouldDismissChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func leaveChallenge(challengeId: Int) {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func authenticatedFailedAtChallenge() {
@@ -168,33 +168,37 @@ extension SearchResultCoordinator: ChallengeListener {
 // MARK: - NoneMemberChallengeListener
 extension SearchResultCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
-    detachNonememberChallenge(willRemoveView: true)
+    Task { await detachNonememberChallenge(willRemoveView: true) }
   }
   
   func shouldDismissNoneMemberChallenge() {
-    detachNonememberChallenge(willRemoveView: true)
+    Task { await detachNonememberChallenge(willRemoveView: true) }
   }
   
   func didJoinChallenge(id: Int) {
-    detachNonememberChallenge(willRemoveView: false)
-    guard
-       let navigationController = viewControllerable.uiviewController.navigationController,
-       let baseVC = navigationController.viewControllers.first as? ViewControllerable
-     else { return }
-    
-    viewControllerable.setViewControllers([baseVC], animated: false)
-    attachChallenge(id: id)
+    Task { @MainActor in
+      detachNonememberChallenge(willRemoveView: false)
+      guard
+        let navigationController = viewControllerable.uiviewController.navigationController,
+        let baseVC = navigationController.viewControllers.first as? ViewControllerable
+      else { return }
+      
+      viewControllerable.setViewControllers([baseVC], animated: false)
+      attachChallenge(id: id)
+    }
   }
   
   func alreadyJoinedChallenge(id: Int) {
-    detachNonememberChallenge(willRemoveView: false)
-    guard
-       let navigationController = viewControllerable.uiviewController.navigationController,
-       let baseVC = navigationController.viewControllers.first as? ViewControllerable
-     else { return }
-    
-    viewControllerable.setViewControllers([baseVC], animated: false)
-    attachChallenge(id: id)
+    Task { @MainActor in
+      detachNonememberChallenge(willRemoveView: false)
+      guard
+        let navigationController = viewControllerable.uiviewController.navigationController,
+        let baseVC = navigationController.viewControllers.first as? ViewControllerable
+      else { return }
+      
+      viewControllerable.setViewControllers([baseVC], animated: false)
+      attachChallenge(id: id)
+    }
   }
   
   func authenticatedFailedAtNoneMemberChallenge() {

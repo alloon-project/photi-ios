@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import Core
+import Coordinator
 import LogIn
 
 protocol LogInPresentable { }
@@ -40,8 +40,10 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
-  
-  // MARK: - SignUp
+}
+
+// MARK: - SignUp
+@MainActor extension LogInCoordinator {
   func attachSignUp() {
     guard
       signUpCoordinator == nil,
@@ -57,12 +59,13 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   func detachSignUp() {
     guard let coordinater = signUpCoordinator else { return }
     removeChild(coordinater)
-//    self.signUpNavigationControllerable = nil
     self.signUpCoordinator = nil
   }
-  
-  // MARK: - FindId
-  func attachFindId() { 
+}
+
+// MARK: - FindId
+@MainActor extension LogInCoordinator {
+  func attachFindId() {
     guard findIdCoordinator == nil else { return }
     
     let coordinater = findIdContainable.coordinator(listener: self)
@@ -71,15 +74,17 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
     self.findIdCoordinator = coordinater
   }
   
-  func detachFindId() { 
+  func detachFindId() {
     guard let coordinater = findIdCoordinator else { return }
     
     removeChild(coordinater)
     viewControllerable.popViewController(animated: true)
     self.findIdCoordinator = nil
   }
-  
-  // MARK: - FindPassword
+}
+
+// MARK: - FindPassword
+@MainActor extension LogInCoordinator {
   func attachFindPassword() {
     guard findPasswordCoordinator == nil else { return }
     
@@ -113,23 +118,23 @@ extension LogInCoordinator: LogInCoordinatable {
 // MARK: - SignUpListener
 extension LogInCoordinator: SignUpListener {
   func didFinishSignUp(userName: String) {
-    detachSignUp()
+    Task { await detachSignUp() }
     listener?.didFinishLogIn(userName: userName)
   }
   
   func didTapBackButtonAtSignUp() {
-    detachSignUp()
+    Task { await detachSignUp() }
   }
 }
 
 // MARK: - FindpasswordListener
 extension LogInCoordinator: FindPasswordListener {
   func didTapBackButtonAtFindPassword() {
-    detachFindPassword(willRemoveView: true)
+    Task { await detachFindPassword(willRemoveView: true) }
   }
   
   func didFinishUpdatePassword() {
-    detachFindPassword(willRemoveView: false)
+    Task { await detachFindPassword(willRemoveView: false) }
     guard
       let navigationController = viewControllerable.uiviewController.navigationController,
       let viewControllerables = navigationController.viewControllers as? [ViewControllerable],
@@ -137,17 +142,18 @@ extension LogInCoordinator: FindPasswordListener {
     else { return }
 
     let remainingVCs = Array(viewControllerables.prefix(2))
-    viewControllerable.setViewControllers(remainingVCs, animated: true)
+    
+    Task { await viewControllerable.setViewControllers(remainingVCs, animated: true) }
   }
 }
 
 // MARK: - FindIdListener
 extension LogInCoordinator: FindIdListener {
   func didTapBackButtonAtFindId() {
-    detachFindId()
+    Task { await detachFindId() }
   }
   
   func didFinishAtFindId() {
-    detachFindId()
+    Task { await detachFindId() }
   }
 }

@@ -6,14 +6,14 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import LogIn
 import MyPage
 import Report
 import UseCase
 
-public protocol MyPageDependency: Dependency {
+public protocol MyPageDependency {
   var challengeContainable: ChallengeContainable { get }
   var myPageUseCase: MyPageUseCase { get }
   var profileEditUseCase: ProfileEditUseCase { get }

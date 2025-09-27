@@ -6,11 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 import UseCase
 
-protocol FeedDependency: Dependency {
+protocol FeedDependency {
   var challengeUseCase: ChallengeUseCase { get }
   var feedUseCase: FeedUseCase { get }
 }

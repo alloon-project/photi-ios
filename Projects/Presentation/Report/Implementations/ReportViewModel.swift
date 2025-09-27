@@ -141,7 +141,7 @@ private extension ReportViewModel {
   }
   
   func requestFailed(with error: Error) {
-    if let error = error as? APIError {
+    if error is APIError {
       requestFailedRelay.accept(())
     }
   }

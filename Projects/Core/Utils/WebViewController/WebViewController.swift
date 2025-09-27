@@ -12,7 +12,7 @@ import RxCocoa
 import RxSwift
 import SnapKit
 
-public final class WebViewController: UIViewController, ViewControllerable {
+public final class WebViewController: UIViewController {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
   private var url: URL?

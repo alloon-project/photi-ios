@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Coordinator
 import Challenge
-import Core
 
 protocol FeedHistoryListener: AnyObject {
   func didTapBackButtonAtFeedHistory()
@@ -47,7 +47,7 @@ final class FeedHistoryCoordinator: ViewableCoordinator<FeedHistoryPresentable> 
 }
 
 // MARK: - Challenge
-extension FeedHistoryCoordinator {
+@MainActor extension FeedHistoryCoordinator {
   func attachChallengeWithFeed(challengeId: Int, feedId: Int) {
     guard challengeCoordinator == nil else { return }
     
@@ -88,15 +88,15 @@ extension FeedHistoryCoordinator: ChallengeListener {
   }
   
   func didTapBackButtonAtChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func shouldDismissChallenge() {
-    detachChallenge()
+    Task { await detachChallenge() }
   }
   
   func leaveChallenge(challengeId: Int) {
-    detachChallenge()
+    Task { await detachChallenge() }
     presenter.deleteAllFeeds(challengeId: challengeId)
   }
   

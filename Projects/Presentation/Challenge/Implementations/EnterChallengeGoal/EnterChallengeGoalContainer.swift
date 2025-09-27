@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import UseCase
 
 enum ChallengeGoalMode {
@@ -14,7 +14,7 @@ enum ChallengeGoalMode {
   case join
 }
 
-protocol EnterChallengeGoalDependency: Dependency {
+protocol EnterChallengeGoalDependency {
   var challengeUseCase: ChallengeUseCase { get }
 }
 

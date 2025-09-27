@@ -6,7 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Coordinator
 import Challenge
 import Report
 
@@ -98,7 +98,7 @@ final class ChallengeCoordinator: ViewableCoordinator<ChallengePresentable> {
 }
 
 // MARK: - Report
-extension ChallengeCoordinator {
+@MainActor extension ChallengeCoordinator {
   func attachReport(reportType: ReportType) {
     guard reportCoordinator == nil else { return }
     
@@ -107,10 +107,17 @@ extension ChallengeCoordinator {
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.reportCoordinator = coordinator
   }
+  
+  func detachReport() {
+    guard let coordinator = reportCoordinator else { return }
+    removeChild(coordinator)
+    viewControllerable.popViewController(animated: true)
+    self.reportCoordinator = nil
+  }
 }
 
 // MARK: - ChallengeEdit
-extension ChallengeCoordinator {
+@MainActor extension ChallengeCoordinator {
   func attachChallengeEdit(model: ModifyPresentationModel, challengeId: Int) {
     guard modifyCoordinator == nil else { return }
     
@@ -149,7 +156,7 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   }
   
   func attachChallengeReport(challengeId: Int) {
-    attachReport(reportType: .challenge(challengeId))
+    Task { await attachReport(reportType: .challenge(challengeId)) }
   }
   
   func authenticatedFailed() {
@@ -184,7 +191,7 @@ extension ChallengeCoordinator: FeedListener {
   }
   
   func requestReportAtFeed(feedId: Int) {
-    attachReport(reportType: .feed(feedId))
+    Task { await attachReport(reportType: .feed(feedId)) }
   }
   
   func deleteFeed(challengeId: Int, feedId: Int) {
@@ -225,30 +232,27 @@ extension ChallengeCoordinator: ParticipantListener {
 // MARK: - ReportListener
 extension ChallengeCoordinator: ReportListener {
   func didInquiryApplicated() {
-    detachReport()
+    Task { await detachReport() }
     presenter.presentChallengeReported()
   }
   
-  func detachReport() {
-    guard let coordinator = reportCoordinator else { return }
-    removeChild(coordinator)
-    viewControllerable.popViewController(animated: true)
-    self.reportCoordinator = nil
+  func didTapBackButtonAtReport() {
+    Task { await detachReport() }
   }
 }
 
 // MARK: - ModifyListener
 extension ChallengeCoordinator: ModifyChallengeListener {
   func challengeModified() {
-    detachChallengeEdit()
+    Task { await detachChallengeEdit() }
     presenter.presentFinishModifying()
   }
   
   func didTapBackButtonAtModifyChallenge() {
-    detachChallengeEdit()
+    Task { await detachChallengeEdit() }
   }
   
   func didTapAlertButtonAtModifyChallenge() {
-    detachChallengeEdit()
+    Task { await detachChallengeEdit() }
   }
 }
