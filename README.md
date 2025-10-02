@@ -56,18 +56,18 @@
 
 ## 아키텍쳐
 ### 프로젝트 구성
-**App 🚀**
+**App 🚀** <br>
 앱의 엔트리 포인트이자, DI Composition Root 역할을 하는 계층/모듈
 
-**Presentation 🎨**
+**Presentation 🎨** <br>
 각 서비스(도메인) 별로 모듈을 분리하여, App 혹은 Presentation 내부에서 조합해 쓰는 UI 계층
 
-**Domain 🧠**
+**Domain 🧠** <br>
 Entity, UseCase로 구성된 비즈니스 로직의 핵심 계층
 - Entity: 앱 비즈니스 모델 정의하는 모듈
 - UseCase: 시나리오 단위 도메인 로직을 구현한 모듈
 
-**Data 🌐**
+**Data 🌐** <br>
 Domain에서 정의한 계약(Repository 인터페이스)을 구현하는 데이터 접근 계층
 - Repository: Domain UseCase가 의존하는 인터페이스 구현체를 담은 모듈
 - DataMapper: DTO ↔ Entity 변환 담당하는 모듈
@@ -75,10 +75,10 @@ Domain에서 정의한 계약(Repository 인터페이스)을 구현하는 데이
   - 다양한 HTTP 메서드를 일관된 방식으로 제공
   - Access Token 만료 시 Refresh Token을 통한 자동 재발급 & 원 요청 재시도 처리
 
-**Core 🧰**
+**Core 🧰** <br>
 앱 전역에서 재사용되는 Util·Extension 모음
 
-**DesignSystem 🧩**
+**DesignSystem 🧩** <br>
 앱 내 사용하는 폰트, 컬러, 이미지 등의 에셋과 공통 디자인 컴포넌트가 있는 모듈
 
 ### Presentation 구조도 
