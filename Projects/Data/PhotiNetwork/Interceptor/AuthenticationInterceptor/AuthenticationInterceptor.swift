@@ -51,7 +51,6 @@ private extension AuthenticationInterceptor {
   func requestRefreshToken(_ token: String) async throws {
     let response = try await Provider(stubBehavior: .never)
       .request(RefreshTokenAPI.refresh(token))
-      .value
     
     if let accessToken = response.headers["Authorization"] {
       UserDefaults.standard.setValue(accessToken, forKey: "Authorization")

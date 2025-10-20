@@ -237,7 +237,7 @@ private extension ChallengeRepositoryImpl {
             session: .init(interceptor: AuthenticationInterceptor())
           )
           
-          let result = try await provider.request(api, type: responseType.self).value
+          let result = try await provider.request(api, type: responseType.self)
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
           } else if result.statusCode == 400 {
@@ -277,7 +277,7 @@ private extension ChallengeRepositoryImpl {
         do {
           let provider = Provider<ChallengeAPI>(stubBehavior: behavior)
           let result = try await provider
-            .request(api, type: responseType.self).value
+            .request(api, type: responseType.self)
           
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))
