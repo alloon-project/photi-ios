@@ -11,7 +11,6 @@ import DTO
 import Entity
 
 public protocol ChallengeOrganizeDataMapper {
-  func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String]
   func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO?
   func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO?
   func mapToChallengeDetail(dto: ChallengeOrganizeResponseDTO) -> ChallengeDetail
@@ -19,10 +18,6 @@ public protocol ChallengeOrganizeDataMapper {
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
   public init() {}
-  
-  public func mapToSampleImages(dto: ChallengeSampleImageResponseDTO) -> [String] {
-    return dto.list.map { $0 }
-  }
   
   public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO? {
     guard let jsonString = payload.toJSONString() else { return nil }

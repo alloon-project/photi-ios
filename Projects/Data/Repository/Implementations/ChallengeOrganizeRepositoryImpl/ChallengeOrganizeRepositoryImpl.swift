@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import DataMapper
 import DTO
 import Entity
@@ -24,117 +23,101 @@ public struct ChallengeOrganizeRepositoryImpl: ChallengeOrganizeRepository {
 
 // MARK: - Fetch Methods
 public extension ChallengeOrganizeRepositoryImpl {
-  func fetchChallengeSampleImage() -> Single<[String]> {
-    return requestUnAuthorizableAPI(
+  func fetchChallengeSampleImage() async throws -> [String] {
+    return try await requestUnAuthorizableAPI(
       api: ChallengeOrganizeAPI.sampleImages,
       responseType: ChallengeSampleImageResponseDTO.self
     )
-    .map { dataMapper.mapToSampleImages(dto: $0) }
+    .list
   }
 }
 
 // MARK: - Upload & Update Methods
 public extension ChallengeOrganizeRepositoryImpl {
-  func challengeOrganize(payload: ChallengeOrganizePayload) -> Single<ChallengeDetail> {
-    guard
-      let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload)
-    else {
-      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+  func challengeOrganize(payload: ChallengeOrganizePayload) async throws -> ChallengeDetail {
+    guard let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload) else {
+      throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     
-    return requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.organizeChallenge(dto: requestDTO),
       responseType: ChallengeOrganizeResponseDTO.self
     )
-    .map { dataMapper.mapToChallengeDetail(dto: $0) }
+    
+    return dataMapper.mapToChallengeDetail(dto: dto)
   }
   
-  func challengeModify(payload: ChallengeModifyPayload, challengeId: Int) -> Single<Void> {
-    guard
-      let requestDTO = dataMapper.mapToModifyChallenge(payload: payload)
-    else {
-      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+  func challengeModify(payload: ChallengeModifyPayload, challengeId: Int) async throws {
+    guard let requestDTO = dataMapper.mapToModifyChallenge(payload: payload) else {
+      throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     
-    return requestAuthorizableAPI(
+    try await requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.modifyChallenge(dto: requestDTO, challengeId: challengeId),
       responseType: SuccessResponseDTO.self
     )
-    .map { _ in }
   }
 }
 
 // MARK: - Private Method
 private extension ChallengeOrganizeRepositoryImpl {
+  @discardableResult
   func requestAuthorizableAPI<T: Decodable>(
     api: ChallengeOrganizeAPI,
     responseType: T.Type,
     behavior: StubBehavior = .never
-  ) -> Single<T> {
-    return Single.create { single in
-      Task {
-        do {
-          let provider = Provider<ChallengeOrganizeAPI>(
-            stubBehavior: behavior,
-            session: .init(interceptor: AuthenticationInterceptor())
-          )
-          
-          let result = try await provider.request(api, type: responseType.self)
-          if (200..<300).contains(result.statusCode), let data = result.data {
-            single(.success(data))
-          } else if result.statusCode == 400 {
-            single(.failure(APIError.organazieFailed(reason: .emptyFileInvalid)))
-          } else if result.statusCode == 401 || result.statusCode == 403 {
-            single(.failure(APIError.authenticationFailed))
-          } else if result.statusCode == 404 {
-            single(.failure(APIError.organazieFailed(reason: .notChallengeMemeber)))
-          } else if result.statusCode == 413 {
-            single(.failure(APIError.organazieFailed(reason: .fileSizeExceed)))
-          } else if result.statusCode == 415 {
-            single(.failure(APIError.organazieFailed(reason: .imageTypeUnsurported)))
-          } else {
-            single(.failure(APIError.serverError))
-          }
-        } catch {
-          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
-            single(.failure(APIError.authenticationFailed))
-          } else {
-            single(.failure(error))
-          }
-        }
+  ) async throws -> T {
+    do {
+      let provider = Provider<ChallengeOrganizeAPI>(
+        stubBehavior: behavior,
+        session: .init(interceptor: AuthenticationInterceptor())
+      )
+      let result = try await provider.request(api, type: responseType.self)
+      
+      if (200..<300).contains(result.statusCode), let data = result.data {
+        return data
+      } else if result.statusCode == 400 {
+        throw APIError.organazieFailed(reason: .emptyFileInvalid)
+      } else if result.statusCode == 401 || result.statusCode == 403 {
+        throw APIError.authenticationFailed
+      } else if result.statusCode == 404 {
+        throw APIError.organazieFailed(reason: .notChallengeMemeber)
+      } else if result.statusCode == 413 {
+        throw APIError.organazieFailed(reason: .fileSizeExceed)
+      } else if result.statusCode == 415 {
+        throw APIError.organazieFailed(reason: .imageTypeUnsurported)
+      } else {
+        throw APIError.serverError
       }
-      return Disposables.create()
+    } catch {
+      if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+        throw APIError.authenticationFailed
+      } else {
+        throw error
+      }
     }
   }
   
+  @discardableResult
   func requestUnAuthorizableAPI<T: Decodable>(
     api: ChallengeOrganizeAPI,
     responseType: T.Type,
     behavior: StubBehavior = .never
-  ) -> Single<T> {
-    Single.create { single in
-      Task {
-        do {
-          let provider = Provider<ChallengeOrganizeAPI>(stubBehavior: behavior)
-          let result = try await provider
-            .request(api, type: responseType.self)
-          
-          if (200..<300).contains(result.statusCode), let data = result.data {
-            single(.success(data))
-          } else if result.statusCode == 400 {
-            single(.failure(APIError.organazieFailed(reason: .emptyFileInvalid)))
-          } else if result.statusCode == 413 {
-            single(.failure(APIError.organazieFailed(reason: .fileSizeExceed)))
-          } else if result.statusCode == 415 {
-            single(.failure(APIError.organazieFailed(reason: .imageTypeUnsurported)))
-          } else {
-            single(.failure(APIError.serverError))
-          }
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create()
+  ) async throws -> T {
+    let provider = Provider<ChallengeOrganizeAPI>(stubBehavior: behavior)
+    let result = try await provider
+      .request(api, type: responseType.self)
+    
+    if (200..<300).contains(result.statusCode), let data = result.data {
+      return data
+    } else if result.statusCode == 400 {
+      throw APIError.organazieFailed(reason: .emptyFileInvalid)
+    } else if result.statusCode == 413 {
+      throw APIError.organazieFailed(reason: .fileSizeExceed)
+    } else if result.statusCode == 415 {
+      throw APIError.organazieFailed(reason: .imageTypeUnsurported)
+    } else {
+      throw APIError.serverError
     }
   }
 }
