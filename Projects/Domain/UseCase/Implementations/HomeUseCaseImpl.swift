@@ -13,7 +13,7 @@ import Entity
 import UseCase
 import Repository
 
-public class HomeUseCaseImpl: HomeUseCase {
+public struct HomeUseCaseImpl: HomeUseCase {
   private let challengeRepository: ChallengeRepository
   
   public init(challengeRepository: ChallengeRepository) {
@@ -25,15 +25,13 @@ public class HomeUseCaseImpl: HomeUseCase {
   }
   
   public func fetchPopularChallenge() -> Single<[ChallengeDetail]> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.fetchPopularChallenges()
     }
   }
   
   public func fetchMyChallenges() -> Single<[ChallengeSummary]> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
     }
   }

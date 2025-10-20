@@ -14,7 +14,7 @@ import Entity
 import UseCase
 import Repository
 
-public class ChallengeUseCaseImpl: ChallengeUseCase {
+public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let maximumChallengeCount = 20
   
   private let challengeRepository: ChallengeRepository
@@ -35,8 +35,7 @@ public class ChallengeUseCaseImpl: ChallengeUseCase {
 // MARK: - Fetch Methods
 public extension ChallengeUseCaseImpl {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.fetchChallengeDetail(id: id)
     }
   }
@@ -52,15 +51,13 @@ public extension ChallengeUseCaseImpl {
   }
   
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.fetchChallengeDescription(challengeId: id)
     }
   }
   
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.fetchChallengeMembers(challengeId: challengeId)
     }
   }
@@ -96,8 +93,7 @@ public extension ChallengeUseCaseImpl {
   }
   
   func joinChallenge(id: Int, goal: String) -> Single<Void> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.joinChallenge(id: id, goal: goal)
     }
   }
@@ -124,8 +120,7 @@ public extension ChallengeUseCaseImpl {
   }
   
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle {
       return try await challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
     }
   }
@@ -134,8 +129,7 @@ public extension ChallengeUseCaseImpl {
 // MARK: - Delete Methods
 public extension ChallengeUseCaseImpl {
   func leaveChallenge(id: Int) -> Single<Void> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+    asyncToSingle { 
       return try await challengeRepository.leaveChallenge(id: id)
     }
   }
