@@ -44,10 +44,7 @@ let project = Project.make(
       name: "PhotiNetwork",
       product: .staticLibrary,
       bundleId: "com.photi.photiNetwork",
-      sources: ["PhotiNetwork/**"],
-      dependencies: [
-        .SPM.RxSwift
-      ]
+      sources: ["PhotiNetwork/**"]
     )
   ]
 )
