@@ -23,11 +23,30 @@ public struct ReportUseCaseImpl: ReportUseCase {
     content: String,
     targetId: Int
   ) -> Single<Void> {
-    repository.report(
-      category: category,
-      reason: reason,
-      content: content,
-      targetId: targetId
-    )
+    asyncToSingle {
+      try await repository.report(
+        category: category,
+        reason: reason,
+        content: content,
+        targetId: targetId
+      )
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension ReportUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          let value = try await work()
+          single(.success(value))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
   }
 }
