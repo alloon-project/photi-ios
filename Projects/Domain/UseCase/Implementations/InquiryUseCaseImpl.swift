@@ -19,7 +19,7 @@ public struct InquiryUseCaseImpl: InquiryUseCase {
   
   public func inquiry(type: String, content: String) -> Single<Void> {
     asyncToSingle {
-      return try await repository.inquiry(type: type, content: content)
+      try await repository.inquiry(type: type, content: content)
     }
   }
 }
