@@ -31,7 +31,7 @@ public struct InquiryRepositoryImpl: InquiryRepository {
           let result = try await Provider(
             stubBehavior: .never,
             session: .init(interceptor: AuthenticationInterceptor())
-          ).request(InquiryAPI.inquiry(dto: requestDTO)).value
+          ).request(InquiryAPI.inquiry(dto: requestDTO))
           
           if result.statusCode == 201 {
             single(.success(()))

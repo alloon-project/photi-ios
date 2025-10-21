@@ -92,7 +92,7 @@ private extension SignUpRepositoryImpl {
         do {
           let provider = Provider<SignUpAPI>(stubBehavior: behavior)
           let result = try await provider
-            .request(api, type: responseType.self).value
+            .request(api, type: responseType.self)
           
           if (200..<300).contains(result.statusCode), let data = result.data {
             single(.success(data))

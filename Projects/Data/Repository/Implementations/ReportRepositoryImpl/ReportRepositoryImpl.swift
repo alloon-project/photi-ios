@@ -37,7 +37,7 @@ public struct ReportRepositoryImpl: ReportRepository {
           let result = try await Provider(
             stubBehavior: .never,
             session: .init(interceptor: AuthenticationInterceptor())
-          ).request(ReportAPI.report(dto: requestDTO, targetId: targetId)).value
+          ).request(ReportAPI.report(dto: requestDTO, targetId: targetId))
           
           if result.statusCode == 201 {
             single(.success(()))

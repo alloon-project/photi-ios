@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 
 public enum StubBehavior {
   /// stub가 아닌 실제 서버와 통신합니다.
@@ -35,68 +34,63 @@ public struct Provider<Target: TargetType> {
   public func request<T: Decodable>(
     _ target: Target,
     type: T.Type = SuccessResponseDTO.self
-  ) -> Single<BaseResponse<T>> {
+  ) async throws -> BaseResponse<T> {
     switch stubBehavior {
       case .never:
         let endPoint = endPointMapping(for: target)
-        return requestNormal(endPoint, type: type)
+        return try await requestNormal(endPoint, type: type)
         
       case .immediate:
-        return requestStub(target, type: type)
+        return try await requestStub(target, type: type)
         
       case .delayed(let seconds):
-        return requestStub(target, type: type, withDelay: seconds)
+        return try await requestStub(target, type: type, withDelay: seconds)
     }
   }
 }
 
 // MARK: - Private Extension
 private extension Provider {
-  func requestNormal<T: Decodable>(_ endPoint: EndPoint, type: T.Type) -> Single<BaseResponse<T>> {
-    return Single.create { single in
-      Task {
-        do {
-          let urlRequest = try endPoint.urlRequest()
-          let (data, httpResponse) = try await session.request(request: urlRequest)
-
-          let response = try resultMapping(
-            data: data,
-            statusCode: httpResponse.statusCode,
-            httpResponse: httpResponse,
-            type: T.self
-          )
-          single(.success(response))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create()
-    }
+  func requestNormal<T: Decodable>(_ endPoint: EndPoint, type: T.Type) async throws -> BaseResponse<T> {
+    let urlRequest = try endPoint.urlRequest()
+    let (data, httpResponse) = try await session.request(request: urlRequest)
+    return try resultMapping(
+      data: data,
+      statusCode: httpResponse.statusCode,
+      httpResponse: httpResponse,
+      type: T.self
+    )
   }
   
   func requestStub<T: Decodable>(
     _ target: Target,
     type: T.Type,
     withDelay: TimeInterval = 0
-  ) -> Single<BaseResponse<T>> {
-    return Single.create { single in
-      do {
-        switch target.sampleResponse {
-          case let .networkResponse(statusCode, data, code, message):
-            let response = try resultMapping(data: data, statusCode: statusCode, type: T.self)
-            single(.success(response))
-            
-          case let .networkError(error):
-            single(.failure(error))
-        }
-      } catch {
-        single(.failure(error))
-      }
-      return Disposables.create()
+  ) async throws -> BaseResponse<T> {
+    if withDelay > 0 {
+      try await Task.sleep(nanoseconds: UInt64(withDelay * 1_000_000_000))
     }
-    .delay(.seconds(Int(withDelay)), scheduler: MainScheduler.instance)
+    switch target.sampleResponse {
+      case let .networkResponse(statusCode, data, code, message):
+        let decodedData = try JSONDecoder().decode(T.self, from: data)
+        let response = BaseResponse<T>(
+          code: code,
+          message: message,
+          data: decodedData,
+          statusCode: statusCode,
+          response: nil
+        )
+        
+        return response
+        
+      case let .networkError(error):
+        throw error
+    }
   }
-  
+}
+
+// MARK: - Mapping Methods
+private extension Provider {
   func endPointMapping(for target: Target) -> EndPoint {
     let url = target.path.isEmpty ? target.baseURL : target.baseURL.appendingPathComponent(target.path)
     

@@ -25,7 +25,7 @@ public struct AuthRepositoryImpl: AuthRepository {
     
     do {
       let result = try await provider
-        .request(AuthAPI.isLogIn).value
+        .request(AuthAPI.isLogIn)
       return result.statusCode == 200
     } catch {
       if case let NetworkError.networkFailed(reason) = error, reason == .interceptorMapping {
