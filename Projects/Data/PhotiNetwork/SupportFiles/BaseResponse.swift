@@ -20,8 +20,11 @@ public struct BaseResponse<ResponseType: Decodable> {
     
     return response.headers.dictionary
   }
-  
-  public init(
+}
+
+// MARK: - BaseResponse Initializers
+extension BaseResponse {
+  init(
     dto: BaseResponseDTO<ResponseType>,
     statusCode: Int,
     response: HTTPURLResponse? = nil
@@ -33,7 +36,7 @@ public struct BaseResponse<ResponseType: Decodable> {
     self.response = response
   }
   
-  public init(
+  init(
     dto: VoidResponseDTO,
     statusCode: Int,
     response: HTTPURLResponse? = nil
