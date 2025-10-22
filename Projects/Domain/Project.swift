@@ -34,7 +34,6 @@ let project = Project.make(
 			dependencies: [
         .Project.Domain.Entity,
         .Project.Core,
-        .SPM.RxSwift
 			]
 		),
 		.make(
