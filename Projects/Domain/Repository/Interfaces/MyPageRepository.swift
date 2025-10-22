@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import RxSwift
 import Entity
 
 public protocol MyPageRepository {
-  func fetchMyPageSummary() -> Single<MyPageSummary>
-  func fetchVerifiedChallengeDates() -> Single<[Date]>
+  func fetchMyPageSummary() async throws -> MyPageSummary
+  func fetchVerifiedChallengeDates() async throws -> [Date]
   func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary>
   func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary>
   func fetchFeeds(byDate date: String) async throws -> [FeedSummary]

@@ -37,26 +37,33 @@ public extension SignUpUseCaseImpl {
 // MARK: - API Methods
 public extension SignUpUseCaseImpl {
   func requestVerificationCode(email: String) -> Single<Void> {
-    return repository.requestVerificationCode(email: email)
+    return asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      try await self.repository.requestVerificationCode(email: email)
+    }
   }
   
   func verifyCode(email: String, code: String) -> Single<Void> {
-    return repository.verifyCode(
-      email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-      code: code.trimmingCharacters(in: .whitespacesAndNewlines)
-    )
+    let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedCode = code.trimmingCharacters(in: .whitespacesAndNewlines)
+    return asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      try await self.repository.verifyCode(email: trimmedEmail, code: trimmedCode)
+    }
   }
   
   func verifyUserName(_ username: String) -> Single<Void> {
     guard username.isValidateId else {
       return singleWithError(APIError.signUpFailed(reason: .invalidUserNameFormat))
     }
-    
-    return repository.verifyUseName(username)
+    return asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      try await self.repository.verifyUseName(username)
+    }
   }
   
   func remainingRejoinDays(email: String) async throws -> Int {
-    let withdrawalDate = try await repository.fetchWithdrawalDate(email: email).value
+    let withdrawalDate = try await repository.fetchWithdrawalDate(email: email)
     
     let calendar = Calendar.current
     let now = calendar.startOfDay(for: Date())
@@ -70,12 +77,17 @@ public extension SignUpUseCaseImpl {
     guard let email, let username else {
       return singleWithError(APIError.serverError, type: String.self)
     }
-    return repository.register(
-      email: email,
-      username: username,
-      password: password.trimmingCharacters(in: .whitespacesAndNewlines)
-    )
-    .do { ServiceConfiguration.shared.setUserName($0) }
+    let trimmed = password.trimmingCharacters(in: .whitespacesAndNewlines)
+    return asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      let userName = try await self.repository.register(
+        email: email,
+        username: username,
+        password: trimmed
+      )
+      ServiceConfiguration.shared.setUserName(userName)
+      return userName
+    }
   }
 }
 
@@ -85,6 +97,20 @@ private extension SignUpUseCaseImpl {
     return Single<T>.create { single in
       single(.failure(error))
       return Disposables.create()
+    }
+  }
+  
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          let value = try await work()
+          single(.success(value))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
     }
   }
 }

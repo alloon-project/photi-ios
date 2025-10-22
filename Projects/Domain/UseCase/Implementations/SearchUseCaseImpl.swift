@@ -35,11 +35,17 @@ public final class SearchUseCaseImpl: SearchUseCase {
 // MARK: - Fetch Methods
 public extension SearchUseCaseImpl {
   func popularChallenges() -> Single<[ChallengeDetail]> {
-    return challengeRepository.fetchPopularChallenges()
+    asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      return try await challengeRepository.fetchPopularChallenges()
+    }
   }
   
   func popularHashtags() -> Single<[String]> {
-    return challengeRepository.fetchPopularHashTags()
+    asyncToSingle { [weak self] in
+      guard let self = self else { throw CancellationError() }
+      return try await challengeRepository.fetchPopularHashTags()
+    }
   }
   
   func challenges(
@@ -83,7 +89,7 @@ public extension SearchUseCaseImpl {
   
   func didJoinedChallenge(id: Int) async throws -> Bool {
     do {
-      let myChallenges = try await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+      let myChallenges = try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
         .map { $0.id }
       
       return myChallenges.contains(id)
@@ -97,8 +103,7 @@ public extension SearchUseCaseImpl {
   }
   
   func isPossibleToCreateChallenge() async -> Bool {
-    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
-      .count
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).count
     
     guard let myChallengeCount else { return true }
     
@@ -128,5 +133,21 @@ public extension SearchUseCaseImpl {
   
   func clearSearchHistory() {
     searchHistoryRepository.removeAll()
+  }
+}
+
+// MARK: - Private Methods
+private extension SearchUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          single(.success(try await work()))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
   }
 }

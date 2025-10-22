@@ -27,22 +27,30 @@ public final class LogInUseCaseImpl: LogInUseCase {
 // MARK: - Public Methods
 public extension LogInUseCaseImpl {
   func login(username: String, password: String) -> Single<Void> {
-    loginrepository.logIn(userName: username, password: password)
-      .do { ServiceConfiguration.shared.setUserName($0) }
-      .map { _ in () }
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      let userName = try await loginrepository.logIn(userName: username, password: password)
+      ServiceConfiguration.shared.setUserName(userName)
+    }
   }
   
   func sendUserInformation(to email: String) -> Single<Void> {
-    loginrepository.requestUserInformation(email: email)
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      try await loginrepository.requestUserInformation(email: email)
+    }
   }
   
   func sendTemporaryPassword(to email: String, userName: String) -> Single<Void> {
-    loginrepository.requestTemporaryPassword(email: email, userName: userName)
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      try await loginrepository.requestTemporaryPassword(email: email, userName: userName)
+    }
   }
   
   func verifyTemporaryPassword(_ password: String, name: String) async -> VerifyTemporaryPasswordResult {
     do {
-      try await loginrepository.logIn(userName: name, password: password).value
+      try await loginrepository.logIn(userName: name, password: password)
       
       guard let token = authRepository.accessToken() else { return .mismatch }
       authRepository.removeToken()
@@ -57,10 +65,10 @@ public extension LogInUseCaseImpl {
   
   func updatePassword(_ newPassword: String) async throws {
     guard let temporaryToken, let temporaryPassword else { throw APIError.authenticationFailed }
-
+    
     do {
       authRepository.storeAccessToken(temporaryToken)
-      try await loginrepository.updatePassword(from: temporaryPassword, newPassword: newPassword).value
+      try await loginrepository.updatePassword(from: temporaryPassword, newPassword: newPassword)
       authRepository.removeToken()
       self.temporaryToken = nil
       self.temporaryPassword = nil
@@ -73,6 +81,19 @@ public extension LogInUseCaseImpl {
 
 // MARK: - Private Methods
 private extension LogInUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          single(.success(try await work()))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
+  }
+  
   func handledVerifyTemporaryPasswordError(with error: Error) -> VerifyTemporaryPasswordResult {
     guard let error = error as? APIError else { return .failure }
     

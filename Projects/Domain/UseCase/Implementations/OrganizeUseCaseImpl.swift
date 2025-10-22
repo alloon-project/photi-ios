@@ -108,35 +108,53 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
 // MARK: - Fetch Methods
 public extension OrganizeUseCaseImpl {
   func fetchChallengeSampleImages() -> Single<[String]> {
-    return repository.fetchChallengeSampleImage()
+    asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      return try await repository.fetchChallengeSampleImage()
+    }
   }
 }
 
 // MARK: - Upload & Update Methods
 public extension OrganizeUseCaseImpl {
   func organizeChallenge() -> Single<ChallengeDetail> {
-    guard
-      let organizePayload else {
+    guard let organizePayload else {
       return .error(APIError.organazieFailed(reason: .payloadIsNil))
     }
-
-    return repository.challengeOrganize(payload: organizePayload)
+    
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      return try await repository.challengeOrganize(payload: organizePayload)
+    }
   }
   
   func modifyChallenge() -> Single<Void> {
-    guard
-      let modifyPayload,
-      let challengeId
-    else {
+    guard let modifyPayload, let challengeId else {
       return .error(APIError.organazieFailed(reason: .payloadIsNil))
     }
-
-    return repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      return try await repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension OrganizeUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          let value = try await work()
+          single(.success(value))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
+  }
+  
   func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
     return Single<T>.create { single in
       single(.failure(error))

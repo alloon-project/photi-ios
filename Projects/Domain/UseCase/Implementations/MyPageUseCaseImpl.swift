@@ -25,11 +25,17 @@ public class MyPageUseCaseImpl: MyPageUseCase {
 // MARK: - Fetch Methods
 public extension MyPageUseCaseImpl {
   func loadMyPageSummry() -> Single<MyPageSummary> {
-    return myPagerepository.fetchMyPageSummary()
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      return try await myPagerepository.fetchMyPageSummary()
+    }
   }
   
   func loadVerifiedChallengeDates() -> Single<[Date]> {
-    return myPagerepository.fetchVerifiedChallengeDates()
+    return asyncToSingle { [weak self] in
+      guard let self else { throw CancellationError() }
+      return try await myPagerepository.fetchVerifiedChallengeDates()
+    }
   }
   
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary> {
@@ -50,5 +56,22 @@ public extension MyPageUseCaseImpl {
   
   func logOut() {
     authRepository.removeToken()
+  }
+}
+
+// MARK: - Private Methods
+private extension MyPageUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          let value = try await work()
+          single(.success(value))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
   }
 }

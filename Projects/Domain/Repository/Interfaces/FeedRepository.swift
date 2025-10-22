@@ -6,7 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Entity
 
 public struct FeedReturnType {
@@ -28,5 +27,5 @@ public protocol FeedRepository {
   func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> PaginationResultType<FeedComment>
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
-  func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void>
+  func deleteFeed(challengeId: Int, feedId: Int) async throws
 }

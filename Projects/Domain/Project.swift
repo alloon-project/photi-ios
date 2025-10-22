@@ -32,9 +32,9 @@ let project = Project.make(
 			bundleId: "com.photi.useCase",
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
-                .Project.Domain.Entity,
-                .Project.Core,
-                .SPM.RxSwift
+        .Project.Domain.Entity,
+        .Project.Core,
+        .SPM.RxSwift
 			]
 		),
 		.make(
@@ -43,8 +43,7 @@ let project = Project.make(
 			bundleId: "com.photi.repository",
 			sources: ["Repository/Interfaces/**"],
 			dependencies: [
-				.Project.Domain.Entity,
-				.SPM.RxSwift
+				.Project.Domain.Entity
 			]
 		)
 	]

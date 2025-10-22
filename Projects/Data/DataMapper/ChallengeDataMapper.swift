@@ -14,7 +14,7 @@ import Entity
 public protocol ChallengeDataMapper {
   func mapToChallengeDetail(dto: PopularChallengeResponseDTO) -> ChallengeDetail
   func mapToChallengeDetail(dto: ChallengeDetailResponseDTO, id: Int) -> ChallengeDetail
-  func mapToChallengeSummaryFromMyChallenge(dto: [MyChallengeResponseDTO]) -> [ChallengeSummary]
+  func mapToChallengeSummaryFromMyChallenge(dto: MyChallengeResponseDTO) -> ChallengeSummary
   func mapToChallengeSummaryFromSearchChallenge(dto: [SearchChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromByHashTag(_ dto: [SearchChallengeByHashtagResponseDTO]) -> [ChallengeSummary]
@@ -22,7 +22,7 @@ public protocol ChallengeDataMapper {
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
   func mapToFeedComment(dto: FeedCommentResponseDTO) -> FeedComment
   func mapToChallengeDescription(dto: ChallengeDescriptionResponseDTO, id: Int) -> ChallengeDescription
-  func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember]
+  func mapToChallengeMember(dto: ChallengeMemberResponseDTO) -> ChallengeMember
   func mapToChallengeInvitaion(dto: FetchInvitaionCodeResponseDTO) -> ChallengeInvitation
 }
 
@@ -74,26 +74,24 @@ public extension ChallengeDataMapperImpl {
     )
   }
   
-  func mapToChallengeSummaryFromMyChallenge(dto: [MyChallengeResponseDTO]) -> [ChallengeSummary] {
-    return dto.map {
-      let endDate = $0.endDate.toDate() ?? Date()
-      let hasTags = $0.hashtags.map { $0.hashtag }
-      let proveTime = $0.proveTime.toDate("HH:mm") ?? Date()
-      let imageUrl = URL(string: $0.challengeImageUrl ?? "")
-      let feedImageUrl = URL(string: $0.feedImageUrl ?? "")
-      
-      return .init(
-        id: $0.id,
-        name: $0.name,
-        imageUrl: imageUrl,
-        endDate: endDate,
-        hashTags: hasTags,
-        proveTime: proveTime,
-        feedImageURL: feedImageUrl,
-        feedId: $0.feedId,
-        isProve: $0.isProve
-      )
-    }
+  func mapToChallengeSummaryFromMyChallenge(dto: MyChallengeResponseDTO) -> ChallengeSummary {
+    let endDate = dto.endDate.toDate() ?? Date()
+    let hasTags = dto.hashtags.map { $0.hashtag }
+    let proveTime = dto.proveTime.toDate("HH:mm") ?? Date()
+    let imageUrl = URL(string: dto.challengeImageUrl ?? "")
+    let feedImageUrl = URL(string: dto.feedImageUrl ?? "")
+    
+    return .init(
+      id: dto.id,
+      name: dto.name,
+      imageUrl: imageUrl,
+      endDate: endDate,
+      hashTags: hasTags,
+      proveTime: proveTime,
+      feedImageURL: feedImageUrl,
+      feedId: dto.feedId,
+      isProve: dto.isProve
+    )
   }
   
   func mapToChallengeSummaryFromSearchChallenge(dto: [SearchChallengeResponseDTO]) -> [ChallengeSummary] {
@@ -164,17 +162,15 @@ public extension ChallengeDataMapperImpl {
     )
   }
   
-  func mapToChallengeMembers(dto: [ChallengeMemberResponseDTO]) -> [ChallengeMember] {
-    return dto.map {
-      return .init(
-        id: $0.id,
-        name: $0.username,
-        imageUrl: URL(string: $0.imageUrl ?? ""),
-        isOwner: $0.isCreator,
-        duration: $0.duration,
-        goal: $0.goal ?? ""
-      )
-    }
+  func mapToChallengeMember(dto: ChallengeMemberResponseDTO) -> ChallengeMember {
+    return .init(
+      id: dto.id,
+      name: dto.username,
+      imageUrl: URL(string: dto.imageUrl ?? ""),
+      isOwner: dto.isCreator,
+      duration: dto.duration,
+      goal: dto.goal ?? ""
+    )
   }
 }
 
