@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import Core
 import Entity
 import UseCase
@@ -24,16 +23,12 @@ public struct HomeUseCaseImpl: HomeUseCase {
     return try await challengeRepository.challengeCount()
   }
   
-  public func fetchPopularChallenge() -> Single<[ChallengeDetail]> {
-    asyncToSingle {
-      return try await challengeRepository.fetchPopularChallenges()
-    }
+  public func fetchPopularChallenge() async throws -> [ChallengeDetail] {
+    return try await challengeRepository.fetchPopularChallenges()
   }
   
-  public func fetchMyChallenges() -> Single<[ChallengeSummary]> {
-    asyncToSingle {
-      return try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
-    }
+  public func fetchMyChallenges() async throws -> [ChallengeSummary] {
+    return try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
   }
   
   public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws -> Feed {
@@ -50,19 +45,6 @@ public struct HomeUseCaseImpl: HomeUseCase {
 }
 
 private extension HomeUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          single(.success(try await work()))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
-  }
-  
   func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
     
