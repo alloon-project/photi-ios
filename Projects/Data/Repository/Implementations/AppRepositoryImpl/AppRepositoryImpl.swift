@@ -18,7 +18,7 @@ public class AppRepositoryImpl: AppRepository {
     let provider = Provider<AppAPI>(stubBehavior: .never)
     let dto = AppVersionRequestDTO(os: "ios", appVersion: version)
     do {
-      let result = try await provider.request(.appVersion(dto: dto), type: AppVersionResponseDTO.self).value
+      let result = try await provider.request(.appVersion(dto: dto), type: AppVersionResponseDTO.self)
       
       if let data = result.data {
         return data.forceUpdate

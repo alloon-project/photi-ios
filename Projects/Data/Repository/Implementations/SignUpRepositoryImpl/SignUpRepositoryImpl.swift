@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import DataMapper
 import DTO
 import Entity
@@ -24,93 +23,80 @@ public struct SignUpRepositoryImpl: SignUpRepository {
 
 // MARK: - API Methods
 public extension SignUpRepositoryImpl {
-  func requestVerificationCode(email: String) -> Single<Void> {
+  func requestVerificationCode(email: String) async throws {
     let requestDTO = dataMapper.mapToRequestVerificationRequestDTO(email: email)
-    return requestAPI(
+    try await requestAPI(
       SignUpAPI.requestVerificationCode(dto: requestDTO),
-      responseType: SuccessResponseDTO.self,
-      behavior: .never
+      responseType: SuccessResponseDTO.self
     )
-    .map { _ in () }
   }
   
-  func verifyCode(email: String, code: String) -> Single<Void> {
+  func verifyCode(email: String, code: String) async throws {
     let requestDTO = dataMapper.mapToVerifyCodeRequestDTO(email: email, code: code)
-    return requestAPI(
+    try await requestAPI(
       SignUpAPI.verifyCode(dto: requestDTO),
-      responseType: SuccessResponseDTO.self,
-      behavior: .never
+      responseType: SuccessResponseDTO.self
     )
-    .map { _ in () }
   }
   
-  func verifyUseName(_ userName: String) -> Single<Void> {
-    return requestAPI(
+  func verifyUseName(_ userName: String) async throws {
+    try await requestAPI(
       SignUpAPI.verifyUserName(userName),
-      responseType: SuccessResponseDTO.self,
-      behavior: .never
+      responseType: SuccessResponseDTO.self
     )
-    .map { _ in () }
   }
   
   func register(
     email: String,
     username: String,
     password: String
-  ) -> Single<String> {
+  ) async throws -> String {
     let requestDTO = dataMapper.mapToRegisterRequestDTO(
       email: email,
       username: username,
       password: password
     )
-    return requestAPI(
+    return try await requestAPI(
       SignUpAPI.register(dto: requestDTO),
       responseType: RegisterResponseDTO.self,
       behavior: .never
-    )
-    .map { $0.username }
+    ).username
   }
   
-  func fetchWithdrawalDate(email: String) -> Single<Date> {
-    return requestAPI(
+  func fetchWithdrawalDate(email: String) async throws -> Date {
+    let response = try await requestAPI(
       SignUpAPI.deletedDate(email: email),
       responseType: DeletedDateResponseDTO.self
     )
-    .map { $0.deletedDate.toDate("YYYY-MM-dd") ?? Date() }
+    return response.deletedDate.toDate("YYYY-MM-dd") ?? Date()
   }
 }
   
 // MARK: - Private Methods
 private extension SignUpRepositoryImpl {
+  @discardableResult
   func requestAPI<T: Decodable>(
     _ api: SignUpAPI,
     responseType: T.Type,
     behavior: StubBehavior = .never
-  ) -> Single<T> {
-    Single.create { single in
-      Task {
-        do {
-          let provider = Provider<SignUpAPI>(stubBehavior: behavior)
-          let result = try await provider
-            .request(api, type: responseType.self).value
-          
-          if (200..<300).contains(result.statusCode), let data = result.data {
-            single(.success(data))
-          } else if result.statusCode == 400 {
-            single(.failure(map400ToAPIError(result.code, result.message)))
-          } else if result.statusCode == 404 {
-            single(.failure(APIError.signUpFailed(reason: .emailNotFound)))
-          } else if result.statusCode == 409 {
-            single(.failure(map409ToAPIError(result.code, result.message)))
-          } else {
-            single(.failure(APIError.serverError))
-          }
-        } catch {
-          single(.failure(error))
-        }
-      }
+  ) async throws -> T {
+    do {
+      let provider = Provider<SignUpAPI>(stubBehavior: behavior)
+      let result = try await provider.request(api, type: responseType.self)
       
-      return Disposables.create()
+      if (200..<300).contains(result.statusCode), let data = result.data {
+        return data
+      } else if result.statusCode == 400 {
+        throw map400ToAPIError(result.code, result.message)
+      } else if result.statusCode == 404 {
+        throw APIError.signUpFailed(reason: .emailNotFound)
+      } else if result.statusCode == 409 {
+        throw map409ToAPIError(result.code, result.message)
+      } else {
+        throw APIError.serverError
+      }
+    } catch {
+      throw error
     }
   }
   

@@ -51,7 +51,7 @@ public extension ProfileEditUseCaseImpl {
   }
   
   func sendTemporaryPassword(to email: String, userName: String) async throws {
-    try await loginRepository.requestTemporaryPassword(email: email, userName: userName).value
+    try await loginRepository.requestTemporaryPassword(email: email, userName: userName)
   }
 }
 

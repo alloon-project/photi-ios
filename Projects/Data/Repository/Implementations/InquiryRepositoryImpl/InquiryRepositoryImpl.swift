@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
 import DataMapper
 import Entity
 import Repository
@@ -19,33 +18,20 @@ public struct InquiryRepositoryImpl: InquiryRepository {
     self.dataMapper = dataMapper
   }
   
-  public func inquiry(
-    type: String,
-    content: String
-  ) -> Single<Void> {
+  public func inquiry(type: String, content: String) async throws {
     let requestDTO = dataMapper.mapToInquiryRequestDTO(type: type, content: content)
     
-    return Single.create { single in
-      Task {
-        do {
-          let result = try await Provider(
-            stubBehavior: .never,
-            session: .init(interceptor: AuthenticationInterceptor())
-          ).request(InquiryAPI.inquiry(dto: requestDTO)).value
-          
-          if result.statusCode == 201 {
-            single(.success(()))
-          } else if result.statusCode == 401 || result.statusCode == 403 {
-            single(.failure(APIError.authenticationFailed))
-          } else if result.statusCode == 404 {
-            single(.failure(APIError.userNotFound))
-          }
-        } catch {
-          single(.failure(error))
-        }
-      }
-      
-      return Disposables.create()
+    let result = try await Provider(
+      stubBehavior: .never,
+      session: .init(interceptor: AuthenticationInterceptor())
+    ).request(InquiryAPI.inquiry(dto: requestDTO))
+    
+    if result.statusCode == 201 {
+      return
+    } else if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
     }
   }
 }

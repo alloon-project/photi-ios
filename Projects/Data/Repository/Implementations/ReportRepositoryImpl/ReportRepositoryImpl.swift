@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
 import DataMapper
 import Entity
 import Repository
@@ -24,34 +23,25 @@ public struct ReportRepositoryImpl: ReportRepository {
     reason: String,
     content: String,
     targetId: Int
-  ) -> Single<Void> {
+  ) async throws {
     let requestDTO = dataMapper.mapToReportRequestDTO(
       category: category,
       reason: reason,
       content: content
     )
     
-    return Single.create { single in
-      Task {
-        do {
-          let result = try await Provider(
-            stubBehavior: .never,
-            session: .init(interceptor: AuthenticationInterceptor())
-          ).request(ReportAPI.report(dto: requestDTO, targetId: targetId)).value
-          
-          if result.statusCode == 201 {
-            single(.success(()))
-          } else if result.statusCode == 401 || result.statusCode == 403 {
-            single(.failure(APIError.authenticationFailed))
-          } else if result.statusCode == 404 {
-            single(.failure(APIError.userNotFound))
-          }
-        } catch {
-          single(.failure(error))
-        }
-      }
-      
-      return Disposables.create()
+    let provider = Provider<ReportAPI>(
+      stubBehavior: .never,
+      session: .init(interceptor: AuthenticationInterceptor())
+    )
+    let result = try await provider.request(ReportAPI.report(dto: requestDTO, targetId: targetId))
+    
+    if result.statusCode == 201 {
+      return
+    } else if result.statusCode == 401 || result.statusCode == 403 {
+      throw APIError.authenticationFailed
+    } else if result.statusCode == 404 {
+      throw APIError.userNotFound
     }
   }
 }

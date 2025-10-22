@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import DataMapper
 import DTO
 import Entity
@@ -24,138 +23,131 @@ public struct MyPageRepositoyImpl: MyPageRepository {
 
 // MARK: - Fetch Methods
 public extension MyPageRepositoyImpl {
-  func fetchMyPageSummary() -> Single<MyPageSummary> {
-    return requestAuthorizableAPI(
+  func fetchMyPageSummary() async throws -> MyPageSummary {
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.userChallegeHistory,
       responseType: UserChallengeHistoryResponseDTO.self
     )
-    .map { dataMapper.mapToMyPageSummary(from: $0) }
+    return dataMapper.mapToMyPageSummary(from: dto)
   }
   
-  func fetchVerifiedChallengeDates() -> Single<[Date]> {
-    return requestAuthorizableAPI(
+  func fetchVerifiedChallengeDates() async throws -> [Date] {
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.verifiedChallengeDates,
       responseType: VerifiedChallengeDatesResponseDTO.self
     )
-    .map { dataMapper.mapToDate(from: $0) }
+    return dataMapper.mapToDate(from: dto)
   }
   
   func fetchFeedHistory(page: Int, size: Int) async throws -> PaginationResultType<FeedSummary> {
-    let result = try await requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.feedHistory(page: page, size: size),
       responseType: PaginationResponseDTO<FeedHistoryResponseDTO>.self
-    ).value
+    )
     
-    let feeds = dataMapper.mapToFeedHistory(dtos: result.content)
-    return .init(contents: feeds, isLast: result.last)
+    let feeds = dataMapper.mapToFeedHistory(dtos: dto.content)
+    return .init(contents: feeds, isLast: dto.last)
   }
   
   func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
-    let result = try await requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.endedChallenges(page: page, size: size),
       responseType: PaginationResponseDTO<EndedChallengeResponseDTO>.self
-    ).value
+    )
     
-    let challenges = dataMapper.mapToChallengeSummaryFromEnded(dto: result.content)
-    return .init(contents: challenges, isLast: result.last)
+    let challenges = dataMapper.mapToChallengeSummaryFromEnded(dto: dto.content)
+    return .init(contents: challenges, isLast: dto.last)
   }
   
   func fetchFeeds(byDate date: String) async throws -> [FeedSummary] {
-    let result = try await requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.feedsByDate(date),
       responseType: [FeedByDateResponseDTO].self
-    ).value
+    )
     
-    return dataMapper.mapToFeedSummaryFromFeedsByDate(dtos: result)
+    return dataMapper.mapToFeedSummaryFromFeedsByDate(dtos: dto)
   }
   
   func fetchUserProfile() async throws -> UserProfile {
-    let result = try await requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.userInformation,
       responseType: UserProfileResponseDTO.self
-    ).value
+    )
     
-    return dataMapper.mapToUserProfile(dto: result)
+    return dataMapper.mapToUserProfile(dto: dto)
   }
 }
 
 // MARK: - Update Methods
 public extension MyPageRepositoyImpl {
   func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL? {
-    let result = try await requestAuthorizableAPI(
+    let dto = try await requestAuthorizableAPI(
       api: MyPageAPI.uploadProfileImage(image, imageType: imageType),
       responseType: UserProfileResponseDTO.self
-    ).value
+    )
     
-    return dataMapper.mapToUserProfile(dto: result).imageUrl
+    return dataMapper.mapToUserProfile(dto: dto).imageUrl
   }
   
   func deleteUserAccount(password: String) async throws {
-    let single = requestAuthorizableAPI(
+    try await requestAuthorizableAPI(
       api: MyPageAPI.withdrawUser(password: password),
       responseType: SuccessResponseDTO.self
     )
-    
-    try await executeSingle(single)
   }
   
   func updatePassword(from password: String, to newPassword: String) async throws {
     let dto = dataMapper.mapToChangePasswordRequestDTO(password: password, newPassword: newPassword)
     
-    let single = requestAuthorizableAPI(
+    try await requestAuthorizableAPI(
       api: MyPageAPI.changePassword(dto: dto),
       responseType: SuccessResponseDTO.self
     )
-    
-    try await executeSingle(single)
   }
 }
 
 // MARK: - Private Methods
 private extension MyPageRepositoyImpl {
+  @discardableResult
   func requestAuthorizableAPI<T: Decodable>(
     api: MyPageAPI,
     responseType: T.Type,
     behavior: StubBehavior = .never
-  ) -> Single<T> {
-    return Single.create { single in
-      Task {
-        do {
-          let provider = Provider<MyPageAPI>(
-            stubBehavior: behavior,
-            session: .init(interceptor: AuthenticationInterceptor())
-          )
-          
-          let result = try await provider.request(api, type: responseType.self).value
-          if (200..<300).contains(result.statusCode), let data = result.data {
-            single(.success(data))
-          } else if result.statusCode == 400 {
-              single(.failure(map400ToAPIError(result.code, result.message)))
-          } else if result.statusCode == 401 {
-            single(.failure(map401ToAPIError(result.code, result.message)))
-          } else if result.statusCode == 403 {
-            single(.failure(APIError.authenticationFailed))
-          } else if result.statusCode == 404 {
-            single(.failure(map404ToAPIError(result.code, result.message)))
-          } else if result.statusCode == 413 {
-            single(.failure(APIError.myPageFailed(reason: .fileTooLarge)))
-          } else if result.statusCode == 415 {
-            single(.failure(APIError.myPageFailed(reason: .invalidFileFormat)))
-          } else {
-            single(.failure(APIError.serverError))
-          }
-        } catch {
-          if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
-            single(.failure(APIError.authenticationFailed))
-          } else {
-            single(.failure(error))
-          }
-        }
+  ) async throws -> T {
+    do {
+      let provider = Provider<MyPageAPI>(
+        stubBehavior: behavior,
+        session: .init(interceptor: AuthenticationInterceptor())
+      )
+      let result = try await provider.request(api, type: responseType.self)
+      if (200..<300).contains(result.statusCode), let data = result.data {
+        return data
+      } else if result.statusCode == 400 {
+        throw map400ToAPIError(result.code, result.message)
+      } else if result.statusCode == 401 {
+        throw map401ToAPIError(result.code, result.message)
+      } else if result.statusCode == 403 {
+        throw APIError.authenticationFailed
+      } else if result.statusCode == 404 {
+        throw map404ToAPIError(result.code, result.message)
+      } else if result.statusCode == 413 {
+        throw APIError.myPageFailed(reason: .fileTooLarge)
+      } else if result.statusCode == 415 {
+        throw APIError.myPageFailed(reason: .invalidFileFormat)
+      } else {
+        throw APIError.serverError          }
+    } catch {
+      if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+        throw APIError.authenticationFailed
+      } else {
+        throw error
       }
-      return Disposables.create()
     }
   }
-  
+}
+
+// MARK: - Error Mapping
+private extension MyPageRepositoyImpl {
   func map400ToAPIError(_ code: String, _ message: String) -> APIError {
     if code == "PASSWORD_MATCH_INVALID" {
       return APIError.myPageFailed(reason: .loginUnAuthenticated)
@@ -180,10 +172,5 @@ private extension MyPageRepositoyImpl {
     } else {
       return APIError.clientError(code: code, message: message)
     }
-  }
-  
-  @discardableResult
-  func executeSingle<T>(_ single: Single<T>) async throws -> T {
-    return try await single.value
   }
 }
