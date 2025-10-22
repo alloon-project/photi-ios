@@ -7,16 +7,15 @@
 //
 
 import Foundation
-import RxSwift
 
 public protocol SignUpRepository {
-  func requestVerificationCode(email: String) -> Single<Void>
-  func verifyCode(email: String, code: String) -> Single<Void>
-  func verifyUseName(_ userName: String) -> Single<Void>
-  func fetchWithdrawalDate(email: String) -> Single<Date>
+  func requestVerificationCode(email: String) async throws
+  func verifyCode(email: String, code: String) async throws
+  func verifyUseName(_ userName: String) async throws
+  func fetchWithdrawalDate(email: String) async throws -> Date
   func register(
     email: String,
     username: String,
     password: String
-  ) -> Single<String>
+  ) async throws -> String
 }

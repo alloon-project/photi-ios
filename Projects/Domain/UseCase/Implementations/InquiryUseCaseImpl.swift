@@ -18,6 +18,24 @@ public struct InquiryUseCaseImpl: InquiryUseCase {
   }
   
   public func inquiry(type: String, content: String) -> Single<Void> {
-    repository.inquiry(type: type, content: content)
+    asyncToSingle {
+      try await repository.inquiry(type: type, content: content)
+    }
+  }
+}
+
+// MARK: - Private Methods
+private extension InquiryUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          single(.success(try await work()))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
   }
 }

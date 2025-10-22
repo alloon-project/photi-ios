@@ -20,7 +20,7 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
-
+  
   public init(
     challengeRepository: ChallengeRepository,
     feedRepository: FeedRepository,
@@ -35,7 +35,9 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
 // MARK: - Fetch Methods
 public extension ChallengeUseCaseImpl {
   func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
-    return challengeRepository.fetchChallengeDetail(id: id)
+    asyncToSingle {
+      return try await challengeRepository.fetchChallengeDetail(id: id)
+    }
   }
   
   func isLogIn() async throws -> Bool {
@@ -49,11 +51,15 @@ public extension ChallengeUseCaseImpl {
   }
   
   func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription> {
-    return challengeRepository.fetchChallengeDescription(challengeId: id)
+    asyncToSingle {
+      return try await challengeRepository.fetchChallengeDescription(challengeId: id)
+    }
   }
   
   func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
-    return challengeRepository.fetchChallengeMembers(challengeId: challengeId)
+    asyncToSingle {
+      return try await challengeRepository.fetchChallengeMembers(challengeId: challengeId)
+    }
   }
   
   func challengeProveMemberCount(challengeId: Int) async throws -> Int {
@@ -61,8 +67,7 @@ public extension ChallengeUseCaseImpl {
   }
   
   func isPossibleToJoinChallenge() async -> Bool {
-    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
-      .count
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).count
     
     guard let myChallengeCount else { return true }
     
@@ -70,7 +75,7 @@ public extension ChallengeUseCaseImpl {
   }
   
   func isJoinedChallenge(id: Int) async -> Bool {
-    let myChallenges = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).value
+    let myChallenges = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20)
       .map { $0.id }
     guard let myChallenges else { return false }
     return myChallenges.contains(id)
@@ -88,7 +93,9 @@ public extension ChallengeUseCaseImpl {
   }
   
   func joinChallenge(id: Int, goal: String) -> Single<Void> {
-    return challengeRepository.joinChallenge(id: id, goal: goal)
+    asyncToSingle {
+      return try await challengeRepository.joinChallenge(id: id, goal: goal)
+    }
   }
   
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
@@ -100,7 +107,7 @@ public extension ChallengeUseCaseImpl {
       image: data,
       imageType: type
     )
-
+    
     return result
   }
   
@@ -113,29 +120,46 @@ public extension ChallengeUseCaseImpl {
   }
   
   func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
-    return challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
+    asyncToSingle {
+      return try await challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
+    }
   }
 }
 
 // MARK: - Delete Methods
 public extension ChallengeUseCaseImpl {
   func leaveChallenge(id: Int) -> Single<Void> {
-    return challengeRepository.leaveChallenge(id: id)
+    asyncToSingle { 
+      return try await challengeRepository.leaveChallenge(id: id)
+    }
   }
 }
 
 // MARK: - Private Methods
 private extension ChallengeUseCaseImpl {
- func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-   let maxSizeBytes = maxMB * 1024 * 1024
-   
-   if let data = image.image.pngData(), data.count <= maxSizeBytes {
-     return (data, "png")
-   } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-     return (data, "jpeg")
-   }
-   return nil
- }
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          single(.success(try await work()))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
+  }
+  
+  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
+    let maxSizeBytes = maxMB * 1024 * 1024
+    
+    if let data = image.image.pngData(), data.count <= maxSizeBytes {
+      return (data, "png")
+    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
+      return (data, "jpeg")
+    }
+    return nil
+  }
   
   func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
     return Single<T>.create { single in

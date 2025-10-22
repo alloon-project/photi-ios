@@ -19,17 +19,21 @@ public struct HomeUseCaseImpl: HomeUseCase {
   public init(challengeRepository: ChallengeRepository) {
     self.challengeRepository = challengeRepository
   }
-
+  
   public func challengeCount() async throws -> Int {
     return try await challengeRepository.challengeCount()
   }
   
   public func fetchPopularChallenge() -> Single<[ChallengeDetail]> {
-    return challengeRepository.fetchPopularChallenges()
+    asyncToSingle {
+      return try await challengeRepository.fetchPopularChallenges()
+    }
   }
   
   public func fetchMyChallenges() -> Single<[ChallengeSummary]> {
-    return challengeRepository.fetchMyChallenges(page: 0, size: 20)
+    asyncToSingle {
+      return try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
+    }
   }
   
   public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws -> Feed {
@@ -46,6 +50,19 @@ public struct HomeUseCaseImpl: HomeUseCase {
 }
 
 private extension HomeUseCaseImpl {
+  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
+    Single.create { single in
+      let task = Task {
+        do {
+          single(.success(try await work()))
+        } catch {
+          single(.failure(error))
+        }
+      }
+      return Disposables.create { task.cancel() }
+    }
+  }
+  
   func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
     
