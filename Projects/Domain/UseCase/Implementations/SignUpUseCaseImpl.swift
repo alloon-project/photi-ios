@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import Core
 import Entity
 import UseCase
@@ -36,29 +35,32 @@ public extension SignUpUseCaseImpl {
 
 // MARK: - API Methods
 public extension SignUpUseCaseImpl {
-  func requestVerificationCode(email: String) -> Single<Void> {
-    return asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
-      try await self.repository.requestVerificationCode(email: email)
+  func requestVerificationCode(email: String) async throws {
+    do {
+      try await repository.requestVerificationCode(email: email)
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func verifyCode(email: String, code: String) -> Single<Void> {
+  func verifyCode(email: String, code: String) async throws {
     let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
     let trimmedCode = code.trimmingCharacters(in: .whitespacesAndNewlines)
-    return asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
-      try await self.repository.verifyCode(email: trimmedEmail, code: trimmedCode)
+    do {
+      try await repository.verifyCode(email: trimmedEmail, code: trimmedCode)
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func verifyUserName(_ username: String) -> Single<Void> {
+  func verifyUserName(_ username: String) async throws {
     guard username.isValidateId else {
-      return singleWithError(APIError.signUpFailed(reason: .invalidUserNameFormat))
+      throw APIError.signUpFailed(reason: .invalidUserNameFormat)
     }
-    return asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
-      try await self.repository.verifyUseName(username)
+    do {
+      try await repository.verifyUseName(username)
+    } catch {
+      throw CancellationError()
     }
   }
   
@@ -73,44 +75,21 @@ public extension SignUpUseCaseImpl {
     return 30 - rawDays
   }
   
-  func register(password: String) -> Single<String> {
+  func register(password: String) async throws -> String {
     guard let email, let username else {
-      return singleWithError(APIError.serverError, type: String.self)
+      throw APIError.serverError
     }
     let trimmed = password.trimmingCharacters(in: .whitespacesAndNewlines)
-    return asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
-      let userName = try await self.repository.register(
+    do {
+      let userName = try await repository.register(
         email: email,
         username: username,
         password: trimmed
       )
       ServiceConfiguration.shared.setUserName(userName)
       return userName
-    }
-  }
-}
-
-// MARK: - Private Methods
-private extension SignUpUseCaseImpl {
-  func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
-    return Single<T>.create { single in
-      single(.failure(error))
-      return Disposables.create()
-    }
-  }
-  
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          let value = try await work()
-          single(.success(value))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
+    } catch {
+      throw CancellationError()
     }
   }
 }

@@ -69,7 +69,7 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
     input.didTapContinueButton
       .withLatestFrom(input.password)
       .bind(with: self) { owner, passwords in
-        owner.register(password: passwords)
+        Task { await owner.register(password: passwords) }
       }
       .disposed(by: disposeBag)
     
@@ -113,19 +113,13 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
 
 // MARK: - Private Methods
 private extension EnterPasswordViewModel {
-  func register(password: String) {
-    useCase.register(password: password)
-    .observe(on: MainScheduler.instance)
-    .subscribe(
-      with: self,
-      onSuccess: { owner, userName in
-        owner.coordinator?.didTapContinueButton(userName: userName)
-      },
-      onFailure: { owner, error in
-        owner.requestFailed(with: error)
-      }
-    )
-    .disposed(by: disposeBag)
+  func register(password: String) async {
+    do {
+      let userName = try await useCase.register(password: password)
+      coordinator?.didTapContinueButton(userName: userName)
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func requestFailed(with error: Error) {
