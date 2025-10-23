@@ -80,12 +80,14 @@ final class ReportViewModel: ReportViewModelType {
       .bind(with: self) { owner, reasonWithContent in
         switch owner.reportType {
         case .challenge(let id), .member(let id), .feed(let id):
-          owner.requestReport(
-            category: owner.reportType.category ?? "CHALLENGE",
-            reason: reasonWithContent.0,
-            content: reasonWithContent.1,
-            targetId: id
-          )
+          Task {
+            await owner.requestReport(
+              category: owner.reportType.category ?? "CHALLENGE",
+              reason: reasonWithContent.0,
+              content: reasonWithContent.1,
+              targetId: id
+            )
+          }
         case .inquiry:
           Task {
             await owner.requestInquiry(
@@ -125,19 +127,18 @@ private extension ReportViewModel {
     reason: String,
     content: String,
     targetId: Int
-  ) {
-    reportUseCase.report(
-      category: category,
-      reason: reason,
-      content: content,
-      targetId: targetId)
-    .observe(on: MainScheduler.instance)
-    .subscribe(with: self,
-               onSuccess: { onwer, _ in
-      onwer.coordinator?.didFinishReport()
-    }, onFailure: { owner, error in
-      owner.requestFailed(with: error)
-    }).disposed(by: disposeBag)
+  ) async  {
+    do {
+      try await reportUseCase.report(
+        category: category,
+        reason: reason,
+        content: content,
+        targetId: targetId
+      )
+      coordinator?.didFinishReport()
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func requestFailed(with error: Error) {
