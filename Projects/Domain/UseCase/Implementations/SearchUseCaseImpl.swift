@@ -6,7 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Entity
 import UseCase
 import Repository
@@ -34,17 +33,19 @@ public final class SearchUseCaseImpl: SearchUseCase {
 
 // MARK: - Fetch Methods
 public extension SearchUseCaseImpl {
-  func popularChallenges() -> Single<[ChallengeDetail]> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+  func popularChallenges() async throws -> [ChallengeDetail] {
+    do {
       return try await challengeRepository.fetchPopularChallenges()
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func popularHashtags() -> Single<[String]> {
-    asyncToSingle { [weak self] in
-      guard let self = self else { throw CancellationError() }
+  func popularHashtags() async throws -> [String] {
+    do {
       return try await challengeRepository.fetchPopularHashTags()
+    } catch {
+      throw CancellationError()
     }
   }
   
@@ -133,21 +134,5 @@ public extension SearchUseCaseImpl {
   
   func clearSearchHistory() {
     searchHistoryRepository.removeAll()
-  }
-}
-
-// MARK: - Private Methods
-private extension SearchUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          single(.success(try await work()))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
   }
 }
