@@ -6,15 +6,13 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
-
 public protocol SignUpUseCase {
   func configureEmail(_ email: String)
   func configureUsername(_ username: String)
 
-  func requestVerificationCode(email: String) -> Single<Void>
-  func verifyCode(email: String, code: String) -> Single<Void>
-  func verifyUserName(_ useName: String) -> Single<Void>
+  func requestVerificationCode(email: String) async throws
+  func verifyCode(email: String, code: String) async throws
+  func verifyUserName(_ useName: String) async throws
   func remainingRejoinDays(email: String) async throws -> Int
-  func register(password: String) -> Single<String>
+  func register(password: String) async throws -> String
 }

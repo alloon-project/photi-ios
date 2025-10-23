@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import Kingfisher
 import Entity
 import UseCase
@@ -107,61 +106,43 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
 
 // MARK: - Fetch Methods
 public extension OrganizeUseCaseImpl {
-  func fetchChallengeSampleImages() -> Single<[String]> {
-    asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func fetchChallengeSampleImages() async throws -> [String] {
+    do {
       return try await repository.fetchChallengeSampleImage()
+    } catch {
+      throw CancellationError()
     }
   }
 }
 
 // MARK: - Upload & Update Methods
 public extension OrganizeUseCaseImpl {
-  func organizeChallenge() -> Single<ChallengeDetail> {
+  func organizeChallenge() async throws -> ChallengeDetail {
     guard let organizePayload else {
-      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+      throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+    do {
       return try await repository.challengeOrganize(payload: organizePayload)
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func modifyChallenge() -> Single<Void> {
+  func modifyChallenge() async throws {
     guard let modifyPayload, let challengeId else {
-      return .error(APIError.organazieFailed(reason: .payloadIsNil))
+      throw APIError.organazieFailed(reason: .payloadIsNil)
     }
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+    do {
       return try await repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
+    } catch {
+      throw CancellationError()
     }
   }
 }
 
 // MARK: - Private Methods
 private extension OrganizeUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          let value = try await work()
-          single(.success(value))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
-  }
-  
-  func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
-    return Single<T>.create { single in
-      single(.failure(error))
-      return Disposables.create()
-    }
-  }
-  
   func imageToData(_ image: KFCrossPlatformImage, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
     

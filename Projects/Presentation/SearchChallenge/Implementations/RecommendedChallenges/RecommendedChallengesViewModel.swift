@@ -119,14 +119,14 @@ private extension RecommendedChallengesViewModel {
   }
   
   func fetchPopularChallenges() async throws -> [ChallengeCardPresentationModel] {
-    let challenges = try await useCase.popularChallenges().value
+    let challenges = try await useCase.popularChallenges()
     return challenges.map {
       modelMapper.mapToChallengeCardFromDetail($0)
     }
   }
   
   func fetchHastags() async throws -> [String] {
-    return try await useCase.popularHashtags().value
+    return try await useCase.popularHashtags()
   }
   
   func fetchHashTagChallenge(hashTag: String) async {

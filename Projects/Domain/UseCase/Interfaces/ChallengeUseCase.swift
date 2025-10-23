@@ -6,17 +6,16 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Core
 import Entity
 
 public protocol ChallengeUseCase {
   func isLogIn() async throws -> Bool
-  func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail>
-  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription>
-  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]>
+  func fetchChallengeDetail(id: Int) async throws -> ChallengeDetail
+  func fetchChallengeDescription(id: Int) async throws ->  ChallengeDescription
+  func fetchChallengeMembers(challengeId: Int) async throws -> [ChallengeMember]
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
-
+  
   func isPossibleToJoinChallenge() async -> Bool
   func isProve(challengeId: Int) async throws -> Bool
   func isJoinedChallenge(id: Int) async -> Bool
@@ -30,7 +29,7 @@ public protocol ChallengeUseCase {
   ) async throws -> PageState<[Feed]>
   func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool
-  func joinChallenge(id: Int, goal: String) -> Single<Void>
-  func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void>
-  func leaveChallenge(id: Int) -> Single<Void>
+  func joinChallenge(id: Int, goal: String) async throws -> Void
+  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws -> Void
+  func leaveChallenge(id: Int) async throws -> Void
 }

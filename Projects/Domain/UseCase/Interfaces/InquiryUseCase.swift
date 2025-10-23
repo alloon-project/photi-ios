@@ -9,5 +9,5 @@
 import RxSwift
 
 public protocol InquiryUseCase {
-  func inquiry(type: String, content: String) -> Single<Void>
+  func inquiry(type: String, content: String) async throws -> Void
 }

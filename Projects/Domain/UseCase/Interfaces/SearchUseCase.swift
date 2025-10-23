@@ -6,12 +6,11 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Entity
 
 public protocol SearchUseCase {
-  func popularChallenges() -> Single<[ChallengeDetail]>
-  func popularHashtags() -> Single<[String]>
+  func popularChallenges() async throws -> [ChallengeDetail]
+  func popularHashtags() async throws -> [String]
   func challenges(
     byHashTag hashTag: String,
     page: Int,
