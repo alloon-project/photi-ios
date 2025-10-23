@@ -87,10 +87,12 @@ final class ReportViewModel: ReportViewModelType {
             targetId: id
           )
         case .inquiry:
-          owner.requestInquiry(
-            type: reasonWithContent.0,
-            content: reasonWithContent.1
-          )
+          Task {
+            await owner.requestInquiry(
+              type: reasonWithContent.0,
+              content: reasonWithContent.1
+            )
+          }
         }
       }
       .disposed(by: disposeBag)
@@ -109,15 +111,13 @@ final class ReportViewModel: ReportViewModelType {
 
 // MARK: - Private Methods
 private extension ReportViewModel {
-  func requestInquiry(type: String, content: String) {
-    inquiryUseCase.inquiry(type: type, content: content)
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self,
-                 onSuccess: { owner, _ in
-        owner.coordinator?.didFinishReport()
-      }, onFailure: { owner, error in
-        owner.requestFailed(with: error)
-      }).disposed(by: disposeBag)
+  func requestInquiry(type: String, content: String) async {
+    do {
+      try await inquiryUseCase.inquiry(type: type, content: content)
+      coordinator?.didFinishReport()
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func requestReport(
