@@ -126,7 +126,7 @@ private extension MyPageViewModel {
   
   func loadUserInformation() async {
     do {
-      let summary = try await useCase.loadMyPageSummry().value
+      let summary = try await useCase.loadMyPageSummry()
       username.accept(summary.userName)
       calendarStartDate.accept(summary.registerDate)
       profileImageURL.accept(summary.imageUrl)
@@ -139,7 +139,7 @@ private extension MyPageViewModel {
   
   func loadVerifiedChallengeDates() async {
     do {
-      let dates = try await useCase.loadVerifiedChallengeDates().value
+      let dates = try await useCase.loadVerifiedChallengeDates()
       verifiedChallengeDates.accept(dates)
     } catch {
       requestFailed(with: error)
