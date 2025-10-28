@@ -96,7 +96,7 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
 private extension TempPasswordViewModel {
   func requestTempoaryPassword() async {
     do {
-      try await useCase.sendTemporaryPassword(to: email, userName: name).value
+      try await useCase.sendTemporaryPassword(to: email, userName: name)
       isSuccessedResendRelay.accept(true)
     } catch {
       isSuccessedResendRelay.accept(false)

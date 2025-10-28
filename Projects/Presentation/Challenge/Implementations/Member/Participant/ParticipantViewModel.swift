@@ -82,7 +82,7 @@ final class ParticipantViewModel: ParticipantViewModelType {
 private extension ParticipantViewModel {
   @MainActor func fetchParticipants() async {
     do {
-      let members = try await useCase.fetchChallengeMembers(challengeId: challengeId).value
+      let members = try await useCase.fetchChallengeMembers(challengeId: challengeId)
       let models = members.map { mapToPresentationModel($0) }
       participants.accept(models)
     } catch {

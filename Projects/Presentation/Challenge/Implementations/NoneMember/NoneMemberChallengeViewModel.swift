@@ -176,7 +176,7 @@ private extension NoneMemberChallengeViewModel {
 private extension NoneMemberChallengeViewModel {
   @MainActor func fetchChallenge() async {
     do {
-      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
       challengeName = challenge.name
       isPrivateChallenge = !(challenge.isPublic ?? false)
       challengeRelay.accept(challenge)

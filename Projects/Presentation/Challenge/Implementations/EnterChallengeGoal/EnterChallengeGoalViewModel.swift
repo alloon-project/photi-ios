@@ -107,7 +107,7 @@ private extension EnterChallengeGoalViewModel {
   
   @MainActor func joinChallenge(goal: String) async {
     do {
-      try await useCase.joinChallenge(id: challengeID, goal: goal).value
+      try await useCase.joinChallenge(id: challengeID, goal: goal)
       coordinator?.didFinishEnteringGoal(goal)
     } catch {
       requestFailed(with: error)
@@ -116,7 +116,7 @@ private extension EnterChallengeGoalViewModel {
   
   @MainActor func updateChallengeGoal(_ goal: String) async {
     do {
-      try await useCase.updateChallengeGoal(goal, challengeId: challengeID).value
+      try await useCase.updateChallengeGoal(goal, challengeId: challengeID)
       coordinator?.didFinishEnteringGoal(goal)
     } catch {
       requestFailed(with: error)
