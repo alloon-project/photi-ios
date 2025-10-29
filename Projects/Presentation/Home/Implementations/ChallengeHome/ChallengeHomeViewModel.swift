@@ -71,7 +71,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   }
   
   func reloadData() {
-    fetchInitialData()
+    Task { await fetchInitialData() }
   }
   
   func transform(input: Input) -> Output {
@@ -84,7 +84,7 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
     
     input.requestData
       .emit(with: self) { owner, _ in
-        owner.fetchInitialData()
+        Task { await owner.fetchInitialData() }
       }
       .disposed(by: disposeBag)
     
@@ -119,23 +119,20 @@ final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
 
 // MARK: - Fetch Methods
 private extension ChallengeHomeViewModel {
-  func fetchInitialData() {
-    useCase.fetchMyChallenges()
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, challenges in
-        guard !challenges.isEmpty else {
-          owner.coordinator?.requestNoneChallengeHome()
-          return
-        }
-        
-        let feedModels = owner.mapToMyChallengeFeeds(challenges)
-        let challengeModels = owner.mapToMyChallenges(challenges)
-        owner.myChallengeFeedsRelay.accept(feedModels)
-        owner.myChallengesRelay.accept(challengeModels)
-      } onFailure: { owner, error in
-        owner.requestFailed(with: error)
+  func fetchInitialData() async {
+    do {
+      let challenges = try await useCase.fetchMyChallenges()
+      guard !challenges.isEmpty else {
+        self.coordinator?.requestNoneChallengeHome()
+        return
       }
-      .disposed(by: disposeBag)
+      let feedModels = mapToMyChallengeFeeds(challenges)
+      let challengeModels = mapToMyChallenges(challenges)
+      myChallengeFeedsRelay.accept(feedModels)
+      myChallengesRelay.accept(challengeModels)
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {

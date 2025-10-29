@@ -15,9 +15,9 @@ public enum VerifyTemporaryPasswordResult {
 }
 
 public protocol LogInUseCase {
-  func login(username: String, password: String) -> Single<Void>
-  func sendUserInformation(to email: String) -> Single<Void>
-  func sendTemporaryPassword(to email: String, userName: String) -> Single<Void>
+  func login(username: String, password: String) async throws -> Void
+  func sendUserInformation(to email: String) async throws -> Void
+  func sendTemporaryPassword(to email: String, userName: String) async throws -> Void
   func verifyTemporaryPassword(_ password: String, name: String) async -> VerifyTemporaryPasswordResult
   func updatePassword(_ newPassword: String) async throws
 }

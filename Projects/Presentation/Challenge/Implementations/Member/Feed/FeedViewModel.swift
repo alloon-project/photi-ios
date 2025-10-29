@@ -209,7 +209,7 @@ private extension FeedViewModel {
   
   func fetchChallengeInfo() async {
     do {
-      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
       let proveType = proveMemberCountRelay.value
       totalMemberCount = challenge.memberCount
       

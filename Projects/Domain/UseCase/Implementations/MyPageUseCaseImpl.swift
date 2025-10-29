@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import RxSwift
 import Entity
 import UseCase
 import Repository
@@ -24,17 +23,19 @@ public class MyPageUseCaseImpl: MyPageUseCase {
 
 // MARK: - Fetch Methods
 public extension MyPageUseCaseImpl {
-  func loadMyPageSummry() -> Single<MyPageSummary> {
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func loadMyPageSummry() async throws -> MyPageSummary {
+    do {
       return try await myPagerepository.fetchMyPageSummary()
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func loadVerifiedChallengeDates() -> Single<[Date]> {
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func loadVerifiedChallengeDates() async throws -> [Date] {
+    do {
       return try await myPagerepository.fetchVerifiedChallengeDates()
+    } catch {
+      throw CancellationError()
     }
   }
   
@@ -56,22 +57,5 @@ public extension MyPageUseCaseImpl {
   
   func logOut() {
     authRepository.removeToken()
-  }
-}
-
-// MARK: - Private Methods
-private extension MyPageUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          let value = try await work()
-          single(.success(value))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
   }
 }

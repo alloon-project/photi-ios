@@ -103,7 +103,7 @@ private extension EnterEmailViewModel {
   func requestVerificationCode(email: String) async {
     do {
       lastRequestedEmail = email
-      try await useCase.requestVerificationCode(email: email).value
+      try await useCase.requestVerificationCode(email: email)
       await MainActor.run {
         useCase.configureEmail(email)
         coordinator?.attachVerifyEmail(userEmail: email)

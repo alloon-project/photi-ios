@@ -6,13 +6,11 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
-
 public protocol ReportUseCase {
   func report(
     category: String,
     reason: String,
     content: String,
     targetId: Int
-  ) -> Single<Void>
+  ) async throws -> Void
 }
