@@ -7,7 +7,6 @@
 //
 
 import Entity
-import RxSwift
 
 public protocol FeedUseCase {
   func fetchFeed(challengeId: Int, feedId: Int) async throws -> Feed
@@ -15,5 +14,5 @@ public protocol FeedUseCase {
   func fetchFeedComments(feedId: Int, page: Int, size: Int) async throws -> PageState<FeedComment>
   func uploadFeedComment(challengeId: Int, feedId: Int, comment: String) async throws -> Int
   func deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int) async throws
-  func deleteFeed(challengeId: Int, feedId: Int) -> Single<Void>
+  func deleteFeed(challengeId: Int, feedId: Int) async throws -> Void
 }

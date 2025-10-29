@@ -66,13 +66,13 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
       .withLatestFrom(input.verificationCode)
       .filter { $0.count == 4 }
       .bind(with: self) { owner, code in
-        owner.verifyCode(email: owner.email, code: code)
+        Task { await owner.verifyCode(email: owner.email, code: code) }
       }
       .disposed(by: disposeBag)
     
     input.didTapResendButton
       .bind(with: self) { owner, _ in
-        owner.requestVerificationCode(email: owner.email)
+        Task { await owner.requestVerificationCode(email: owner.email) }
       }
       .disposed(by: disposeBag)
     
@@ -90,31 +90,21 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
 
 // MARK: - Private Methods
 private extension VerifyEmailViewModel {
-  func requestVerificationCode(email: String) {
-    useCase.requestVerificationCode(email: email)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onFailure: { owner, _ in
-          owner.networkUnstable.accept(())
-        }
-      )
-      .disposed(by: disposeBag)
+  func requestVerificationCode(email: String) async {
+    do {
+      try await useCase.requestVerificationCode(email: email)
+    } catch {
+      networkUnstable.accept(())
+    }
   }
   
-  func verifyCode(email: String, code: String) {
-    useCase.verifyCode(email: email, code: code)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.coordinator?.didTapNextButton(verificationCode: code)
-        },
-        onFailure: { owner, error in
-          owner.requestFailed(error: error)
-        }
-      )
-      .disposed(by: disposeBag)
+  func verifyCode(email: String, code: String) async {
+    do {
+      try await useCase.verifyCode(email: email, code: code)
+      coordinator?.didTapNextButton(verificationCode: code)
+    } catch {
+      requestFailed(error: error)
+    }
   }
   
   func requestFailed(error: Error) {

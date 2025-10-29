@@ -30,7 +30,7 @@ final class DescriptionViewModel: DescriptionViewModelType {
   private let useCase: ChallengeUseCase
   private let disposeBag = DisposeBag()
   
-  private let description = BehaviorRelay<ChallengeDescription?>(value: nil)
+  private let descriptionRelay = BehaviorRelay<ChallengeDescription?>(value: nil)
   private let descriptionObservable: Observable<ChallengeDescription>
 
   // MARK: - Input
@@ -50,13 +50,13 @@ final class DescriptionViewModel: DescriptionViewModelType {
   init(challengeId: Int, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.useCase = useCase
-    self.descriptionObservable = description.compactMap { $0 }
+    self.descriptionObservable = descriptionRelay.compactMap { $0 }
   }
   
   func transform(input: Input) -> Output {
     input.requestData
       .emit(with: self) { owner, _ in
-        owner.fetchDescription()
+        Task { await owner.fetchDescription() }
       }
       .disposed(by: disposeBag)
     
@@ -76,15 +76,13 @@ final class DescriptionViewModel: DescriptionViewModelType {
 
 // MARK: - Private Methods
 private extension DescriptionViewModel {
-  func fetchDescription() {
-    useCase.fetchChallengeDescription(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, description in
-        owner.description.accept(description)
-      } onFailure: { owner, error in
-        owner.requestFailed(with: error)
-      }
-      .disposed(by: disposeBag)
+  func fetchDescription() async {
+    do {
+      let description = try await useCase.fetchChallengeDescription(id: challengeId)
+      self.descriptionRelay.accept(description)
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func requestFailed(with error: Error) {

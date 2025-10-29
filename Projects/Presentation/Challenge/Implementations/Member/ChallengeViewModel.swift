@@ -93,7 +93,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
     
     input.didTapLeaveButton
       .emit(with: self) { owner, _ in
-        owner.leaveChallenge()
+        Task { await owner.leaveChallenge() }
       }
       .disposed(by: disposeBag)
     
@@ -136,7 +136,7 @@ final class ChallengeViewModel: ChallengeViewModelType {
 extension ChallengeViewModel {
   func fetchChallenge() async -> ChallengeDetail? {
     do {
-      let challenge = try await useCase.fetchChallengeDetail(id: challengeId).value
+      let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
       let model = mapToPresentationModel(challenge)
       challengeDetail = challenge
       challengeModelRelay.accept(model)
@@ -168,15 +168,13 @@ extension ChallengeViewModel {
 
 // MARK: - API Methods
 private extension ChallengeViewModel {
-  func leaveChallenge() {
-    useCase.leaveChallenge(id: challengeId)
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, _ in
-        owner.coordinator?.leaveChallenge(challengeId: owner.challengeId)
-      } onFailure: { owner, error in
-        owner.requestFailed(with: error)
-      }
-      .disposed(by: disposeBag)
+  func leaveChallenge() async {
+    do {
+      try await useCase.leaveChallenge(id: challengeId)
+      coordinator?.leaveChallenge(challengeId: challengeId)
+    } catch {
+      requestFailed(with: error)
+    }
   }
   
   func fetchChallengeInviteCode() {

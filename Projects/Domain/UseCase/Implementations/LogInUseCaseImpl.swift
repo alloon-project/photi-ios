@@ -6,7 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
 import Core
 import Entity
 import UseCase
@@ -26,25 +25,28 @@ public final class LogInUseCaseImpl: LogInUseCase {
 
 // MARK: - Public Methods
 public extension LogInUseCaseImpl {
-  func login(username: String, password: String) -> Single<Void> {
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func login(username: String, password: String) async throws -> Void {
+    do {
       let userName = try await loginrepository.logIn(userName: username, password: password)
       ServiceConfiguration.shared.setUserName(userName)
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func sendUserInformation(to email: String) -> Single<Void> {
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func sendUserInformation(to email: String) async throws -> Void {
+    do {
       try await loginrepository.requestUserInformation(email: email)
+    } catch {
+      throw CancellationError()
     }
   }
   
-  func sendTemporaryPassword(to email: String, userName: String) -> Single<Void> {
-    return asyncToSingle { [weak self] in
-      guard let self else { throw CancellationError() }
+  func sendTemporaryPassword(to email: String, userName: String) async throws -> Void {
+    do {
       try await loginrepository.requestTemporaryPassword(email: email, userName: userName)
+    } catch {
+      throw CancellationError()
     }
   }
   
@@ -81,19 +83,6 @@ public extension LogInUseCaseImpl {
 
 // MARK: - Private Methods
 private extension LogInUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          single(.success(try await work()))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
-  }
-  
   func handledVerifyTemporaryPasswordError(with error: Error) -> VerifyTemporaryPasswordResult {
     guard let error = error as? APIError else { return .failure }
     

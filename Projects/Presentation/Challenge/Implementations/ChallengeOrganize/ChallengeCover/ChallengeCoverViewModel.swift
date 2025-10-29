@@ -64,7 +64,7 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
   func transform(input: Input) -> Output {
     input.viewDidLoad
       .emit(with: self) { owner, _ in
-        owner.fetchCoverImages()
+        Task { await owner.fetchCoverImages() }
       }.disposed(by: disposeBag)
     
     input.didTapBackButton
@@ -96,14 +96,13 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
 
 // MARK: - Private Methods
 private extension ChallengeCoverViewModel {
-  func fetchCoverImages() {
-    useCase.fetchChallengeSampleImages()
-      .observe(on: MainScheduler.instance)
-      .subscribe(with: self) { owner, images in
-        owner.sampleImagesRelay.accept(images)
-      } onFailure: { owner, error in
-        owner.fetchImagesFailed(with: error)
-      }.disposed(by: disposeBag)
+  func fetchCoverImages() async {
+    do {
+      let images = try await useCase.fetchChallengeSampleImages()
+      sampleImagesRelay.accept(images)
+    } catch {
+      fetchImagesFailed(with: error)
+    }
   }
   
   func fetchImagesFailed(with error: Error) {

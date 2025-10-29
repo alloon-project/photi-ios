@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import RxSwift
 import Entity
 
 public protocol MyPageUseCase {
-  func loadMyPageSummry() -> Single<MyPageSummary>
-  func loadVerifiedChallengeDates() -> Single<[Date]>
+  func loadMyPageSummry() async throws -> MyPageSummary
+  func loadVerifiedChallengeDates() async throws -> [Date]
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary>
   func loadEndedChallenges(page: Int, size: Int) async throws -> PageState<ChallengeSummary>
   func loadFeeds(byDate date: String) async throws -> [FeedSummary]

@@ -77,7 +77,7 @@ final class EnterIdViewModel: EnterIdViewModelType {
     input.didTapVerifyIdButton
       .withLatestFrom(input.userId)
       .subscribe(with: self) { owner, userId in
-        owner.verifyUserName(userId)
+        Task { await owner.verifyUserName(userId) }
       }
       .disposed(by: disposeBag)
     
@@ -99,19 +99,13 @@ final class EnterIdViewModel: EnterIdViewModelType {
 
 // MARK: - Private Methods
 private extension EnterIdViewModel {
-  func verifyUserName(_ userName: String) {
-    useCase.verifyUserName(userName)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.validIdRelay.accept(())
-        },
-        onFailure: { owner, error in
-          owner.requestFailed(error: error)
-        }
-      )
-      .disposed(by: disposeBag)
+  func verifyUserName(_ userName: String) async {
+    do {
+      try await useCase.verifyUserName(userName)
+      validIdRelay.accept(())
+    } catch {
+      requestFailed(error: error)
+    }
   }
   
   func requestFailed(error: Error) {

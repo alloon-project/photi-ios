@@ -7,8 +7,6 @@
 //
 
 import Foundation
-import RxRelay
-import RxSwift
 import Core
 import Entity
 import UseCase
@@ -34,10 +32,8 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
 
 // MARK: - Fetch Methods
 public extension ChallengeUseCaseImpl {
-  func fetchChallengeDetail(id: Int) -> Single<ChallengeDetail> {
-    asyncToSingle {
-      return try await challengeRepository.fetchChallengeDetail(id: id)
-    }
+  func fetchChallengeDetail(id: Int) async throws -> ChallengeDetail {
+    return try await challengeRepository.fetchChallengeDetail(id: id)
   }
   
   func isLogIn() async throws -> Bool {
@@ -50,16 +46,12 @@ public extension ChallengeUseCaseImpl {
     return result.isLast ? .lastPage(result.feeds) : .defaults(result.feeds)
   }
   
-  func fetchChallengeDescription(id: Int) -> Single<ChallengeDescription> {
-    asyncToSingle {
-      return try await challengeRepository.fetchChallengeDescription(challengeId: id)
-    }
+  func fetchChallengeDescription(id: Int) async throws -> ChallengeDescription {
+    return try await challengeRepository.fetchChallengeDescription(challengeId: id)
   }
   
-  func fetchChallengeMembers(challengeId: Int) -> Single<[ChallengeMember]> {
-    asyncToSingle {
-      return try await challengeRepository.fetchChallengeMembers(challengeId: challengeId)
-    }
+  func fetchChallengeMembers(challengeId: Int) async throws -> [ChallengeMember] {
+    return try await challengeRepository.fetchChallengeMembers(challengeId: challengeId)
   }
   
   func challengeProveMemberCount(challengeId: Int) async throws -> Int {
@@ -67,7 +59,8 @@ public extension ChallengeUseCaseImpl {
   }
   
   func isPossibleToJoinChallenge() async -> Bool {
-    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20).count
+    let myChallengeCount = try? await challengeRepository.fetchMyChallenges(page: 0, size: 20)
+      .count
     
     guard let myChallengeCount else { return true }
     
@@ -92,10 +85,8 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.verifyInvitationCode(id: id, code: code)
   }
   
-  func joinChallenge(id: Int, goal: String) -> Single<Void> {
-    asyncToSingle {
-      return try await challengeRepository.joinChallenge(id: id, goal: goal)
-    }
+  func joinChallenge(id: Int, goal: String) async throws -> Void {
+    return try await challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
   func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
@@ -119,37 +110,20 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.isProve(challengeId: challengeId)
   }
   
-  func updateChallengeGoal(_ goal: String, challengeId: Int) -> Single<Void> {
-    asyncToSingle {
-      return try await challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
-    }
+  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws -> Void {
+    return try await challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
   }
 }
 
 // MARK: - Delete Methods
 public extension ChallengeUseCaseImpl {
-  func leaveChallenge(id: Int) -> Single<Void> {
-    asyncToSingle { 
-      return try await challengeRepository.leaveChallenge(id: id)
-    }
+  func leaveChallenge(id: Int) async throws -> Void {
+    return try await challengeRepository.leaveChallenge(id: id)
   }
 }
 
 // MARK: - Private Methods
 private extension ChallengeUseCaseImpl {
-  func asyncToSingle<T>(_ work: @escaping () async throws -> T) -> Single<T> {
-    Single.create { single in
-      let task = Task {
-        do {
-          single(.success(try await work()))
-        } catch {
-          single(.failure(error))
-        }
-      }
-      return Disposables.create { task.cancel() }
-    }
-  }
-  
   func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
     
@@ -159,12 +133,5 @@ private extension ChallengeUseCaseImpl {
       return (data, "jpeg")
     }
     return nil
-  }
-  
-  func singleWithError<T>(_ error: Error, type: T.Type = Void.self) -> Single<T> {
-    return Single<T>.create { single in
-      single(.failure(error))
-      return Disposables.create()
-    }
   }
 }

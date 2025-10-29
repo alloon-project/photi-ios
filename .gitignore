@@ -145,3 +145,5 @@ node_modules
 
 **/fastlane/README.md
 fastlane/.env
+
+mise.toml

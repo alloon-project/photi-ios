@@ -293,7 +293,7 @@ private extension FeedCommentViewModel {
   @MainActor
   func deleteFeed() async {
     do {
-      try await useCase.deleteFeed(challengeId: challengeId, feedId: feedId).value
+      try await useCase.deleteFeed(challengeId: challengeId, feedId: feedId)
       coordinator?.deleteFeed(id: feedId)
     } catch {
       let message = "피드 삭제에 실패했어요.\n잠시후 다시 시도해주세요."

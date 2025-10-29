@@ -100,7 +100,7 @@ final class LogInViewModel: LogInViewModelType {
     didTapLoginButtonWithInfo
       .filter { !$0.0.isEmpty && !$0.1.isEmpty }
       .subscribe(with: self) { owner, info in
-        owner.requestLogin(userName: info.0, password: info.1)
+        Task { await owner.requestLogin(userName: info.0, password: info.1) }
       }
       .disposed(by: disposeBag)
     
@@ -115,21 +115,15 @@ final class LogInViewModel: LogInViewModelType {
 
 // MARK: - Private Methods
 private extension LogInViewModel {
-  func requestLogin(userName: String, password: String) {
+  func requestLogin(userName: String, password: String) async {
     loadingAnimationRelay.accept(true)
-    useCase.login(username: userName, password: password)
-      .observe(on: MainScheduler.instance)
-      .subscribe(
-        with: self,
-        onSuccess: { owner, _ in
-          owner.coordinator?.didFinishLogIn(userName: userName)
-        },
-        onFailure: { owner, error in
-          owner.loadingAnimationRelay.accept(false)
-          owner.requestFailed(with: error)
-        }
-      )
-      .disposed(by: disposeBag)
+    do {
+      try await useCase.login(username: userName, password: password)
+      coordinator?.didFinishLogIn(userName: userName)
+    } catch {
+      loadingAnimationRelay.accept(false)
+      requestFailed(with: error)
+    }
   }
   
   func requestFailed(with error: Error) {

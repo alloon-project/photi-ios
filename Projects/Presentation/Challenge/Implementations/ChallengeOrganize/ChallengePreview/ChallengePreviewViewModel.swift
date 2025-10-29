@@ -83,7 +83,7 @@ private extension ChallengePreviewViewModel {
     isLoadingRelay.accept(true)
     
     do {
-      let challenge = try await useCase.organizeChallenge().value
+      let challenge = try await useCase.organizeChallenge()
       isLoadingRelay.accept(false)
       coordinator?.didFinishOrganizeChallenge(challengeId: challenge.id)
     } catch {
