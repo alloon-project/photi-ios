@@ -14,7 +14,7 @@ public extension UITextField {
   /// - Note: UI 업데이트 안전을 위해 메인 런루프로 전달하고, 동일 값은 중복 방출하지 않습니다.
   var textPublisher: AnyPublisher<String, Never> {
     let initial = Just(self.text ?? "").eraseToAnyPublisher()
-    let changes = publisher(for: .editingChanged)
+    let changes = eventPublisher(for: .editingChanged)
       .map { [weak self] in self?.text ?? "" }
       .eraseToAnyPublisher()
 
