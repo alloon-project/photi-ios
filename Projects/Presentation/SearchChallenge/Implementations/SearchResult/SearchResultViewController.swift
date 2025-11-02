@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -23,6 +24,7 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let viewModel: SearchResultViewModel
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private var segmentIndex: Int = 0
   
   private let searchText = PublishRelay<String>()
@@ -197,11 +199,10 @@ private extension SearchResultViewController {
       }
       .disposed(by: disposeBag)
     
-    segmentControl.rx.selectedSegment
-      .bind(with: self) { owner, index in
+    segmentControl.selectedSegment
+      .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     searchBar.rx.controlEvent(.editingDidEnd)
       .withLatestFrom(searchBar.rx.text)
