@@ -96,8 +96,18 @@ private extension WithdrawViewController {
 // MARK: - Bind Methods
 private extension WithdrawViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = WithdrawViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapWithdrawButton: withdrawButton.rx.tap,
       didTapCancelButton: cancelButton.rx.tap
     )

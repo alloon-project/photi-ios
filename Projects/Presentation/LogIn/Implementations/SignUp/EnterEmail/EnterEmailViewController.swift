@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -127,8 +128,18 @@ private extension EnterEmailViewController {
 // MARK: - Bind Methods
 private extension EnterEmailViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = EnterEmailViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapNextButton: nextButton.rx.tap,
       userEmail: emailTextField.textField.rx.text.orEmpty,
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),

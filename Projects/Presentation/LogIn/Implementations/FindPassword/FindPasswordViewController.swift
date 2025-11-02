@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxSwift
 import RxCocoa
@@ -16,6 +17,9 @@ import DesignSystem
 
 final class FindPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
+  
+  private let didTapBackButtonRelay = PublishRelay<Void>()
   private let viewModel: FindPasswordViewModel
   
   // MARK: - UI Components
@@ -157,7 +161,7 @@ private extension FindPasswordViewController {
 private extension FindPasswordViewController {
   func bind() {
     let input = FindPasswordViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: didTapBackButtonRelay.asSignal(),
       userId: idTextField.textField.rx.text.orEmpty.asDriver(),
       endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
       userEmail: emailTextField.textField.rx.text.orEmpty.asDriver(),
@@ -172,6 +176,11 @@ private extension FindPasswordViewController {
   }
   
   func viewBind() {
+    navigationBar.didTapBackButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapBackButtonRelay.accept(())
+      }.store(in: &cancellables)
+    
     idTextField.textField.rx.controlEvent(.editingChanged)
       .bind(with: self) { owner, _ in
         owner.convertIdTextField(commentView: nil)

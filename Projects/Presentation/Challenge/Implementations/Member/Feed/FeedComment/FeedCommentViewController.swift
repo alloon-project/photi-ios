@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import Kingfisher
 import RxCocoa
@@ -26,6 +27,7 @@ final class FeedCommentViewController: UIViewController, ViewControllerable {
   private var dropDownOptions = [String]()
   private let viewModel: FeedCommentViewModel
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private var dataSource: DataSourceType?
   
   private let requestComments = PublishRelay<Void>()
@@ -570,9 +572,10 @@ private extension FeedCommentViewController {
     alert.present(to: self, animted: true)
     alert.cancelButtonTitle = "취소할게요"
     alert.confirmButtonTitle = "삭제할게요"
-    alert.rx.didTapConfirmButton
-      .bind(to: didTapDeleteFeedButton)
-      .disposed(by: disposeBag)
+    alert.didTapConfirmButton
+      .sinkOnMain(with: self) {owner, _ in
+        owner.didTapDeleteFeedButton.accept(())
+      }.store(in: &cancellables)
   }
   
   func deleteToastViewBottomInset() -> CGFloat {

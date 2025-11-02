@@ -21,6 +21,8 @@ final class NewPasswordViewController: UIViewController, ViewControllerable {
   private let viewModel: NewPasswordViewModel
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
+  private let didTapBackButtonRelay = PublishRelay<Void>()
+  
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 재설정", displayMode: .dark)
   
@@ -156,7 +158,7 @@ private extension NewPasswordViewController {
     let input = NewPasswordViewModel.Input(
       password: passwordTextField.textField.rx.text.orEmpty,
       reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: didTapBackButtonRelay.asSignal(),
       didTapContinueButton: nextButton.rx.tap.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
     )
@@ -170,6 +172,11 @@ private extension NewPasswordViewController {
     alertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
+      }.store(in: &cancellables)
+    
+    navigationBar.didTapBackButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapBackButtonRelay.accept(())
       }.store(in: &cancellables)
   }
   

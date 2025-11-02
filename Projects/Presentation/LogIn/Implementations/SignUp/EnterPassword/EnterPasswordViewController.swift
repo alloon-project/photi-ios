@@ -173,10 +173,20 @@ private extension EnterPasswordViewController {
 // MARK: - Bind Methods
 private extension EnterPasswordViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = EnterPasswordViewModel.Input(
       password: passwordTextField.textField.rx.text.orEmpty,
       reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
     )
     

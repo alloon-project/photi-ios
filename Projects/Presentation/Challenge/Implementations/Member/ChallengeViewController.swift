@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxSwift
 import RxCocoa
@@ -24,6 +25,7 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let viewModel: ChallengeViewModel
   private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var segmentIndex: Int = 0
   private var memberCount: Int = 0
   
@@ -135,9 +137,19 @@ private extension ChallengeViewController {
 // MARK: - Bind
 private extension ChallengeViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = ChallengeViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: backButtonEvent.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
       didTapLeaveButton: didTapLeaveButton.asSignal(),
       didTapReportButton: didTapReportButton.asSignal(),
@@ -151,11 +163,10 @@ private extension ChallengeViewController {
   }
   
   func viewBind() {
-    segmentControl.rx.selectedSegment
-      .bind(with: self) { owner, index in
+    segmentControl.selectedSegment
+      .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: ChallengeViewModel.Output) {
@@ -218,11 +229,10 @@ extension ChallengeViewController: ChallengePresentable {
   
   func presentChallengeNotFoundWaring() {
     let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    alert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     alert.present(to: self, animted: true)
   }
   
@@ -321,9 +331,10 @@ private extension ChallengeViewController {
     alert.confirmButtonTitle = "탈퇴할게요"
     alert.cancelButtonTitle = "취소할게요"
     
-    alert.rx.didTapConfirmButton
-      .bind(to: didTapLeaveButton)
-      .disposed(by: disposeBag)
+    alert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapLeaveButton.accept(())
+      }.store(in: &cancellables)
     
     alert.present(to: self, animted: true)
   }
