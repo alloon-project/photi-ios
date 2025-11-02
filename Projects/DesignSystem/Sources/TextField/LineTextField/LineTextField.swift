@@ -7,18 +7,17 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
 /// 기본적인 TextField입니다. 
 public class LineTextField: UIView {
   /// Line Text Field의 type입니다.
-  public let type: TextFieldType
-  
+  public let type: TextFieldType  
+
   /// Line Text Field의 mode입니다.
-  public var mode: TextFieldMode {
+  @Published public var mode: TextFieldMode {
     didSet {
       textField.setLineColor(lineColor(for: mode))
     }
@@ -39,6 +38,8 @@ public class LineTextField: UIView {
       }
     }
   }
+  
+  public var textPublisher: AnyPublisher<String, Never> { textField.textPublisher }
   
   // MARK: - UI Components
   public let textField = PhotiTextField()
@@ -207,19 +208,6 @@ private extension LineTextField {
     commentStackView.removeFromSuperview()
     textField.snp.remakeConstraints {
       $0.edges.equalToSuperview()
-    }
-  }
-}
-
-// MARK: - LineTextField
-public extension Reactive where Base: LineTextField {
-  var text: ControlProperty<String> {
-    return base.textField.rx.text.orEmpty
-  }
-  
-  var mode: Binder<TextFieldMode> {
-    return Binder(base) { base, mode in
-      base.mode = mode
     }
   }
 }
