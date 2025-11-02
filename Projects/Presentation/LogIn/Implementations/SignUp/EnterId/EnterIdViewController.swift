@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -17,6 +18,9 @@ import DesignSystem
 final class EnterIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
   private let viewModel: EnterIdViewModel
+  
+  private var cancellables: Set<AnyCancellable> = []
+  private let didTapButtonAtIdTextField = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -155,7 +159,7 @@ private extension EnterIdViewController {
     let input = EnterIdViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapNextButton: nextButton.rx.tap,
-      didTapVerifyIdButton: idTextField.rx.didTapButton,
+      didTapVerifyIdButton: .init(events: didTapButtonAtIdTextField),
       userId: idTextField.textField.rx.text.orEmpty
     )
     
@@ -180,16 +184,22 @@ private extension EnterIdViewController {
       }
       .disposed(by: disposeBag)
     
-    idTextField.rx.didTapButton
-      .bind(with: self) { owner, _ in
+    idTextField.buttonTapPublisher
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapButtonAtIdTextField.accept(())
+      }.store(in: &cancellables)
+    
+    idTextField.buttonTapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.view.endEditing(true)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: EnterIdViewModel.Output) {
     output.isDuplicateButtonEnabled
-      .emit(to: idTextField.button.rx.isEnabled)
+      .emit(with: self) { owner, enabled in
+        owner.idTextField.buttonIsEnabled = enabled
+      }
       .disposed(by: disposeBag)
     
     output.inValidIdForm

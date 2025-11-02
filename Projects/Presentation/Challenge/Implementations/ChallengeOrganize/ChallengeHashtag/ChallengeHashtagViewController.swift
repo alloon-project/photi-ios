@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -18,6 +19,7 @@ final class ChallengeHashtagViewController: UIViewController, ViewControllerable
   // MARK: - Variables
   private let mode: ChallengeOrganizeMode
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: ChallengeHashtagViewModel
   
   private var hashtagsDataSource: [String] = [] {
@@ -176,15 +178,14 @@ private extension ChallengeHashtagViewController {
   }
   
   func viewBind() {
-    addHashtagTextField.rx.didTapButton
-      .withLatestFrom(addHashtagTextField.textField.rx.text.orEmpty)
+    addHashtagTextField.buttonTapPublisher
+      .withLatestFrom(addHashtagTextField.textPublisher)
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-      .bind(with: self) { owner, hashTag in
+      .sinkOnMain(with: self) { owner, hashTag in
         owner.hashtagsDataSource.append(hashTag)
         owner.selectedHashtags.accept(owner.hashtagsDataSource)
         owner.addHashtagTextField.text = ""
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     selectedHashtags
       .filter { $0.count >= 3 }
