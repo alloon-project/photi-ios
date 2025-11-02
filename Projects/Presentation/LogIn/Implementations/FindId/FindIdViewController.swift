@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxSwift
 import RxRelay
@@ -16,6 +17,7 @@ import DesignSystem
 
 final class FindIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let alertRelay = PublishRelay<Void>()
   private let viewModel: FindIdViewModel
   
@@ -132,11 +134,10 @@ private extension FindIdViewController {
   }
   
   func viewBind() {
-    alertVC.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    alertVC.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.alertRelay.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     emailTextField.textField.rx.controlEvent(.editingChanged)
       .bind(with: self) { owner, _ in

@@ -132,18 +132,17 @@ private extension SearchChallengeViewController {
     let output = viewModel.transform(input: input)
     bind(output: output)
     viewBind()
-    
-    logInAlertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLogInButton.accept(())
-      }
-      .disposed(by: disposeBag)
   }
   
   func viewBind() {
     segmentControl.selectedSegment
       .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
+      }.store(in: &cancellables)
+    
+    logInAlertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapLogInButton.accept(())
       }.store(in: &cancellables)
   }
   

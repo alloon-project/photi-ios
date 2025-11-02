@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,7 @@ import DesignSystem
 
 final class NewPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: NewPasswordViewModel
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
@@ -165,11 +167,10 @@ private extension NewPasswordViewController {
   }
   
   func viewBind() {
-    alertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    alertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(output: NewPasswordViewModel.Output) {
