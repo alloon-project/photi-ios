@@ -160,7 +160,7 @@ private extension EnterChallengeGoalViewController {
   func bind() {
     let input = EnterChallengeGoalViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      goalText: textField.rx.text,
+      goalText: textField.textField.rx.text.orEmpty,
       didTapSaveButton: saveButton.rx.tap,
       didTapSkipButton: didTapSkipButtonRelay.asSignal()
     )
@@ -177,7 +177,7 @@ private extension EnterChallengeGoalViewController {
   }
   
   func addGoalModeViewBind() {
-    textField.rx.text
+    textField.textField.rx.text.orEmpty
       .map { $0.isEmpty }
       .bind(with: self) { owner, isEmpty in
         owner.skipButton.isHidden = !isEmpty

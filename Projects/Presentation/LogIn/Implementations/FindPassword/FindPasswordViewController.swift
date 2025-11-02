@@ -158,9 +158,9 @@ private extension FindPasswordViewController {
   func bind() {
     let input = FindPasswordViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
-      userId: idTextField.rx.text.asDriver(),
+      userId: idTextField.textField.rx.text.orEmpty.asDriver(),
       endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
-      userEmail: emailTextField.rx.text.asDriver(),
+      userEmail: emailTextField.textField.rx.text.orEmpty.asDriver(),
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
       didTapNextButton: nextButton.rx.tap.asSignal()
     )

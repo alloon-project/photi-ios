@@ -247,7 +247,7 @@ private extension ChallengeNameViewController {
   func bind() {
     let input = ChallengeNameViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      challengeName: challengeNameTextField.rx.text,
+      challengeName: challengeNameTextField.textField.rx.text.orEmpty,
       isPublicChallenge: isPublicRelay.asObservable(),
       didTapNextButton: nextButton.rx.tap
     )
@@ -260,7 +260,7 @@ private extension ChallengeNameViewController {
   func bind(for output: ChallengeNameViewModel.Output) { }
   
   func viewBind() {
-    challengeNameTextField.rx.text
+    challengeNameTextField.textField.rx.text.orEmpty
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .map { !$0.isEmpty }
       .bind(to: nextButton.rx.isEnabled)

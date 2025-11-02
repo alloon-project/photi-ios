@@ -130,7 +130,7 @@ private extension EnterEmailViewController {
     let input = EnterEmailViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapNextButton: nextButton.rx.tap,
-      userEmail: emailTextField.rx.text,
+      userEmail: emailTextField.textField.rx.text.orEmpty,
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
       editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged)
     )

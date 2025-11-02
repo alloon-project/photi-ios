@@ -165,7 +165,7 @@ private extension ChallengeHashtagViewController {
   func bind() {
     let input = ChallengeHashtagViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      enteredHashtag: addHashtagTextField.rx.text,
+      enteredHashtag: addHashtagTextField.textField.rx.text.orEmpty,
       selectedHashtags: selectedHashtags.asDriver(),
       didTapNextButton: nextButton.rx.tap
     )
@@ -177,7 +177,7 @@ private extension ChallengeHashtagViewController {
   
   func viewBind() {
     addHashtagTextField.rx.didTapButton
-      .withLatestFrom(addHashtagTextField.rx.text)
+      .withLatestFrom(addHashtagTextField.textField.rx.text.orEmpty)
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .bind(with: self) { owner, hashTag in
         owner.hashtagsDataSource.append(hashTag)

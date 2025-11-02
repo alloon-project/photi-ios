@@ -156,7 +156,7 @@ private extension EnterIdViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapNextButton: nextButton.rx.tap,
       didTapVerifyIdButton: idTextField.rx.didTapButton,
-      userId: idTextField.rx.text
+      userId: idTextField.textField.rx.text.orEmpty
     )
     
     let output = viewModel.transform(input: input)

@@ -174,8 +174,8 @@ private extension EnterPasswordViewController {
 private extension EnterPasswordViewController {
   func bind() {
     let input = EnterPasswordViewModel.Input(
-      password: passwordTextField.rx.text,
-      reEnteredPassword: passwordCheckTextField.rx.text,
+      password: passwordTextField.textField.rx.text.orEmpty,
+      reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
     )
