@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,8 @@ import DesignSystem
 
 final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
+  
   private let mode: ChallengeOrganizeMode
   private let viewModel: ChallengeGoalViewModel
   private let proveTimeRelay = PublishRelay<String>()
@@ -263,10 +266,10 @@ private extension ChallengeGoalViewController {
         owner.showTimePickerBottomSheet()
       }.disposed(by: disposeBag)
     
-    dateTextField.rx.didTapButton
-      .bind(with: self) { owner, _ in
+    dateTextField.didTapButtonPublisher
+      .sink(with: self) { owner, _ in
         owner.showCalendar()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
