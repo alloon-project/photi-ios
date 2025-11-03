@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -22,6 +21,8 @@ public final class DateTextField: UIView {
       textField.setLineColor(lineColor(for: mode))
     }
   }
+  
+  public var didTapButtonPublisher: AnyPublisher<Void, Never> { button.tapPublisher }
   
   /// textfield의 delegate
   public weak var delegate: UITextFieldDelegate? {
@@ -98,7 +99,7 @@ public final class DateTextField: UIView {
     }
   }
   
-  fileprivate let button = FilledRoundButton(type: .primary, size: .xSmall)
+  private let button = FilledRoundButton(type: .primary, size: .xSmall)
   
   // MARK: - Initalizers
   public init(
@@ -319,12 +320,5 @@ private extension DateTextField {
       case .error:
         return .red400
     }
-  }
-}
-
-// MARK: - Reactive Extension
-public extension Reactive where Base: DateTextField {
-  var didTapButton: ControlEvent<Void> {
-    return base.button.rx.tap
   }
 }

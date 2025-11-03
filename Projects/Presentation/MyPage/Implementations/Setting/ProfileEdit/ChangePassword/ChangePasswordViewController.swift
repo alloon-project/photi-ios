@@ -230,9 +230,9 @@ private extension ChangePasswordViewController {
 private extension ChangePasswordViewController {
   func bind() {
     let input = ChangePasswordViewModel.Input(
-      currentPassword: currentPasswordTextField.rx.text,
-      newPassword: newPasswordTextField.rx.text,
-      reEnteredPassword: newPasswordCheckTextField.rx.text,
+      currentPassword: currentPasswordTextField.textField.rx.text.orEmpty,
+      newPassword: newPasswordTextField.textField.rx.text.orEmpty,
+      reEnteredPassword: newPasswordCheckTextField.textField.rx.text.orEmpty,
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapForgetPasswordButton: forgotPasswordButton.rx.tap,
       didTapChangePasswordButton: changePasswordButton.rx.tap
@@ -244,7 +244,7 @@ private extension ChangePasswordViewController {
   }
   
   func viewBind() {
-    currentPasswordTextField.rx.text
+    currentPasswordTextField.textField.rx.text.orEmpty
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         guard !owner.currentPasswordTextField.commentViews.isEmpty else { return }
@@ -253,7 +253,7 @@ private extension ChangePasswordViewController {
       }
       .disposed(by: disposeBag)
     
-    newPasswordTextField.rx.text
+    newPasswordTextField.textField.rx.text.orEmpty
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         guard owner.newPasswordTextField.commentViews != owner.newPassWordCommentViews else { return }

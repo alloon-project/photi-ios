@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -147,11 +148,27 @@ private extension ReportViewController {
 // MARK: - Bind Methods
 private extension ReportViewController {
   func bind() {
+    let content: ControlProperty<String> = {
+      let values = Observable<String>.create { [weak detailContentTextView] observer in
+        guard let textView = detailContentTextView else { return Disposables.create() }
+        let cancellable = textView.textPublisher
+          .sink { value in observer.onNext(value) }
+        return Disposables.create { cancellable.cancel() }
+      }
+
+      let sink = AnyObserver<String> { [weak detailContentTextView] event in
+        if case .next(let text) = event {
+          detailContentTextView?.text = text
+        }
+      }
+      return ControlProperty(values: values, valueSink: sink)
+    }()
+      
     let input = ReportViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapReportButton: reportButton.rx.tap,
       reasonAndType: selectedRowRelay.asObservable(),
-      content: detailContentTextView.rx.text
+      content: content
     )
     
     let output = viewModel.transform(input: input)

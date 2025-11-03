@@ -131,8 +131,8 @@ private extension LogInViewController {
 private extension LogInViewController {
   func bind() {
     let input = LogInViewModel.Input(
-      id: idTextField.rx.text,
-      password: passwordTextField.rx.text,
+      id: idTextField.textField.rx.text.orEmpty,
+      password: passwordTextField.textField.rx.text.orEmpty,
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapLoginButton: loginButton.rx.tap,
       didTapFindIdButton: findView.rx.didTapFindIdButton,
@@ -146,7 +146,7 @@ private extension LogInViewController {
   }
   
   func viewBind() {
-    idTextField.rx.text
+    idTextField.textField.rx.text.orEmpty
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         owner.idTextField.commentViews = []
@@ -154,7 +154,7 @@ private extension LogInViewController {
       }
       .disposed(by: disposeBag)
     
-    passwordTextField.rx.text
+    passwordTextField.textField.rx.text.orEmpty
       .distinctUntilChanged()
       .bind(with: self) { owner, _ in
         owner.passwordTextField.commentViews = []

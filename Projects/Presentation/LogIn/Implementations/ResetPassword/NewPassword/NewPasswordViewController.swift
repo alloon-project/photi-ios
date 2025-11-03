@@ -152,8 +152,8 @@ private extension NewPasswordViewController {
 private extension NewPasswordViewController {
   func bind() {
     let input = NewPasswordViewModel.Input(
-      password: passwordTextField.rx.text,
-      reEnteredPassword: passwordCheckTextField.rx.text,
+      password: passwordTextField.textField.rx.text.orEmpty,
+      reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapContinueButton: nextButton.rx.tap.asSignal(),
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()

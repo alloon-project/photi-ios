@@ -212,7 +212,7 @@ private extension VerifyEmailViewController {
       didTapBackButton: navigationBar.rx.didTapBackButton,
       didTapResendButton: resendButton.rx.tap,
       didTapNextButton: nextButton.rx.tap,
-      verificationCode: lineTextField.rx.text
+      verificationCode: lineTextField.textField.rx.text.orEmpty
     )
     
     let output = viewModel.transform(input: input)

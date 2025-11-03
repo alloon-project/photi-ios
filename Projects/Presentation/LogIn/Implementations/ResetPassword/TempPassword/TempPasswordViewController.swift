@@ -208,7 +208,7 @@ private extension TempPasswordViewController {
 extension TempPasswordViewController {
   func bind() {
     let input = TempPasswordViewModel.Input(
-      password: tempPasswordTextField.rx.text.asDriver(),
+      password: tempPasswordTextField.textField.rx.text.orEmpty.asDriver(),
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
       didTapResendButton: resendButton.rx.tap.asSignal(),
       didTapNextButton: nextButton.rx.tap.asSignal()

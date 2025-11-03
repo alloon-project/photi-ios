@@ -120,7 +120,7 @@ private extension FindIdViewController {
   func bind() {
     let input = FindIdViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
-      email: emailTextField.rx.text.asDriver(),
+      email: emailTextField.textField.rx.text.orEmpty.asDriver(onErrorJustReturn: ""),
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
       didTapNextButton: nextButton.rx.tap.asSignal(),
       didAppearAlert: alertRelay.asSignal()

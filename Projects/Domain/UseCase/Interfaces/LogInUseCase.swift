@@ -6,8 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
-
 public enum VerifyTemporaryPasswordResult {
   case success
   case mismatch
@@ -15,9 +13,9 @@ public enum VerifyTemporaryPasswordResult {
 }
 
 public protocol LogInUseCase {
-  func login(username: String, password: String) async throws -> Void
-  func sendUserInformation(to email: String) async throws -> Void
-  func sendTemporaryPassword(to email: String, userName: String) async throws -> Void
+  func login(username: String, password: String) async throws
+  func sendUserInformation(to email: String) async throws
+  func sendTemporaryPassword(to email: String, userName: String) async throws
   func verifyTemporaryPassword(_ password: String, name: String) async -> VerifyTemporaryPasswordResult
   func updatePassword(_ newPassword: String) async throws
 }

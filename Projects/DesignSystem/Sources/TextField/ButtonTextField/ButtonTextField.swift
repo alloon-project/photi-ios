@@ -7,14 +7,14 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import Core
 
 /// Button이 포함된 TextField입니다.
 public final class ButtonTextField: LineTextField {
-  public let button: FilledRoundButton
+  private let button: FilledRoundButton
   
+  public var buttonTapPublisher: AnyPublisher<Void, Never> { button.tap() }
   public var buttonIsEnabled: Bool {
     get { button.isEnabled }
     set { button.isEnabled = newValue }
@@ -59,18 +59,5 @@ public final class ButtonTextField: LineTextField {
       leftPdding: 8,
       rightPadding: 6
     )
-  }
-}
-
-// MARK: - Reactive Extensions
-public extension Reactive where Base: ButtonTextField {
-  var didTapButton: ControlEvent<Void> {
-    base.button.rx.tap
-  }
-  
-  var buttonIsEnabled: Binder<Bool> {
-    .init(base) { base, value in
-      base.buttonIsEnabled = value
-    }
   }
 }

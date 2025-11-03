@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -18,11 +17,13 @@ public final class LineTextView: UIView {
   public let type: TextViewType
   
   /// Line Text View의 mode입니다.
-  public var mode: TextViewMode {
+  @Published public var mode: TextViewMode {
     didSet {
       textView.setLineColor(lineColor(for: mode))
     }
   }
+  
+  public var textPublisher: AnyPublisher<String, Never> { textView.textPublisher }
   
   public var placeholder: String? {
     get { textView.placeholder }
@@ -35,7 +36,7 @@ public final class LineTextView: UIView {
   }
   
   // MARK: - UI Components
-  public let textView = PhotiTextView()
+  private let textView = PhotiTextView()
   private lazy var countLabel = UILabel()
   private lazy var commentStackView: UIStackView = {
     let stackView = UIStackView()
@@ -182,19 +183,6 @@ extension LineTextView: UITextViewDelegate {
     if case let .count(max) = type {
       textView.text = (textView.text ?? "").trimmingPrefix(count: max)
       setCountLabel(max: max)
-    }
-  }
-}
-
-// MARK: - Reactive Extension
-public extension Reactive where Base: LineTextView {
-  var text: ControlProperty<String> {
-    return base.textView.rx.text.orEmpty
-  }
-  
-  var mode: Binder<TextViewMode> {
-    return Binder(base) { base, mode in
-      base.mode = mode
     }
   }
 }
