@@ -104,7 +104,7 @@ private extension WithdrawAuthViewController {
   func bind() {
     let input = WithdrawAuthViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      password: passwordTextField.rx.text,
+      password: passwordTextField.textField.rx.text.orEmpty,
       didTapWithdrawButton: withdrawButton.rx.tap
     )
     
@@ -114,7 +114,7 @@ private extension WithdrawAuthViewController {
   }
   
   func viewBind() {
-    passwordTextField.rx.text
+    passwordTextField.textField.rx.text.orEmpty
       .map { !$0.isEmpty }
       .bind(with: self) { owner, isEntered in
         owner.withdrawButton.isEnabled = isEntered

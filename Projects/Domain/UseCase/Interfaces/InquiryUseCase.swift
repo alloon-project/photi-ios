@@ -6,8 +6,6 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxSwift
-
 public protocol InquiryUseCase {
-  func inquiry(type: String, content: String) async throws -> Void
+  func inquiry(type: String, content: String) async throws
 }

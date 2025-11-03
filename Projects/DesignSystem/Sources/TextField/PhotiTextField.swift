@@ -20,15 +20,11 @@ public class PhotiTextField: UITextField {
   }
   
   public override var placeholder: String? {
-    didSet {
-      self.setPlaceholder(placeholder)
-    }
+    didSet { self.setPlaceholder(placeholder) }
   }
   
   public override var text: String? {
-    didSet {
-      setText(text)
-    }
+    didSet { setText(text) }
   }
   
   // MARK: - Initializers

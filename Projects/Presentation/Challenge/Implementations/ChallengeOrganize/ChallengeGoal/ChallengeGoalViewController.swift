@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,8 @@ import DesignSystem
 
 final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
+  
   private let mode: ChallengeOrganizeMode
   private let viewModel: ChallengeGoalViewModel
   private let proveTimeRelay = PublishRelay<String>()
@@ -235,9 +238,25 @@ private extension ChallengeGoalViewController {
 // MARK: - Bind Methods
 private extension ChallengeGoalViewController {
   func bind() {
+    let challengeGoal: ControlProperty<String> = {
+      let values = Observable<String>.create { [weak challengeGoalTextView] observer in
+        guard let textView = challengeGoalTextView else { return Disposables.create() }
+        let cancellable = textView.textPublisher
+          .sink { value in observer.onNext(value) }
+        return Disposables.create { cancellable.cancel() }
+      }
+
+      let sink = AnyObserver<String> { [weak challengeGoalTextView] event in
+        if case .next(let text) = event {
+          challengeGoalTextView?.text = text
+        }
+      }
+      return ControlProperty(values: values, valueSink: sink)
+    }()
+    
     let input = ChallengeGoalViewModel.Input(
       didTapBackButton: navigationBar.rx.didTapBackButton,
-      challengeGoal: challengeGoalTextView.rx.text,
+      challengeGoal: challengeGoal,
       proveTime: proveTimeRelay.asObservable(),
       date: endDateRelay.asObservable(),
       didTapNextButton: nextButton.rx.tap
@@ -263,10 +282,10 @@ private extension ChallengeGoalViewController {
         owner.showTimePickerBottomSheet()
       }.disposed(by: disposeBag)
     
-    dateTextField.rx.didTapButton
-      .bind(with: self) { owner, _ in
+    dateTextField.didTapButtonPublisher
+      .sink(with: self) { owner, _ in
         owner.showCalendar()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
