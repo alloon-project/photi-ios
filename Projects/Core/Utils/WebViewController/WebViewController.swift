@@ -8,13 +8,9 @@
 
 import UIKit
 import WebKit
-import RxCocoa
-import RxSwift
-import SnapKit
 
 public final class WebViewController: UIViewController {
   // MARK: - Properties
-  private let disposeBag = DisposeBag()
   private var url: URL?
   // MARK: - UI Components
   private let webView = WKWebView()
@@ -51,10 +47,12 @@ private extension WebViewController {
   }
   
   func setConstraints() {
-    webView.snp.makeConstraints {
-      $0.leading.trailing.bottom.equalToSuperview()
-      $0.top.equalToSuperview().offset(56)
-    }
+    NSLayoutConstraint.activate([
+      webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      webView.topAnchor.constraint(equalTo: view.topAnchor, constant: 56)
+    ])
   }
 }
 

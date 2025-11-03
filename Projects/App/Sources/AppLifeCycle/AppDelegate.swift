@@ -1,7 +1,6 @@
-
 //
 //  AppDelegate.swift
-//  Alloon-DEV
+//  Photi-DEV
 //
 //  Created by jung on 4/14/24.
 //  Copyright © 2024 com.alloon. All rights reserved.
@@ -9,6 +8,7 @@
 
 import UIKit
 import Coordinator
+import Core
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -18,9 +18,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   
   func application(
     _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     UIViewController.swizzleLifecycle()
+    UIViewController.swizzleLifecycleMethods()
     configureWindowForSplash()
     return true
   }
