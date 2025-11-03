@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import Kingfisher
 import RxSwift
@@ -18,8 +19,10 @@ import DesignSystem
 final class MyPageViewController: UIViewController, ViewControllerable {
   private let viewModel: MyPageViewModel
   private let disposeBag = DisposeBag()
+  private var cancallables = Set<AnyCancellable>()
   
   private let didTapDate = PublishRelay<Date>()
+  private let isVisbleRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let scrollView: UIScrollView = {
@@ -225,12 +228,20 @@ private extension MyPageViewController {
       didTapSettingButton: settingButton.rx.tap,
       didTapAuthCountBox: feedsCountBox.rx.didTapBox,
       didTapEndedChallengeBox: endedChallengeCountBox.rx.didTapBox,
-      didBecomeVisible: rx.isVisible.filter { $0 }.map { _ in () }.asSignal(onErrorJustReturn: ()),
+      didBecomeVisible: isVisbleRelay.asSignal(),
       didTapDate: didTapDate.asSignal()
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
+  }
+  
+  func viewBind() {
+    isVisiblePublisher.sink { [weak self] _ in
+      self?.isVisbleRelay.accept(())
+    }
+    .store(in: &cancallables)
   }
   
   func bind(output: MyPageViewModel.Output) {
