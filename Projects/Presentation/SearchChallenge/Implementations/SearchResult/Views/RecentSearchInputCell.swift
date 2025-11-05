@@ -41,6 +41,11 @@ private extension RecentSearchInputCell {
 // MARK: - Reactive Extension
 extension Reactive where Base: RecentSearchInputCell {
   var didTapDeleteButton: ControlEvent<Void> {
-    return base.chip.rx.didTapIcon
+    let events = Observable<Void>.create { observer in
+      let cancellable = base.chip.didTapIcon.sink { observer.onNext(()) }
+      return Disposables.create { cancellable.cancel() }
+    }
+
+    return ControlEvent(events: events)
   }
 }
