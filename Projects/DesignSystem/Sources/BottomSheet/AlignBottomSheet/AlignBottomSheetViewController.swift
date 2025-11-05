@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import SnapKit
-import RxCocoa
-import RxSwift
 import Core
 
 public protocol AlignBottomSheetDelegate: AnyObject {
@@ -22,7 +21,7 @@ public final class AlignBottomSheetViewController: BottomSheetViewController {
     case button(text: String)
   }
   
-  private lazy var disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   private let type: AlignType
   public weak var delegate: AlignBottomSheetDelegate?
@@ -133,12 +132,11 @@ private extension AlignBottomSheetViewController {
 // MARK: - Bind
 private extension AlignBottomSheetViewController {
   func bind() {
-    button.rx.tap
-      .bind(with: self) { owner, _ in
+    button.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didSelected(at: owner.selectedRow, data: owner.selectedData)
         owner.dismissBottomSheet()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -190,6 +188,6 @@ private extension AlignBottomSheetViewController {
   
   func selectRow(at indexPath: IndexPath) {
     deselectAllCell()
-    self.tableView.cellForRow(AlignCell.self, at: indexPath).isSelected = true
+    tableView.cellForRow(AlignCell.self, at: indexPath).isSelected = true
   }
 }

@@ -19,12 +19,9 @@ let project = Project.make(
 			resources: ["Resources/**"],
 			dependencies: [
 				.Project.Core,
-				.SPM.RxCocoa,
-				.SPM.RxSwift,
 				.SPM.SnapKit,
-				.SPM.Lottie,
-        .SPM.Coordinator
-			]
+				.SPM.Lottie
+      ]
 		)
 	],
 	resourceSynthesizers: [

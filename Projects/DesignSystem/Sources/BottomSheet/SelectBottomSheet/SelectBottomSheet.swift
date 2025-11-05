@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -17,7 +16,7 @@ public protocol SelectBottomSheetDelegate: AnyObject {
 }
 
 public final class SelectBottomSheetViewController: BottomSheetViewController {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   private weak var delegate: SelectBottomSheetDelegate?
   
@@ -121,11 +120,10 @@ private extension SelectBottomSheetViewController {
 // MARK: - Bind
 private extension SelectBottomSheetViewController {
   func bind() {
-    closeButton.rx.tap
-      .bind(with: self) { owner, _ in
+    closeButton.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.dismissBottomSheet()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

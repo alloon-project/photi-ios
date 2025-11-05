@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -17,7 +16,7 @@ public protocol DatePickerBottomSheetDelegate: AnyObject {
 }
 
 public final class DatePickerBottomSheetViewController: BottomSheetViewController {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   public var startDate: Date = .now {
     didSet {
@@ -33,11 +32,11 @@ public final class DatePickerBottomSheetViewController: BottomSheetViewControlle
   public var selecedDate: Date? {
     didSet {
       calendarView.selectedDate = selecedDate
-      selectedDateRelay.accept(selecedDate)
+      selectedDateSubject.send(selecedDate)
     }
   }
   
-  private let selectedDateRelay = BehaviorRelay<Date?>(value: nil)
+  private let selectedDateSubject = CurrentValueSubject<Date?, Never>(nil)
   
   public weak var delegate: DatePickerBottomSheetDelegate?
   
@@ -105,26 +104,24 @@ private extension DatePickerBottomSheetViewController {
 // MARK: - Bind
 private extension DatePickerBottomSheetViewController {
   func bind() {
-    selectedDateRelay
-      .map { date -> ButtonMode in
-        date == nil ? .disabled : .default
-      }
-      .bind(to: button.rx.mode)
-      .disposed(by: disposeBag)
+    // mode 바인딩: 선택된 날짜가 없으면 비활성화 모드
+    selectedDateSubject
+      .map { ($0 == nil) ? ButtonMode.disabled : ButtonMode.default }
+      .bind(to: \FilledRoundButton.mode, on: button)
+      .store(in: &cancellables)
     
-    selectedDateRelay
+    selectedDateSubject
       .map { $0 != nil }
-      .bind(to: button.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .bind(to: \FilledRoundButton.isEnabled, on: button)
+      .store(in: &cancellables)
     
-    button.rx.tap
-      .bind(with: self) { owner, _ in
+    button.tap()
+      .sinkOnMain(with: self) { owner, _ in
         if let selecedDate = owner.selecedDate {
           owner.delegate?.didSelect(date: selecedDate)
           owner.dismissBottomSheet()
         }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -136,6 +133,6 @@ extension DatePickerBottomSheetViewController: CalendarViewDelegate {
   
   public func didTapCloseButton() {
     dismissBottomSheet()
-    didDismiss.accept(())
+    didDismissSubject.send(())
   }
 }

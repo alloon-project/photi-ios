@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,7 @@ import DesignSystem
 
 final class EnterPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: EnterPasswordViewModel
   
   private let bottomSheetTitle = "포티 서비스 이용을 위한\n필수 약관에 동의해주세요"
@@ -270,8 +272,8 @@ private extension EnterPasswordViewController {
     
     alert.didDismiss
       .map { _ in PhotiProgressStep.four }
-      .bind(to: progressBar.rx.step)
-      .disposed(by: disposeBag)
+      .bind(to: \.step, on: progressBar)
+      .store(in: &cancellables)
   }
   
   func presentRegisterFailWarning(message: String) {

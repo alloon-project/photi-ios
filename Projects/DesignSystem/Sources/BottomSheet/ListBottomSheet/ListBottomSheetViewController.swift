@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -18,7 +17,7 @@ public protocol ListBottomSheetDelegate: AnyObject {
 }
 
 public final class ListBottomSheetViewController: BottomSheetViewController {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   public weak var delegate: ListBottomSheetDelegate?
   
@@ -143,11 +142,10 @@ private extension ListBottomSheetViewController {
 // MARK: - Bind Methods
 private extension ListBottomSheetViewController {
   func bind() {
-    button.rx.tap
-      .bind(with: self) { owner, _ in
+    button.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didTapButton(owner)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -175,11 +173,10 @@ extension ListBottomSheetViewController: UITableViewDataSource {
     let cell = tableView.dequeueCell(ListBottomSheetCell.self, for: indexPath)
     cell.configure(with: dataSource[indexPath.section])
     
-    cell.rx.didTapIcon
-      .bind(with: self) { owner, _ in
+    cell.didTapIcon
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didTapIcon(owner, at: indexPath.section)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     return cell
   }
