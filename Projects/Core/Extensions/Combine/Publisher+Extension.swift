@@ -114,3 +114,48 @@ public extension Publisher where Failure == Never {
       .eraseToAnyPublisher()
   }
 }
+
+// swiftlint:disable large_tuple
+// MARK: - Combine Latest
+public extension Publisher where Failure == Never {
+  /// 두 Publisher의 최신 값을 결합하여 튜플 형태로 방출합니다.
+  func combineLatest<P1: Publisher>(_ other: P1) -> AnyPublisher<(Output, P1.Output), Never>
+  where P1.Failure == Never {
+    Publishers.CombineLatest(self, other).eraseToAnyPublisher()
+  }
+
+  /// 두 Publisher의 최신 값을 받아 변환(transform) 결과를 방출합니다.
+  func combineLatest<P1: Publisher, R>(
+    _ other: P1,
+    _ transform: @escaping (Output, P1.Output) -> R
+  ) -> AnyPublisher<R, Never> where P1.Failure == Never {
+    self.combineLatest(other)
+      .map(transform)
+      .eraseToAnyPublisher()
+  }
+
+  /// 세 Publisher의 최신 값을 결합하여 튜플 형태로 방출합니다.
+  func combineLatest<P1: Publisher, P2: Publisher>(
+    _ other1: P1,
+    _ other2: P2
+  ) -> AnyPublisher<(Output, P1.Output, P2.Output), Never>
+  where P1.Failure == Never, P2.Failure == Never {
+    self.combineLatest(other1)
+      .combineLatest(other2)
+      .map { pair, output in (pair.0, pair.1, output) }
+      .eraseToAnyPublisher()
+  }
+  
+  /// 세 Publisher의 최신 값을 받아 변환(transform) 결과를 방출합니다.
+  func combineLatest<P1: Publisher, P2: Publisher, R>(
+    _ other1: P1,
+    _ other2: P2,
+    _ transform: @escaping (Output, P1.Output, P2.Output) -> R
+  ) -> AnyPublisher<R, Never>
+  where P1.Failure == Never, P2.Failure == Never {
+    self.combineLatest(other1, other2)
+      .map(transform)
+      .eraseToAnyPublisher()
+  }
+}
+// swiftlint:enable large_tuple
