@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -28,15 +27,33 @@ public enum HashTagType: Equatable {
 
 public final class HashTagCell: UICollectionViewCell {
   // MARK: - Variables
-  private let disposeBag = DisposeBag()
-  fileprivate var chip: UIView = UIView()
+  private var cancellables = Set<AnyCancellable>()
+  private let didTapCloseSubject = PassthroughSubject<Void, Never>()
+  public var didTapClose: AnyPublisher<Void, Never> { didTapCloseSubject.eraseToAnyPublisher() }
+  
+  private var chip: UIView = UIView()
   private var type: HashTagType?
   
   public func configure(type: HashTagType, text: String) {
     guard self.type != type else { return configureText(text) }
     self.type = type
     self.chip = type.make(with: text)
+    self.cancellables.removeAll()
     setupUI(with: chip)
+    
+    // 아이콘 칩이면 탭 이벤트를 퍼블리셔로 forward
+    if let icon = chip as? IconChip {
+      icon.didTapIcon
+        .sink(with: self) { owner, _ in
+          owner.didTapCloseSubject.send()
+        }
+        .store(in: &cancellables)
+    }
+  }
+  
+  public override func prepareForReuse() {
+    super.prepareForReuse()
+    cancellables.removeAll()
   }
 }
 
@@ -56,16 +73,5 @@ private extension HashTagCell {
     } else if let view = chip as? IconChip {
       view.text = text
     }
-  }
-}
-
-public extension Reactive where Base: HashTagCell {
-  var didTapCloseButton: ControlEvent<Void> {
-    guard let iconChip = base.chip as? IconChip else {
-      let emptyObservable = Observable<Void>.empty()
-      return ControlEvent(events: emptyObservable)
-    }
-    
-    return iconChip.rx.didTapIcon
   }
 }

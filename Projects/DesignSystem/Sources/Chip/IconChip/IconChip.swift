@@ -7,14 +7,15 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
-import RxGesture
+import Combine
 import SnapKit
 import Core
 
 /// Text와 Icon이 있으며, 마찬가지로 Text 사이즈에 따라 유동적으로 길이가 변하는 View입니다.
 public final class IconChip: UIView {
+  private let didTapIconSubject = PassthroughSubject<Void, Never>()
+  public var didTapIcon: AnyPublisher<Void, Never> { didTapIconSubject.eraseToAnyPublisher() }
+  
   /// Icon Chip의 size입니다.
   public let size: ChipSize
   
@@ -100,6 +101,12 @@ private extension IconChip {
     setLabel(text)
     
     if let icon = icon { setIconView(icon) }
+  }
+  
+  func configureIconView() {
+    iconView.isUserInteractionEnabled = true
+    let tap = UITapGestureRecognizer(target: self, action: #selector(handleIconTap))
+    iconView.addGestureRecognizer(tap)
   }
   
   func setViewHierarchy() {
@@ -231,10 +238,9 @@ private extension IconChip {
   }
 }
 
-// MARK: - Reative Extension
-public extension Reactive where Base: IconChip {
-  var didTapIcon: ControlEvent<Void> {
-    let base = base.iconView.rx.tapGesture().when(.recognized).map { _ in }
-    return ControlEvent(events: base)
+// MARK: - Actions
+private extension IconChip {
+  @objc private func handleIconTap() {
+    didTapIconSubject.send(())
   }
 }

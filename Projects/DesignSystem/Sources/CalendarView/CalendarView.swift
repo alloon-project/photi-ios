@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -23,9 +22,10 @@ public final class CalendarView: UIView {
     case multiple
   }
   
-  private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   
   public let seletectionMode: SelectionMode
+  public var didTapCloseButton: AnyPublisher<Void, Never> { headerView.closeButton.tap() }
   
   /// Close 버튼 설정
   public var isCloseButtonHidden: Bool = false {
@@ -188,11 +188,11 @@ private extension CalendarView {
       action: #selector(didTapRightArrowButton),
       for: .touchUpInside
     )
-    headerView.closeButton.addTarget(
-      self,
-      action: #selector(didTapCloseButton),
-      for: .touchUpInside
-    )
+    
+    headerView.closeButton.tap()
+      .sinkOnMain(with: self) { owner, _ in
+        owner.delegate?.didTapCloseButton()
+      }.store(in: &cancellables)
     
     setViewHierarchy()
     setConstraints()
@@ -243,16 +243,15 @@ extension CalendarView: UICollectionViewDataSource {
     
     cell.selectedDates = defaultSelectedDates.map { CalendarDate(date: $0) }
     
-    cell.selectedDateRelay
-      .bind(with: self) { owner, calendarDate in
+    cell.selectedDate
+      .sinkOnMain(with: self) { owner, calendarDate in
         owner.selectedDate = calendarDate.date
         owner.delegate?.didSelect(calendarDate.date)
         if let selectedCell = owner.selectedCell, selectedCell !== cell {
           selectedCell.deSelectAllCell()
         }
         owner.selectedCell = cell
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     return cell
   }
@@ -313,10 +312,6 @@ private extension CalendarView {
     if let date = dataSource[nextItem].first {
       setHeaderViewTitle(date)
     }
-  }
-  
-  @objc func didTapCloseButton() {
-    delegate?.didTapCloseButton()
   }
   
   func updateCalendarCollectionView() {
@@ -404,12 +399,5 @@ private extension CalendarView {
     }
     
     return dataSource
-  }
-}
-
-// MARK: - Reactive Extensions
-public extension Reactive where Base: CalendarView {
-  var didTapCloseButton: ControlEvent<Void> {
-    return base.headerView.closeButton.rx.tap
   }
 }
