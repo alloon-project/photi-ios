@@ -41,9 +41,7 @@ public final class IconButton: UIButton {
   /// 내부적으로 사용되는 선택되지 않았을 때의 이미지입니다.
   private lazy var resizeUnSelectedIcon: UIImage = unSelectedIcon
   
-  public override var intrinsicContentSize: CGSize {
-    cgSize(for: size)
-  }
+  public override var intrinsicContentSize: CGSize { cgSize(for: size) }
   
   public override var isSelected: Bool {
     didSet {

@@ -7,13 +7,14 @@
 //
 
 import UIKit
-import RxRelay
+import Combine
 import SnapKit
 import Core
 
 open class BottomSheetViewController: UIViewController {
   /// 외부화면을 터치하거나,  swip down 제스쳐를 통해 종료한 경우 이벤트가 방출됩니다.
-  public let didDismiss = PublishRelay<Void>()
+  let didDismissSubject = PassthroughSubject<Void, Never>()
+  public var didDismiss: AnyPublisher<Void, Never> { didDismissSubject.eraseToAnyPublisher() }
   
   var isKeyboardDisplay: Bool = false
   
@@ -110,7 +111,7 @@ private extension BottomSheetViewController {
       view.endEditing(true)
     } else {
       dismissBottomSheet()
-      didDismiss.accept(())
+      didDismissSubject.send(())
     }
   }
   
@@ -131,7 +132,7 @@ private extension BottomSheetViewController {
         let shouldDismiss = pannedHeight > self.mainContainerView.frame.height / 2
         if shouldDismiss {
           dismissBottomSheet()
-          didDismiss.accept(())
+          didDismissSubject.send(())
         } else {
           self.mainContainerView.frame.origin.y = beforePannedY
         }
