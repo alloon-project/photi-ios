@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -22,6 +23,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   // MARK: - Properties
   private let viewModel: NoneMemberChallengeViewModel
   private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
@@ -180,9 +182,19 @@ private extension NoneMemberChallengeViewController {
 // MARK: - Bind Methods
 private extension NoneMemberChallengeViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = NoneMemberChallengeViewModel.Input(
       viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapJoinButton: joinButton.rx.tap,
       requestVerifyInvitationCode: codeRelay.asSignal(),
       didFinishVerify: didFinishVerifyRelay.asSignal().asSharedSequence(),
@@ -201,11 +213,10 @@ private extension NoneMemberChallengeViewController {
       }
       .disposed(by: disposeBag)
     
-    challengeNotFoundAlert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    challengeNotFoundAlert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapConfirmButtonAtChallengeNotFound.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {

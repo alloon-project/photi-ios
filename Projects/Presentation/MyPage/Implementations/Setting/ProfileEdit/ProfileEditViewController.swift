@@ -132,8 +132,18 @@ private extension ProfileEditViewController {
 // MARK: - Bind
 private extension ProfileEditViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = ProfileEditViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: backButtonEvent.asSignal(),
       didTapProfileEditMenu: didTapProfileEditMenu.asSignal(),
       didTapWithdrawButton: withdrawButton.rx.tap.asSignal(),
       requestData: requestData.asSignal(),

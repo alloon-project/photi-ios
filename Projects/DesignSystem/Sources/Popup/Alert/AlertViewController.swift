@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -31,7 +30,10 @@ final public class AlertViewController: UIViewController {
     didSet { cancelButton.setText(cancelButtonTitle) }
   }
   
-  private let disposeBag = DisposeBag()
+  public var didTapConfirmButton: AnyPublisher<Void, Never> { confirmButton.tapPublisher }
+  public var didTapCancelButton: AnyPublisher<Void, Never> { cancelButton.tapPublisher }
+
+  private var cancellables: Set<AnyCancellable> = []
   private let type: AlertType
   private let mainTitle: String
   private let subTitle: String?
@@ -199,18 +201,16 @@ private extension AlertViewController {
 // MARK: - Bind Methods
 private extension AlertViewController {
   func bind() {
-    confirmButton.rx.tap
-      .bind(with: self) { owner, _ in
+    confirmButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.confirmButtonDidTap()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     if case .canCancel = type {
-      cancelButton.rx.tap
-        .bind(with: self) { owner, _ in
+      cancelButton.tapPublisher
+        .sinkOnMain(with: self) { owner, _ in
           owner.confirmButtonDidTap()
-        }
-        .disposed(by: disposeBag)
+        }.store(in: &cancellables)
     }
   }
 }
@@ -263,16 +263,5 @@ private extension AlertViewController {
   
   func cancelButtonDidTap() {
     self.dismiss(animated: true)
-  }
-}
-
-// MARK: - Reactive Extension
-public extension Reactive where Base: AlertViewController {
-  var didTapConfirmButton: ControlEvent<Void> {
-    return base.confirmButton.rx.tap
-  }
-  
-  var didTapCancelButton: ControlEvent<Void> {
-    return base.cancelButton.rx.tap
   }
 }

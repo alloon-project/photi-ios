@@ -8,6 +8,7 @@
 
 import UIKit
 import Coordinator
+import RxCocoa
 import RxSwift
 import SnapKit
 import Core
@@ -130,10 +131,20 @@ private extension LogInViewController {
 // MARK: - Bind Method
 private extension LogInViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = LogInViewModel.Input(
       id: idTextField.textField.rx.text.orEmpty,
       password: passwordTextField.textField.rx.text.orEmpty,
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapLoginButton: loginButton.rx.tap,
       didTapFindIdButton: findView.rx.didTapFindIdButton,
       didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,

@@ -6,15 +6,15 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Combine
 import Coordinator
-import RxSwift
 import Entity
 import Home
 import UseCase
 
 final class HomeCoordinator: Coordinator {
   weak var listener: HomeListener?
-  private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let useCase: HomeUseCase
   
   private let navigationControllerable: NavigationControllerable
@@ -184,10 +184,9 @@ private extension HomeCoordinator {
   @MainActor func presentNetworkUnstableAlert() {
     let alert = navigationControllerable.navigationController.presentNetworkUnstableAlert()
     
-    alert.rx.didTapConfirmButton
-      .subscribe(with: self) { owner, _ in
+    alert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.attachInitialScreenIfNeeded() }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }

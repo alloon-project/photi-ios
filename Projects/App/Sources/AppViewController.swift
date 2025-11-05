@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,7 @@ import DesignSystem
 
 final class AppViewController: UITabBarController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: AppViewModel
   private let didTapMyPageTabBarItem = PublishRelay<Void>()
   private let didTapLogInButton = PublishRelay<Void>()
@@ -91,17 +93,15 @@ private extension AppViewController {
       }
       .disposed(by: disposeBag)
     
-    tapMyPageWithoutLogInAlertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    tapMyPageWithoutLogInAlertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapLogInButton.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    tokenExpiredAlertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    tokenExpiredAlertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapLogInButton.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

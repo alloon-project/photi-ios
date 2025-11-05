@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -17,6 +18,7 @@ import DesignSystem
 final class SettingViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: SettingViewModel
   private var settingMenuItems = [SettingMenuItem]() {
     didSet { menuTableView.reloadData() }
@@ -106,8 +108,18 @@ private extension SettingViewController {
 // MARK: - Bind Methods
 private extension SettingViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = SettingViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: backButtonEvent.asSignal(),
       requestData: requestData.asSignal(),
       didTapSettingMenu: didTapSettingMenu.asSignal(),
       requestLogOut: requestLogOut.asSignal()
@@ -119,11 +131,10 @@ private extension SettingViewController {
   }
   
   func viewBind() {
-    logOutAlertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    logOutAlertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.requestLogOut.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: SettingViewModel.Output) {

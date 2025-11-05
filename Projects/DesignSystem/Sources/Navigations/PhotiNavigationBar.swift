@@ -7,12 +7,11 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
-open class PhotiNavigationBar: UIView {
+public final class PhotiNavigationBar: UIView {
   public enum LeftViewType {
     case logo
     case title(String)
@@ -25,6 +24,8 @@ open class PhotiNavigationBar: UIView {
   }
   
   // MARK: - Properties
+  public var didTapBackButton: AnyPublisher<Void, Never> { backButton.tap().eraseToAnyPublisher() }
+  
   public var displayMode: DisplayMode {
     didSet {
       configureLeftView(for: leftViewType)
@@ -103,7 +104,7 @@ open class PhotiNavigationBar: UIView {
     return imageView
   }()
   
-  fileprivate lazy var backButton = PhotiNavigationButton(image: .chevronBackWhite)
+  private lazy var backButton = PhotiNavigationButton(image: .chevronBackWhite)
   
   // MARK: - Initializers
   public init(
@@ -236,10 +237,4 @@ private extension PhotiNavigationBar {
     configureRightView(for: displayMode)
     rightStackView.sizeToFit()
   }
-}
-
-public extension Reactive where Base: PhotiNavigationBar {
-  var didTapBackButton: ControlEvent<Void> {
-    return base.backButton.rx.tap
-  } 
 }

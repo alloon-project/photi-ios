@@ -7,9 +7,9 @@
 //
 
 import UIKit
+import Combine
 import SnapKit
-import RxCocoa
-import RxSwift
+import Core
 
 public class PhotiSegmentControl: UIControl {
   // MARK: - Properties
@@ -18,7 +18,18 @@ public class PhotiSegmentControl: UIControl {
   }
   
   public internal(set) var selectedSegmentIndex: Int = 0
-  
+  public var selectedSegment: AnyPublisher<Int, Never> {
+    let initial = Just(self.selectedSegmentIndex).eraseToAnyPublisher()
+    
+    let changes = eventPublisher(for: UIControl.Event.valueChanged)
+      .map { [weak self] _ in self?.selectedSegmentIndex ?? 0 }
+      .eraseToAnyPublisher()
+    return initial
+      .merge(with: changes)
+      .removeDuplicates()
+      .receive(on: RunLoop.main)
+      .eraseToAnyPublisher()
+  }
   // MARK: - UI Components
   private let stackView: UIStackView = {
     let stackView = UIStackView()
@@ -116,14 +127,5 @@ private extension PhotiSegmentControl {
     
     selectedSegmentIndex = index
     sendActions(for: .valueChanged)
-  }
-}
-
-public extension Reactive where Base: PhotiSegmentControl {
-  var selectedSegment: ControlEvent<Int> {
-    let observable = base.rx.controlEvent(.valueChanged)
-      .map { _ in return base.selectedSegmentIndex }
-      
-    return .init(events: observable)
   }
 }

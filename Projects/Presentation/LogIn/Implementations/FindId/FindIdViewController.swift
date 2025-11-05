@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxSwift
 import RxRelay
@@ -16,7 +17,9 @@ import DesignSystem
 
 final class FindIdViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let alertRelay = PublishRelay<Void>()
+  private let didTapBackButtonRelay = PublishRelay<Void>()
   private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
@@ -119,7 +122,7 @@ private extension FindIdViewController {
 private extension FindIdViewController {
   func bind() {
     let input = FindIdViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: didTapBackButtonRelay.asSignal(),
       email: emailTextField.textField.rx.text.orEmpty.asDriver(onErrorJustReturn: ""),
       endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
       didTapNextButton: nextButton.rx.tap.asSignal(),
@@ -132,11 +135,15 @@ private extension FindIdViewController {
   }
   
   func viewBind() {
-    alertVC.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    navigationBar.didTapBackButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapBackButtonRelay.accept(())
+      }.store(in: &cancellables)
+    
+    alertVC.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.alertRelay.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     emailTextField.textField.rx.controlEvent(.editingChanged)
       .bind(with: self) { owner, _ in

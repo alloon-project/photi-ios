@@ -12,7 +12,7 @@ import Combine
 public extension UIButton {
   /// 버튼이 탭될 때마다 Void 이벤트를 방출하는 Publisher
   var tapPublisher: AnyPublisher<Void, Never> {
-    publisher(for: .touchUpInside)
+    eventPublisher(for: .touchUpInside)
       .map { _ in () }
       .eraseToAnyPublisher()
   }
@@ -22,7 +22,7 @@ public extension UIButton {
   /// - Parameter event: 감지할 UIControl.Event (기본: .touchUpInside)
   /// - Returns: 해당 이벤트가 발생할 때 Void를 방출하는 Publisher
   func tap(_ event: UIControl.Event = .touchUpInside) -> AnyPublisher<Void, Never> {
-    publisher(for: event)
+    eventPublisher(for: event)
       .map { _ in () }
       .eraseToAnyPublisher()
   }

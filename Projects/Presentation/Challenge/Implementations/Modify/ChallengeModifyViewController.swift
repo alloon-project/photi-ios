@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -22,6 +23,7 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   // MARK: - Properties
   private let viewModel: ChallengeModifyViewModel
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
@@ -190,8 +192,18 @@ private extension ChallengeModifyViewController {
 // MARK: - Bind Methods
 private extension ChallengeModifyViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = ChallengeModifyViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapChallengeName: didTapChallengeNameRelay.asSignal(),
       didTapChallengeHashtag: didTapChallengeHashtagRelay.asSignal(),
       didTapChallengeGoal: didTapChallengeGoalRelay.asSignal(),
@@ -366,11 +378,10 @@ extension ChallengeModifyViewController: ChallengeModifyPresentable {
   
   func presentAlertWaring(message: String) {
     let alert = AlertViewController(alertType: .confirm, title: message)
-    alert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    alert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.didTapConfirmButtonAtAlert.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     alert.present(to: self, animted: true)
   }
   

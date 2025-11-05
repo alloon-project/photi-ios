@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxSwift
 import RxCocoa
@@ -16,7 +17,10 @@ import DesignSystem
 
 final class TempPasswordViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: TempPasswordViewModel
+  
+  private let didTapBackButtonRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 찾기", displayMode: .dark)
@@ -209,7 +213,7 @@ extension TempPasswordViewController {
   func bind() {
     let input = TempPasswordViewModel.Input(
       password: tempPasswordTextField.textField.rx.text.orEmpty.asDriver(),
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: didTapBackButtonRelay.asSignal(),
       didTapResendButton: resendButton.rx.tap.asSignal(),
       didTapNextButton: nextButton.rx.tap.asSignal()
     )
@@ -220,6 +224,11 @@ extension TempPasswordViewController {
   }
   
   func viewBind() {
+    navigationBar.didTapBackButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapBackButtonRelay.accept(())
+      }.store(in: &cancellables)
+    
     tempPasswordTextField.textField.rx.controlEvent(.editingChanged)
       .bind(with: self) { owner, _ in
         owner.tempPasswordWarningView.isActivate = false
