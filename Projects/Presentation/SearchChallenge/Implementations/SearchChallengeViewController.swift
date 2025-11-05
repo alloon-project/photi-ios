@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import RxCocoa
 import RxSwift
@@ -16,6 +17,7 @@ import DesignSystem
 
 final class SearchChallengeViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: SearchChallengeViewModel
   private var segmentIndex: Int = 0
   private let didTapLogInButton = PublishRelay<Void>()
@@ -130,20 +132,18 @@ private extension SearchChallengeViewController {
     let output = viewModel.transform(input: input)
     bind(output: output)
     viewBind()
-    
-    logInAlertView.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
-        owner.didTapLogInButton.accept(())
-      }
-      .disposed(by: disposeBag)
   }
   
   func viewBind() {
-    segmentControl.rx.selectedSegment
-      .bind(with: self) { owner, index in
+    segmentControl.selectedSegment
+      .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
+    
+    logInAlertView.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapLogInButton.accept(())
+      }.store(in: &cancellables)
   }
   
   func bind(output: SearchChallengeViewModel.Output) {

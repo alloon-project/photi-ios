@@ -8,6 +8,7 @@
 
 import UIKit
 import Coordinator
+import RxCocoa
 import RxSwift
 import SnapKit
 import Core
@@ -151,8 +152,18 @@ private extension ChallengeStartViewController {
 // MARK: - Bind Method
 private extension ChallengeStartViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = ChallengeStartViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       didTapStartButton: startButton.rx.tap
     )
     

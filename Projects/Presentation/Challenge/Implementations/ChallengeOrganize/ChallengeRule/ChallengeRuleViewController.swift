@@ -187,8 +187,18 @@ private extension ChallengeRuleViewController {
 // MARK: - Bind Methods
 private extension ChallengeRuleViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = ChallengeRuleViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       challengeRules: selectedRulesRelay.asSignal(),
       didTapNextButton: nextButton.rx.tap
     )

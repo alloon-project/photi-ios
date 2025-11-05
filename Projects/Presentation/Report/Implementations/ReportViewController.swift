@@ -17,8 +17,10 @@ import DesignSystem
 
 final class ReportViewController: UIViewController, ViewControllerable {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: ReportViewModel
   // MARK: - Properties
+  private let didTapBackButtonRelay = PublishRelay<Void>()
   private var selectedIndexPath: IndexPath?
   private let selectedRowRelay = PublishRelay<String>()
   private var isDisplayDetailContent = false
@@ -165,14 +167,22 @@ private extension ReportViewController {
     }()
       
     let input = ReportViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: .init(events: didTapBackButtonRelay),
       didTapReportButton: reportButton.rx.tap,
       reasonAndType: selectedRowRelay.asObservable(),
       content: content
     )
     
     let output = viewModel.transform(input: input)
+    viewBind()
     bind(output: output)
+  }
+  
+  func viewBind() {
+    navigationBar.didTapBackButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapBackButtonRelay.accept(())
+      }.store(in: &cancellables)
   }
   
   func bind(output: ReportViewModel.Output) {

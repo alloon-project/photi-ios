@@ -8,11 +8,13 @@
 
 import UIKit
 import RxSwift
+import Combine
 import SnapKit
 import DesignSystem
 
 final class SplashViewController: UIViewController {
   private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: SplashViewModel
   private let logoImageView = UIImageView(image: .logo)
   private let animation = LoadingAnimation.logo
@@ -72,17 +74,15 @@ private extension SplashViewController {
       }
       .disposed(by: disposeBag)
     
-    forceUpdateAlert.rx.didTapConfirmButton
-      .bind(with: self) { owner, _ in
+    forceUpdateAlert.didTapConfirmButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.openAppStoreToUpdate()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    forceUpdateAlert.rx.didTapCancelButton
-      .bind(with: self) { owner, _ in
+    forceUpdateAlert.didTapCancelButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.forceTerminateApp()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

@@ -208,8 +208,18 @@ private extension VerifyEmailViewController {
 // MARK: - Bind Methods
 private extension VerifyEmailViewController {
   func bind() {
+    let backButtonSignal: Observable<Void> = {
+      let observable = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return observable
+    }()
+    
     let input = VerifyEmailViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: .init(events: backButtonSignal),
       didTapResendButton: resendButton.rx.tap,
       didTapNextButton: nextButton.rx.tap,
       verificationCode: lineTextField.textField.rx.text.orEmpty

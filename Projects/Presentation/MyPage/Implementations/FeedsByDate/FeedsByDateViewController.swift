@@ -107,8 +107,18 @@ private extension FeedsByDateViewController {
 // MARK: - Bind Methods
 private extension FeedsByDateViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let input = FeedsByDateViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton.asSignal(),
+      didTapBackButton: backButtonEvent.asSignal(),
       requestData: requestData.asSignal(),
       didTapFeed: didTapFeed.asSignal()
     )

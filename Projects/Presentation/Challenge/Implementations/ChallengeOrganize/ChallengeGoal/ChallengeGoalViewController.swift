@@ -238,6 +238,16 @@ private extension ChallengeGoalViewController {
 // MARK: - Bind Methods
 private extension ChallengeGoalViewController {
   func bind() {
+    let backButtonEvent: ControlEvent<Void> = {
+      let events = Observable<Void>.create { [weak navigationBar] observer in
+        guard let bar = navigationBar else { return Disposables.create() }
+        let cancellable = bar.didTapBackButton
+          .sink { observer.onNext(()) }
+        return Disposables.create { cancellable.cancel() }
+      }
+      return ControlEvent(events: events)
+    }()
+    
     let challengeGoal: ControlProperty<String> = {
       let values = Observable<String>.create { [weak challengeGoalTextView] observer in
         guard let textView = challengeGoalTextView else { return Disposables.create() }
@@ -255,7 +265,7 @@ private extension ChallengeGoalViewController {
     }()
     
     let input = ChallengeGoalViewModel.Input(
-      didTapBackButton: navigationBar.rx.didTapBackButton,
+      didTapBackButton: backButtonEvent,
       challengeGoal: challengeGoal,
       proveTime: proveTimeRelay.asObservable(),
       date: endDateRelay.asObservable(),
