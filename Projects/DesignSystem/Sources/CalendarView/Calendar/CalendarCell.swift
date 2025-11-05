@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import RxRelay
+import Combine
 import SnapKit
 import Core
 
@@ -25,7 +25,8 @@ final class CalendarCell: UICollectionViewCell {
   }
   
   var selectedDates: [CalendarDate]?
-  var selectedDateRelay = PublishRelay<CalendarDate>()
+  private let selectedDateSubject = PassthroughSubject<CalendarDate, Never>()
+  public var selectedDate: AnyPublisher<CalendarDate, Never> { selectedDateSubject.eraseToAnyPublisher() }
   
   // MARK: - UI Components
   private let calendarCollectionView: UICollectionView = {
@@ -110,7 +111,7 @@ extension CalendarCell: UICollectionViewDataSource {
 // MARK: - UICollecionViewDelegate
 extension CalendarCell: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    selectedDateRelay.accept(dataSource[indexPath.row])
+    selectedDateSubject.send(dataSource[indexPath.row])
   }
   
   func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
