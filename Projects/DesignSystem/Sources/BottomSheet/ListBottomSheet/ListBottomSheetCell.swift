@@ -7,14 +7,16 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
-import RxGesture
+import Combine
 import SnapKit
 import Core
 
 final class ListBottomSheetCell: UITableViewCell {
   // MARK: - UI Components
+  // MARK: - Combine
+  private let didTapIconSubject = PassthroughSubject<Void, Never>()
+  public var didTapIcon: AnyPublisher<Void, Never> { didTapIconSubject.eraseToAnyPublisher() }
+  
   let label = UILabel()
   let iconView = UIImageView(image: .chevronForwardGray400)
   
@@ -23,6 +25,7 @@ final class ListBottomSheetCell: UITableViewCell {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     self.selectionStyle = .none
     setupUI()
+    configureIconView()
   }
   
   @available(*, unavailable)
@@ -46,6 +49,12 @@ private extension ListBottomSheetCell {
     setConstraints()
   }
   
+  func configureIconView() {
+    iconView.isUserInteractionEnabled = true
+    let tap = UITapGestureRecognizer(target: self, action: #selector(handleIconTap))
+    iconView.addGestureRecognizer(tap)
+  }
+  
   func setViewHierarchy() {
     contentView.addSubviews(label, iconView)
   }
@@ -62,10 +71,9 @@ private extension ListBottomSheetCell {
   }
 }
 
-// MARK: - Reactive Extension
-extension Reactive where Base: ListBottomSheetCell {
-  var didTapIcon: ControlEvent<Void> {
-    let source = base.iconView.rx.tapGesture().when(.recognized).map { _ in }
-    return .init(events: source)
+// MARK: - Action
+private extension ListBottomSheetCell {
+  @objc private func handleIconTap() {
+    didTapIconSubject.send(())
   }
 }

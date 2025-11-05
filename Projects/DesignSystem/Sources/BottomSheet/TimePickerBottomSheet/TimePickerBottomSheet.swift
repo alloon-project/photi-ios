@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 
@@ -17,7 +16,7 @@ public protocol TimePickerBottomSheetDelegate: AnyObject {
 }
 
 public final class TimePickerBottomSheet: BottomSheetViewController {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   public weak var delegate: TimePickerBottomSheetDelegate?
   
@@ -127,12 +126,11 @@ private extension TimePickerBottomSheet {
 // MARK: - Bind
 extension TimePickerBottomSheet {
   func bind() {
-    self.button.rx.tap
-      .bind(with: self) { owner, _ in
+    button.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didSelect(hour: owner.selectedHour)
         owner.dismissBottomSheet()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

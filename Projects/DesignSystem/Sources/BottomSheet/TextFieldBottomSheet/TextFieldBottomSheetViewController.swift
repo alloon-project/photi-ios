@@ -8,8 +8,6 @@
 
 import UIKit
 import Combine
-import RxCocoa
-import RxSwift
 import SnapKit
 import Core
 
@@ -19,7 +17,6 @@ public protocol TextFieldBottomSheetDelegate: AnyObject {
 }
 
 public final class TextFieldBottomSheetViewController: BottomSheetViewController {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
   
   public weak var delegate: TextFieldBottomSheetDelegate?
@@ -170,20 +167,18 @@ private extension TextFieldBottomSheetViewController {
 // MARK: - Bind
 private extension TextFieldBottomSheetViewController {
   func bind() {
-    closeButton.rx.tap
-      .bind(with: self) { owner, _ in
+    closeButton.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didTapCloseButton()
         owner.dismissBottomSheet()
-        owner.didDismiss.accept(())
-      }
-      .disposed(by: disposeBag)
+        owner.didDismissSubject.send(())
+      }.store(in: &cancellables)
     
-    button.rx.tap
-      .bind(with: self) { owner, _ in
+    button.tap()
+      .sinkOnMain(with: self) { owner, _ in
         owner.delegate?.didTapConfirmButton(owner.textFieldText ?? "")
         owner.dismissBottomSheet()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     textField.textPublisher
       .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
