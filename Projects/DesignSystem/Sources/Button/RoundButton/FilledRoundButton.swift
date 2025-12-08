@@ -8,7 +8,7 @@
 
 import UIKit
 import SnapKit
-import Core
+import CoreUI
 
 /// 내부가 색으로 채워진 Round Button입니다.
 public final class FilledRoundButton: RoundButton {
