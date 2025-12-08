@@ -35,7 +35,7 @@ let project = Project.make(
 			bundleId: "com.photi.home",
 			sources: ["Home/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
+				.Project.CoreUI,
         .SPM.Coordinator
 			]
 		),
@@ -61,8 +61,8 @@ let project = Project.make(
 			bundleId: "com.photi.searchChallenge",
 			sources: ["SearchChallenge/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
-        .SPM.Coordinator
+				.Project.CoreUI,
+                .SPM.Coordinator
 			]
 		),
 		.make(
@@ -88,8 +88,8 @@ let project = Project.make(
 			bundleId: "com.photi.myPage",
 			sources: ["MyPage/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
-        .SPM.Coordinator
+				.Project.CoreUI,
+                .SPM.Coordinator
 			]
 		),
 		// MARK: - Sub Coordinators
@@ -114,8 +114,8 @@ let project = Project.make(
 			bundleId: "com.photi.logIn",
 			sources: ["LogIn/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
-        .SPM.Coordinator
+				.Project.CoreUI,
+                .SPM.Coordinator
 			]
 		),
 		.make(
@@ -140,8 +140,8 @@ let project = Project.make(
 			bundleId: "com.photi.challenge",
 			sources: ["Challenge/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
-        .SPM.Coordinator
+				.Project.CoreUI,
+                .SPM.Coordinator
 			]
 		),
 		.make(
@@ -165,8 +165,8 @@ let project = Project.make(
 			bundleId: "com.photi.report",
 			sources: ["Report/Interfaces/**"],
 			dependencies: [
-				.Project.Core,
-        .SPM.Coordinator
+				.Project.CoreUI,
+                .SPM.Coordinator
 			]
 		)
 	]
