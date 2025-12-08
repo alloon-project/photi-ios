@@ -12,6 +12,7 @@ let workspace = Workspace(
 	projects: [
 		"Projects/App",
 		"Projects/Core",
+        "Projects/CoreUI",
 		"Projects/Data",
 		"Projects/DesignSystem",
 		"Projects/Domain",

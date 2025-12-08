@@ -25,6 +25,11 @@ public extension TargetDependency.Project {
 		target: "Core",
 		path: .relativeToRoot("Projects/Core")
 	)
+    
+    static let CoreUI = TargetDependency.project(
+        target: "CoreUI",
+        path: .relativeToRoot("Projects/CoreUI")
+    )
 }
 
 // MARK: - Presentation
