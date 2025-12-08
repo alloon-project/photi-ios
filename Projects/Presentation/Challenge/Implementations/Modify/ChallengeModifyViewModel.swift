@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import Core
+import CoreUI
 import Entity
 import UseCase
 

@@ -12,7 +12,7 @@ import RxCocoa
 import RxSwift
 import SnapKit
 import DesignSystem
-import Core
+import CoreUI
 
 final class ChallengeHomeViewController: UIViewController, CameraRequestable, ViewControllerable {
   enum Constants {

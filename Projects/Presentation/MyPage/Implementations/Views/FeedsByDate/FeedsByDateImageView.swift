@@ -11,7 +11,7 @@ import Kingfisher
 import RxCocoa
 import RxGesture
 import RxSwift
-import Core
+import CoreUI
 import DesignSystem
 
 final class FeedsByDateImageView: UIView {

@@ -12,7 +12,7 @@ import Coordinator
 import RxSwift
 import RxCocoa
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class FindPasswordViewController: UIViewController, ViewControllerable {
