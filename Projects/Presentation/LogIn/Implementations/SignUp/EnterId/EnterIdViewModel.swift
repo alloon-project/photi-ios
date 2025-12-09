@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -20,38 +19,37 @@ protocol EnterIdViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: EnterIdCoordinatable? { get set }
 }
 
 final class EnterIdViewModel: EnterIdViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let useCase: SignUpUseCase
   
   weak var coordinator: EnterIdCoordinatable?
   
-  private let inValidIdFormRelay = PublishRelay<Void>()
-  private let duplicateIdRelay = PublishRelay<Void>()
-  private let validIdRelay = PublishRelay<Void>()
-  private let unAvailableIdRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let inValidIdFormSubject = PassthroughSubject<Void, Never>()
+  private let duplicateIdSubject = PassthroughSubject<Void, Never>()
+  private let validIdSubject = PassthroughSubject<Void, Never>()
+  private let unAvailableIdSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input { 
-    let didTapBackButton: ControlEvent<Void>
-    let didTapNextButton: ControlEvent<Void>
-    let didTapVerifyIdButton: ControlEvent<Void>
-    let userId: ControlProperty<String>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
+    let didTapVerifyIdButton: AnyPublisher<Void, Never>
+    let userId: AnyPublisher<String, Never>
   }
   
   // MARK: - Output
   struct Output { 
-    let inValidIdForm: Signal<Void>
-    let duplicateId: Signal<Void>
-    let validId: Signal<Void>
-    let unAvailableId: Signal<Void>
-    let isDuplicateButtonEnabled: Signal<Bool>
-    let networkUnstable: Signal<Void>
+    let inValidIdForm: AnyPublisher<Void, Never>
+    let duplicateId: AnyPublisher<Void, Never>
+    let validId: AnyPublisher<Void, Never>
+    let unAvailableId: AnyPublisher<Void, Never>
+    let isDuplicateButtonEnabled: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -61,38 +59,33 @@ final class EnterIdViewModel: EnterIdViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .subscribe(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapNextButton
       .withLatestFrom(input.userId)
-      .subscribe(with: self) { owner, userName in
+      .sinkOnMain(with: self) { owner, userName in
         owner.useCase.configureUsername(userName)
         owner.coordinator?.didTapNextButton()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
     input.didTapVerifyIdButton
       .withLatestFrom(input.userId)
-      .subscribe(with: self) { owner, userId in
+      .sink(with: self) { owner, userId in
         Task { await owner.verifyUserName(userId) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let isDuplicateButtonEnabled = input.userId
       .map { $0.count }
       .map { $0 >= 5 && $0 <= 20 }
-      .asSignal(onErrorJustReturn: false)
     
     return Output(
-      inValidIdForm: inValidIdFormRelay.asSignal(),
-      duplicateId: duplicateIdRelay.asSignal(),
-      validId: validIdRelay.asSignal(),
-      unAvailableId: unAvailableIdRelay.asSignal(),
-      isDuplicateButtonEnabled: isDuplicateButtonEnabled,
-      networkUnstable: networkUnstableRelay.asSignal()
+      inValidIdForm: inValidIdFormSubject.eraseToAnyPublisher(),
+      duplicateId: duplicateIdSubject.eraseToAnyPublisher(),
+      validId: validIdSubject.eraseToAnyPublisher(),
+      unAvailableId: unAvailableIdSubject.eraseToAnyPublisher(),
+      isDuplicateButtonEnabled: isDuplicateButtonEnabled.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -102,7 +95,7 @@ private extension EnterIdViewModel {
   func verifyUserName(_ userName: String) async {
     do {
       try await useCase.verifyUserName(userName)
-      validIdRelay.accept(())
+      validIdSubject.send(())
     } catch {
       requestFailed(error: error)
     }
@@ -110,18 +103,18 @@ private extension EnterIdViewModel {
   
   func requestFailed(error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
     
     switch error {
       case let .signUpFailed(reason) where reason == .userNameAlreadyExists:
-        duplicateIdRelay.accept(())
+        duplicateIdSubject.send(())
       case let .signUpFailed(reason) where reason == .invalidUserNameFormat:
-        inValidIdFormRelay.accept(())
+        inValidIdFormSubject.send(())
       case let .signUpFailed(reason) where reason == .invalidUserName:
-        unAvailableIdRelay.accept(())
+        unAvailableIdSubject.send(())
       default:
-        networkUnstableRelay.accept(())
+        return networkUnstableSubject.send(())
     }
   }
 }
