@@ -30,15 +30,15 @@ extension MyPageAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .userChallegeHistory: return "api/users/challenge-history"
-      case .verifiedChallengeDates: return "api/users/feeds"
-      case .feedHistory: return "api/users/feed-history"
-      case .endedChallenges: return "api/users/ended-challenges"
-      case .feedsByDate: return "api/users/feeds-by-date"
-      case .userInformation: return "api/users"
-      case .uploadProfileImage: return "api/users/image"
-      case .withdrawUser: return "api/users"
-      case .changePassword: return "api/users/password"
+      case .userChallegeHistory: return "users/challenge-history"
+      case .verifiedChallengeDates: return "users/feeds"
+      case .feedHistory: return "users/feed-history"
+      case .endedChallenges: return "users/ended-challenges"
+      case .feedsByDate: return "users/feeds-by-date"
+      case .userInformation: return "users"
+      case .uploadProfileImage: return "users/image"
+      case .withdrawUser: return "users"
+      case .changePassword: return "users/password"
     }
   }
   

@@ -24,9 +24,9 @@ extension ChallengeOrganizeAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .sampleImages: return "api/challenges/example-images"
-      case .organizeChallenge: return "api/challenges"
-      case let .modifyChallenge(_, id): return "api/challenges/\(id)"
+      case .sampleImages: return "challenges/example-images"
+      case .organizeChallenge: return "challenges"
+      case let .modifyChallenge(_, id): return "challenges/\(id)"
     }
   }
   

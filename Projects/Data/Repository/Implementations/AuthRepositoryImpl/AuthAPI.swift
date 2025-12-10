@@ -22,7 +22,7 @@ extension AuthAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .isLogIn: return "api/auth/validate/access-token"
+      case .isLogIn: return "auth/validate/access-token"
     }
   }
   

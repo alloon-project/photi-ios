@@ -25,10 +25,10 @@ extension LogInAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .login: return "api/users/login"
-      case .findId: return "api/users/find-username"
-      case .findPassword: return "api/users/find-password"
-      case .updatePassword: return "api/users/password"
+      case .login: return "users/login"
+      case .findId: return "users/find-username"
+      case .findPassword: return "users/find-password"
+      case .updatePassword: return "users/password"
     }
   }
   

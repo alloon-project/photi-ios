@@ -40,24 +40,24 @@ extension ChallengeAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .popularChallenges: return "api/challenges/popular"
-      case .popularHashTags: return "api/challenges/hashtags"
-      case .recentChallenges: return "api/challenges"
-      case .challengesByHashTag: return "api/challenges/by-hashtags"
-      case .searchChallengesByName: return "api/challenges/search/name"
-      case .searchChallengesByHashtag: return "api/challenges/search/hashtag"
-      case let .challengeDetail(id), let .leaveChallenge(id): return "api/challenges/\(id)"
-      case .myChallenges: return "api/users/my-challenges"
-      case let .joinChallenge(id, _): return "api/challenges/\(id)/join"
-      case let .updateChallengeGoal(_, challengeId): return "api/challenges/\(challengeId)/challenge-members/goal"
-      case let .fetchInviitationCode(id): return "api/challenges/\(id)/invitation-code"
-      case let .verifyInvitationCode(id, _): return "api/challenges/\(id)/invitation-code-match"
-      case let .uploadChallengeProof(id, _, _): return "api/challenges/\(id)/feeds"
-      case let .isProve(challengeId): return "api/users/challenges/\(challengeId)/prove"
-      case let .challengeDescription(id): return "api/challenges/\(id)/info"
-      case let .challengeMember(challengeId): return "api/challenges/\(challengeId)/challenge-members"
-      case .challengeCount: return "api/users/challenges"
-      case let .challengeProveMemberCount(challengeId): return "api/challenges/\(challengeId)/feed-members"
+      case .popularChallenges: return "challenges/popular"
+      case .popularHashTags: return "challenges/hashtags"
+      case .recentChallenges: return "challenges"
+      case .challengesByHashTag: return "challenges/by-hashtags"
+      case .searchChallengesByName: return "challenges/search/name"
+      case .searchChallengesByHashtag: return "challenges/search/hashtag"
+      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
+      case .myChallenges: return "users/my-challenges"
+      case let .joinChallenge(id, _): return "challenges/\(id)/join"
+      case let .updateChallengeGoal(_, challengeId): return "challenges/\(challengeId)/challenge-members/goal"
+      case let .fetchInviitationCode(id): return "challenges/\(id)/invitation-code"
+      case let .verifyInvitationCode(id, _): return "challenges/\(id)/invitation-code-match"
+      case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
+      case let .isProve(challengeId): return "users/challenges/\(challengeId)/prove"
+      case let .challengeDescription(id): return "challenges/\(id)/info"
+      case let .challengeMember(challengeId): return "challenges/\(challengeId)/challenge-members"
+      case .challengeCount: return "users/challenges"
+      case let .challengeProveMemberCount(challengeId): return "challenges/\(challengeId)/feed-members"
     }
   }
   
@@ -77,7 +77,8 @@ extension ChallengeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .popularChallenges, .challengeCount, .challengeDetail, .popularHashTags, .challengeProveMemberCount, .fetchInviitationCode:
+      case .popularChallenges, .challengeCount, .challengeDetail,
+          .popularHashTags, .challengeProveMemberCount, .fetchInviitationCode:
         return .requestPlain
         
       case .isProve, .challengeDescription, .challengeMember, .leaveChallenge:

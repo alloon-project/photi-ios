@@ -27,15 +27,15 @@ extension SignUpAPI: TargetType {
   public var path: String {
     switch self {
       case .requestVerificationCode:
-        return "api/contacts"
+        return "contacts"
       case .verifyCode:
-        return "api/contacts/verify"
+        return "contacts/verify"
       case .verifyUserName:
-        return "api/users/username"
+        return "users/username"
       case .register:
-        return "api/users/register"
+        return "users/register"
       case .deletedDate:
-        return "api/users/deleted-date"
+        return "users/deleted-date"
     }
   }
   
