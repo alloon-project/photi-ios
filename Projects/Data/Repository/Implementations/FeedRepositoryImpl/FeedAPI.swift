@@ -28,15 +28,15 @@ extension FeedAPI: TargetType {
   
   public var path: String {
     switch self {
-      case let .feeds(id, _, _, _): return "challenges/\(id)/feeds"
-      case let .updateLikeState(challengeId, feedId, _): return "challenges/\(challengeId)/feeds/\(feedId)/like"
-      case let .feedDetail(challengeId, feedId): return "challenges/\(challengeId)/feeds/\(feedId)"
-      case let .deleteFeed(challengeId, feedId): return "challenges/\(challengeId)/feeds/\(feedId)"
-      case let .feedComments(feedId, _, _): return "challenges/feeds/\(feedId)/comments"
-      case let .uploadFeedComment(challengeId, feedId, _):
-        return "challenges/\(challengeId)/feeds/\(feedId)/comments"
+      case let .feeds(id, _, _, _): return "feeds/\(id)"
+      case let .updateLikeState(challengeId, feedId, _): return "feed-likes/\(challengeId)/\(feedId)"
+      case let .feedDetail(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
+      case let .deleteFeed(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
+      case let .feedComments(feedId, _, _): return "feed-comments/\(feedId)"
+      case let .uploadFeedComment(challengeId, feedId, _): 
+        return "feed-comments/\(challengeId)/\(feedId)"
       case let .deleteFeedComment(challengeId, feedId, commentId):
-        return "challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
+        return "feed-comments/\(challengeId)/\(feedId)/\(commentId)"
     }
   }
   

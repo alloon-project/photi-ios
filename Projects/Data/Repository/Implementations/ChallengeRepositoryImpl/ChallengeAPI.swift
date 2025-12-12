@@ -52,7 +52,7 @@ extension ChallengeAPI: TargetType {
       case let .joinChallenge(id, _): return "challenges/\(id)/join"
       case let .updateChallengeGoal(_, challengeId): return "challenge-members/\(challengeId)/goal"
       case let .isProve(challengeId): return "users/\(challengeId)/prove"
-      case .challengeCount: return "users/challenges"
+      case .challengeCount: return "users/challenge-count"
       case let .challengeProveMemberCount(challengeId): return "feeds/\(challengeId)/member-count"
       case let .challengeDescription(id): return "challenges/\(id)/intro"
       case let .challengeMember(challengeId): return "challenge-members/\(challengeId)"
