@@ -6,18 +6,15 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct ChallengeOrganizePayload {
   public let name: String
   public let isPublic: Bool
   public let goal: String
   public let proveTime: String
   public let endDate: String
+  public let imageURL: String
   public let rules: [String]
   public let hashtags: [String]
-  public let image: Data
-  public let imageType: String
   
   public init(
     name: String,
@@ -25,38 +22,17 @@ public struct ChallengeOrganizePayload {
     goal: String,
     proveTime: String,
     endDate: String,
+    imageURL: String,
     rules: [String],
-    hashtags: [String],
-    image: Data,
-    imageType: String
+    hashtags: [String]
   ) {
     self.name = name
     self.isPublic = isPublic
     self.goal = goal
     self.proveTime = proveTime
     self.endDate = endDate
+    self.imageURL = imageURL
     self.rules = rules
     self.hashtags = hashtags
-    self.image = image
-    self.imageType = imageType
-  }
-  
-  public func toJSONString() -> String? {
-    let dict: [String: Any] = [
-      "name": self.name,
-      "isPublic": self.isPublic,
-      "goal": self.goal,
-      "proveTime": self.proveTime,
-      "endDate": self.endDate,
-      "rules": self.rules.map { ["rule": $0] },
-      "hashtags": self.hashtags.map { ["hashtag": $0] }
-    ]
-    
-    guard let data = try? JSONSerialization.data(withJSONObject: dict),
-          let jsonString = String(data: data, encoding: .utf8) else {
-      return nil
-    }
-    
-    return jsonString
   }
 }
