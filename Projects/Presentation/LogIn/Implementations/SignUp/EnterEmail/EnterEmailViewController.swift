@@ -9,14 +9,12 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class EnterEmailViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let viewModel: EnterEmailViewModel
   
   // MARK: - UI Components
@@ -128,22 +126,12 @@ private extension EnterEmailViewController {
 // MARK: - Bind Methods
 private extension EnterEmailViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = EnterEmailViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapNextButton: nextButton.rx.tap,
-      userEmail: emailTextField.textField.rx.text.orEmpty,
-      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd),
-      editingUserEmail: emailTextField.textField.rx.controlEvent(.editingChanged)
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapNextButton: nextButton.tapPublisher,
+      userEmail: emailTextField.textPublisher,
+      endEditingUserEmail: emailTextField.textField.eventPublisher(for: .editingDidEnd),
+      editingUserEmail: emailTextField.textField.eventPublisher(for: .editingChanged)
     )
     
     let output = viewModel.transform(input: input)
@@ -152,46 +140,41 @@ private extension EnterEmailViewController {
   
   func bind(for output: EnterEmailViewModel.Output) {
     output.isValidEmailForm
-      .emit(with: self) { owner, isValid in
+      .sinkOnMain(with: self) { owner, isValid in
         if isValid {
           owner.convertLineTextField(commentView: nil)
         } else {
           owner.convertLineTextField(commentView: owner.emailFormWarningView)
         }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.isOverMaximumText
-      .emit(with: self) { owner, isOver in
+      .sinkOnMain(with: self) { owner, isOver in
         if isOver {
           owner.convertLineTextField(commentView: owner.emailTextCountWarningView)
         } else {
           owner.convertLineTextField(commentView: nil)
         }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.isEnabledNextButton
-      .emit(to: nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.rejoinAvaildableDay
-      .emit(with: self) { owner, day in
+      .sinkOnMain(with: self) { owner, day in
         owner.presentRejoinWarningAlert(dayCount: day)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.duplicateEmail
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.convertLineTextField(commentView: owner.duplicateEmailWarningView)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

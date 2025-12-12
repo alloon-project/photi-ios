@@ -6,15 +6,14 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
 protocol LogInCoordinatable: AnyObject {
-  @MainActor func attachSignUp()
-  @MainActor func attachFindId()
-  @MainActor func attachFindPassword()
+  func attachSignUp()
+  func attachFindId()
+  func attachFindPassword()
   func didFinishLogIn(userName: String)
   func didTapBackButton()
 }
@@ -23,7 +22,6 @@ protocol LogInViewModelType {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: LogInCoordinatable? { get set }
   
   init(useCase: LogInUseCase)
@@ -32,31 +30,31 @@ protocol LogInViewModelType {
 }
 
 final class LogInViewModel: LogInViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   weak var coordinator: LogInCoordinatable?
   
   private let useCase: LogInUseCase
-  private let loadingAnimationRelay = PublishRelay<Bool>()
-  private let invalidIdOrPasswordRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let loadingAnimationSubject = PassthroughSubject<Bool, Never>()
+  private let invalidIdOrPasswordSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let id: ControlProperty<String>
-    let password: ControlProperty<String>
-    let didTapBackButton: ControlEvent<Void>
-    let didTapLoginButton: ControlEvent<Void>
-    let didTapFindIdButton: ControlEvent<Void>
-    let didTapFindPasswordButton: ControlEvent<Void>
-    let didTapSignUpButton: ControlEvent<Void>
+    let id: AnyPublisher<String, Never>
+    let password: AnyPublisher<String, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapLoginButton: AnyPublisher<Void, Never>
+    let didTapFindIdButton: AnyPublisher<Void, Never>
+    let didTapFindPasswordButton: AnyPublisher<Void, Never>
+    let didTapSignUpButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let loadingAnmiation: Signal<Bool>
-    let emptyIdOrPassword: Signal<Void>
-    let invalidIdOrPassword: Signal<Void>
-    let networkUnstable: Signal<Void>
+    let loadingAnimation: AnyPublisher<Bool, Never>
+    let emptyIdOrPassword: AnyPublisher<Void, Never>
+    let invalidIdOrPassword: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -66,31 +64,27 @@ final class LogInViewModel: LogInViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapSignUpButton
-      .bind(with: self) { owner, _ in
-        Task { await owner.coordinator?.attachSignUp() }
-      }
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, _ in
+        owner.coordinator?.attachSignUp()
+      }.store(in: &cancellables)
     
     input.didTapFindIdButton
-      .bind(with: self) { owner, _ in
-        Task { await owner.coordinator?.attachFindId() }
-      }
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, _ in
+        owner.coordinator?.attachFindId()
+      }.store(in: &cancellables)
     
     input.didTapFindPasswordButton
-      .bind(with: self) { owner, _ in
-        Task { await owner.coordinator?.attachFindPassword() }
-      }
-      .disposed(by: disposeBag)
+      .sink(with: self) { owner, _ in
+        owner.coordinator?.attachFindPassword()
+      }.store(in: &cancellables)
     
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let didTapLoginButtonWithInfo = input.didTapLoginButton
-      .withLatestFrom(Observable.combineLatest(input.id, input.password))
+      .withLatestFrom(input.id.combineLatest(input.password))
       .share()
     
     let emptyIdOrPassword = didTapLoginButtonWithInfo
@@ -99,16 +93,15 @@ final class LogInViewModel: LogInViewModelType {
     
     didTapLoginButtonWithInfo
       .filter { !$0.0.isEmpty && !$0.1.isEmpty }
-      .subscribe(with: self) { owner, info in
+      .sink(with: self) { owner, info in
         Task { await owner.requestLogin(userName: info.0, password: info.1) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     return Output(
-      loadingAnmiation: loadingAnimationRelay.asSignal(),
-      emptyIdOrPassword: emptyIdOrPassword.asSignal(onErrorJustReturn: ()),
-      invalidIdOrPassword: invalidIdOrPasswordRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      loadingAnimation: loadingAnimationSubject.eraseToAnyPublisher(),
+      emptyIdOrPassword: emptyIdOrPassword.eraseToAnyPublisher(),
+      invalidIdOrPassword: invalidIdOrPasswordSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -116,26 +109,26 @@ final class LogInViewModel: LogInViewModelType {
 // MARK: - Private Methods
 private extension LogInViewModel {
   func requestLogin(userName: String, password: String) async {
-    loadingAnimationRelay.accept(true)
+    loadingAnimationSubject.send(true)
     do {
       try await useCase.login(username: userName, password: password)
       coordinator?.didFinishLogIn(userName: userName)
     } catch {
-      loadingAnimationRelay.accept(false)
+      loadingAnimationSubject.send(false)
       requestFailed(with: error)
     }
   }
   
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
     
     switch error {
       case .loginFailed:
-        invalidIdOrPasswordRelay.accept(())
+        invalidIdOrPasswordSubject.send(())
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableSubject.send(())
     }
   }
 }

@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -20,33 +19,31 @@ protocol VerifyEmailViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: VerifyEmailCoordinatable? { get set }
 }
 
 final class VerifyEmailViewModel: VerifyEmailViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: SignUpUseCase
   private let email: String
   
   weak var coordinator: VerifyEmailCoordinatable?
   
-  private let networkUnstable = PublishRelay<Void>()
-  private let invalidVerificationCodeRelay = PublishRelay<Void>()
-  
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let invalidVerificationCodeSubject = PassthroughSubject<Void, Never>()
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapResendButton: ControlEvent<Void>
-    let didTapNextButton: ControlEvent<Void>
-    let verificationCode: ControlProperty<String>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapResendButton: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
+    let verificationCode: AnyPublisher<String, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let isEnabledNextButton: Signal<Bool>
-    let networkUnstable: Signal<Void>
-    let invalidVerificationCode: Signal<Void>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let invalidVerificationCode: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -57,33 +54,29 @@ final class VerifyEmailViewModel: VerifyEmailViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-
+      }.store(in: &cancellables)
+    
     input.didTapNextButton
       .withLatestFrom(input.verificationCode)
       .filter { $0.count == 4 }
-      .bind(with: self) { owner, code in
+      .sink(with: self) { owner, code in
         Task { await owner.verifyCode(email: owner.email, code: code) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapResendButton
-      .bind(with: self) { owner, _ in
+      .sink(with: self) { owner, _ in
         Task { await owner.requestVerificationCode(email: owner.email) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let isEnabledNextButton = input.verificationCode
       .map { $0.count == 4 }
-      .asSignal(onErrorJustReturn: false)
     
     return Output(
-      isEnabledNextButton: isEnabledNextButton,
-      networkUnstable: networkUnstable.asSignal(),
-      invalidVerificationCode: invalidVerificationCodeRelay.asSignal()
+      isEnabledNextButton: isEnabledNextButton.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      invalidVerificationCode: invalidVerificationCodeSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -94,7 +87,7 @@ private extension VerifyEmailViewModel {
     do {
       try await useCase.requestVerificationCode(email: email)
     } catch {
-      networkUnstable.accept(())
+      networkUnstableSubject.send(())
     }
   }
   
@@ -109,13 +102,13 @@ private extension VerifyEmailViewModel {
   
   func requestFailed(error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstable.accept(())
+      return networkUnstableSubject.send(())
     }
     switch error {
       case let .signUpFailed(reason) where reason == .invalidVerificationCode:
-        return invalidVerificationCodeRelay.accept(())
+        return invalidVerificationCodeSubject.send(())
       default:
-        return networkUnstable.accept(())
+        return networkUnstableSubject.send(())
     }
   }
 }

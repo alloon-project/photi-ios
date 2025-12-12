@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -26,31 +25,31 @@ protocol TempPasswordViewModelType {
 }
 
 final class TempPasswordViewModel: TempPasswordViewModelType {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: LogInUseCase
   private let email: String
   private let name: String
   
   weak var coordinator: TempPasswordCoordinatable?
   
-  private let invalidPasswordRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let isSuccessedResendRelay = PublishRelay<Bool>()
-
+  private let invalidPasswordSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let isSuccessedResendSubject = PassthroughSubject<Bool, Never>()
+  
   // MARK: - Input
   struct Input {
-    let password: Driver<String>
-    let didTapBackButton: Signal<Void>
-    let didTapResendButton: Signal<Void>
-    let didTapNextButton: Signal<Void>
+    let password: AnyPublisher<String, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapResendButton: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let isEnabledNextButton: Driver<Bool>
-    let isSuccessedResend: Signal<Bool>
-    let invalidPassword: Signal<Void>
-    let networkUnstable: Signal<Void>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let isSuccessedResend: AnyPublisher<Bool, Never>
+    let invalidPassword: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -66,28 +65,28 @@ final class TempPasswordViewModel: TempPasswordViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapResendButton
-      .emit(with: self) { owner, _ in
+      .sink(with: self) { owner, _ in
         Task { await owner.requestTempoaryPassword() }
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapNextButton
       .withLatestFrom(input.password)
-      .emit(with: self) { owner, password in
+      .sink(with: self) { owner, password in
         Task { await owner.validateTemporaryPassword(password) }
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let isEnabledNextButton = input.password.map { !$0.isEmpty }
     
     return Output(
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
-      isSuccessedResend: isSuccessedResendRelay.asSignal(),
-      invalidPassword: invalidPasswordRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      isEnabledNextButton: isEnabledNextButton.eraseToAnyPublisher(),
+      isSuccessedResend: isSuccessedResendSubject.eraseToAnyPublisher(),
+      invalidPassword: invalidPasswordSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -97,9 +96,9 @@ private extension TempPasswordViewModel {
   func requestTempoaryPassword() async {
     do {
       try await useCase.sendTemporaryPassword(to: email, userName: name)
-      isSuccessedResendRelay.accept(true)
+      isSuccessedResendSubject.send(true)
     } catch {
-      isSuccessedResendRelay.accept(false)
+      isSuccessedResendSubject.send(false)
     }
   }
   
@@ -108,8 +107,8 @@ private extension TempPasswordViewModel {
 
     switch result {
       case .success: coordinator?.attachNewPassword()
-      case .mismatch: invalidPasswordRelay.accept(())
-      case .failure: networkUnstableRelay.accept(())
+      case .mismatch: invalidPasswordSubject.send(())
+      case .failure: networkUnstableSubject.send(())
     }
   }
 }

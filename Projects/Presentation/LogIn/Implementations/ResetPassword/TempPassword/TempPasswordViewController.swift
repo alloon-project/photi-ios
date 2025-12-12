@@ -9,18 +9,13 @@
 import UIKit
 import Combine
 import Coordinator
-import RxSwift
-import RxCocoa
 import SnapKit
 import Core
 import DesignSystem
 
 final class TempPasswordViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
   private let viewModel: TempPasswordViewModel
-  
-  private let didTapBackButtonRelay = PublishRelay<Void>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 찾기", displayMode: .dark)
@@ -212,10 +207,10 @@ private extension TempPasswordViewController {
 extension TempPasswordViewController {
   func bind() {
     let input = TempPasswordViewModel.Input(
-      password: tempPasswordTextField.textField.rx.text.orEmpty.asDriver(),
-      didTapBackButton: didTapBackButtonRelay.asSignal(),
-      didTapResendButton: resendButton.rx.tap.asSignal(),
-      didTapNextButton: nextButton.rx.tap.asSignal()
+      password: tempPasswordTextField.textPublisher,
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapResendButton: resendButton.tapPublisher,
+      didTapNextButton: nextButton.tapPublisher
     )
     
     let output = viewModel.transform(input: input)
@@ -224,36 +219,28 @@ extension TempPasswordViewController {
   }
   
   func viewBind() {
-    navigationBar.didTapBackButton
+    tempPasswordTextField.textField.eventPublisher(for: .editingChanged)
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapBackButtonRelay.accept(())
-      }.store(in: &cancellables)
-    
-    tempPasswordTextField.textField.rx.controlEvent(.editingChanged)
-      .bind(with: self) { owner, _ in
         owner.tempPasswordWarningView.isActivate = false
         owner.tempPasswordTextField.mode = .default
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(output: TempPasswordViewModel.Output) {
     output.isEnabledNextButton
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
     
     output.isSuccessedResend
-      .emit(with: self) { owner, isSuccess in
+      .sinkOnMain(with: self) { owner, isSuccess in
         isSuccess ? owner.presentToastView() : owner.presentFailedToastView()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.invalidPassword
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.tempPasswordWarningView.isActivate = true
         owner.tempPasswordTextField.mode = .error
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

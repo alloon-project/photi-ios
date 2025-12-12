@@ -7,13 +7,12 @@
 //
 
 import Foundation
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
 protocol EnterEmailCoordinatable: AnyObject {
-  @MainActor func attachVerifyEmail(userEmail: String)
+  func attachVerifyEmail(userEmail: String)
   func didTapBackButton()
 }
 
@@ -21,39 +20,38 @@ protocol EnterEmailViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: EnterEmailCoordinatable? { get set }
 }
 
 final class EnterEmailViewModel: EnterEmailViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let useCase: SignUpUseCase
   
   weak var coordinator: EnterEmailCoordinatable?
   
-  private let duplicateEmailRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let rejoinAvaildableDayRelay = PublishRelay<Int>()
+  private let duplicateEmailSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let rejoinAvaildableDaySubject = PassthroughSubject<Int, Never>()
   
   private var lastRequestedEmail: String?
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapNextButton: ControlEvent<Void>
-    let userEmail: ControlProperty<String>
-    let endEditingUserEmail: ControlEvent<Void>
-    let editingUserEmail: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
+    let userEmail: AnyPublisher<String, Never>
+    let endEditingUserEmail: AnyPublisher<Void, Never>
+    let editingUserEmail: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let isValidEmailForm: Signal<Bool>
-    let isOverMaximumText: Signal<Bool>
-    let isEnabledNextButton: Signal<Bool>
-    let duplicateEmail: Signal<Void>
-    let rejoinAvaildableDay: Signal<Int>
-    let networkUnstable: Signal<Void>
+    let isValidEmailForm: AnyPublisher<Bool, Never>
+    let isOverMaximumText: AnyPublisher<Bool, Never>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let duplicateEmail: AnyPublisher<Void, Never>
+    let rejoinAvaildableDay: AnyPublisher<Int, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -63,17 +61,15 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapNextButton
       .withLatestFrom(input.userEmail)
-      .bind(with: self) { owner, email in
+      .sinkOnMain(with: self) { owner, email in
         Task { await owner.requestVerificationCode(email: email) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let isValidEmailForm = input.endEditingUserEmail
       .withLatestFrom(input.userEmail)
@@ -88,12 +84,12 @@ final class EnterEmailViewModel: EnterEmailViewModelType {
       .map { $0.isValidateEmail() && $0.count <= 100 }
     
     return Output(
-      isValidEmailForm: isValidEmailForm.asSignal(onErrorJustReturn: false),
-      isOverMaximumText: isOverMaximumText.asSignal(onErrorJustReturn: true),
-      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
-      duplicateEmail: duplicateEmailRelay.asSignal(),
-      rejoinAvaildableDay: rejoinAvaildableDayRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      isValidEmailForm: isValidEmailForm.eraseToAnyPublisher(),
+      isOverMaximumText: isOverMaximumText.eraseToAnyPublisher(),
+      isEnabledNextButton: isEnabledConfirm.eraseToAnyPublisher(),
+      duplicateEmail: duplicateEmailSubject.eraseToAnyPublisher(),
+      rejoinAvaildableDay: rejoinAvaildableDaySubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -116,7 +112,7 @@ private extension EnterEmailViewModel {
   func remainingRejoinDays(email: String) async {
     do {
       let days = try await useCase.remainingRejoinDays(email: email)
-      rejoinAvaildableDayRelay.accept(days)
+      rejoinAvaildableDaySubject.send(days)
     } catch {
       await MainActor.run { requestFailed(error: error) }
     }
@@ -124,18 +120,18 @@ private extension EnterEmailViewModel {
   
   func requestFailed(error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
     
     switch error {
       case let .signUpFailed(reason) where reason == .emailAlreadyExists:
-        duplicateEmailRelay.accept(())
+        duplicateEmailSubject.send(())
       case let .signUpFailed(reason) where reason == .deletedUser:
         if let email = lastRequestedEmail {
           Task { await remainingRejoinDays(email: email) }
         }
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableSubject.send(())
     }
   }
 }

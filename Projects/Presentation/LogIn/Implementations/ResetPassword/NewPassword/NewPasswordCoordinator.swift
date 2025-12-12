@@ -18,7 +18,7 @@ protocol NewPasswordPresentable { }
 final class NewPasswordCoordinator: ViewableCoordinator<NewPasswordPresentable>, NewPasswordCoordinatable {
   weak var listener: NewPasswordListener?
 
-  private let viewModel: any NewPasswordViewModelType
+  private let viewModel: NewPasswordViewModel
   
   init(
     viewControllerable: ViewControllerable,
