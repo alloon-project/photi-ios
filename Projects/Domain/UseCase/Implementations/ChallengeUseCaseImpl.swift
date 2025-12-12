@@ -18,15 +18,18 @@ public struct ChallengeUseCaseImpl: ChallengeUseCase {
   private let challengeRepository: ChallengeRepository
   private let feedRepository: FeedRepository
   private let authRepository: AuthRepository
+  private let imageUploader: PresignedImageUploader
   
   public init(
     challengeRepository: ChallengeRepository,
     feedRepository: FeedRepository,
-    authRepository: AuthRepository
+    authRepository: AuthRepository,
+    imageUploader: PresignedImageUploader
   ) {
     self.challengeRepository = challengeRepository
     self.feedRepository = feedRepository
     self.authRepository = authRepository
+    self.imageUploader = imageUploader
   }
 }
 
@@ -85,7 +88,7 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.verifyInvitationCode(id: id, code: code)
   }
   
-  func joinChallenge(id: Int, goal: String) async throws -> Void {
+  func joinChallenge(id: Int, goal: String) async throws {
     return try await challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
@@ -93,13 +96,10 @@ public extension ChallengeUseCaseImpl {
     guard let (data, type) = imageToData(image, maxMB: 8) else {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
-    let result = try await challengeRepository.uploadChallengeFeedProof(
-      id: id,
-      image: data,
-      imageType: type
-    )
+    let imgType = ImageType(rawValue: type) ?? .jpeg
+    let url = try await imageUploader.upload(image: data, imageType: imgType)
     
-    return result
+    return try await challengeRepository.uploadChallengeFeedProof(id: id, imageUrl: url)
   }
   
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws {
@@ -110,14 +110,14 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.isProve(challengeId: challengeId)
   }
   
-  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws -> Void {
+  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws {
     return try await challengeRepository.updateChallengeGoal(goal, challengeId: challengeId)
   }
 }
 
 // MARK: - Delete Methods
 public extension ChallengeUseCaseImpl {
-  func leaveChallenge(id: Int) async throws -> Void {
+  func leaveChallenge(id: Int) async throws {
     return try await challengeRepository.leaveChallenge(id: id)
   }
 }

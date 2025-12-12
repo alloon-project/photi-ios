@@ -14,9 +14,11 @@ import Repository
 
 public struct HomeUseCaseImpl: HomeUseCase {
   private let challengeRepository: ChallengeRepository
+  private let imageUploader: PresignedImageUploader
   
-  public init(challengeRepository: ChallengeRepository) {
+  public init(challengeRepository: ChallengeRepository, imageUploader: PresignedImageUploader) {
     self.challengeRepository = challengeRepository
+    self.imageUploader = imageUploader
   }
   
   public func challengeCount() async throws -> Int {
@@ -35,12 +37,10 @@ public struct HomeUseCaseImpl: HomeUseCase {
     guard let (data, type) = imageToData(image, maxMB: 8) else {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
+    let imgType = ImageType(rawValue: type) ?? .jpeg
+    let url = try await imageUploader.upload(image: data, imageType: imgType)
     
-    return try await challengeRepository.uploadChallengeFeedProof(
-      id: challengeId,
-      image: data,
-      imageType: type
-    )
+    return try await challengeRepository.uploadChallengeFeedProof(id: challengeId, imageUrl: url)
   }
 }
 
