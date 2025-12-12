@@ -15,7 +15,7 @@ public enum ChallengeAPI {
   case popularChallenges
   case popularHashTags
   case challengeDetail(id: Int)
-  case myChallenges(page: Int, size: Int)
+  case leaveChallenge(challengeId: Int)
   case recentChallenges(page: Int, size: Int)
   case challengesByHashTag(_ hashTag: String, page: Int, size: Int)
   case searchChallengesByName(_ name: String, page: Int, size: Int)
@@ -23,14 +23,14 @@ public enum ChallengeAPI {
   case fetchInviitationCode(id: Int)
   case verifyInvitationCode(id: Int, _ code: String)
   case joinChallenge(id: Int, goal: String)
-  case uploadChallengeProof(id: Int, image: Data, imageType: String)
+  case updateChallengeGoal(_ goal: String, challengeId: Int)
   case isProve(challengeId: Int)
   case challengeCount
   case challengeProveMemberCount(challengeId: Int)
-  case updateChallengeGoal(_ goal: String, challengeId: Int)
   case challengeDescription(id: Int)
   case challengeMember(challengeId: Int)
-  case leaveChallenge(challengeId: Int)
+  case myChallenges(page: Int, size: Int)
+  case uploadChallengeProof(id: Int, imageUrl: String)
 }
 
 extension ChallengeAPI: TargetType {
@@ -42,22 +42,22 @@ extension ChallengeAPI: TargetType {
     switch self {
       case .popularChallenges: return "challenges/popular"
       case .popularHashTags: return "challenges/hashtags"
+      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
       case .recentChallenges: return "challenges"
-      case .challengesByHashTag: return "challenges/by-hashtags"
+      case .challengesByHashTag: return "challenges/hashtag"
       case .searchChallengesByName: return "challenges/search/name"
       case .searchChallengesByHashtag: return "challenges/search/hashtag"
-      case let .challengeDetail(id), let .leaveChallenge(id): return "challenges/\(id)"
-      case .myChallenges: return "users/my-challenges"
-      case let .joinChallenge(id, _): return "challenges/\(id)/join"
-      case let .updateChallengeGoal(_, challengeId): return "challenges/\(challengeId)/challenge-members/goal"
       case let .fetchInviitationCode(id): return "challenges/\(id)/invitation-code"
       case let .verifyInvitationCode(id, _): return "challenges/\(id)/invitation-code-match"
-      case let .uploadChallengeProof(id, _, _): return "challenges/\(id)/feeds"
-      case let .isProve(challengeId): return "users/challenges/\(challengeId)/prove"
-      case let .challengeDescription(id): return "challenges/\(id)/info"
-      case let .challengeMember(challengeId): return "challenges/\(challengeId)/challenge-members"
+      case let .joinChallenge(id, _): return "challenges/\(id)/join"
+      case let .updateChallengeGoal(_, challengeId): return "challenge-members/\(challengeId)/goal"
+      case let .isProve(challengeId): return "users/\(challengeId)/prove"
       case .challengeCount: return "users/challenges"
-      case let .challengeProveMemberCount(challengeId): return "challenges/\(challengeId)/feed-members"
+      case let .challengeProveMemberCount(challengeId): return "feeds/\(challengeId)/member-count"
+      case let .challengeDescription(id): return "challenges/\(id)/intro"
+      case let .challengeMember(challengeId): return "challenge-members/\(challengeId)"
+      case .myChallenges: return "users/challenges"
+      case let .uploadChallengeProof(id, _): return "feeds/\(id)"
     }
   }
   
@@ -106,16 +106,11 @@ extension ChallengeAPI: TargetType {
       
       case let .verifyInvitationCode(_, code):
         let parameters = ["invitationCode": code]
-        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+        return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
                 
-      case let .uploadChallengeProof(_, image, imageType):
-        let multiPartBody = MultipartFormDataBodyPart(
-          .data(["imageFile": image]),
-          fileExtension: imageType,
-          mimeType: "image/\(imageType)"
-        )
-        
-        return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
+      case let .uploadChallengeProof(_, imageUrl):
+        let parameters = ["preSignedUrl": imageUrl]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
     }
   }
   
