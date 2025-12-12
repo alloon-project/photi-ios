@@ -9,19 +9,14 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import Core
 import DesignSystem
 
 final class NewPasswordViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
   private let viewModel: NewPasswordViewModel
-  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
-  
-  private let didTapBackButtonRelay = PublishRelay<Void>()
+  private let didTapConfirmButtonAtAlert = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "비밀번호 재설정", displayMode: .dark)
@@ -156,11 +151,11 @@ private extension NewPasswordViewController {
 private extension NewPasswordViewController {
   func bind() {
     let input = NewPasswordViewModel.Input(
-      password: passwordTextField.textField.rx.text.orEmpty,
-      reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
-      didTapBackButton: didTapBackButtonRelay.asSignal(),
-      didTapContinueButton: nextButton.rx.tap.asSignal(),
-      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal()
+      password: passwordTextField.textPublisher,
+      reEnteredPassword: passwordCheckTextField.textPublisher,
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapContinueButton: nextButton.tapPublisher,
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -171,75 +166,70 @@ private extension NewPasswordViewController {
   func viewBind() {
     alertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
-      }.store(in: &cancellables)
-    
-    navigationBar.didTapBackButton
-      .sinkOnMain(with: self) { owner, _ in
-        owner.didTapBackButtonRelay.accept(())
+        owner.didTapConfirmButtonAtAlert.send(())
       }.store(in: &cancellables)
   }
   
   func bind(output: NewPasswordViewModel.Output) {
     output.containAlphabet
-      .drive(containAlphabetCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: containAlphabetCommentView)
+      .store(in: &cancellables)
     
     output.containNumber
-      .drive(containNumberCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
-    
+      .assign(to: \.isActivate, on: containNumberCommentView)
+      .store(in: &cancellables)
+
     output.containSpecial
-      .drive(containSpecialCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
-    
+      .assign(to: \.isActivate, on: containSpecialCommentView)
+      .store(in: &cancellables)
+
     output.isValidRange
-      .drive(validRangeCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: validRangeCommentView)
+      .store(in: &cancellables)
     
-    output.isValidPassword
-      .map { !$0 }
-      .drive(passwordCheckTextField.rx.isHidden)
-      .disposed(by: disposeBag)
+    output.correspondPassword
+      .assign(to: \.isActivate, on: correnspondPasswordCommentView)
+      .store(in: &cancellables)
 
     output.isValidPassword
       .map { !$0 }
-      .drive(passwordCheckTitleLabel.rx.isHidden)
-      .disposed(by: disposeBag)
+      .assign(to: \.isHidden, on: passwordCheckTextField)
+      .store(in: &cancellables)
+
+    output.isValidPassword
+      .map { !$0 }
+      .assign(to: \.isHidden, on: passwordCheckTitleLabel)
+      .store(in: &cancellables)
     
+    output.isEnabledNextButton
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
+
     output.isValidPassword
       .filter { $0 == false }
       .map { _ in "" }
-      .drive(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.passwordCheckTextField.text = ""
         owner.correnspondPasswordCommentView.isActivate = false
       }
-      .disposed(by: disposeBag)
-    
-    output.correspondPassword
-      .drive(correnspondPasswordCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
-    
-    output.isEnabledNextButton
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.isStartedUpdatePassword
-      .emit(with: self) { owner, isStart in
+      .sinkOnMain(with: self) { owner, isStart in
         isStart ? owner.nextButton.startLoadingAnimation() : owner.nextButton.stopLoadingAnimation()
         owner.view.isUserInteractionEnabled = !isStart
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.isSuccessedUpdatePassword
-      .emit(with: self) { owner, isSuccessed in
+      .sinkOnMain(with: self) { owner, isSuccessed in
         if isSuccessed {
           owner.presentConfirmAlertView()
         } else {
           owner.presentNetworkUnstableAlert()
         }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 

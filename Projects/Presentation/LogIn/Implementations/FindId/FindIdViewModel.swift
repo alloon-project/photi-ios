@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -16,38 +15,31 @@ protocol FindIdCoordinatable: AnyObject {
   func didTapBackButton()
 }
 
-protocol FindIdViewModelType: AnyObject {
-  associatedtype Input
-  associatedtype Output
-  
-  var coordinator: FindIdCoordinatable? { get set }
-}
-
-final class FindIdViewModel: FindIdViewModelType {
+final class FindIdViewModel {
   weak var coordinator: FindIdCoordinatable?
   
-  private let disposeBag = DisposeBag()
+  private var cancellables: Set<AnyCancellable> = []
   private let useCase: LogInUseCase
-  private let successEmailVerificationRelay = PublishRelay<Void>()
-  private let notRegisteredEmailRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let successEmailVerificationSubject = PassthroughSubject<Void, Never>()
+  private let notRegisteredEmailSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: Signal<Void>
-    let email: Driver<String>
-    let endEditingUserEmail: Signal<Void>
-    let didTapNextButton: Signal<Void>
-    let didAppearAlert: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let email: AnyPublisher<String, Never>
+    let endEditingUserEmail: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
+    let didAppearAlert: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let successEmailVerification: Signal<Void>
-    let notRegisteredEmail: Signal<Void>
-    let invalidFormat: Signal<Void>
-    let networkUnstable: Signal<Void>
-    let isEnabledConfirm: Driver<Bool>
+    let successEmailVerification: AnyPublisher<Void, Never>
+    let notRegisteredEmail: AnyPublisher<Void, Never>
+    let invalidFormat: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let isEnabledConfirm: AnyPublisher<Bool, Never>
   }
   
   // MARK: - Initializers
@@ -57,23 +49,20 @@ final class FindIdViewModel: FindIdViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     input.didTapNextButton
       .withLatestFrom(input.email)
-      .emit(with: self) { owner, email in
+      .sinkOnMain(with: self) { owner, email in
         Task { await owner.requestCheckEmail(email: email) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didAppearAlert
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.isRequestSucceed()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     let inValidateEmail = input.endEditingUserEmail
       .withLatestFrom(input.email)
@@ -84,11 +73,11 @@ final class FindIdViewModel: FindIdViewModelType {
        .map { $0.isValidateEmail() && $0.count <= 100 }
 
     return Output(
-      successEmailVerification: successEmailVerificationRelay.asSignal(),
-      notRegisteredEmail: notRegisteredEmailRelay.asSignal(),
-      invalidFormat: inValidateEmail.asSignal(onErrorJustReturn: ()),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      isEnabledConfirm: isEnabledConfirm.asDriver(onErrorJustReturn: false)
+      successEmailVerification: successEmailVerificationSubject.eraseToAnyPublisher(),
+      notRegisteredEmail: notRegisteredEmailSubject.eraseToAnyPublisher(),
+      invalidFormat: inValidateEmail.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      isEnabledConfirm: isEnabledConfirm.eraseToAnyPublisher()
     )
   }
 }
@@ -98,7 +87,7 @@ private extension FindIdViewModel {
   func requestCheckEmail(email: String) async {
     do {
       try await useCase.sendUserInformation(to: email)
-      successEmailVerificationRelay.accept(())
+      successEmailVerificationSubject.send(())
     } catch {
       requestFailed(with: error)
     }
@@ -106,9 +95,9 @@ private extension FindIdViewModel {
   
   func requestFailed(with error: Error) {
     if let error = error as? APIError, case .userNotFound = error {
-      notRegisteredEmailRelay.accept(())
+      notRegisteredEmailSubject.send(())
     } else {
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
 }

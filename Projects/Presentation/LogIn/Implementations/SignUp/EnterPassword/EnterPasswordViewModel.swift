@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -20,38 +19,37 @@ protocol EnterPasswordViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
   var coordinator: EnterPasswordCoordinatable? { get set }
 }
 
 final class EnterPasswordViewModel: EnterPasswordViewModelType {
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: SignUpUseCase
-  let disposeBag = DisposeBag()
   
   weak var coordinator: EnterPasswordCoordinatable?
 
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let registerErrorRelay = PublishRelay<String>()
-  
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let registerErrorSubject = PassthroughSubject<String, Never>()
+
   // MARK: - Input
   struct Input {
-    let password: ControlProperty<String>
-    let reEnteredPassword: ControlProperty<String>
-    let didTapBackButton: ControlEvent<Void>
-    let didTapContinueButton: ControlEvent<Void>
+    let password: AnyPublisher<String, Never>
+    let reEnteredPassword: AnyPublisher<String, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapContinueButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let containAlphabet: Driver<Bool>
-    let containNumber: Driver<Bool>
-    let containSpecial: Driver<Bool>
-    let isValidRange: Driver<Bool>
-    let isValidPassword: Driver<Bool>
-    let correspondPassword: Driver<Bool>
-    let isEnabledNextButton: Driver<Bool>
-    let networkUnstable: Signal<Void>
-    let registerError: Signal<String>
+    let containAlphabet: AnyPublisher<Bool, Never>
+    let containNumber: AnyPublisher<Bool, Never>
+    let containSpecial: AnyPublisher<Bool, Never>
+    let isValidRange: AnyPublisher<Bool, Never>
+    let isValidPassword: AnyPublisher<Bool, Never>
+    let correspondPassword: AnyPublisher<Bool, Never>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let registerError: AnyPublisher<String, Never>
   }
   
   // MARK: - Initializers
@@ -61,17 +59,15 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapContinueButton
       .withLatestFrom(input.password)
-      .bind(with: self) { owner, passwords in
+      .sink(with: self) { owner, passwords in
         Task { await owner.register(password: passwords) }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     let containAlphabet = input.password
       .map { $0.contain("[a-zA-Z]") }
@@ -85,28 +81,25 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
     let isValidRange = input.password
       .map { $0.count >= 8 && $0.count <= 30 }
     
-    let isValidPassword = Observable.combineLatest(
-      containAlphabet, containNumber, containSpecial, isValidRange
+    let isValidPassword = containAlphabet.combineLatest(
+      containNumber, containSpecial, isValidRange
     ) { $0 && $1 && $2 && $3 }
     
-    let correspondPassword = Observable.combineLatest(
-      input.password, input.reEnteredPassword
-    ) { $0 == $1 }
+    let correspondPassword = input.password.combineLatest(input.reEnteredPassword) { $0 == $1 }
     
-    let isEnabledNextButton = Observable.combineLatest(
-      isValidPassword, correspondPassword
-    ) { $0 && $1 }
+    let isEnabledNextButton = isValidPassword.eraseToAnyPublisher()
+      .combineLatest(correspondPassword) { $0 && $1 }
     
     return Output(
-      containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
-      containNumber: containNumber.asDriver(onErrorJustReturn: false),
-      containSpecial: containSpecial.asDriver(onErrorJustReturn: false),
-      isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
-      isValidPassword: isValidPassword.asDriver(onErrorJustReturn: false), 
-      correspondPassword: correspondPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      registerError: registerErrorRelay.asSignal()
+      containAlphabet: containAlphabet.eraseToAnyPublisher(),
+      containNumber: containNumber.eraseToAnyPublisher(),
+      containSpecial: containSpecial.eraseToAnyPublisher(),
+      isValidRange: isValidRange.eraseToAnyPublisher(),
+      isValidPassword: isValidPassword.eraseToAnyPublisher(),
+      correspondPassword: correspondPassword,
+      isEnabledNextButton: isEnabledNextButton,
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      registerError: registerErrorSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -124,24 +117,24 @@ private extension EnterPasswordViewModel {
   
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
     
     switch error {
       case let .signUpFailed(reason) where reason == .didNotVerifyEmail:
         let message = "이메일 인증이 진행되지 않았어요.\n이메일 인증을 다시 해주세요."
-        registerErrorRelay.accept(message)
+        registerErrorSubject.send(message)
       case let .signUpFailed(reason) where reason == .userNameAlreadyExists:
         let message = "이미 존재하는 아이디입니다.\n아이디 검증을 다시 해주세요."
-        registerErrorRelay.accept(message)
+        registerErrorSubject.send(message)
       case let .signUpFailed(reason) where reason == .emailAlreadyExists:
         let message = "해당 이메일로 이미 가입된 회원이 있습니다.\n이메일을 다시 입력하거나, 비밀번호 찾기는 진행해주세요."
-        registerErrorRelay.accept(message)
+        registerErrorSubject.send(message)
       case let .signUpFailed(reason) where reason == .invalidUserName:
         let message = "사용할 수 없는 아이디입니다.\n아이디 입력을 다시 해주세요."
-        registerErrorRelay.accept(message)
+        registerErrorSubject.send(message)
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableSubject.send(())
     }
   }
 }

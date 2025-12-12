@@ -19,7 +19,7 @@ protocol FindIdPresentable { }
 final class FindIdCoordinator: ViewableCoordinator<FindIdPresentable>, FindIdCoordinatable {
   weak var listener: FindIdListener?
   
-  private let viewModel: any FindIdViewModelType
+  private let viewModel: FindIdViewModel
   
   init(
     viewControllerable: ViewControllerable,

@@ -7,13 +7,14 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Core
 import DesignSystem
 
 final class FindView: UIView {
+  let findIdTapPublisher: AnyPublisher<Void, Never>
+  let findPasswordTapPublisher: AnyPublisher<Void, Never>
   // MARK: - UI Components
   fileprivate let findIdButton = TextButton(text: "아이디 찾기", size: .xSmall, type: .gray)
   fileprivate let findPasswordButton = TextButton(text: "비밀번호 찾기", size: .xSmall, type: .gray)
@@ -27,6 +28,8 @@ final class FindView: UIView {
   
   // MARK: - Initializers
   init() {
+    self.findIdTapPublisher = findIdButton.tapPublisher
+    self.findPasswordTapPublisher = findPasswordButton.tapPublisher
     super.init(frame: .zero)
     setupUI()
   }
@@ -64,15 +67,5 @@ private extension FindView {
       $0.leading.equalTo(verticalLine.snp.trailing).offset(8)
       $0.trailing.top.bottom.equalToSuperview()
     }
-  }
-}
-
-extension Reactive where Base: FindView {
-  var didTapFindIdButton: ControlEvent<Void> {
-    base.findIdButton.rx.tap
-  }
-  
-  var didTapFindPasswordButton: ControlEvent<Void> {
-    base.findPasswordButton.rx.tap
   }
 }
