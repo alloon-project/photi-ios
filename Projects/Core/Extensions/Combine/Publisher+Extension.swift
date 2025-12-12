@@ -79,18 +79,8 @@ public extension Publisher where Failure == Never {
   func withLatestFrom<Other: Publisher>(
     _ other: Other
   ) -> AnyPublisher<Other.Output, Never> where Other.Failure == Never {
-    let shared = other
-      .map(Optional.some)
-      .multicast(subject: CurrentValueSubject<Other.Output?, Never>(nil))
-      .autoconnect()
-
-    // source가 emit할 때, shared의 최신값을 1개(prefix(1)) 꺼내서 방출
-    return self
-      .flatMap { _ in
-        shared
-          .compactMap { $0 } // 최신값이 아직 없으면 대기
-          .prefix(1) // 최신값 1개만 사용
-      }
+    return Publishers.WithLatestFrom(upstream: self, other: other)
+      .map { $0.1 }
       .eraseToAnyPublisher()
   }
 
@@ -99,18 +89,8 @@ public extension Publisher where Failure == Never {
     _ other: Other,
     _ transform: @escaping (Output, Other.Output) -> R
   ) -> AnyPublisher<R, Never> where Other.Failure == Never {
-    let shared = other
-      .map(Optional.some)
-      .multicast(subject: CurrentValueSubject<Other.Output?, Never>(nil))
-      .autoconnect()
-
-    return self
-      .flatMap { latestSelf in
-        shared
-          .compactMap { $0 } // 최신값이 준비될 때까지 대기
-          .prefix(1)
-          .map { transform(latestSelf, $0) }
-      }
+    return Publishers.WithLatestFrom(upstream: self, other: other)
+      .map { transform($0.0, $0.1) }
       .eraseToAnyPublisher()
   }
 }
