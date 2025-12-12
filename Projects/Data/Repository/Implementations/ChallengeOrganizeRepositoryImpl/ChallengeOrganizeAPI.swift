@@ -40,40 +40,9 @@ extension ChallengeOrganizeAPI: TargetType {
   
   public var task: TaskType {
     switch self {
-      case .sampleImages:
-        return .requestPlain
-    case let .organizeChallenge(dto):
-      let requestDataPart = MultipartFormDataBodyPart(
-        .jsonString(key: "request", json: dto.jsonString)
-      )
-
-      let imageDataPart = MultipartFormDataBodyPart(
-        .data([
-          "imageFile": dto.image
-        ]),
-        fileExtension: dto.imageType,
-        mimeType: "image/\(dto.imageType)"
-      )
-      
-      let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
-            
-      return .uploadMultipartFormData(multipart: multipart)
-    case let .modifyChallenge(dto, _):
-      let requestDataPart = MultipartFormDataBodyPart(
-        .jsonString(key: "request", json: dto.jsonString)
-      )
-
-      let imageDataPart = MultipartFormDataBodyPart(
-        .data([
-          "imageFile": dto.image
-        ]),
-        fileExtension: dto.imageType,
-        mimeType: "image/\(dto.imageType)"
-      )
-      
-      let multipart = MultipartFormData(bodyParts: [requestDataPart, imageDataPart])
-      
-      return .uploadMultipartFormData(multipart: multipart)
+      case .sampleImages: return .requestPlain
+      case let .organizeChallenge(dto): return .requestJSONEncodable(dto)
+      case let .modifyChallenge(dto, _): return .requestJSONEncodable(dto)
     }
   }
   

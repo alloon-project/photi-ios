@@ -48,9 +48,7 @@ public extension ChallengeOrganizeRepositoryImpl {
   }
   
   func challengeModify(payload: ChallengeModifyPayload, challengeId: Int) async throws {
-    guard let requestDTO = dataMapper.mapToModifyChallenge(payload: payload) else {
-      throw APIError.organazieFailed(reason: .payloadIsNil)
-    }
+    let requestDTO = dataMapper.mapToModifyChallenge(payload: payload)
     
     try await requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.modifyChallenge(dto: requestDTO, challengeId: challengeId),
@@ -78,14 +76,10 @@ private extension ChallengeOrganizeRepositoryImpl {
         return data
       } else if result.statusCode == 400 {
         throw APIError.organazieFailed(reason: .emptyFileInvalid)
-      } else if result.statusCode == 401 || result.statusCode == 403 {
+      } else if result.statusCode == 401 {
         throw APIError.authenticationFailed
       } else if result.statusCode == 404 {
         throw APIError.organazieFailed(reason: .notChallengeMemeber)
-      } else if result.statusCode == 413 {
-        throw APIError.organazieFailed(reason: .fileSizeExceed)
-      } else if result.statusCode == 415 {
-        throw APIError.organazieFailed(reason: .imageTypeUnsurported)
       } else {
         throw APIError.serverError
       }
