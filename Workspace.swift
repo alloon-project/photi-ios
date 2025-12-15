@@ -11,8 +11,7 @@ let workspace = Workspace(
 	name: "Photi",
 	projects: [
 		"Projects/App",
-		"Projects/Core",
-        "Projects/CoreUI",
+		"Projects/Cores",
 		"Projects/Data",
 		"Projects/DesignSystem",
 		"Projects/Domain",

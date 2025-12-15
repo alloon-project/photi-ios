@@ -18,7 +18,7 @@ let project = Project.make(
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
 			dependencies: [
-				.Project.CoreUI,
+            .Project.Cores.CoreUI,
 				.SPM.SnapKit,
 				.SPM.Lottie
       ]
