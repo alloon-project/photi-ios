@@ -9,17 +9,12 @@
 import UIKit
 import Combine
 import Coordinator
-import RxSwift
-import RxCocoa
 import SnapKit
-import CoreUI
+import Core
 import DesignSystem
 
 final class FindPasswordViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
-  
-  private let didTapBackButtonRelay = PublishRelay<Void>()
   private let viewModel: FindPasswordViewModel
   
   // MARK: - UI Components
@@ -161,12 +156,12 @@ private extension FindPasswordViewController {
 private extension FindPasswordViewController {
   func bind() {
     let input = FindPasswordViewModel.Input(
-      didTapBackButton: didTapBackButtonRelay.asSignal(),
-      userId: idTextField.textField.rx.text.orEmpty.asDriver(),
-      endEditingUserId: idTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
-      userEmail: emailTextField.textField.rx.text.orEmpty.asDriver(),
-      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
-      didTapNextButton: nextButton.rx.tap.asSignal()
+      didTapBackButton: navigationBar.didTapBackButton,
+      userId: idTextField.textPublisher,
+      endEditingUserId: idTextField.textField.eventPublisher(for: .editingDidEnd),
+      userEmail: emailTextField.textPublisher,
+      endEditingUserEmail: emailTextField.textField.eventPublisher(for: .editingDidEnd),
+      didTapNextButton: nextButton.tap()
     )
     
     let output = viewModel.transform(input: input)
@@ -176,52 +171,41 @@ private extension FindPasswordViewController {
   }
   
   func viewBind() {
-    navigationBar.didTapBackButton
+    idTextField.textField.eventPublisher(for: .editingChanged)
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapBackButtonRelay.accept(())
+        owner.convertIdTextField(commentView: nil)
       }.store(in: &cancellables)
     
-    idTextField.textField.rx.controlEvent(.editingChanged)
-      .bind(with: self) { owner, _ in
-        owner.convertIdTextField(commentView: nil)
-      }
-      .disposed(by: disposeBag)
-    
-    emailTextField.textField.rx.controlEvent(.editingChanged)
-      .bind(with: self) { owner, _ in
+    emailTextField.textField.eventPublisher(for: .editingChanged)
+      .sinkOnMain(with: self) { owner, _ in
         owner.convertEmailTextField(commentView: nil)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: FindPasswordViewModel.Output) {
     output.inValidIdFormat
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.convertIdTextField(commentView: owner.idWarningView)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     output.inValidEmailFormat
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.convertEmailTextField(commentView: owner.emailFormWarningView)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     output.isEnabledNextButton
-      .emit(to: nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .bind(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
     
     output.unMatchedIdOrEmail
-      .emit(with: self) { onwer, _ in
+      .sinkOnMain(with: self) { onwer, _ in
         onwer.displayToastView()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

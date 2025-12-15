@@ -6,9 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import CoreUI
-import RxCocoa
-import RxSwift
+import Combine
+import Core
 import Entity
 import UseCase
 
@@ -17,38 +16,31 @@ protocol FindPasswordCoordinatable: AnyObject {
   func attachResetPassword(userEmail: String, userName: String)
 }
 
-protocol FindPasswordViewModelType {
-  associatedtype Input
-  associatedtype Output
-  
-  var coordinator: FindPasswordCoordinatable? { get }
-}
-
-final class FindPasswordViewModel: FindPasswordViewModelType {
+final class FindPasswordViewModel {
   weak var coordinator: FindPasswordCoordinatable?
   
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: LogInUseCase
-  private let unMatchedIdOrEmailIdOrEmailRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let unMatchedIdOrEmailSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: Signal<Void>
-    let userId: Driver<String>
-    let endEditingUserId: Signal<Void>
-    let userEmail: Driver<String>
-    let endEditingUserEmail: Signal<Void>
-    let didTapNextButton: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let userId: AnyPublisher<String, Never>
+    let endEditingUserId: AnyPublisher<Void, Never>
+    let userEmail: AnyPublisher<String, Never>
+    let endEditingUserEmail: AnyPublisher<Void, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
-  struct Output { 
-    let inValidIdFormat: Signal<Void>
-    let inValidEmailFormat: Signal<Void>
-    let isEnabledNextButton: Signal<Bool>
-    let unMatchedIdOrEmail: Signal<Void>
-    let networkUnstable: Signal<Void>
+  struct Output {
+    let inValidIdFormat: AnyPublisher<Void, Never>
+    let inValidEmailFormat: AnyPublisher<Void, Never>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let unMatchedIdOrEmail: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -58,9 +50,19 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
+    
+    let idAndEmail = input.userId
+      .combineLatest(input.userEmail)
+      .eraseToAnyPublisher()
+    
+    input.didTapNextButton
+      .withLatestFrom(idAndEmail)
+      .sinkOnMain(with: self) { owner, info in
+        Task { await owner.requestTempoaryPassword(id: info.0, email: info.1) }
+      }.store(in: &cancellables)
         
     let isValidIdFormat = input.endEditingUserId
       .withLatestFrom(input.userId)
@@ -70,35 +72,24 @@ final class FindPasswordViewModel: FindPasswordViewModelType {
       .withLatestFrom(input.userEmail)
       .map { $0.isValidateEmail() && $0.count <= 100 && !$0.isEmpty }
     
-    let isEnabledConfirm = Observable.combineLatest(isValidIdFormat.asObservable(), isValidEmailFormat.asObservable())
-      .map { $0 && $1 }
-    
-    let idAndEmail = Observable.combineLatest(input.userId.asObservable(), input.userEmail.asObservable())
-      .asDriver(onErrorJustReturn: ("", ""))
-    
-    input.didTapNextButton
-      .withLatestFrom(idAndEmail)
-      .emit(with: self) { owner, info in
-        Task { await owner.requestTempoaryPassword(id: info.0, email: info.1) }
-      }
-      .disposed(by: disposeBag)
-    
+    let isEnabledConfirm = isValidIdFormat.combineLatest(isValidEmailFormat) { $0 && $1 }
+        
     return Output(
-      inValidIdFormat: isValidIdFormat.filter { !$0 }.map { _ in () }.asSignal(),
-      inValidEmailFormat: isValidEmailFormat.filter { !$0 }.map { _ in () }.asSignal(),
-      isEnabledNextButton: isEnabledConfirm.asSignal(onErrorJustReturn: false),
-      unMatchedIdOrEmail: unMatchedIdOrEmailIdOrEmailRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      inValidIdFormat: isValidIdFormat.filter { !$0 }.map { _ in () }.eraseToAnyPublisher(),
+      inValidEmailFormat: isValidEmailFormat.filter { !$0 }.map { _ in () }.eraseToAnyPublisher(),
+      isEnabledNextButton: isEnabledConfirm.eraseToAnyPublisher(),
+      unMatchedIdOrEmail: unMatchedIdOrEmailSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
 
 // MARK: - Private Methods
 private extension FindPasswordViewModel {
-  @MainActor func requestTempoaryPassword(id: String, email: String) async {
+  func requestTempoaryPassword(id: String, email: String) async {
     do {
       try await useCase.sendTemporaryPassword(to: email, userName: id)
-      coordinator?.attachResetPassword(userEmail: email, userName: id)
+      await MainActor.run { coordinator?.attachResetPassword(userEmail: email, userName: id) }
     } catch {
       requestFailed(with: error)
     }
@@ -106,9 +97,9 @@ private extension FindPasswordViewModel {
   
   func requestFailed(with error: Error) {
     if let error = error as? APIError, case .userNotFound = error {
-      unMatchedIdOrEmailIdOrEmailRelay.accept(())
+      unMatchedIdOrEmailSubject.send(())
     } else {
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
 }
