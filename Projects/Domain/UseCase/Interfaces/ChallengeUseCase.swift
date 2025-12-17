@@ -6,7 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Core
+import Foundation
 import Entity
 
 public protocol ChallengeUseCase {
@@ -19,7 +19,7 @@ public protocol ChallengeUseCase {
   func isPossibleToJoinChallenge() async -> Bool
   func isProve(challengeId: Int) async throws -> Bool
   func isJoinedChallenge(id: Int) async -> Bool
-  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed
+  func uploadChallengeFeedProof(id: Int, imageData: Data, type: String) async throws -> Feed
   func updateLikeState(challengeId: Int, feedId: Int, isLike: Bool) async throws
   func fetchFeeds(
     id: Int,

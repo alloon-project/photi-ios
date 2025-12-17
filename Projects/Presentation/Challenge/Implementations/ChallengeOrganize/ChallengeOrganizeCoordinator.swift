@@ -7,7 +7,7 @@
 //
 
 import Coordinator
-import Core
+import CoreUI
 import Challenge
 
 enum ChallengeOrganizeMode {

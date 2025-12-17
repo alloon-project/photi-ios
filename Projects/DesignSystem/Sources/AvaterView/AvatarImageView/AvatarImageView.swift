@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import Core
+import CoreUI
 
 public final class AvatarImageView: UIImageView {
   // MARK: - Properties

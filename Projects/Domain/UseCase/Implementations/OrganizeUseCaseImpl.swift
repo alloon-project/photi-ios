@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository
@@ -138,19 +137,5 @@ public extension OrganizeUseCaseImpl {
     } catch {
       throw CancellationError()
     }
-  }
-}
-
-// MARK: - Private Methods
-private extension OrganizeUseCaseImpl {
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
   }
 }

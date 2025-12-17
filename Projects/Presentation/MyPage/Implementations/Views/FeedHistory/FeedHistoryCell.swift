@@ -9,7 +9,7 @@
 import UIKit
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import DesignSystem
 
 final class FeedHistoryCell: UICollectionViewCell {

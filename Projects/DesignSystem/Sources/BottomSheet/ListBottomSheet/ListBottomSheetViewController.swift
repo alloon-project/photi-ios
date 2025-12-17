@@ -9,7 +9,7 @@
 import UIKit
 import Combine
 import SnapKit
-import Core
+import CoreUI
 
 public protocol ListBottomSheetDelegate: AnyObject {
   func didTapIcon(_ bottomSheet: ListBottomSheetViewController, at index: Int)
