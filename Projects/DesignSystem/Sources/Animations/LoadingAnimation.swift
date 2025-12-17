@@ -9,7 +9,7 @@
 import UIKit
 import Lottie
 import SnapKit
-import Core
+import CoreUI
 
 public final class LoadingAnimation {
   public static let logo: LoadingAnimation = {

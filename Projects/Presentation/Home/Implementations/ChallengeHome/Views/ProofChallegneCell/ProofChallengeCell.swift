@@ -10,7 +10,7 @@ import UIKit
 import RxCocoa
 import RxSwift
 import DesignSystem
-import Core
+import CoreUI
 
 final class ProofChallengeCell: UICollectionViewCell {
   typealias ModelType = MyChallengeFeedPresentationModel.ModelType

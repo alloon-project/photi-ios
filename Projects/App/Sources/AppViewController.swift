@@ -12,7 +12,6 @@ import Coordinator
 import RxCocoa
 import RxSwift
 import SnapKit
-import Core
 import DesignSystem
 
 final class AppViewController: UITabBarController, ViewControllerable {

@@ -9,7 +9,7 @@
 import UIKit
 import RxCocoa
 import RxRelay
-import Core
+import CoreUI
 import DesignSystem
 
 final class HomeBottomView: UIView {

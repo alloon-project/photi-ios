@@ -8,7 +8,6 @@
 
 import UIKit
 import Coordinator
-import Core
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {

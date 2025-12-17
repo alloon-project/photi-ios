@@ -6,12 +6,12 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import Core
+import Foundation
 import Entity
 
 public protocol HomeUseCase {
   func challengeCount() async throws -> Int
   func fetchPopularChallenge() async throws -> [ChallengeDetail]
   func fetchMyChallenges() async throws -> [ChallengeSummary]
-  func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws -> Feed
+  func uploadChallengeFeed(challengeId: Int, imageData: Data, type: String) async throws -> Feed
 }

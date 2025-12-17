@@ -11,7 +11,7 @@ import SnapKit
 import RxCocoa
 import RxSwift
 import DesignSystem
-import Core
+import CoreUI
 
 final class FeedsByDateCell: UICollectionViewCell {
   // MARK: - Properties

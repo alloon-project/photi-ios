@@ -11,7 +11,7 @@ import Combine
 import Coordinator
 import RxSwift
 import RxCocoa
-import Core
+import CoreUI
 import DesignSystem
 
 final class ChallengeViewController: UIViewController, ViewControllerable {

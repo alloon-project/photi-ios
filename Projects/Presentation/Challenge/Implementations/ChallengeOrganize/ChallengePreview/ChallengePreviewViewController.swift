@@ -11,7 +11,7 @@ import Coordinator
 import RxCocoa
 import RxSwift
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class ChallengePreviewViewController: UIViewController, ViewControllerable {

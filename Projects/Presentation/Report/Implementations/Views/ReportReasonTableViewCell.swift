@@ -8,7 +8,7 @@
 
 import UIKit
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 class ReportReasonTableViewCell: UITableViewCell {

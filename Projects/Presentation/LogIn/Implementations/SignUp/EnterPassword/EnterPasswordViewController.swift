@@ -11,6 +11,7 @@ import Combine
 import Coordinator
 import SnapKit
 import Core
+import CoreUI
 import DesignSystem
 
 final class EnterPasswordViewController: UIViewController, ViewControllerable {

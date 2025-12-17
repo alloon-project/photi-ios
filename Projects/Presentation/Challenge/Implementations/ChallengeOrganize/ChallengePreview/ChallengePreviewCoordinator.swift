@@ -7,7 +7,7 @@
 //
 
 import Coordinator
-import Core
+import CoreUI
 
 protocol ChallengePreviewListener: AnyObject {
   func didTapBackButtonAtChallengePreview()

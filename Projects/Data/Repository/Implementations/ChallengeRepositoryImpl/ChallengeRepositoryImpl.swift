@@ -197,8 +197,8 @@ public extension ChallengeRepositoryImpl {
     )
   }
   
-  func uploadChallengeFeedProof(id: Int, image: Data, imageType: String) async throws -> Feed {
-    let api = ChallengeAPI.uploadChallengeProof(id: id, image: image, imageType: imageType)
+  func uploadChallengeFeedProof(id: Int, imageData: Data, imageType: String) async throws -> Feed {
+    let api = ChallengeAPI.uploadChallengeProof(id: id, image: imageData, imageType: imageType)
     
     let dto = try await requestAuthorizableAPI(
       api: api,

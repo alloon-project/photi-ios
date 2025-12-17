@@ -2,11 +2,11 @@
 //  String+Extension.swift
 //  Core
 //
-//  Created by jung on 4/30/24.
-//  Copyright © 2024 com.alloon. All rights reserved.
+//  Created by wooseob on 11/10/25.
+//  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 public extension String {
   var isValidateId: Bool {
@@ -19,26 +19,6 @@ public extension String {
     let containsSpecial = self.range(of: "[^a-zA-Z0-9]", options: .regularExpression) != nil
     let isInValidRange = (8...30).contains(self.count)
     return containsAlphabet && containsNumber && containsSpecial && isInValidRange
-  }
-  
-  func attributedString(
-    font: UIFont,
-    color: UIColor,
-    alignment: NSTextAlignment = .left,
-    lineBreakingMode: NSLineBreakMode = .byTruncatingTail,
-    letterSpacing: CGFloat = -0.025,
-    lineHeight: CGFloat? = nil
-  ) -> NSAttributedString {
-    let attributes = NSAttributedString.attributes(
-      font: font,
-      color: color,
-      alignment: alignment,
-      lineBreadMode: lineBreakingMode,
-      letterSpacing: letterSpacing,
-      lineHeight: lineHeight
-    )
-    
-    return NSAttributedString(string: self, attributes: attributes)
   }
   
   /// count만큼의 Suffix를 return 합니다.

@@ -8,7 +8,7 @@
 
 import UIKit
 import SnapKit
-import Core
+import CoreUI
 
 /// Icon과 Text가 같이 있는 버튼입니다.
 public final class IconTextButton: UIButton {

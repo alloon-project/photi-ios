@@ -11,7 +11,7 @@ import RxCocoa
 import RxSwift
 import RxGesture
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class ChallengeCountBox: UIView {

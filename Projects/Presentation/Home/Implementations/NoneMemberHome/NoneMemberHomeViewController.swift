@@ -11,7 +11,7 @@ import Coordinator
 import RxSwift
 import SnapKit
 import DesignSystem
-import Core
+import CoreUI
 
 final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
   // MARK: - Properties

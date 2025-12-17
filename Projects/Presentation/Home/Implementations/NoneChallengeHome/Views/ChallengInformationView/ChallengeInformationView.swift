@@ -11,7 +11,7 @@ import RxCocoa
 import RxSwift
 import SnapKit
 import Kingfisher
-import Core
+import CoreUI
 import DesignSystem
 
 final class ChallengeInformationView: UIView {

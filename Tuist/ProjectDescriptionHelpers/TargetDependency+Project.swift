@@ -12,6 +12,7 @@ public extension TargetDependency {
 }
 
 public extension TargetDependency.Project {
+   enum Cores {}
 	enum Presentation {}
 	enum Data {}
 	enum Domain {}
@@ -20,11 +21,18 @@ public extension TargetDependency.Project {
 		target: "DesignSystem",
 		path: .relativeToRoot("Projects/DesignSystem")
 	)
-	
-	static let Core = TargetDependency.project(
-		target: "Core",
-		path: .relativeToRoot("Projects/Core")
-	)
+}
+
+public extension TargetDependency.Project.Cores {
+   static let Core = TargetDependency.project(
+      target: "Core",
+      path: .relativeToRoot("Projects/Cores")
+   )
+   
+   static let CoreUI = TargetDependency.project(
+      target: "CoreUI",
+      path: .relativeToRoot("Projects/Cores")
+   )
 }
 
 // MARK: - Presentation

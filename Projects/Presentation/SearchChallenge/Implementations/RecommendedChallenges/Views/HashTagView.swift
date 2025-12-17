@@ -11,7 +11,7 @@ import RxCocoa
 import RxGesture
 import RxSwift
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class HashTagView: UIView {

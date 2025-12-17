@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository
@@ -89,13 +88,10 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
-  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
-    guard let (data, type) = imageToData(image, maxMB: 8) else {
-      throw APIError.challengeFailed(reason: .fileTooLarge)
-    }
+  func uploadChallengeFeedProof(id: Int, imageData: Data, type: String) async throws -> Feed {
     let result = try await challengeRepository.uploadChallengeFeedProof(
       id: id,
-      image: data,
+      imageData: imageData,
       imageType: type
     )
     
@@ -124,14 +120,5 @@ public extension ChallengeUseCaseImpl {
 
 // MARK: - Private Methods
 private extension ChallengeUseCaseImpl {
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
-  }
+
 }

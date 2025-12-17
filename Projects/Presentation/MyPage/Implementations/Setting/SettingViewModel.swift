@@ -9,7 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import UseCase
 
 protocol SettingCoordinatable: AnyObject {

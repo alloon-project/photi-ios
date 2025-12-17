@@ -9,7 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import Entity
 import UseCase
 
@@ -118,11 +118,44 @@ private extension ProfileEditViewModel {
     } catch {
       requestFailed(with: error)
     }
+    
+    func solution(_ info:[[Int]], _ n:Int, _ m:Int) -> Int {
+        let count = info.count
+        
+        var answer = 121
+        var visited: Set<[Int]> = []
+        func dfs(_ sumA: Int, _ sumB: Int, _ idx: Int) {
+            print(idx)
+            if idx == count {
+                if answer > sumA {
+                    answer = sumA
+                }
+                return
+            }
+            
+          visited.insert([sumA,sumB, idx])
+          
+          if visited.contains([sumA, sumB + info[idx][1], idx]) {
+            dfs(sumA, sumB + info[idx][1], idx + 1)
+          }
+          if visited.contains([sumA + info[idx][0], sumB, idx + 1]) {
+            dfs(sumA + info[idx][0], sumB, idx + 1)
+          }
+        }
+        
+        dfs(0, 0, 0)
+        return answer == 121 ? -1 : answer
+    }
   }
   
   func updateUserProfile(_ image: UIImageWrapper) async {
     do {
-      let url = try await useCase.updateProfileImage(image)
+      guard
+        let (imageData, type) = image.imageToData(maxMB: 8)
+      else {
+        throw APIError.myPageFailed(reason: .fileTooLarge)
+      }
+      let url = try await useCase.updateProfileImage(imageData, type: type)
       profileImageUrlRelay.accept(url)
       isSuccessedUploadImageRelay.accept(true)
     } catch {

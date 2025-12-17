@@ -8,7 +8,7 @@
 
 import Coordinator
 import Challenge
-import Core
+import CoreUI
 
 protocol ModifyChallengeListener: AnyObject {
   func challengeModified()

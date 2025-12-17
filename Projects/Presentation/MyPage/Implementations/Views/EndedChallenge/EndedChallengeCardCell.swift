@@ -10,7 +10,7 @@ import UIKit
 import Kingfisher
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import DesignSystem
 
 public final class EndedChallengeCardCell: UICollectionViewCell {

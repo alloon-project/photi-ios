@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import Core
+import CoreUI
 import Entity
 import UseCase
 
@@ -137,7 +137,11 @@ private extension ChallengeHomeViewModel {
   
   func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {
     do {
-      let feed = try await useCase.uploadChallengeFeed(challengeId: id, image: image)
+      guard
+        let (imageData, type) = image.imageToData(maxMB: 8) else {
+        throw APIError.challengeFailed(reason: .fileTooLarge)
+      }
+      let feed = try await useCase.uploadChallengeFeed(challengeId: id, imageData: imageData, type: type)
       didUploadChallengeFeed.accept(.success(challengeId: id, feedId: feed.id, url: feed.imageURL))
     } catch {
       didUploadChallengeFeed.accept(.failure)
