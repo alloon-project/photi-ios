@@ -7,15 +7,14 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class LogInViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: LogInViewModel
   
   // MARK: - UI Components
@@ -131,24 +130,14 @@ private extension LogInViewController {
 // MARK: - Bind Method
 private extension LogInViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = LogInViewModel.Input(
-      id: idTextField.textField.rx.text.orEmpty,
-      password: passwordTextField.textField.rx.text.orEmpty,
-      didTapBackButton: backButtonEvent,
-      didTapLoginButton: loginButton.rx.tap,
-      didTapFindIdButton: findView.rx.didTapFindIdButton,
-      didTapFindPasswordButton: findView.rx.didTapFindPasswordButton,
-      didTapSignUpButton: signUpButton.rx.tap
+      id: idTextField.textPublisher,
+      password: passwordTextField.textPublisher,
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapLoginButton: loginButton.tapPublisher,
+      didTapFindIdButton: findView.findIdTapPublisher,
+      didTapFindPasswordButton: findView.findPasswordTapPublisher,
+      didTapSignUpButton: signUpButton.tapPublisher
     )
    
     let output = viewModel.transform(input: input)
@@ -157,63 +146,54 @@ private extension LogInViewController {
   }
   
   func viewBind() {
-    idTextField.textField.rx.text.orEmpty
-      .distinctUntilChanged()
-      .bind(with: self) { owner, _ in
+    idTextField.textPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = []
         owner.idTextField.mode = .default
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    passwordTextField.textField.rx.text.orEmpty
-      .distinctUntilChanged()
-      .bind(with: self) { owner, _ in
+    passwordTextField.textPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.passwordTextField.commentViews = []
         owner.passwordTextField.mode = .default
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    loginButton.rx.tap
-      .bind(with: self) { owner, _ in
+    loginButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.view.endEditing(true)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: LogInViewModel.Output) {
     output.emptyIdOrPassword
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = []
         owner.passwordTextField.commentViews = []
         
         owner.idTextField.mode = .default
         owner.passwordTextField.mode = .default
         owner.displayToastView()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
    
     output.invalidIdOrPassword
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.invalidId]
         owner.passwordTextField.commentViews = [owner.invalidPassword]
         
         owner.idTextField.mode = .error
         owner.passwordTextField.mode = .error
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableToastView()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    output.loadingAnmiation
-      .emit(with: self) { owner, isStart in
+    output.loadingAnimation
+      .sinkOnMain(with: self) { owner, isStart in
         isStart ? owner.loginButton.startLoadingAnimation() : owner.loginButton.stopLoadingAnimation()
         owner.view.isUserInteractionEnabled = !isStart
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     }
 }
 

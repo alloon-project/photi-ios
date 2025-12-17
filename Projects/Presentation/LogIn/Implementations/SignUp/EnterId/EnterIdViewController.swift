@@ -9,19 +9,14 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class EnterIdViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: EnterIdViewModel
-  
-  private var cancellables: Set<AnyCancellable> = []
-  private let didTapButtonAtIdTextField = PublishRelay<Void>()
-  
+    
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .two)
@@ -156,21 +151,11 @@ private extension EnterIdViewController {
 // MARK: - Bind Methods
 private extension EnterIdViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = EnterIdViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapNextButton: nextButton.rx.tap,
-      didTapVerifyIdButton: .init(events: didTapButtonAtIdTextField),
-      userId: idTextField.textField.rx.text.orEmpty
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapNextButton: nextButton.tapPublisher,
+      didTapVerifyIdButton: idTextField.buttonTapPublisher,
+      userId: idTextField.textPublisher
     )
     
     let output = viewModel.transform(input: input)
@@ -179,24 +164,18 @@ private extension EnterIdViewController {
   }
   
   func viewBind() {
-    let textFieldEditingBegin = idTextField.textField.rx.controlEvent(.editingChanged)
+    let textFieldEditingBegin = idTextField.textField.eventPublisher(for: .editingChanged)
       .share()
     
     textFieldEditingBegin
       .map { _ in false }
-      .bind(to: nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
     
     textFieldEditingBegin
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = []
         owner.idTextField.mode = .default
-      }
-      .disposed(by: disposeBag)
-    
-    idTextField.buttonTapPublisher
-      .sinkOnMain(with: self) { owner, _ in
-        owner.didTapButtonAtIdTextField.accept(())
       }.store(in: &cancellables)
     
     idTextField.buttonTapPublisher
@@ -207,45 +186,39 @@ private extension EnterIdViewController {
   
   func bind(for output: EnterIdViewModel.Output) {
     output.isDuplicateButtonEnabled
-      .emit(with: self) { owner, enabled in
+      .sinkOnMain(with: self) { owner, enabled in
         owner.idTextField.buttonIsEnabled = enabled
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.inValidIdForm
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.idFormWarningView]
         owner.idTextField.mode = .error
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.duplicateId
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.duplicateIdWardningView]
         owner.idTextField.mode = .error
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.unAvailableId
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.unAvailableIdWardningView]
         owner.idTextField.mode = .error
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.validId
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.idTextField.commentViews = [owner.validIdCommentView]
         owner.idTextField.mode = .success
         owner.nextButton.isEnabled = true
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

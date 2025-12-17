@@ -9,22 +9,19 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import Core
 import CoreUI
 import DesignSystem
 
 final class EnterPasswordViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: EnterPasswordViewModel
   
   private let bottomSheetTitle = "포티 서비스 이용을 위한\n필수 약관에 동의해주세요"
   private let bottomSheetDataSource = ["서비스 이용약관 동의", "개인정보 수집 및 이용 동의"]
   
-  private let didTapContinueButton = PublishRelay<Void>()
+  private let didTapContinueButton = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -176,21 +173,11 @@ private extension EnterPasswordViewController {
 // MARK: - Bind Methods
 private extension EnterPasswordViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = EnterPasswordViewModel.Input(
-      password: passwordTextField.textField.rx.text.orEmpty,
-      reEnteredPassword: passwordCheckTextField.textField.rx.text.orEmpty,
-      didTapBackButton: backButtonEvent,
-      didTapContinueButton: ControlEvent(events: didTapContinueButton.asObservable())
+      password: passwordTextField.textPublisher,
+      reEnteredPassword: passwordCheckTextField.textPublisher,
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapContinueButton: didTapContinueButton.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -199,58 +186,54 @@ private extension EnterPasswordViewController {
   }
   
   func viewBind() {
-    nextButton.rx.tap
-      .bind(with: self) { owner, _ in
+    nextButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentBottomSheet()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(output: EnterPasswordViewModel.Output) {
     output.containAlphabet
-      .drive(containAlphabetCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: containAlphabetCommentView)
+      .store(in: &cancellables)
     
     output.containNumber
-      .drive(containNumberCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: containNumberCommentView)
+      .store(in: &cancellables)
     
     output.containSpecial
-      .drive(containSpecialCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: containSpecialCommentView)
+      .store(in: &cancellables)
     
     output.isValidRange
-      .drive(validRangeCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
-    
-    output.isValidPassword
-      .drive(with: self) { owner, isValid in
-        guard isValid, owner.passwordCheckTextField.isHidden else { return }
-        owner.passwordCheckTextField.isHidden = false
-        owner.passwordCheckTitleLabel.isHidden = false
-      }
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: validRangeCommentView)
+      .store(in: &cancellables)
     
     output.correspondPassword
       .withLatestFrom(output.isValidPassword) { $0 && $1 }
-      .drive(correnspondPasswordCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .assign(to: \.isActivate, on: correnspondPasswordCommentView)
+      .store(in: &cancellables)
     
     output.isEnabledNextButton
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
+    
+    output.isValidPassword
+      .sinkOnMain(with: self) { owner, isValid in
+        guard isValid, owner.passwordCheckTextField.isHidden else { return }
+        owner.passwordCheckTextField.isHidden = false
+        owner.passwordCheckTitleLabel.isHidden = false
+      }.store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.registerError
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentRegisterFailWarning(message: message)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -303,6 +286,6 @@ extension EnterPasswordViewController: ListBottomSheetDelegate {
   
   func didTapButton(_ bottomSheet: ListBottomSheetViewController) {
     bottomSheet.dismissBottomSheet()
-    didTapContinueButton.accept(())
+    didTapContinueButton.send(())
   }
 }

@@ -9,17 +9,13 @@
 import UIKit
 import Combine
 import Coordinator
-import RxSwift
-import RxRelay
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class FindIdViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
-  private let alertRelay = PublishRelay<Void>()
-  private let didTapBackButtonRelay = PublishRelay<Void>()
+  private let alertSubject = PassthroughSubject<Void, Never>()
   private let viewModel: FindIdViewModel
   
   // MARK: - UI Components
@@ -122,11 +118,11 @@ private extension FindIdViewController {
 private extension FindIdViewController {
   func bind() {
     let input = FindIdViewModel.Input(
-      didTapBackButton: didTapBackButtonRelay.asSignal(),
-      email: emailTextField.textField.rx.text.orEmpty.asDriver(onErrorJustReturn: ""),
-      endEditingUserEmail: emailTextField.textField.rx.controlEvent(.editingDidEnd).asSignal(),
-      didTapNextButton: nextButton.rx.tap.asSignal(),
-      didAppearAlert: alertRelay.asSignal()
+      didTapBackButton: navigationBar.didTapBackButton,
+      email: emailTextField.textPublisher,
+      endEditingUserEmail: emailTextField.textField.eventPublisher(for: .editingDidEnd),
+      didTapNextButton: nextButton.tap(),
+      didAppearAlert: alertSubject.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -135,56 +131,46 @@ private extension FindIdViewController {
   }
   
   func viewBind() {
-    navigationBar.didTapBackButton
-      .sinkOnMain(with: self) { owner, _ in
-        owner.didTapBackButtonRelay.accept(())
-      }.store(in: &cancellables)
-    
     alertVC.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.alertRelay.accept(())
+        owner.alertSubject.send(())
       }.store(in: &cancellables)
     
-    emailTextField.textField.rx.controlEvent(.editingChanged)
-      .bind(with: self) { owner, _ in
+    emailTextField.textField.eventPublisher(for: .editingChanged)
+      .sinkOnMain(with: self) { owner, _ in
         owner.emailTextField.mode = .default
         owner.emailTextField.commentViews.forEach { $0.isActivate = false }
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: FindIdViewModel.Output) {
     output.invalidFormat
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.emailTextField.mode = .error
         owner.emailTextField.commentViews = [owner.invalidEmail]
         owner.invalidEmail.isActivate = true
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     output.notRegisteredEmail
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.emailTextField.mode = .error
         owner.emailTextField.commentViews = [owner.isWrongEmail]
         owner.isWrongEmail.isActivate = true
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.successEmailVerification
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.alertVC.present(to: owner, animted: false)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     output.isEnabledConfirm
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .bind(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
 
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 

@@ -7,19 +7,16 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class VerifyEmailViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: VerifyEmailViewModel
-  
-  private let didTapEmailNotFoundConfirmButton = PublishRelay<Void>()
-  
+    
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   private let progressBar = LargeProgressBar(step: .one)
@@ -208,21 +205,11 @@ private extension VerifyEmailViewController {
 // MARK: - Bind Methods
 private extension VerifyEmailViewController {
   func bind() {
-    let backButtonSignal: Observable<Void> = {
-      let observable = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return observable
-    }()
-    
     let input = VerifyEmailViewModel.Input(
-      didTapBackButton: .init(events: backButtonSignal),
-      didTapResendButton: resendButton.rx.tap,
-      didTapNextButton: nextButton.rx.tap,
-      verificationCode: lineTextField.textField.rx.text.orEmpty
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapResendButton: resendButton.tapPublisher,
+      didTapNextButton: nextButton.tapPublisher,
+      verificationCode: lineTextField.textPublisher
     )
     
     let output = viewModel.transform(input: input)
@@ -231,31 +218,28 @@ private extension VerifyEmailViewController {
   }
   
   func viewBind() {
-    resendButton.rx.tap
-      .bind(with: self) { owner, _ in
+    resendButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentResendToast()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
   
   func bind(for output: VerifyEmailViewModel.Output) {
     output.isEnabledNextButton
-      .emit(to: nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .assign(to: \.isEnabled, on: nextButton)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
         
     output.invalidVerificationCode
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.lineTextField.commentViews = [owner.veriftCodeErrorCommentView]
         owner.lineTextField.mode = .error
         owner.veriftCodeErrorCommentView.isActivate = true
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
