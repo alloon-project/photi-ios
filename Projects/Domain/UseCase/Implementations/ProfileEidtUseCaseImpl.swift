@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository
@@ -36,13 +35,9 @@ public extension ProfileEditUseCaseImpl {
     return try await myPageRepository.fetchUserProfile()
   }
   
-  func updateProfileImage(_ image: UIImageWrapper) async throws -> URL? {
-    guard let (data, type) = imageToData(image, maxMB: 8) else {
-      throw APIError.myPageFailed(reason: .fileTooLarge)
-    }
-    
+  func updateProfileImage(_ imageData: Data, type: String) async throws -> URL? {
     let imgType = ImageType(rawValue: type) ?? .jpeg
-    let url = try await imageUploader.upload(image: data, imageType: imgType, uploadType: .userProfile)
+    let url = try await imageUploader.upload(image: imageData, imageType: imgType, uploadType: .userProfile)
     
     try await myPageRepository.uploadProfileImage(path: url)
     return URL(string: url)
@@ -59,19 +54,5 @@ public extension ProfileEditUseCaseImpl {
   
   func sendTemporaryPassword(to email: String, userName: String) async throws {
     try await loginRepository.requestTemporaryPassword(email: email, userName: userName)
-  }
-}
-
-// MARK: - Private Methods
-private extension ProfileEditUseCaseImpl {
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
   }
 }

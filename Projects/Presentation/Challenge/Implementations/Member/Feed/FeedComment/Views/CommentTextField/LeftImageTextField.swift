@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class LeftImageTextField: UITextField {

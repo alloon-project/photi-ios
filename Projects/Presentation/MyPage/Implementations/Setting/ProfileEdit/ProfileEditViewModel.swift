@@ -9,7 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import Entity
 import UseCase
 
@@ -79,7 +79,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     
     input.didTapProfileEditMenu
       .emit(with: self) { owner, item in
-        Task { await owner.navitate(to: item) }
+        Task { await owner.navigate(to: item) }
       }
       .disposed(by: disposeBag)
     
@@ -122,7 +122,10 @@ private extension ProfileEditViewModel {
   
   func updateUserProfile(_ image: UIImageWrapper) async {
     do {
-      let url = try await useCase.updateProfileImage(image)
+      guard
+        let (imageData, type) = image.imageToData(maxMB: 8)
+      else { throw APIError.myPageFailed(reason: .fileTooLarge) }
+      let url = try await useCase.updateProfileImage(imageData, type: type)
       profileImageUrlRelay.accept(url)
       isSuccessedUploadImageRelay.accept(true)
     } catch {
@@ -158,7 +161,7 @@ private extension ProfileEditViewModel {
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  @MainActor func navitate(to item: ProfileEditMenuItem) {
+  @MainActor func navigate(to item: ProfileEditMenuItem) {
     switch item {
       case .editPassword:
         guard let userName, let userEmail else { return }

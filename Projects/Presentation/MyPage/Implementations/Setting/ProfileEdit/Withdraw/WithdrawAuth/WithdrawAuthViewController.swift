@@ -12,7 +12,7 @@ import RxCocoa
 import RxSwift
 import RxRelay
 import SnapKit
-import Core
+import CoreUI
 import DesignSystem
 
 final class WithdrawAuthViewController: UIViewController, ViewControllerable {

@@ -33,7 +33,8 @@ let project = Project.make(
 			sources: ["UseCase/Interfaces/**"],
 			dependencies: [
         .Project.Domain.Entity,
-        .Project.Core,
+        .Project.Cores.Core,
+        .Project.Domain.Repository
 			]
 		),
 		.make(

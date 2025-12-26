@@ -25,7 +25,7 @@ let project = Project.make(
       dependencies: [
         .Project.Data.DTO,
         .Project.Domain.Entity,
-        .Project.Core
+        .Project.Cores.Core
       ]
     ),
     .make(

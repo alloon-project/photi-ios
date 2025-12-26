@@ -51,8 +51,7 @@ public struct FeedUseCaseImpl: FeedUseCase {
     try await repository.deleteFeedComment(challengeId: challengeId, feedId: feedId, commentId: commentId)
   }
   
-  public func deleteFeed(challengeId: Int, feedId: Int) async throws -> Void {
+  public func deleteFeed(challengeId: Int, feedId: Int) async throws {
     return try await repository.deleteFeed(challengeId: challengeId, feedId: feedId)
   }
 }
-

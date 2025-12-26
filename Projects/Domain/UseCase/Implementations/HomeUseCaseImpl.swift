@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository
@@ -33,26 +32,10 @@ public struct HomeUseCaseImpl: HomeUseCase {
     return try await challengeRepository.fetchMyChallenges(page: 0, size: 20)
   }
   
-  public func uploadChallengeFeed(challengeId: Int, image: UIImageWrapper) async throws -> Feed {
-    guard let (data, type) = imageToData(image, maxMB: 8) else {
-      throw APIError.challengeFailed(reason: .fileTooLarge)
-    }
+  public func uploadChallengeFeed(challengeId: Int, imageData: Data, type: String) async throws -> Feed {
     let imgType = ImageType(rawValue: type) ?? .jpeg
-    let url = try await imageUploader.upload(image: data, imageType: imgType, uploadType: .feed)
+    let url = try await imageUploader.upload(image: imageData, imageType: imgType, uploadType: .feed)
     
     return try await challengeRepository.uploadChallengeFeedProof(id: challengeId, imageUrl: url)
-  }
-}
-
-private extension HomeUseCaseImpl {
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
   }
 }

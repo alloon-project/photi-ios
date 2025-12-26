@@ -9,7 +9,7 @@
 import UIKit
 import SnapKit
 import DesignSystem
-import Core
+import CoreUI
 
 final class ChallengeTitleView: UIView {
   typealias ModelType = MyChallengeFeedPresentationModel.ModelType

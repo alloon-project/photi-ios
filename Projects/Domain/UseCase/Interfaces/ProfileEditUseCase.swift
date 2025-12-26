@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import Core
 import Entity
 
 public protocol ProfileEditUseCase {
   func loadUserProfile() async throws -> UserProfile
-  func updateProfileImage(_ image: UIImageWrapper) async throws -> URL?
+  func updateProfileImage(_ imageData: Data, type: String) async throws -> URL?
   func withdraw(with password: String) async throws
   func changePassword(from password: String, to newPassword: String) async throws
   func sendTemporaryPassword(to email: String, userName: String) async throws

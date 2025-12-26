@@ -9,15 +9,22 @@ import ProjectDescriptionHelpers
 import ProjectDescription
 
 let project = Project.make(
-  name: "Core",
+  name: "Cores",
   targets: [
     .make(
       name: "Core",
       product: .framework,
       bundleId: "com.photi.core",
       sources: [
-        "Extensions/**",
-        "Utils/**"
+        "Core/**"
+      ]
+    ),
+    .make(
+      name: "CoreUI",
+      product: .framework,
+      bundleId: "com.photi.coreui",
+      sources: [
+        "CoreUI/**"
       ]
     )
   ]

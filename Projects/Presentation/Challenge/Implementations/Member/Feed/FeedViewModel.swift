@@ -9,7 +9,7 @@
 import Foundation
 import RxCocoa
 import RxSwift
-import Core
+import CoreUI
 import Entity
 import UseCase
 
@@ -284,7 +284,11 @@ private extension FeedViewModel {
   func upload(image: UIImageWrapper) {
     Task {
       do {
-        let feed = try await useCase.uploadChallengeFeedProof(id: challengeId, image: image)
+        guard let (imageData, type) = image.imageToData(maxMB: 8)
+        else {
+          throw APIError.challengeFailed(reason: .fileTooLarge)
+        }
+        let feed = try await useCase.uploadChallengeFeedProof(id: challengeId, imageData: imageData, type: type)
         let model = modelMapper.mapToFeedPresentationModels([feed])
         isUploadSuccessRelay.accept(true)
         proveFeedRelay.accept(model)

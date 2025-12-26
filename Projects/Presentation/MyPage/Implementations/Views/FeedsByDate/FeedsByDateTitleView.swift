@@ -9,7 +9,7 @@
 import UIKit
 import SnapKit
 import DesignSystem
-import Core
+import CoreUI
 
 final class FeedsByDateTitleView: UIView {
   var title: String = "" {

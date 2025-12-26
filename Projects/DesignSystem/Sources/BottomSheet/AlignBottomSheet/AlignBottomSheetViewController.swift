@@ -9,7 +9,7 @@
 import UIKit
 import Combine
 import SnapKit
-import Core
+import CoreUI
 
 public protocol AlignBottomSheetDelegate: AnyObject {
   func didSelected(at index: Int, data: String)

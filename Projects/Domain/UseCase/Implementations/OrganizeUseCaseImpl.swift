@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository

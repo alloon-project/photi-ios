@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Core
 import Entity
 import UseCase
 import Repository
@@ -92,12 +91,9 @@ public extension ChallengeUseCaseImpl {
     return try await challengeRepository.joinChallenge(id: id, goal: goal)
   }
   
-  func uploadChallengeFeedProof(id: Int, image: UIImageWrapper) async throws -> Feed {
-    guard let (data, type) = imageToData(image, maxMB: 8) else {
-      throw APIError.challengeFailed(reason: .fileTooLarge)
-    }
+  func uploadChallengeFeedProof(id: Int, imageData: Data, type: String) async throws -> Feed {
     let imgType = ImageType(rawValue: type) ?? .jpeg
-    let url = try await imageUploader.upload(image: data, imageType: imgType, uploadType: .feed)
+    let url = try await imageUploader.upload(image: imageData, imageType: imgType, uploadType: .feed)
     
     return try await challengeRepository.uploadChallengeFeedProof(id: id, imageUrl: url)
   }
@@ -119,19 +115,5 @@ public extension ChallengeUseCaseImpl {
 public extension ChallengeUseCaseImpl {
   func leaveChallenge(id: Int) async throws {
     return try await challengeRepository.leaveChallenge(id: id)
-  }
-}
-
-// MARK: - Private Methods
-private extension ChallengeUseCaseImpl {
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
   }
 }
