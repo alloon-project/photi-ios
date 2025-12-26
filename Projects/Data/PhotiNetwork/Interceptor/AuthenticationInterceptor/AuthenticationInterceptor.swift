@@ -22,7 +22,7 @@ public struct AuthenticationInterceptor: RequestInterceptorType {
   }
   
   public func retry(for response: HTTPURLResponse, data: Data) async -> RetryResult {
-    guard let data = try? JSONDecoder().decode(VoidResponseDTO.self, from: data) else {
+    guard let data = try? JSONDecoder().decode(MetaResponseDTO.self, from: data) else {
       let error = NetworkError.networkFailed(reason: .jsonDecodingFailed)
       return .doNotRetryWithError(error)
     }
