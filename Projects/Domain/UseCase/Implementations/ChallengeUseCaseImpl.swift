@@ -97,7 +97,7 @@ public extension ChallengeUseCaseImpl {
       throw APIError.challengeFailed(reason: .fileTooLarge)
     }
     let imgType = ImageType(rawValue: type) ?? .jpeg
-    let url = try await imageUploader.upload(image: data, imageType: imgType)
+    let url = try await imageUploader.upload(image: data, imageType: imgType, uploadType: .feed)
     
     return try await challengeRepository.uploadChallengeFeedProof(id: id, imageUrl: url)
   }

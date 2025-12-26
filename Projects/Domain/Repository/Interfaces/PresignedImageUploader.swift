@@ -13,6 +13,12 @@ public enum ImageType: String {
   case png
 }
 
+public enum UploadType: String {
+  case feed = "feeds"
+  case userProfile = "users"
+  case challengeProfile = "challenges"
+}
+
 public protocol PresignedImageUploader {
-  func upload(image: Data, imageType: ImageType) async throws -> String
+  func upload(image: Data, imageType: ImageType, uploadType: UploadType) async throws -> String
 }

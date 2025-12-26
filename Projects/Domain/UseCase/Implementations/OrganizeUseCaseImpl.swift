@@ -74,7 +74,7 @@ public extension OrganizeUseCaseImpl {
       throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     let imgType = ImageType(rawValue: imageType) ?? .jpeg
-    let url = try await imageUploader.upload(image: image, imageType: imgType)
+    let url = try await imageUploader.upload(image: image, imageType: imgType, uploadType: .challengeProfile)
     
     guard let organizePayload = organizePayload(with: url) else {
       throw APIError.organazieFailed(reason: .payloadIsNil)
@@ -88,7 +88,7 @@ public extension OrganizeUseCaseImpl {
       throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     let imgType = ImageType(rawValue: imageType) ?? .jpeg
-    let url = try await imageUploader.upload(image: image, imageType: imgType)
+    let url = try await imageUploader.upload(image: image, imageType: imgType, uploadType: .challengeProfile)
     
     guard let modifyPayload = modifyPayload(with: url) else {
       throw APIError.organazieFailed(reason: .payloadIsNil)
