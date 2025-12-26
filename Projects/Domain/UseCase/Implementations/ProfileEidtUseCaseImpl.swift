@@ -15,15 +15,18 @@ import Repository
 public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
   private let authRepository: AuthRepository
   private let loginRepository: LogInRepository
+  private let imageUploader: PresignedImageUploader
   private let myPageRepository: MyPageRepository
   
   public init(
     authRepository: AuthRepository,
     loginRepository: LogInRepository,
+    imageUploader: PresignedImageUploader,
     myPageRepository: MyPageRepository
   ) {
     self.authRepository = authRepository
     self.loginRepository = loginRepository
+    self.imageUploader = imageUploader
     self.myPageRepository = myPageRepository
   }
 }
@@ -38,7 +41,11 @@ public extension ProfileEditUseCaseImpl {
       throw APIError.myPageFailed(reason: .fileTooLarge)
     }
     
-    return try await myPageRepository.uploadProfileImage(data, imageType: type)
+    let imgType = ImageType(rawValue: type) ?? .jpeg
+    let url = try await imageUploader.upload(image: data, imageType: imgType, uploadType: .userProfile)
+    
+    try await myPageRepository.uploadProfileImage(path: url)
+    return URL(string: url)
   }
   
   func withdraw(with password: String) async throws {

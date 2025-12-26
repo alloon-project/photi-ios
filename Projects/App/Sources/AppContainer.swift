@@ -115,6 +115,7 @@ final class AppContainer:
     return ProfileEditUseCaseImpl(
       authRepository: authRepository,
       loginRepository: logInRepository,
+      imageUploader: imageUploader,
       myPageRepository: myPageRepository
     )
   }()
