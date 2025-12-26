@@ -12,15 +12,15 @@ import DTO
 import PhotiNetwork
 
 public enum MyPageAPI {
+  case userInformation
   case userChallegeHistory
   case verifiedChallengeDates
   case feedHistory(page: Int, size: Int)
   case endedChallenges(page: Int, size: Int)
   case feedsByDate(_ date: String)
-  case userInformation
-  case uploadProfileImage(_ data: Data, imageType: String)
   case withdrawUser(password: String)
   case changePassword(dto: ChangePasswordRequestDTO)
+  case uploadProfileImage(url: String)
 }
 
 extension MyPageAPI: TargetType {
@@ -30,22 +30,21 @@ extension MyPageAPI: TargetType {
   
   public var path: String {
     switch self {
+      case .userInformation: return "users"
       case .userChallegeHistory: return "users/challenge-history"
-      case .verifiedChallengeDates: return "users/feeds"
+      case .verifiedChallengeDates: return "users/feed-dates"
       case .feedHistory: return "users/feed-history"
       case .endedChallenges: return "users/ended-challenges"
       case .feedsByDate: return "users/feeds-by-date"
-      case .userInformation: return "users"
+      case .withdrawUser: return "auth"
+      case .changePassword: return "auth/password"
       case .uploadProfileImage: return "users/image"
-      case .withdrawUser: return "users"
-      case .changePassword: return "users/password"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .uploadProfileImage: return .post
-      case .withdrawUser, .changePassword: return .patch
+      case .withdrawUser, .changePassword, .uploadProfileImage: return .patch
       default: return .get
     }
   }
@@ -67,14 +66,9 @@ extension MyPageAPI: TargetType {
         let parameters = ["password": password]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
         
-      case let .uploadProfileImage(image, imageType):
-        let multiPartBody = MultipartFormDataBodyPart(
-          .data(["imageFile": image]),
-          fileExtension: imageType,
-          mimeType: "image/\(imageType)"
-        )
-        
-        return .uploadMultipartFormData(multipart: .init(bodyParts: [multiPartBody]))
+      case let .uploadProfileImage(url):
+        let parameters = ["preSignedUrl": url]
+        return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
         
       case let .changePassword(dto):
           return .requestJSONEncodable(dto)

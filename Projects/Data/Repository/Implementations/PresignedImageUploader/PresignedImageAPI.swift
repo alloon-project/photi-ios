@@ -11,38 +11,45 @@ import Core
 import PhotiNetwork
 
 enum PresignedImageAPI {
-  case getPresignedURL(filename: String)
-  // URL로 전달해줄지 이걸 고민해야해.
-  case postImage(path: URL, data: Data)
+  case getPresignedURL(filename: String, uploadType: String)
+  case postImage(path: URL, data: Data, imgType: String)
 }
 
 extension PresignedImageAPI: TargetType {
   var baseURL: URL {
     switch self {
-      case let .postImage(path, _): return path
+      case let .postImage(path, _, _): return path
       default: return ServiceConfiguration.shared.baseUrl
+    }
+  }
+  
+  var headers: HTTPHeaders {
+    switch self {
+      case let .postImage(_, _, imgType): return .init(["Content-Type": "image/\(imgType)"])
+      default: return HTTPHeaders()
     }
   }
   
   var path: String {
     switch self {
-      case .getPresignedURL: return "user/image/pre-signed-url"
+      case let .getPresignedURL(_, type): return "\(type)/image/pre-signed-url"
       case .postImage: return ""
     }
   }
   
   var method: HTTPMethod {
     switch self {
-      case .getPresignedURL, .postImage: return .post
+      case .getPresignedURL: return .post
+      case .postImage: return .put
     }
   }
   
   var task: TaskType {
     switch self {
-      case let .getPresignedURL(fileName):
+      case let .getPresignedURL(fileName, _):
         let parameters = ["imageName": fileName]
         return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
-      case let .postImage(_, data):
+      case let .postImage(_, data, _):
         return .requestData(data)
     }
   }
