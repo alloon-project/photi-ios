@@ -14,7 +14,7 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
   public let goal: String
   public let proveTime: String
   public let endDate: String
-  public let imageUrl: String
+  public let preSignedUrl: String
   public let rules: [String]
   public let hashtags: [String]
   
@@ -24,7 +24,7 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
     goal: String,
     proveTime: String,
     endDate: String,
-    imageUrl: String,
+    preSignedUrl: String,
     rules: [String],
     hashtags: [String]
   ) {
@@ -33,7 +33,7 @@ public struct ChallengeOrganizeRequestDTO: Encodable {
     self.goal = goal
     self.proveTime = proveTime
     self.endDate = endDate
-    self.imageUrl = imageUrl
+    self.preSignedUrl = preSignedUrl
     self.rules = rules
     self.hashtags = hashtags
   }

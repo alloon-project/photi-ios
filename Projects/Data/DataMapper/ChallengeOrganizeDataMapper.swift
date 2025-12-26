@@ -26,7 +26,7 @@ public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
       goal: payload.goal,
       proveTime: payload.proveTime,
       endDate: payload.endDate,
-      imageUrl: payload.imageURL,
+      preSignedUrl: payload.imageURL,
       rules: payload.rules,
       hashtags: payload.hashtags
     )
