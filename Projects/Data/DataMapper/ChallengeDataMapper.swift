@@ -18,6 +18,7 @@ public protocol ChallengeDataMapper {
   func mapToChallengeSummaryFromSearchChallenge(dto: [SearchChallengeResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromByName(_ dto: [SearchChallengeByNameResponseDTO]) -> [ChallengeSummary]
   func mapToChallengeSummaryFromByHashTag(_ dto: [SearchChallengeByHashtagResponseDTO]) -> [ChallengeSummary]
+  func mapToFeed(dto: FeedProveResponseDTO) -> Feed
   func mapToFeed(dto: FeedResponseDTO) -> Feed
   func mapToFeed(dto: FeedDetailResponseDTO, id: Int) -> Feed
   func mapToFeedComment(dto: FeedCommentResponseDTO) -> FeedComment
@@ -98,7 +99,7 @@ public extension ChallengeDataMapperImpl {
     return dto.map {
       let endDate = $0.endDate.toDate() ?? Date()
       let hasTags = $0.hashtags.map { $0.hashtag }
-      let imageUrl = URL(string: $0.imageUrl ?? "")
+      let imageUrl = URL(string: $0.challengeImageUrl ?? "")
       
       return .init(
         id: $0.id,
@@ -182,6 +183,18 @@ public extension ChallengeDataMapperImpl {
     return .init(
       id: dto.id,
       author: dto.username,
+      imageURL: imageUrl,
+      isLike: dto.isLike,
+      updateTime: updateTime
+    )
+  }
+  
+  func mapToFeed(dto: FeedProveResponseDTO) -> Feed {
+    let updateTime = dto.createdDateTime.toDateFromISO8601() ?? Date()
+    let imageUrl = URL(string: dto.imageUrl ?? "") ?? defaultURL()
+    return .init(
+      id: dto.id,
+      author: ServiceConfiguration.shared.userName,
       imageURL: imageUrl,
       isLike: dto.isLike,
       updateTime: updateTime
