@@ -9,7 +9,7 @@
 public struct SearchChallengeResponseDTO: Decodable {
   public let id: Int
   public let name: String
-  public let imageUrl: String?
+  public let challengeImageUrl: String?
   public let endDate: String
   public let hashtags: [HashTagResponseDTO]
 }

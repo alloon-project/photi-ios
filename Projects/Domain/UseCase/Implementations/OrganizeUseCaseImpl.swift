@@ -13,6 +13,7 @@ import Repository
 
 public class OrganizeUseCaseImpl: OrganizeUseCase {
   private let repository: ChallengeOrganizeRepository
+  private let imageUploader: PresignedImageUploader
   
   private var challengeId: Int?
   private var name: String?
@@ -25,54 +26,9 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
   private var image: Data?
   private var imageType: String?
   
-  private var organizePayload: ChallengeOrganizePayload? {
-    guard
-      let name = self.name,
-      let isPublic = self.isPublic,
-      let goal = self.goal,
-      let proveTime = self.proveTime,
-      let endDate = self.endDate,
-      let image = self.image,
-      let imageType = self.imageType
-    else { return nil }
-    
-    return ChallengeOrganizePayload(
-      name: name,
-      isPublic: isPublic,
-      goal: goal,
-      proveTime: proveTime,
-      endDate: endDate,
-      rules: rules,
-      hashtags: hashtags,
-      image: image,
-      imageType: imageType
-    )
-  }
-  
-  private var modifyPayload: ChallengeModifyPayload? {
-    guard
-      let name = self.name,
-      let goal = self.goal,
-      let proveTime = self.proveTime,
-      let endDate = self.endDate,
-      let image = self.image,
-      let imageType = self.imageType
-    else { return nil }
-    
-    return ChallengeModifyPayload(
-      name: name,
-      goal: goal,
-      proveTime: proveTime,
-      endDate: endDate,
-      rules: rules,
-      hashtags: hashtags,
-      image: image,
-      imageType: imageType
-    )
-  }
-  
-  public init(repository: ChallengeOrganizeRepository) {
+  public init(repository: ChallengeOrganizeRepository, imageUploader: PresignedImageUploader) {
     self.repository = repository
+    self.imageUploader = imageUploader
   }
   
   public func configureChallengePayload(_ type: PayloadType) {
@@ -106,36 +62,80 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
 // MARK: - Fetch Methods
 public extension OrganizeUseCaseImpl {
   func fetchChallengeSampleImages() async throws -> [String] {
-    do {
-      return try await repository.fetchChallengeSampleImage()
-    } catch {
-      throw CancellationError()
-    }
+    return try await repository.fetchChallengeSampleImage()
   }
 }
 
 // MARK: - Upload & Update Methods
 public extension OrganizeUseCaseImpl {
   func organizeChallenge() async throws -> ChallengeDetail {
-    guard let organizePayload else {
+    guard let image, let imageType else {
+      throw APIError.organazieFailed(reason: .payloadIsNil)
+    }
+    let imgType = ImageType(rawValue: imageType) ?? .jpeg
+    let url = try await imageUploader.upload(image: image, imageType: imgType, uploadType: .challengeProfile)
+    
+    guard let organizePayload = organizePayload(with: url) else {
       throw APIError.organazieFailed(reason: .payloadIsNil)
     }
     
-    do {
-      return try await repository.challengeOrganize(payload: organizePayload)
-    } catch {
-      throw CancellationError()
-    }
+    return try await repository.challengeOrganize(payload: organizePayload)
   }
   
   func modifyChallenge() async throws {
-    guard let modifyPayload, let challengeId else {
+    guard let image, let imageType, let challengeId else {
       throw APIError.organazieFailed(reason: .payloadIsNil)
     }
-    do {
-      return try await repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
-    } catch {
-      throw CancellationError()
+    let imgType = ImageType(rawValue: imageType) ?? .jpeg
+    let url = try await imageUploader.upload(image: image, imageType: imgType, uploadType: .challengeProfile)
+    
+    guard let modifyPayload = modifyPayload(with: url) else {
+      throw APIError.organazieFailed(reason: .payloadIsNil)
     }
+    
+    try await repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
+  }
+}
+
+// MARK: - Private Methods
+private extension OrganizeUseCaseImpl {
+  func modifyPayload(with imageURL: String) -> ChallengeModifyPayload? {
+    guard
+      let name = self.name,
+      let goal = self.goal,
+      let proveTime = self.proveTime,
+      let endDate = self.endDate
+    else { return nil }
+    
+    return ChallengeModifyPayload(
+      name: name,
+      goal: goal,
+      imageURL: imageURL,
+      proveTime: proveTime,
+      endDate: endDate,
+      rules: rules,
+      hashtags: hashtags
+    )
+  }
+  
+  func organizePayload(with imageURL: String) -> ChallengeOrganizePayload? {
+    guard
+      let name = self.name,
+      let isPublic = self.isPublic,
+      let goal = self.goal,
+      let proveTime = self.proveTime,
+      let endDate = self.endDate
+    else { return nil }
+    
+    return ChallengeOrganizePayload(
+      name: name,
+      isPublic: isPublic,
+      goal: goal,
+      proveTime: proveTime,
+      endDate: endDate,
+      imageURL: imageURL,
+      rules: rules,
+      hashtags: hashtags
+    )
   }
 }

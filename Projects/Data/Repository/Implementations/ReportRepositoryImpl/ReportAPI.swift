@@ -23,7 +23,7 @@ extension ReportAPI: TargetType {
   public var path: String {
     switch self {
       case let .report(_, id):
-        return "api/reports/\(id)"
+        return "reports/\(id)"
     }
   }
   

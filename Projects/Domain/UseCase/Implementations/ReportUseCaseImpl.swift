@@ -21,16 +21,12 @@ public struct ReportUseCaseImpl: ReportUseCase {
     reason: String,
     content: String,
     targetId: Int
-  ) async throws -> Void {
-    do {
-      try await repository.report(
-        category: category,
-        reason: reason,
-        content: content,
-        targetId: targetId
-      )
-    } catch {
-      throw error
-    }
+  ) async throws {
+    try await repository.report(
+      category: category,
+      reason: reason,
+      content: content,
+      targetId: targetId
+    )
   }
 }

@@ -11,29 +11,36 @@ import DTO
 import Entity
 
 public protocol ChallengeOrganizeDataMapper {
-  func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO?
-  func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO?
+  func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO
+  func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO
   func mapToChallengeDetail(dto: ChallengeOrganizeResponseDTO) -> ChallengeDetail
 }
 
 public struct ChallengeOrganizeDataMapperImpl: ChallengeOrganizeDataMapper {
   public init() {}
   
-  public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO? {
-    guard let jsonString = payload.toJSONString() else { return nil }
-    return ChallengeOrganizeRequestDTO(
-      jsonString: jsonString,
-      image: payload.image,
-      imageType: payload.imageType
+  public func mapToOrganizedChallenge(payload: ChallengeOrganizePayload) -> ChallengeOrganizeRequestDTO {
+    return .init(
+      name: payload.name,
+      isPublic: payload.isPublic,
+      goal: payload.goal,
+      proveTime: payload.proveTime,
+      endDate: payload.endDate,
+      preSignedUrl: payload.imageURL,
+      rules: payload.rules,
+      hashtags: payload.hashtags
     )
   }
   
-  public func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO? {
-    guard let jsonString = payload.toJSONString() else { return nil }
-    return ChallengeModifyRequestDTO(
-      jsonString: jsonString,
-      image: payload.image,
-      imageType: payload.imageType
+  public func mapToModifyChallenge(payload: ChallengeModifyPayload) -> ChallengeModifyRequestDTO {
+    return .init(
+      name: payload.name,
+      goal: payload.goal,
+      proveTime: payload.proveTime,
+      endDate: payload.endDate,
+      preSignedUrl: payload.imageURL,
+      rules: payload.rules,
+      hashtags: payload.hashtags
     )
   }
   

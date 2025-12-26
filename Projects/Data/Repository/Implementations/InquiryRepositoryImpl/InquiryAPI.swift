@@ -23,7 +23,7 @@ extension InquiryAPI: TargetType {
   public var path: String {
     switch self {
       case .inquiry:
-        return "api/inquiries"
+        return "inquiries"
     }
   }
   

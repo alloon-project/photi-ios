@@ -24,21 +24,22 @@ public struct ChallengeOrganizeRepositoryImpl: ChallengeOrganizeRepository {
 // MARK: - Fetch Methods
 public extension ChallengeOrganizeRepositoryImpl {
   func fetchChallengeSampleImage() async throws -> [String] {
-    return try await requestUnAuthorizableAPI(
-      api: ChallengeOrganizeAPI.sampleImages,
-      responseType: ChallengeSampleImageResponseDTO.self
-    )
-    .list
+    let provider = Provider<ChallengeOrganizeAPI>()
+    
+    let result = try await provider.request(.sampleImages, type: ChallengeSampleImageResponseDTO.self)
+    
+    if (200..<300).contains(result.statusCode), let data = result.data {
+      return data.list
+    } else {
+      throw APIError.serverError
+    }
   }
 }
 
 // MARK: - Upload & Update Methods
 public extension ChallengeOrganizeRepositoryImpl {
   func challengeOrganize(payload: ChallengeOrganizePayload) async throws -> ChallengeDetail {
-    guard let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload) else {
-      throw APIError.organazieFailed(reason: .payloadIsNil)
-    }
-    
+    let requestDTO = dataMapper.mapToOrganizedChallenge(payload: payload)
     let dto = try await requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.organizeChallenge(dto: requestDTO),
       responseType: ChallengeOrganizeResponseDTO.self
@@ -48,9 +49,7 @@ public extension ChallengeOrganizeRepositoryImpl {
   }
   
   func challengeModify(payload: ChallengeModifyPayload, challengeId: Int) async throws {
-    guard let requestDTO = dataMapper.mapToModifyChallenge(payload: payload) else {
-      throw APIError.organazieFailed(reason: .payloadIsNil)
-    }
+    let requestDTO = dataMapper.mapToModifyChallenge(payload: payload)
     
     try await requestAuthorizableAPI(
       api: ChallengeOrganizeAPI.modifyChallenge(dto: requestDTO, challengeId: challengeId),
@@ -78,14 +77,10 @@ private extension ChallengeOrganizeRepositoryImpl {
         return data
       } else if result.statusCode == 400 {
         throw APIError.organazieFailed(reason: .emptyFileInvalid)
-      } else if result.statusCode == 401 || result.statusCode == 403 {
+      } else if result.statusCode == 401 {
         throw APIError.authenticationFailed
       } else if result.statusCode == 404 {
         throw APIError.organazieFailed(reason: .notChallengeMemeber)
-      } else if result.statusCode == 413 {
-        throw APIError.organazieFailed(reason: .fileSizeExceed)
-      } else if result.statusCode == 415 {
-        throw APIError.organazieFailed(reason: .imageTypeUnsurported)
       } else {
         throw APIError.serverError
       }
@@ -95,29 +90,6 @@ private extension ChallengeOrganizeRepositoryImpl {
       } else {
         throw error
       }
-    }
-  }
-  
-  @discardableResult
-  func requestUnAuthorizableAPI<T: Decodable>(
-    api: ChallengeOrganizeAPI,
-    responseType: T.Type,
-    behavior: StubBehavior = .never
-  ) async throws -> T {
-    let provider = Provider<ChallengeOrganizeAPI>(stubBehavior: behavior)
-    let result = try await provider
-      .request(api, type: responseType.self)
-    
-    if (200..<300).contains(result.statusCode), let data = result.data {
-      return data
-    } else if result.statusCode == 400 {
-      throw APIError.organazieFailed(reason: .emptyFileInvalid)
-    } else if result.statusCode == 413 {
-      throw APIError.organazieFailed(reason: .fileSizeExceed)
-    } else if result.statusCode == 415 {
-      throw APIError.organazieFailed(reason: .imageTypeUnsurported)
-    } else {
-      throw APIError.serverError
     }
   }
 }

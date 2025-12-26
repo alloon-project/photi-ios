@@ -25,29 +25,17 @@ public final class LogInUseCaseImpl: LogInUseCase {
 
 // MARK: - Public Methods
 public extension LogInUseCaseImpl {
-  func login(username: String, password: String) async throws -> Void {
-    do {
-      let userName = try await loginrepository.logIn(userName: username, password: password)
-      ServiceConfiguration.shared.setUserName(userName)
-    } catch {
-      throw CancellationError()
-    }
+  func login(username: String, password: String) async throws {
+    let userName = try await loginrepository.logIn(userName: username, password: password)
+    ServiceConfiguration.shared.setUserName(userName)
   }
   
-  func sendUserInformation(to email: String) async throws -> Void {
-    do {
-      try await loginrepository.requestUserInformation(email: email)
-    } catch {
-      throw CancellationError()
-    }
+  func sendUserInformation(to email: String) async throws {
+    try await loginrepository.requestUserInformation(email: email)
   }
   
-  func sendTemporaryPassword(to email: String, userName: String) async throws -> Void {
-    do {
-      try await loginrepository.requestTemporaryPassword(email: email, userName: userName)
-    } catch {
-      throw CancellationError()
-    }
+  func sendTemporaryPassword(to email: String, userName: String) async throws {
+    try await loginrepository.requestTemporaryPassword(email: email, userName: userName)
   }
   
   func verifyTemporaryPassword(_ password: String, name: String) async -> VerifyTemporaryPasswordResult {

@@ -37,7 +37,7 @@ extension BaseResponse {
   }
   
   init(
-    dto: VoidResponseDTO,
+    dto: MetaResponseDTO,
     statusCode: Int,
     response: HTTPURLResponse? = nil
   ) {
@@ -62,8 +62,8 @@ public struct BaseResponseDTO<ResponseType: Decodable>: Decodable {
   }
 }
 
-/// 실패시 VoidResponseDTO로 디코딩됩니다.
-public struct VoidResponseDTO: Decodable {
+/// 실패시 MetaResponseDTO로 디코딩됩니다.
+public struct MetaResponseDTO: Decodable {
   public let code: String
   public let message: String
   
@@ -81,3 +81,6 @@ public struct SuccessResponseDTO: Decodable {
     self.successMessage = successMessage
   }
 }
+
+/// 아무것도 없는 ResponseDTO입니다.
+public struct VoidResponseDTO: Decodable { }

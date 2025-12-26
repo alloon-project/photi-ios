@@ -79,7 +79,7 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
     
     input.didTapProfileEditMenu
       .emit(with: self) { owner, item in
-        Task { await owner.navitate(to: item) }
+        Task { await owner.navigate(to: item) }
       }
       .disposed(by: disposeBag)
     
@@ -118,43 +118,13 @@ private extension ProfileEditViewModel {
     } catch {
       requestFailed(with: error)
     }
-    
-    func solution(_ info:[[Int]], _ n:Int, _ m:Int) -> Int {
-        let count = info.count
-        
-        var answer = 121
-        var visited: Set<[Int]> = []
-        func dfs(_ sumA: Int, _ sumB: Int, _ idx: Int) {
-            print(idx)
-            if idx == count {
-                if answer > sumA {
-                    answer = sumA
-                }
-                return
-            }
-            
-          visited.insert([sumA,sumB, idx])
-          
-          if visited.contains([sumA, sumB + info[idx][1], idx]) {
-            dfs(sumA, sumB + info[idx][1], idx + 1)
-          }
-          if visited.contains([sumA + info[idx][0], sumB, idx + 1]) {
-            dfs(sumA + info[idx][0], sumB, idx + 1)
-          }
-        }
-        
-        dfs(0, 0, 0)
-        return answer == 121 ? -1 : answer
-    }
   }
   
   func updateUserProfile(_ image: UIImageWrapper) async {
     do {
       guard
         let (imageData, type) = image.imageToData(maxMB: 8)
-      else {
-        throw APIError.myPageFailed(reason: .fileTooLarge)
-      }
+      else { throw APIError.myPageFailed(reason: .fileTooLarge) }
       let url = try await useCase.updateProfileImage(imageData, type: type)
       profileImageUrlRelay.accept(url)
       isSuccessedUploadImageRelay.accept(true)
@@ -191,7 +161,7 @@ private extension ProfileEditViewModel {
 
 // MARK: - Private Methods
 private extension ProfileEditViewModel {
-  @MainActor func navitate(to item: ProfileEditMenuItem) {
+  @MainActor func navigate(to item: ProfileEditMenuItem) {
     switch item {
       case .editPassword:
         guard let userName, let userEmail else { return }

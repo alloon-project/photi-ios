@@ -22,7 +22,7 @@ extension AppAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .appVersion: return "api/app-version"
+      case .appVersion: return "app-version"
     }
   }
   

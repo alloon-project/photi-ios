@@ -156,7 +156,7 @@ extension ChallengeCoordinator: ChallengeCoordinatable {
   }
   
   func attachChallengeReport(challengeId: Int) {
-    Task { await attachReport(reportType: .challenge(challengeId)) }
+    attachReport(reportType: .challenge(challengeId)) 
   }
   
   func authenticatedFailed() {

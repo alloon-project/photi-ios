@@ -110,12 +110,16 @@ private extension Provider {
   ) throws -> BaseResponse<T> {
     let decoder = JSONDecoder()
     
+    if data.isEmpty {
+      return BaseResponse<T>(code: "", message: "", data: nil, statusCode: statusCode, response: httpResponse)
+    }
+    
     // 성공의 경우
     if (200..<300).contains(statusCode) {
       let decodedData = try decoder.decode(BaseResponseDTO<T>.self, from: data)
       return BaseResponse(dto: decodedData, statusCode: statusCode, response: httpResponse)
     } else {
-      let decodedData = try decoder.decode(VoidResponseDTO.self, from: data)
+      let decodedData = try decoder.decode(MetaResponseDTO.self, from: data)
       return BaseResponse<T>(dto: decodedData, statusCode: statusCode, response: httpResponse)
     }
   }

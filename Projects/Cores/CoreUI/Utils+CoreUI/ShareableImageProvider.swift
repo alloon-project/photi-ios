@@ -44,7 +44,9 @@ public final class ShareableChallengeProvider: NSObject, UIActivityItemSource {
       return message
   }
   
-  public func activityViewControllerLinkMetadata(_ activityViewController: UIActivityViewController) -> LPLinkMetadata? {
+  public func activityViewControllerLinkMetadata(
+    _ activityViewController: UIActivityViewController
+  ) -> LPLinkMetadata? {
     guard image.jpegData(compressionQuality: 1.0) != nil else { return nil }
     let metadata = LPLinkMetadata()
     
