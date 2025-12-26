@@ -16,6 +16,8 @@ public enum FeedAPI {
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case feedDetail(challengeId: Int, feedId: Int)
   case deleteFeed(challengeId: Int, feedId: Int)
+  // MARK: - Done
+  
   case feedComments(feedId: Int, page: Int, size: Int)
   case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
@@ -33,8 +35,7 @@ extension FeedAPI: TargetType {
       case let .feedDetail(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
       case let .deleteFeed(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
       case let .feedComments(feedId, _, _): return "feed-comments/\(feedId)"
-      case let .uploadFeedComment(challengeId, feedId, _): 
-        return "feed-comments/\(challengeId)/\(feedId)"
+      case let .uploadFeedComment(challengeId, feedId, _): return "feed-comments/\(challengeId)/\(feedId)"
       case let .deleteFeedComment(challengeId, feedId, commentId):
         return "feed-comments/\(challengeId)/\(feedId)/\(commentId)"
     }
