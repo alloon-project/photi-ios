@@ -16,6 +16,8 @@ public enum FeedAPI {
   case updateLikeState(challengeId: Int, feedId: Int, isLike: Bool)
   case feedDetail(challengeId: Int, feedId: Int)
   case deleteFeed(challengeId: Int, feedId: Int)
+  // MARK: - Done
+  
   case feedComments(feedId: Int, page: Int, size: Int)
   case uploadFeedComment(challengeId: Int, feedId: Int, comment: String)
   case deleteFeedComment(challengeId: Int, feedId: Int, commentId: Int)
@@ -28,15 +30,14 @@ extension FeedAPI: TargetType {
   
   public var path: String {
     switch self {
-      case let .feeds(id, _, _, _): return "api/challenges/\(id)/feeds"
-      case let .updateLikeState(challengeId, feedId, _): return "api/challenges/\(challengeId)/feeds/\(feedId)/like"
-      case let .feedDetail(challengeId, feedId): return "api/challenges/\(challengeId)/feeds/\(feedId)"
-      case let .deleteFeed(challengeId, feedId): return "api/challenges/\(challengeId)/feeds/\(feedId)"
-      case let .feedComments(feedId, _, _): return "api/challenges/feeds/\(feedId)/comments"
-      case let .uploadFeedComment(challengeId, feedId, _):
-        return "api/challenges/\(challengeId)/feeds/\(feedId)/comments"
+      case let .feeds(id, _, _, _): return "feeds/\(id)"
+      case let .updateLikeState(challengeId, feedId, _): return "feed-likes/\(challengeId)/\(feedId)"
+      case let .feedDetail(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
+      case let .deleteFeed(challengeId, feedId): return "feeds/\(challengeId)/\(feedId)"
+      case let .feedComments(feedId, _, _): return "feed-comments/\(feedId)"
+      case let .uploadFeedComment(challengeId, feedId, _): return "feed-comments/\(challengeId)/\(feedId)"
       case let .deleteFeedComment(challengeId, feedId, commentId):
-        return "api/challenges/\(challengeId)/feeds/\(feedId)/comments/\(commentId)"
+        return "feed-comments/\(challengeId)/\(feedId)/\(commentId)"
     }
   }
   

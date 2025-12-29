@@ -115,19 +115,21 @@ final class AppContainer:
     return ProfileEditUseCaseImpl(
       authRepository: authRepository,
       loginRepository: logInRepository,
+      imageUploader: imageUploader,
       myPageRepository: myPageRepository
     )
   }()
   
   lazy var homeUseCae: HomeUseCase = {
-    return HomeUseCaseImpl(challengeRepository: challengeRepository)
+    return HomeUseCaseImpl(challengeRepository: challengeRepository, imageUploader: imageUploader)
   }()
   
   var challengeUseCase: ChallengeUseCase {
     return ChallengeUseCaseImpl(
       challengeRepository: challengeRepository,
       feedRepository: feedRepository,
-      authRepository: authRepository
+      authRepository: authRepository,
+      imageUploader: imageUploader
     )
   }
   
@@ -152,10 +154,17 @@ final class AppContainer:
   }()
   
   lazy var organizeUseCase: OrganizeUseCase = {
-    return OrganizeUseCaseImpl(repository: organizeRepository)
+    return OrganizeUseCaseImpl(
+      repository: organizeRepository,
+      imageUploader: imageUploader
+    )
   }()
   
   // MARK: - Repository
+  lazy var imageUploader: PresignedImageUploader = {
+    return PresignedImageUploaderImpl()
+  }()
+  
   lazy var authRepository: AuthRepository = {
     return AuthRepositoryImpl()
   }()

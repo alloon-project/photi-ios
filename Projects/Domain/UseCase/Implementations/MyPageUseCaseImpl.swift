@@ -24,19 +24,11 @@ public class MyPageUseCaseImpl: MyPageUseCase {
 // MARK: - Fetch Methods
 public extension MyPageUseCaseImpl {
   func loadMyPageSummry() async throws -> MyPageSummary {
-    do {
-      return try await myPagerepository.fetchMyPageSummary()
-    } catch {
-      throw CancellationError()
-    }
+    return try await myPagerepository.fetchMyPageSummary()
   }
   
   func loadVerifiedChallengeDates() async throws -> [Date] {
-    do {
-      return try await myPagerepository.fetchVerifiedChallengeDates()
-    } catch {
-      throw CancellationError()
-    }
+    return try await myPagerepository.fetchVerifiedChallengeDates()
   }
   
   func loadFeedHistory(page: Int, size: Int) async throws -> PageState<FeedSummary> {

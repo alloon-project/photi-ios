@@ -47,6 +47,18 @@ public extension ChallengeRepositoryImpl {
     return dataMapper.mapToChallengeDetail(dto: dto, id: id)
   }
   
+  func fetchRecentChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
+    let api = ChallengeAPI.recentChallenges(page: page, size: size)
+    
+    let result = try await requestUnAuthorizableAPI(
+      api: api,
+      responseType: PaginationResponseDTO<SearchChallengeResponseDTO>.self
+    )
+    
+    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
+    return .init(contents: challenges, isLast: result.last)
+  }
+  
   func fetchChallenges(
     byHashTag hashTag: String,
     page: Int,
@@ -61,18 +73,6 @@ public extension ChallengeRepositoryImpl {
     
     let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: dto.content)
     return .init(contents: challenges, isLast: dto.last)
-  }
-  
-  func fetchRecentChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary> {
-    let api = ChallengeAPI.recentChallenges(page: page, size: size)
-    
-    let result = try await requestUnAuthorizableAPI(
-      api: api,
-      responseType: PaginationResponseDTO<SearchChallengeResponseDTO>.self
-    )
-    
-    let challenges = dataMapper.mapToChallengeSummaryFromSearchChallenge(dto: result.content)
-    return .init(contents: challenges, isLast: result.last)
   }
   
   func searchChallenge(
@@ -137,14 +137,6 @@ public extension ChallengeRepositoryImpl {
     return dto.feedMemberCnt
   }
   
-  func fetchMyChallenges(page: Int, size: Int) async throws -> [ChallengeSummary] {
-    return try await requestAuthorizableAPI(
-      api: ChallengeAPI.myChallenges(page: page, size: size),
-      responseType: PaginationResponseDTO<MyChallengeResponseDTO>.self
-    ).content
-    .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
-  }
-  
   func fetchChallengeDescription(challengeId: Int) async throws -> ChallengeDescription {
     let dto = try await requestAuthorizableAPI(
       api: ChallengeAPI.challengeDescription(id: challengeId),
@@ -153,13 +145,21 @@ public extension ChallengeRepositoryImpl {
     
     return dataMapper.mapToChallengeDescription(dto: dto, id: challengeId)
   }
-  
+    
   func fetchChallengeMembers(challengeId: Int) async throws -> [ChallengeMember] {
     return try await requestAuthorizableAPI(
       api: ChallengeAPI.challengeMember(challengeId: challengeId),
       responseType: [ChallengeMemberResponseDTO].self
     )
     .map { dataMapper.mapToChallengeMember(dto: $0) }
+  }
+  
+  func fetchMyChallenges(page: Int, size: Int) async throws -> [ChallengeSummary] {
+    return try await requestAuthorizableAPI(
+      api: ChallengeAPI.myChallenges(page: page, size: size),
+      responseType: PaginationResponseDTO<MyChallengeResponseDTO>.self
+    ).content
+    .map { dataMapper.mapToChallengeSummaryFromMyChallenge(dto: $0) }
   }
   
   func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation {
@@ -197,12 +197,12 @@ public extension ChallengeRepositoryImpl {
     )
   }
   
-  func uploadChallengeFeedProof(id: Int, imageData: Data, imageType: String) async throws -> Feed {
-    let api = ChallengeAPI.uploadChallengeProof(id: id, image: imageData, imageType: imageType)
+  func uploadChallengeFeedProof(id: Int, imageUrl: String) async throws -> Feed {
+    let api = ChallengeAPI.uploadChallengeProof(id: id, imageUrl: imageUrl)
     
     let dto = try await requestAuthorizableAPI(
       api: api,
-      responseType: FeedResponseDTO.self
+      responseType: FeedProveResponseDTO.self
     )
     
     return dataMapper.mapToFeed(dto: dto)

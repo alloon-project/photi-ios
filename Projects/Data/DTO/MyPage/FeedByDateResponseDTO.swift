@@ -14,6 +14,7 @@ public struct FeedByDateResponseDTO: Decodable {
   public let imageUrl: String?
   public let name: String
   public let proveTime: String
+  // public let isDeleted: Bool /// 추가된 DTO 프로퍼티
 }
 
 public extension FeedByDateResponseDTO {

@@ -80,13 +80,16 @@ public extension MyPageRepositoyImpl {
 
 // MARK: - Update Methods
 public extension MyPageRepositoyImpl {
-  func uploadProfileImage(_ image: Data, imageType: String) async throws -> URL? {
-    let dto = try await requestAuthorizableAPI(
-      api: MyPageAPI.uploadProfileImage(image, imageType: imageType),
-      responseType: UserProfileResponseDTO.self
-    )
-    
-    return dataMapper.mapToUserProfile(dto: dto).imageUrl
+  func uploadProfileImage(path: String) async throws {
+    do {
+      try await requestAuthorizableAPI(
+        api: .uploadProfileImage(url: path),
+        responseType: SuccessResponseDTO.self
+      )
+    } catch {
+      print(error)
+      throw error
+    }
   }
   
   func deleteUserAccount(password: String) async throws {

@@ -127,7 +127,7 @@ private extension ReportViewModel {
     reason: String,
     content: String,
     targetId: Int
-  ) async  {
+  ) async {
     do {
       try await reportUseCase.report(
         category: category,

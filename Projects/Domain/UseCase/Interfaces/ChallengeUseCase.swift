@@ -12,7 +12,7 @@ import Entity
 public protocol ChallengeUseCase {
   func isLogIn() async throws -> Bool
   func fetchChallengeDetail(id: Int) async throws -> ChallengeDetail
-  func fetchChallengeDescription(id: Int) async throws ->  ChallengeDescription
+  func fetchChallengeDescription(id: Int) async throws -> ChallengeDescription
   func fetchChallengeMembers(challengeId: Int) async throws -> [ChallengeMember]
   func challengeProveMemberCount(challengeId: Int) async throws -> Int
   
@@ -29,7 +29,7 @@ public protocol ChallengeUseCase {
   ) async throws -> PageState<[Feed]>
   func fetchInvitationCode(id: Int) async throws -> ChallengeInvitation
   func verifyInvitationCode(id: Int, code: String) async throws -> Bool
-  func joinChallenge(id: Int, goal: String) async throws -> Void
-  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws -> Void
-  func leaveChallenge(id: Int) async throws -> Void
+  func joinChallenge(id: Int, goal: String) async throws
+  func updateChallengeGoal(_ goal: String, challengeId: Int) async throws
+  func leaveChallenge(id: Int) async throws
 }

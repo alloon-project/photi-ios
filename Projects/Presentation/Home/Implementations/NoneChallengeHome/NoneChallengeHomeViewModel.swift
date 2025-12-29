@@ -80,14 +80,14 @@ final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
 // MARK: - Private Methods
 private extension NoneChallengeHomeViewModel {
   func fetchPopularChallenge() async {
-      do  {
-        let response = try await useCase.fetchPopularChallenge()
-        let models = response.map { mapToChallengePresentationModel($0) }
-        
-        challengesRelay.accept(models)
-      } catch {
-        requestFailedRelay.accept(())
-      }
+    do {
+      let response = try await useCase.fetchPopularChallenge()
+      let models = response.map { mapToChallengePresentationModel($0) }
+      
+      challengesRelay.accept(models)
+    } catch {
+      requestFailedRelay.accept(())
+    }
   }
   
   func mapToChallengePresentationModel(_ challenge: ChallengeDetail) -> ChallengePresentationModel {

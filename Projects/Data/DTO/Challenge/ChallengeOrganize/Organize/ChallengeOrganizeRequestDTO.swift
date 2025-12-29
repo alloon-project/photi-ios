@@ -9,17 +9,32 @@
 import Foundation
 
 public struct ChallengeOrganizeRequestDTO: Encodable {
-  public let jsonString: String
-  public let image: Data
-  public let imageType: String
+  public let name: String
+  public let isPublic: Bool
+  public let goal: String
+  public let proveTime: String
+  public let endDate: String
+  public let preSignedUrl: String
+  public let rules: [String]
+  public let hashtags: [String]
   
   public init(
-    jsonString: String,
-    image: Data,
-    imageType: String
+    name: String,
+    isPublic: Bool,
+    goal: String,
+    proveTime: String,
+    endDate: String,
+    preSignedUrl: String,
+    rules: [String],
+    hashtags: [String]
   ) {
-    self.jsonString = jsonString
-    self.image = image
-    self.imageType = imageType
+    self.name = name
+    self.isPublic = isPublic
+    self.goal = goal
+    self.proveTime = proveTime
+    self.endDate = endDate
+    self.preSignedUrl = preSignedUrl
+    self.rules = rules
+    self.hashtags = hashtags
   }
 }

@@ -26,29 +26,18 @@ extension SignUpAPI: TargetType {
   
   public var path: String {
     switch self {
-      case .requestVerificationCode:
-        return "api/contacts"
-      case .verifyCode:
-        return "api/contacts/verify"
-      case .verifyUserName:
-        return "api/users/username"
-      case .register:
-        return "api/users/register"
-      case .deletedDate:
-        return "api/users/deleted-date"
+      case .requestVerificationCode, .verifyCode: return "auth/code"
+      case .verifyUserName: return "auth/validate/name"
+      case .register: return "auth"
+      case .deletedDate: return "auth/deleted-date"
     }
   }
   
   public var method: HTTPMethod {
     switch self {
-      case .requestVerificationCode, .deletedDate:
-        return .post
-      case .verifyCode:
-        return .patch
-      case .verifyUserName:
-        return .get
-      case .register:
-        return .post
+      case .requestVerificationCode, .deletedDate, .register: return .post
+      case .verifyCode: return .patch
+      case .verifyUserName: return .get
     }
   }
   

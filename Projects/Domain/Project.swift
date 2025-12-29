@@ -34,6 +34,7 @@ let project = Project.make(
 			dependencies: [
         .Project.Domain.Entity,
         .Project.Cores.Core,
+        .Project.Domain.Repository
 			]
 		),
 		.make(
