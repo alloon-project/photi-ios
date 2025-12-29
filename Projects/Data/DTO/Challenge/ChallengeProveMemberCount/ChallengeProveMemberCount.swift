@@ -6,8 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import Foundation
-
 public struct ChallengeProveMemberCountResponseDTO: Decodable {
   public let feedMemberCnt: Int
 }

@@ -12,5 +12,5 @@ public protocol ReportUseCase {
     reason: String,
     content: String,
     targetId: Int
-  ) async throws -> Void
+  ) async throws
 }

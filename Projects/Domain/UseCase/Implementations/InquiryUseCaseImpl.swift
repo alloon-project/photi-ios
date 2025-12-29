@@ -16,7 +16,7 @@ public struct InquiryUseCaseImpl: InquiryUseCase {
     self.repository = repository
   }
   
-  public func inquiry(type: String, content: String) async throws -> Void {
+  public func inquiry(type: String, content: String) async throws {
       try await repository.inquiry(type: type, content: content)
   }
 }

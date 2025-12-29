@@ -31,7 +31,7 @@ public struct AuthRepositoryImpl: AuthRepository {
       if case let NetworkError.networkFailed(reason) = error, reason == .interceptorMapping {
         return false
       } else {
-      throw APIError.serverError
+        throw APIError.serverError
       }
     }
   }

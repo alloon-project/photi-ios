@@ -13,9 +13,11 @@ import Repository
 
 public struct HomeUseCaseImpl: HomeUseCase {
   private let challengeRepository: ChallengeRepository
+  private let imageUploader: PresignedImageUploader
   
-  public init(challengeRepository: ChallengeRepository) {
+  public init(challengeRepository: ChallengeRepository, imageUploader: PresignedImageUploader) {
     self.challengeRepository = challengeRepository
+    self.imageUploader = imageUploader
   }
   
   public func challengeCount() async throws -> Int {
@@ -31,11 +33,9 @@ public struct HomeUseCaseImpl: HomeUseCase {
   }
   
   public func uploadChallengeFeed(challengeId: Int, imageData: Data, type: String) async throws -> Feed {
-    return try await challengeRepository.uploadChallengeFeedProof(
-      id: challengeId,
-      imageData: imageData,
-      imageType: type
-    )
+    let imgType = ImageType(rawValue: type) ?? .jpeg
+    let url = try await imageUploader.upload(image: imageData, imageType: imgType, uploadType: .feed)
+    
+    return try await challengeRepository.uploadChallengeFeedProof(id: challengeId, imageUrl: url)
   }
 }
-
