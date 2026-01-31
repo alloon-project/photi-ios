@@ -76,7 +76,7 @@ private extension ChallengeOrganizeRepositoryImpl {
       if (200..<300).contains(result.statusCode), let data = result.data {
         return data
       } else if result.statusCode == 400 {
-        throw APIError.organazieFailed(reason: .emptyFileInvalid)
+        throw APIError.organazieFailed(reason: .challengeLimitExceed)
       } else if result.statusCode == 401 {
         throw APIError.authenticationFailed
       } else if result.statusCode == 403 {

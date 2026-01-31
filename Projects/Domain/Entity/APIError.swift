@@ -80,5 +80,6 @@ extension APIError {
     case challengeNotFound
     case notChallengeMemeber
     case forbidden
+    case challengeLimitExceed
   }
 }
