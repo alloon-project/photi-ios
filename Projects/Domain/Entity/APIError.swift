@@ -77,6 +77,8 @@ extension APIError {
     case fileSizeExceed
     case imageTypeUnsurported
     case payloadIsNil
+    case challengeNotFound
     case notChallengeMemeber
+    case forbidden
   }
 }

@@ -293,6 +293,16 @@ private extension ChallengeModifyViewController {
         owner.presentAlertWaring(message: message)
       }.disposed(by: disposeBag)
     
+    output.notPartyManager
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
+    output.notExistChallenge
+      .emit(with: self) { owner, message in
+        owner.presentAlertWaring(message: message)
+      }.disposed(by: disposeBag)
+    
     output.networkUnstable
       .emit(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
