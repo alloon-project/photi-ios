@@ -113,7 +113,7 @@ private extension SignUpRepositoryImpl {
   }
 
   func map409ToAPIError(_ code: String, _ message: String) -> APIError {
-    if code == "EXISTING_EMAIL" {
+    if code == "EXISTING_USER" {
       return .signUpFailed(reason: .emailAlreadyExists)
     } else if code == "UNAVAILABLE_USERNAME" {
       return .signUpFailed(reason: .invalidUserName)
