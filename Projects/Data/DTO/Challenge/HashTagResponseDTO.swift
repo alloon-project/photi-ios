@@ -6,6 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-public struct HashTagResponseDTO: Decodable {
+public struct HashTagResponseDTO: Codable {
   public let hashtag: String
 }

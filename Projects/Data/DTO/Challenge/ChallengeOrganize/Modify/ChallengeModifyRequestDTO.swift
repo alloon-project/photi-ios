@@ -12,8 +12,8 @@ public struct ChallengeModifyRequestDTO: Encodable {
   public let proveTime: String
   public let endDate: String
   public let preSignedUrl: String
-  public let rules: [String]
-  public let hashtags: [String]
+  public let rules: [RuleResponseDTO]
+  public let hashtags: [HashTagResponseDTO]
   
   public init(
     name: String,
@@ -29,7 +29,7 @@ public struct ChallengeModifyRequestDTO: Encodable {
     self.proveTime = proveTime
     self.endDate = endDate
     self.preSignedUrl = preSignedUrl
-    self.rules = rules
-    self.hashtags = hashtags
+    self.rules = rules.map { .init(rule: $0) }
+    self.hashtags = hashtags.map { .init(hashtag: $0) }
   }
 }
