@@ -9,34 +9,38 @@
 import UIKit
 
 final class RoundImageButton: UIButton {
+  // MARK: - Initializer
+  init(image: UIImage) {
+    super.init(frame: .zero)
+    configure(with: image)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  // MARK: - Setup
+  private func configure(with image: UIImage) {
+    setTitle(nil, for: .normal)
+    setImage(image, for: .normal)
     
-    // MARK: - Initializer
+    imageView?.contentMode = .scaleAspectFill
+    clipsToBounds = true
     
-    init(image: UIImage) {
-        super.init(frame: .zero)
-        configure(with: image)
-    }
+    translatesAutoresizingMaskIntoConstraints = false
+  }
+  
+  override func layoutSubviews() {
+    super.layoutSubviews()
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    layer.cornerRadius = bounds.width / 2
+  }
+  
+  override func didMoveToSuperview() {
+    super.didMoveToSuperview()
     
-    // MARK: - Setup
-    
-    private func configure(with image: UIImage) {
-        setTitle(nil, for: .normal)
-        setImage(image, for: .normal)
-        
-        imageView?.contentMode = .scaleAspectFill
-        clipsToBounds = true
-        
-        translatesAutoresizingMaskIntoConstraints = false
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        // 항상 완전한 원형
-        layer.cornerRadius = bounds.width / 2
-    }
+    NSLayoutConstraint.activate([
+      heightAnchor.constraint(equalTo: widthAnchor)
+    ])
+  }
 }
