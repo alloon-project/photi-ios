@@ -40,6 +40,8 @@ final class LogInViewController: UIViewController, ViewControllerable {
     .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: true
   )
   
+  private let snsLoginView = OAuthLogInView()
+  
   // MARK: - Initiazliers
   init(viewModel: LogInViewModel) {
     self.viewModel = viewModel
@@ -85,7 +87,7 @@ private extension LogInViewController {
   }
   
   func setViewHierarchy() { 
-    view.addSubviews(navigationBar, idTextField, passwordTextField, loginButton, findView, signUpButton)
+    view.addSubviews(navigationBar, idTextField, passwordTextField, loginButton, findView, signUpButton, snsLoginView)
   }
   
   func setConstraints() {
@@ -123,6 +125,11 @@ private extension LogInViewController {
     warningToastView.setConstraints {
       $0.centerX.equalToSuperview()
       $0.bottom.equalToSuperview().offset(-64)
+    }
+    
+    snsLoginView.snp.makeConstraints {
+      $0.leading.trailing.equalToSuperview().inset(24)
+      $0.top.equalTo(findView.snp.bottom).offset(25)
     }
   }
 }
