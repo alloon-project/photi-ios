@@ -6,6 +6,6 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-public struct RuleResponseDTO: Decodable {
+public struct RuleResponseDTO: Codable {
   public let rule: String
 }

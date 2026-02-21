@@ -33,10 +33,12 @@ protocol ChallengeModifyViewModelType: AnyObject {
 
 final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   weak var coordinator: ChallengeModifyCoordinatable?
+  private var draft: ChallengeModifyDraft
   private let disposeBag = DisposeBag()
   private let challengeId: Int
   private let useCase: OrganizeUseCase
   
+  private let stateRelay: BehaviorRelay<ModifyPresentationModel>
   private let networkUnstableRelay = PublishRelay<Void>()
   private let emptyFileErrorRelay = PublishRelay<String>()
   private let imageTypeErrorRelay = PublishRelay<String>()
@@ -55,17 +57,18 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     let didTapModifyButton: ControlEvent<Void>
     let didTapConfirmButtonAtAlert: Signal<Void>
     // 값
-    let titleText: Signal<String?>
-    let hashtags: Signal<[String]?>
-    let proveTime: Signal<String?>
-    let goal: Signal<String?>
-    let image: Signal<UIImageWrapper?>
-    let rules: Signal<[String]?>
-    let endDate: Signal<String?>
+    let titleText: Signal<String>
+    let hashtags: Signal<[String]>
+    let proveTime: Signal<String>
+    let goal: Signal<String>
+    let image: Signal<UIImageWrapper>
+    let rules: Signal<[String]>
+    let endDate: Signal<String>
   }
   
   // MARK: - Output
   struct Output {
+    let presentationModel: Driver<ModifyPresentationModel>
     let networkUnstable: Signal<Void>
     let imageTypeError: Signal<String>
     let fileTooLargeError: Signal<String>
@@ -75,10 +78,24 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   // MARK: - Initializers
   init(
     useCase: OrganizeUseCase,
+    presentationMdoel: ModifyPresentationModel,
     challengeId: Int
   ) {
     self.useCase = useCase
     self.challengeId = challengeId
+    self.stateRelay = .init(value: presentationMdoel)
+    
+    draft = .init(
+      name: presentationMdoel.title,
+      hashtags: presentationMdoel.hashtags,
+      goal: presentationMdoel.goal,
+      verificationTime: presentationMdoel.verificationTime,
+      deadline: presentationMdoel.deadLine,
+      rules: presentationMdoel.rules,
+      existingImageURL: presentationMdoel.imageUrlString
+    )
+    
+    self.useCase.setChallengeId(id: challengeId)
   }
   
   func transform(input: Input) -> Output {
@@ -127,6 +144,7 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     transformData(input: input)
     
     return Output(
+      presentationModel: stateRelay.asDriver(),
       networkUnstable: networkUnstableRelay.asSignal(),
       imageTypeError: imageTypeErrorRelay.asSignal(),
       fileTooLargeError: fileTooLargeErrorRelay.asSignal(),
@@ -135,58 +153,83 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   }
   
   func transformData(input: Input) {
-    input.titleText.compactMap { $0 }
+    input.titleText
       .emit(with: self) { owner, title in
-        owner.useCase.configureChallengePayload(.name(title))
+        owner.draft.name = title
       }.disposed(by: disposeBag)
     
-    input.hashtags.compactMap { $0 }
+    input.hashtags
       .emit(with: self) { owner, hashtags in
-        owner.useCase.configureChallengePayload(.hashtags(hashtags))
+        owner.draft.hashtags = hashtags
       }.disposed(by: disposeBag)
     
-    input.goal.compactMap { $0 }
+    input.goal
       .emit(with: self) { owner, goal in
-        owner.useCase.configureChallengePayload(.goal(goal))
+        owner.draft.goal = goal
       }.disposed(by: disposeBag)
     
-    input.proveTime.compactMap { $0 }
+    input.proveTime
       .emit(with: self) { owner, proveTime in
-        owner.useCase.configureChallengePayload(.proveTime(proveTime))
+        owner.draft.verificationTime = proveTime
       }.disposed(by: disposeBag)
     
-    input.image.compactMap { $0 }
+    input.image
+      .skip(1)
       .emit(with: self) { owner, image in
-        guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
-          let message = "파일 사이즈는 8MB 이하만 가능합니다."
-          owner.fileTooLargeErrorRelay.accept(message)
-          return
-        }
-        owner.useCase.configureChallengePayload(.image(data))
-        owner.useCase.configureChallengePayload(.imageType(type))
+        owner.draft.newImage = image
       }.disposed(by: disposeBag)
     
-    input.rules.compactMap { $0 }
+    input.rules
       .emit(with: self) { owner, rules in
-        owner.useCase.configureChallengePayload(.rules(rules))
+        owner.draft.rules = rules
       }.disposed(by: disposeBag)
     
-    input.endDate.compactMap { $0 }
+    input.endDate
       .emit(with: self) { owner, endDate in
-        owner.useCase.configureChallengePayload(.endDate(endDate))
+        owner.draft.deadline = endDate
       }.disposed(by: disposeBag)
   }
 }
 
 // MARK: - Private Methods
 private extension ChallengeModifyViewModel {
-  func modifyChallenge() async {
+  @MainActor func modifyChallenge() async {
+    guard let imageChange = makeImageChange(from: draft) else { return }
+    
     do {
-      try await useCase.modifyChallenge()
+      try await useCase.modifyChallenge(
+        id: challengeId,
+        payload: modifyPayload(from: draft),
+        imageChange: imageChange
+      )
       coordinator?.didModifiedChallenge()
     } catch {
       requestFailed(with: error)
     }
+  }
+  
+  func modifyPayload(from draft: ChallengeModifyDraft) -> ChallengeModifyPayload {
+    return ChallengeModifyPayload(
+      name: draft.name,
+      goal: draft.goal,
+      imageURL: draft.existingImageURL,
+      proveTime: draft.verificationTime,
+      endDate: draft.deadline,
+      rules: draft.rules,
+      hashtags: draft.hashtags
+    )
+  }
+  
+  func makeImageChange(from draft: ChallengeModifyDraft) -> ImageChange? {
+    guard let newImage = draft.newImage else { return .keep }
+    
+    guard let (data, type) = newImage.imageToData(maxMB: 8) else {
+      let message = "파일 사이즈는 8MB 이하만 가능합니다."
+      fileTooLargeErrorRelay.accept(message)
+      return nil
+    }
+
+    return .replace(data: data, type: type)
   }
   
   func requestFailed(with error: Error) {
@@ -207,16 +250,5 @@ private extension ChallengeModifyViewModel {
       default:
         networkUnstableRelay.accept(())
     }
-  }
-  
-  func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
-    let maxSizeBytes = maxMB * 1024 * 1024
-    
-    if let data = image.image.pngData(), data.count <= maxSizeBytes {
-      return (data, "png")
-    } else if let data = image.image.converToJPEG(maxSizeMB: 8) {
-      return (data, "jpeg")
-    }
-    return nil
   }
 }
