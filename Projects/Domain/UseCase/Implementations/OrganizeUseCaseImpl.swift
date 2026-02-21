@@ -40,7 +40,7 @@ public class OrganizeUseCaseImpl: OrganizeUseCase {
     case let .goal(value):
       self.goal = value
     case let .proveTime(value):
-      self.proveTime = value
+      self.proveTime = value.replacingOccurrences(of: " ", with: "")
     case let .endDate(value):
       self.endDate = value
     case let .rules(value):
@@ -82,39 +82,37 @@ public extension OrganizeUseCaseImpl {
     return try await repository.challengeOrganize(payload: organizePayload)
   }
   
-  func modifyChallenge() async throws {
-    guard let image, let imageType, let challengeId else {
-      throw APIError.organazieFailed(reason: .payloadIsNil)
-    }
-    let imgType = ImageType(rawValue: imageType) ?? .jpeg
-    let url = try await imageUploader.upload(image: image, imageType: imgType, uploadType: .challengeProfile)
+  func modifyChallenge(id: Int, payload: ChallengeModifyPayload, imageChange: ImageChange) async throws {
+    let finalPayload: ChallengeModifyPayload
     
-    guard let modifyPayload = modifyPayload(with: url) else {
-      throw APIError.organazieFailed(reason: .payloadIsNil)
+    switch imageChange {
+    case .keep:
+      finalPayload = payload
+    case let .replace(data, type):
+      let imgType = ImageType(rawValue: type) ?? .jpeg
+      let url = try await imageUploader.upload(
+        image: data,
+        imageType: imgType,
+        uploadType: .challengeProfile
+      )
+      finalPayload = modifyPayloadWithImageURL(payload, imageURL: url)
     }
     
-    try await repository.challengeModify(payload: modifyPayload, challengeId: challengeId)
+    try await repository.challengeModify(payload: finalPayload, challengeId: id)
   }
 }
 
 // MARK: - Private Methods
 private extension OrganizeUseCaseImpl {
-  func modifyPayload(with imageURL: String) -> ChallengeModifyPayload? {
-    guard
-      let name = self.name,
-      let goal = self.goal,
-      let proveTime = self.proveTime,
-      let endDate = self.endDate
-    else { return nil }
-    
+  func modifyPayloadWithImageURL(_ payload: ChallengeModifyPayload, imageURL: String) -> ChallengeModifyPayload {
     return ChallengeModifyPayload(
-      name: name,
-      goal: goal,
+      name: payload.name,
+      goal: payload.goal,
       imageURL: imageURL,
-      proveTime: proveTime,
-      endDate: endDate,
-      rules: rules,
-      hashtags: hashtags
+      proveTime: payload.proveTime,
+      endDate: payload.endDate,
+      rules: payload.rules,
+      hashtags: payload.hashtags
     )
   }
   

@@ -16,7 +16,7 @@ public protocol MyPageRepository {
   func fetchEndedChallenges(page: Int, size: Int) async throws -> PaginationResultType<ChallengeSummary>
   func fetchFeeds(byDate date: String) async throws -> [FeedSummary]
   func fetchUserProfile() async throws -> UserProfile
-  func uploadProfileImage(path: String) async throws
+  func uploadProfileImage(path: String) async throws -> URL?
   func deleteUserAccount(password: String) async throws
   func updatePassword(from password: String, to newPassword: String) async throws
 }

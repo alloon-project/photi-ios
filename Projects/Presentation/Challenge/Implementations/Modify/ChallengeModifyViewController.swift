@@ -9,6 +9,7 @@
 import UIKit
 import Combine
 import Coordinator
+import Kingfisher
 import RxCocoa
 import RxSwift
 import SnapKit
@@ -34,13 +35,13 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   private let didTapChallengeRuleRelay = PublishRelay<Void>()
   private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
   
-  private let titleTextRelay = BehaviorRelay<String?>(value: nil)
-  private let hashtagsRelay = BehaviorRelay<[String]?>(value: nil)
-  private let proveTimeRelay = BehaviorRelay<String?>(value: nil)
-  private let goalRelay = BehaviorRelay<String?>(value: nil)
-  private let imageRelay = BehaviorRelay<UIImageWrapper?>(value: nil)
-  private let rulesRelay = BehaviorRelay<[String]?>(value: nil)
-  private let endDateRelay = BehaviorRelay<String?>(value: nil)
+  private let titleTextRelay = PublishRelay<String>()
+  private let hashtagsRelay = PublishRelay<[String]>()
+  private let proveTimeRelay = PublishRelay<String>()
+  private let goalRelay = PublishRelay<String>()
+  private let imageRelay = PublishRelay<UIImageWrapper>()
+  private let rulesRelay = PublishRelay<[String]>()
+  private let endDateRelay = PublishRelay<String>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -156,7 +157,7 @@ private extension ChallengeModifyViewController {
       $0.leading.trailing.equalTo(challengeTitleLabel)
       $0.height.equalTo(50)
     }
-
+    
     verificationTimeView.snp.makeConstraints {
       $0.top.equalTo(hashTagCollectionView.snp.bottom).offset(18)
       $0.height.equalTo(71)
@@ -187,6 +188,41 @@ private extension ChallengeModifyViewController {
       $0.height.equalTo(71)
     }
   }
+  
+  func render(with model: ModifyPresentationModel) {
+    renderLeftSection(model)
+    renderRightSection(model)
+    renderThumbnail(from: model.imageUrlString)
+  }
+  
+  func renderLeftSection(_ model: ModifyPresentationModel) {
+    configureTitleLabel(model.title)
+    hashTags = model.hashtags
+    verificationTimeView.verificationTime = model.verificationTime
+    goalView.goal = model.goal
+  }
+  
+  func renderRightSection(_ model: ModifyPresentationModel) {
+    ruleView.rules = model.rules
+    deadLineView.deadLine = model.deadLine
+  }
+  
+  func renderThumbnail(from urlString: String) {
+    guard let url = URL(string: urlString) else { return }
+    
+    thumbnailImageView.kf.setImage(
+      with: url,
+      options: [.callbackQueue(.mainCurrentOrAsync)]
+    ) { [weak self] result in
+      guard let self else { return }
+      switch result {
+        case .success(let imageResult):
+          self.imageRelay.accept(UIImageWrapper(image: imageResult.image))
+        case .failure:
+          self.imageRelay.accept(UIImageWrapper(image: .challengeOrganizeLuckyday))
+      }
+    }
+  }
 }
 
 // MARK: - Bind Methods
@@ -211,19 +247,18 @@ private extension ChallengeModifyViewController {
       didTapChallengeRule: didTapChallengeRuleRelay.asSignal(),
       didTapModifyButton: modifyButton.rx.tap,
       didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      titleText: titleTextRelay.asSignal(onErrorJustReturn: nil),
-      hashtags: hashtagsRelay.asSignal(onErrorJustReturn: nil),
-      proveTime: proveTimeRelay.asSignal(onErrorJustReturn: nil),
-      goal: goalRelay.asSignal(onErrorJustReturn: nil),
-      image: imageRelay.asSignal(onErrorJustReturn: nil),
-      rules: rulesRelay.asSignal(onErrorJustReturn: nil),
-      endDate: endDateRelay.asSignal(onErrorJustReturn: nil)
+      titleText: titleTextRelay.asSignal(),
+      hashtags: hashtagsRelay.asSignal(),
+      proveTime: proveTimeRelay.asSignal(),
+      goal: goalRelay.asSignal(),
+      image: imageRelay.asSignal(),
+      rules: rulesRelay.asSignal(),
+      endDate: endDateRelay.asSignal()
     )
     
     let output = viewModel.transform(input: input)
     
     viewBind()
-    
     bind(for: output)
   }
   
@@ -278,6 +313,11 @@ private extension ChallengeModifyViewController {
   }
   
   func bind(for output: ChallengeModifyViewModel.Output) {
+    output.presentationModel
+      .drive(with: self) { owner, model in
+        owner.render(with: model)
+      }.disposed(by: disposeBag)
+    
     output.notChallengeMember
       .emit(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
@@ -303,49 +343,6 @@ private extension ChallengeModifyViewController {
 
 // MARK: - NoneMemberChallengePresentable
 extension ChallengeModifyViewController: ChallengeModifyPresentable {
-  func setLeftView(
-     title: String,
-     hashtags: [String],
-     verificationTime: String,
-     goal: String
-   ) {
-     configureTitleLabel(title)
-     hashTags = hashtags
-     verificationTimeView.verificationTime = verificationTime
-     goalView.goal = goal
-     
-     titleTextRelay.accept(title)
-     hashtagsRelay.accept(hashtags)
-     proveTimeRelay.accept(verificationTime)
-     goalRelay.accept(goal)
-   }
-   
-   func setRightView(
-     imageURLString: String,
-     rules: [String],
-     deadLine: String
-   ) {
-     if let url = URL(string: imageURLString) {
-       thumbnailImageView.kf.setImage(
-        with: url,
-        options: [.callbackQueue(.mainCurrentOrAsync)]
-       ) { [weak self] result in
-         guard let self else { return }
-         switch result {
-         case .success(let imageResult):
-           self.imageRelay.accept(UIImageWrapper(image: imageResult.image))
-         case .failure(let isFail):
-           self.imageRelay.accept(UIImageWrapper(image: .challengeOrganizeLuckyday))
-         }
-       }
-     }
-     ruleView.rules = rules
-     deadLineView.deadLine = deadLine
-     
-     rulesRelay.accept(rules)
-     endDateRelay.accept(deadLine)
-   }
-  
   func modifyName(name: String) {
     configureTitleLabel(name)
     titleTextRelay.accept(name)

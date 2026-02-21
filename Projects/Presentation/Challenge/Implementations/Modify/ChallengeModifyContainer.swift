@@ -40,6 +40,7 @@ final class ChallengeModifyContainer:
   ) -> ViewableCoordinating {
     let viewModel = ChallengeModifyViewModel(
       useCase: organizeUseCase,
+      presentationMdoel: viewPresentationMdoel,
       challengeId: challengeId
     )
     let viewControllerable = ChallengeModifyViewController(viewModel: viewModel)

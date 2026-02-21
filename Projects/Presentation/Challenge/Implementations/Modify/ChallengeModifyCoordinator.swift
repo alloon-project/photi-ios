@@ -17,19 +17,6 @@ protocol ModifyChallengeListener: AnyObject {
 }
 
 protocol ChallengeModifyPresentable {
-  func setLeftView(
-    title: String,
-    hashtags: [String],
-    verificationTime: String,
-    goal: String
-  )
-  
-  func setRightView(
-    imageURLString: String,
-    rules: [String],
-    deadLine: String
-  )
-  
   func modifyName(name: String)
   func modifyGoal(goal: String, verificationTime: String, endDate: String)
   func modifyCover(image: UIImageWrapper)
@@ -76,20 +63,6 @@ final class ChallengeModifyCoordinator: ViewableCoordinator<ChallengeModifyPrese
     self.viewPresentationModel = viewPresentationModel
     super.init(viewControllerable)
     viewModel.coordinator = self
-  }
-  
-  override func start() {
-    presenter.setLeftView(
-      title: viewPresentationModel.title,
-      hashtags: viewPresentationModel.hashtags,
-      verificationTime: viewPresentationModel.verificationTime,
-      goal: viewPresentationModel.goal
-    )
-    presenter.setRightView(
-      imageURLString: viewPresentationModel.imageUrlString,
-      rules: viewPresentationModel.rules,
-      deadLine: viewPresentationModel.deadLine
-    )
   }
 }
 

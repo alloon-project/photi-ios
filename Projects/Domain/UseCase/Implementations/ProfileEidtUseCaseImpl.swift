@@ -39,8 +39,7 @@ public extension ProfileEditUseCaseImpl {
     let imgType = ImageType(rawValue: type) ?? .jpeg
     let url = try await imageUploader.upload(image: imageData, imageType: imgType, uploadType: .userProfile)
     
-    try await myPageRepository.uploadProfileImage(path: url)
-    return URL(string: url)
+    return try await myPageRepository.uploadProfileImage(path: url)
   }
   
   func withdraw(with password: String) async throws {
