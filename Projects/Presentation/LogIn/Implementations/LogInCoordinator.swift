@@ -106,6 +106,18 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
+  func didTapAppleLoginButton() {
+    // TODO: Handle Apple OAuth flow
+  }
+  
+  func didTapKakaoLoginButton() {
+    // TODO: Handle Kakao OAuth flow
+  }
+  
+  func didTapGoogleLoginButton() {
+    // TODO: Handle Google OAuth flow
+  }
+  
   func didFinishLogIn(userName: String) {
     listener?.didFinishLogIn(userName: userName)
   }
