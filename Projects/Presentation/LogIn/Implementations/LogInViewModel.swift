@@ -12,6 +12,7 @@ import UseCase
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
+  func attachOAuthSignUp()
   func attachFindId()
   func attachFindPassword()
   func didTapAppleLoginButton()
