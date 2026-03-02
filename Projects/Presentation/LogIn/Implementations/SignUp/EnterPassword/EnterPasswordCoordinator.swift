@@ -10,7 +10,7 @@ import Coordinator
 
 protocol EnterPasswordListener: AnyObject {
   func didTapBackButtonAtEnterPassword()
-  func didFinishEnterPassword(userName: String)
+  func didFinishEnterPassword(password: String)
 }
 
 protocol EnterPasswordPresentable { }
@@ -37,7 +37,7 @@ extension EnterPasswordCoordinator: EnterPasswordCoordinatable {
     listener?.didTapBackButtonAtEnterPassword()
   }
   
-  func didTapContinueButton(userName: String) {
-    listener?.didFinishEnterPassword(userName: userName)
+  func didTapContinueButton(password: String) {
+    listener?.didFinishEnterPassword(password: password)
   }
 }

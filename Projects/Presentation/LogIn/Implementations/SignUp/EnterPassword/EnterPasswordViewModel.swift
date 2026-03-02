@@ -7,12 +7,10 @@
 //
 
 import Combine
-import Entity
-import UseCase
 
-protocol EnterPasswordCoordinatable: AnyObject { 
+protocol EnterPasswordCoordinatable: AnyObject {
   func didTapBackButton()
-  func didTapContinueButton(userName: String)
+  func didTapContinueButton(password: String)
 }
 
 protocol EnterPasswordViewModelType: AnyObject {
@@ -24,12 +22,8 @@ protocol EnterPasswordViewModelType: AnyObject {
 
 final class EnterPasswordViewModel: EnterPasswordViewModelType {
   private var cancellables = Set<AnyCancellable>()
-  private let useCase: SignUpUseCase
   
   weak var coordinator: EnterPasswordCoordinatable?
-
-  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
-  private let registerErrorSubject = PassthroughSubject<String, Never>()
 
   // MARK: - Input
   struct Input {
@@ -48,14 +42,10 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
     let isValidPassword: AnyPublisher<Bool, Never>
     let correspondPassword: AnyPublisher<Bool, Never>
     let isEnabledNextButton: AnyPublisher<Bool, Never>
-    let networkUnstable: AnyPublisher<Void, Never>
-    let registerError: AnyPublisher<String, Never>
   }
   
   // MARK: - Initializers
-  init(useCase: SignUpUseCase) {
-    self.useCase = useCase
-  }
+  init() { }
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
@@ -65,8 +55,8 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
     
     input.didTapContinueButton
       .withLatestFrom(input.password)
-      .sink(with: self) { owner, passwords in
-        Task { await owner.register(password: passwords) }
+      .sinkOnMain(with: self) { owner, password in
+        owner.coordinator?.didTapContinueButton(password: password)
       }.store(in: &cancellables)
     
     let containAlphabet = input.password
@@ -97,44 +87,7 @@ final class EnterPasswordViewModel: EnterPasswordViewModelType {
       isValidRange: isValidRange.eraseToAnyPublisher(),
       isValidPassword: isValidPassword.eraseToAnyPublisher(),
       correspondPassword: correspondPassword,
-      isEnabledNextButton: isEnabledNextButton,
-      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
-      registerError: registerErrorSubject.eraseToAnyPublisher()
+      isEnabledNextButton: isEnabledNextButton
     )
-  }
-}
-
-// MARK: - Private Methods
-private extension EnterPasswordViewModel {
-  func register(password: String) async {
-    do {
-      let userName = try await useCase.register(password: password)
-      coordinator?.didTapContinueButton(userName: userName)
-    } catch {
-      requestFailed(with: error)
-    }
-  }
-  
-  func requestFailed(with error: Error) {
-    guard let error = error as? APIError else {
-      return networkUnstableSubject.send(())
-    }
-    
-    switch error {
-      case let .signUpFailed(reason) where reason == .didNotVerifyEmail:
-        let message = "이메일 인증이 진행되지 않았어요.\n이메일 인증을 다시 해주세요."
-        registerErrorSubject.send(message)
-      case let .signUpFailed(reason) where reason == .userNameAlreadyExists:
-        let message = "이미 존재하는 아이디입니다.\n아이디 검증을 다시 해주세요."
-        registerErrorSubject.send(message)
-      case let .signUpFailed(reason) where reason == .emailAlreadyExists:
-        let message = "해당 이메일로 이미 가입된 회원이 있습니다.\n이메일을 다시 입력하거나, 비밀번호 찾기는 진행해주세요."
-        registerErrorSubject.send(message)
-      case let .signUpFailed(reason) where reason == .invalidUserName:
-        let message = "사용할 수 없는 아이디입니다.\n아이디 입력을 다시 해주세요."
-        registerErrorSubject.send(message)
-      default:
-        networkUnstableSubject.send(())
-    }
   }
 }
