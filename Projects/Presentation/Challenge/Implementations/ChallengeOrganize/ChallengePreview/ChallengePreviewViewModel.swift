@@ -31,6 +31,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   
   private let useCase: OrganizeUseCase
   private let networkUnstableRelay = PublishRelay<Void>()
+  private let exceedChallengeMaximumRelay = PublishRelay<String>()
   private let emptyFileErrorRelay = PublishRelay<String>()
   private let isLoadingRelay = PublishRelay<Bool>()
   
@@ -44,6 +45,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
   struct Output {
     let isLoading: Signal<Bool>
     let networkUnstable: Signal<Void>
+    let exceedChallengeMaximum: Signal<String>
     let emptyFileError: Signal<String>
   }
   
@@ -69,6 +71,7 @@ final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked
     return Output(
       isLoading: isLoadingRelay.asSignal(),
       networkUnstable: networkUnstableRelay.asSignal(),
+      exceedChallengeMaximum: exceedChallengeMaximumRelay.asSignal(),
       emptyFileError: emptyFileErrorRelay.asSignal()
       )
   }
@@ -98,11 +101,14 @@ private extension ChallengePreviewViewModel {
     }
     
     switch error {
-      case let .organazieFailed(reason) where reason == .emptyFileInvalid:
-        let message = "비어있는 파일은 저장할 수 없습니다."
-        emptyFileErrorRelay.accept(message)
-      default:
-        networkUnstableRelay.accept(())
+    case .organazieFailed(.challengeLimitExceed):
+      let message = "챌린지는 최대 20개까지 참여할 수 있습니다."
+      exceedChallengeMaximumRelay.accept(message)
+    case .organazieFailed(.emptyFileInvalid):
+      let message = "비어있는 파일은 저장할 수 없습니다."
+      emptyFileErrorRelay.accept(message)
+    default:
+      networkUnstableRelay.accept(())
     }
   }
 }

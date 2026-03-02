@@ -229,6 +229,12 @@ private extension ChallengePreviewViewController {
       }
       .disposed(by: disposeBag)
     
+    output.exceedChallengeMaximum
+      .emit(with: self) { owner, message in
+        owner.presentExceedMaximumChallengeAlert(message: message)
+      }
+      .disposed(by: disposeBag)
+    
     output.isLoading
       .emit { $0 ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop() }
       .disposed(by: disposeBag)
@@ -306,6 +312,15 @@ private extension ChallengePreviewViewController {
     let alert = AlertViewController(
       alertType: .confirm,
       title: "이미지를 찾을 수 없습니다.",
+      subTitle: message
+    )
+    alert.present(to: self, animted: true)
+  }
+  
+  func presentExceedMaximumChallengeAlert(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "챌린지 생성 실패",
       subTitle: message
     )
     alert.present(to: self, animted: true)

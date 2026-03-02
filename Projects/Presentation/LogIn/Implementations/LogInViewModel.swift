@@ -36,6 +36,7 @@ final class LogInViewModel: LogInViewModelType {
   private let useCase: LogInUseCase
   private let loadingAnimationSubject = PassthroughSubject<Bool, Never>()
   private let invalidIdOrPasswordSubject = PassthroughSubject<Void, Never>()
+  private let deletedUserSubject = PassthroughSubject<Void, Never>()
   private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
@@ -54,6 +55,7 @@ final class LogInViewModel: LogInViewModelType {
     let loadingAnimation: AnyPublisher<Bool, Never>
     let emptyIdOrPassword: AnyPublisher<Void, Never>
     let invalidIdOrPassword: AnyPublisher<Void, Never>
+    let deletedUser: AnyPublisher<Void, Never>
     let networkUnstable: AnyPublisher<Void, Never>
   }
   
@@ -101,6 +103,7 @@ final class LogInViewModel: LogInViewModelType {
       loadingAnimation: loadingAnimationSubject.eraseToAnyPublisher(),
       emptyIdOrPassword: emptyIdOrPassword.eraseToAnyPublisher(),
       invalidIdOrPassword: invalidIdOrPasswordSubject.eraseToAnyPublisher(),
+      deletedUser: deletedUserSubject.eraseToAnyPublisher(),
       networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
@@ -125,8 +128,10 @@ private extension LogInViewModel {
     }
     
     switch error {
-      case .loginFailed:
+    case APIError.loginFailed(reason: .invalidEmailOrPassword):
         invalidIdOrPasswordSubject.send(())
+    case APIError.loginFailed(reason: .deletedUser):
+        deletedUserSubject.send(())
       default:
         networkUnstableSubject.send(())
     }

@@ -76,11 +76,13 @@ private extension ChallengeOrganizeRepositoryImpl {
       if (200..<300).contains(result.statusCode), let data = result.data {
         return data
       } else if result.statusCode == 400 {
-        throw APIError.organazieFailed(reason: .emptyFileInvalid)
+        throw APIError.organazieFailed(reason: .challengeLimitExceed)
       } else if result.statusCode == 401 {
         throw APIError.authenticationFailed
+      } else if result.statusCode == 403 {
+        throw APIError.organazieFailed(reason: .forbidden)
       } else if result.statusCode == 404 {
-        throw APIError.organazieFailed(reason: .notChallengeMemeber)
+        throw map404ToAPIError(result.code, result.message)
       } else {
         throw APIError.serverError
       }
@@ -90,6 +92,16 @@ private extension ChallengeOrganizeRepositoryImpl {
       } else {
         throw error
       }
+    }
+  }
+  
+  func map404ToAPIError(_ code: String, _ message: String) -> APIError {
+    if code == "CHALLENGE_NOT_FOUND" {
+      return .organazieFailed(reason: .challengeNotFound)
+    } else if code == "CHALLENGE_MEMBER_NOT_FOUND" {
+      return .organazieFailed(reason: .notChallengeMemeber)
+    } else {
+      return .clientError(code: code, message: message)
     }
   }
 }

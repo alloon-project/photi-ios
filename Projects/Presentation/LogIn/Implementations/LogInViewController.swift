@@ -33,6 +33,9 @@ final class LogInViewController: UIViewController, ViewControllerable {
   private let warningToastView = ToastView(
     tipPosition: .none, text: "아이디와 비밀번호 모두 입력해주세요", icon: .bulbWhite
   )
+  private let deletedUserToastView = ToastView(
+    tipPosition: .none, text: "이미 탈퇴한 회원 입니다.", icon: .bulbWhite
+  )
   private let invalidId = CommentView(
     .warning, text: "아이디 또는 비밀번호가 일치하지 않아요", icon: .closeRed, isActivate: true
   )
@@ -179,7 +182,7 @@ private extension LogInViewController {
         
         owner.idTextField.mode = .default
         owner.passwordTextField.mode = .default
-        owner.displayToastView()
+        owner.displayWarningToastView()
       }.store(in: &cancellables)
    
     output.invalidIdOrPassword
@@ -189,6 +192,11 @@ private extension LogInViewController {
         
         owner.idTextField.mode = .error
         owner.passwordTextField.mode = .error
+      }.store(in: &cancellables)
+    
+    output.deletedUser
+      .sinkOnMain(with: self) { owner, _ in
+        owner.displayDeletedUserToastView()
       }.store(in: &cancellables)
     
     output.networkUnstable
@@ -209,7 +217,11 @@ extension LogInViewController: LogInPresentable { }
 
 // MARK: - Private Methods
 private extension LogInViewController {
-  func displayToastView() {
+  func displayWarningToastView() {
     warningToastView.present(to: self)
+  }
+  
+  func displayDeletedUserToastView() {
+    deletedUserToastView.present(to: self)
   }
 }
