@@ -106,6 +106,8 @@ private extension LogInRepositoryImpl {
       throw APIError.loginFailed(reason: .invalidEmailOrPassword)
     } else if result.statusCode == 404 {
       throw APIError.userNotFound
+    } else if result.statusCode == 409 {
+      throw APIError.loginFailed(reason: .deletedUser)
     } else {
       throw APIError.serverError
     }

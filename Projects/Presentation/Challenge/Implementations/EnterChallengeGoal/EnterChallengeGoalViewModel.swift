@@ -33,6 +33,7 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
   
   private let networkUnstableRelay = PublishRelay<Void>()
   private let alreadyJoinedRelay = PublishRelay<Void>()
+  private let exceedChallengeMaximumRelay = PublishRelay<String>()
   
   // MARK: - Input
   struct Input {
@@ -47,6 +48,7 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
     let saveButtonisEnabled: Driver<Bool>
     let networkUnstable: Signal<Void>
     let alreadyJoined: Signal<Void>
+    let exceedMaximumChallenge: Signal<String>
   }
   
   // MARK: - Initializers
@@ -79,11 +81,12 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
         Task { await owner.handleSkipEnteredGoal() }
       }
       .disposed(by: disposeBag)
-
+    
     return Output(
       saveButtonisEnabled: input.goalText.map { !$0.isEmpty }.asDriver(onErrorJustReturn: false),
       networkUnstable: networkUnstableRelay.asSignal(),
-      alreadyJoined: alreadyJoinedRelay.asSignal()
+      alreadyJoined: alreadyJoinedRelay.asSignal(),
+      exceedMaximumChallenge: exceedChallengeMaximumRelay.asSignal()
     )
   }
 }
@@ -127,13 +130,16 @@ private extension EnterChallengeGoalViewModel {
     guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
     
     switch error {
-      case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
-        alreadyJoinedRelay.accept(())
-
-      case .authenticationFailed:
-        coordinator?.authenticatedFailed()
-      default:
-        networkUnstableRelay.accept(())
+    case .challengeFailed(reason: .challengeLimitExceed):
+      let message = "챌린지는 최대 20개까지 참여할 수 있습니다."
+      exceedChallengeMaximumRelay.accept(message)
+    case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
+      alreadyJoinedRelay.accept(())
+      
+    case .authenticationFailed:
+      coordinator?.authenticatedFailed()
+    default:
+      networkUnstableRelay.accept(())
     }
   }
 }

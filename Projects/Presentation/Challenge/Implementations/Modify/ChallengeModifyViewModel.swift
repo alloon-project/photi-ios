@@ -42,8 +42,10 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   private let networkUnstableRelay = PublishRelay<Void>()
   private let emptyFileErrorRelay = PublishRelay<String>()
   private let imageTypeErrorRelay = PublishRelay<String>()
+  private let notPartyManagerRelay = PublishRelay<String>()
   private let fileTooLargeErrorRelay = PublishRelay<String>()
   private let notChallengeMemberRelay = PublishRelay<String>()
+  private let notExistChallengeRelay = PublishRelay<String>()
 
   // MARK: - Input
   struct Input {
@@ -71,8 +73,10 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
     let presentationModel: Driver<ModifyPresentationModel>
     let networkUnstable: Signal<Void>
     let imageTypeError: Signal<String>
+    let notPartyManager: Signal<String>
     let fileTooLargeError: Signal<String>
     let notChallengeMember: Signal<String>
+    let notExistChallenge: Signal<String>
   }
   
   // MARK: - Initializers
@@ -147,8 +151,10 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
       presentationModel: stateRelay.asDriver(),
       networkUnstable: networkUnstableRelay.asSignal(),
       imageTypeError: imageTypeErrorRelay.asSignal(),
+      notPartyManager: notPartyManagerRelay.asSignal(),
       fileTooLargeError: fileTooLargeErrorRelay.asSignal(),
-      notChallengeMember: notChallengeMemberRelay.asSignal()
+      notChallengeMember: notChallengeMemberRelay.asSignal(),
+      notExistChallenge: notExistChallengeRelay.asSignal()
     )
   }
   
@@ -238,17 +244,23 @@ private extension ChallengeModifyViewModel {
     }
     
     switch error {
-      case let .organazieFailed(reason) where reason == .notChallengeMemeber:
-        let message = "존재하지 않는 챌린지 파티원입니다."
-        notChallengeMemberRelay.accept(message)
-      case let .organazieFailed(reason) where reason == .fileSizeExceed:
-        let message = "파일 사이즈는 8MB 이하만 가능합니다."
-        fileTooLargeErrorRelay.accept(message)
-      case let .organazieFailed(reason) where reason == .imageTypeUnsurported:
-        let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
-        imageTypeErrorRelay.accept(message)
-      default:
-        networkUnstableRelay.accept(())
+    case .organazieFailed(.notChallengeMemeber):
+      let message = "존재하지 않는 챌린지 파티원입니다."
+      notChallengeMemberRelay.accept(message)
+    case .organazieFailed(.challengeNotFound):
+      let message = "존재하지 않는 챌린지입니다."
+      notExistChallengeRelay.accept(message)
+    case .organazieFailed(.fileSizeExceed):
+      let message = "파일 사이즈는 8MB 이하만 가능합니다."
+      fileTooLargeErrorRelay.accept(message)
+    case .organazieFailed(.imageTypeUnsurported):
+      let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
+      imageTypeErrorRelay.accept(message)
+    case .organazieFailed(.forbidden):
+      let message = "챌린지 파티장 권한이없습니다."
+      notPartyManagerRelay.accept(message)
+    default:
+      networkUnstableRelay.accept(())
     }
   }
 }

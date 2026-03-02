@@ -218,6 +218,12 @@ private extension EnterChallengeGoalViewController {
         owner.displayAlreadyJoinPopUp()
       }
       .disposed(by: disposeBag)
+    
+    output.exceedMaximumChallenge
+      .emit(with: self) { owner, message in
+        owner.presentExceedMaximumChallengeAlert(message: message)
+      }
+      .disposed(by: disposeBag)
   }
 }
 
@@ -229,5 +235,14 @@ private extension EnterChallengeGoalViewController {
   func displayAlreadyJoinPopUp() {
     let popUp = AlertViewController(alertType: .confirm, title: "이미 참여한 챌린지예요")
     popUp.present(to: self, animted: false)
+  }
+  
+  func presentExceedMaximumChallengeAlert(message: String) {
+    let alert = AlertViewController(
+      alertType: .confirm,
+      title: "챌린지 생성 실패",
+      subTitle: message
+    )
+    alert.present(to: self, animted: true)
   }
 }
