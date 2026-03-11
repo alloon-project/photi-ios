@@ -20,6 +20,7 @@ public final class LogInContainer:
   Container<LogInDependency>,
   LogInContainable,
   SignUpDependency,
+  OAuthSignUpDependency,
   FindIdDependency,
   FindPasswordDependency {
   var resetPasswordContainable: ResetPasswordContainable { dependency.resetPasswordContainable }
@@ -32,15 +33,17 @@ public final class LogInContainer:
     let viewControllerable = LogInViewController(viewModel: viewModel)
 
     let signUp = SignUpContainer(dependency: self)
+    let oAuthSignUp = OAuthSignUpContainer(dependency: self)
     let findId = FindIdContainer(dependency: self)
     let findPassword = FindPasswordContainer(dependency: self)
-    
+
     let coordinator = LogInCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       signUpContainable: signUp,
       findIdContainable: findId,
-      findPasswordContainable: findPassword
+      findPasswordContainable: findPassword,
+      oAuthSignUpContainable: oAuthSignUp
     )
     coordinator.listener = listener
     return coordinator

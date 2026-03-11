@@ -7,10 +7,15 @@
 //
 
 import UIKit
+import Combine
 import CoreUI
 import DesignSystem
 
 final class OAuthLogInView: UIView {
+  var didTapAppleLoginButton: AnyPublisher<Void, Never> { appleLoginButton.tapPublisher }
+  var didTapKakaoLoginButton: AnyPublisher<Void, Never> { kakaoLoginButton.tapPublisher }
+  var didTapGoogleLoginButton: AnyPublisher<Void, Never> { googleLoginButton.tapPublisher }
+  
   private let label: UILabel = {
     let label = UILabel()
     label.attributedText = "SNS 간편 로그인".attributedString(

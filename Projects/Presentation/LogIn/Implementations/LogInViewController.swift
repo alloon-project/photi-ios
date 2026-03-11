@@ -147,7 +147,10 @@ private extension LogInViewController {
       didTapLoginButton: loginButton.tapPublisher,
       didTapFindIdButton: findView.findIdTapPublisher,
       didTapFindPasswordButton: findView.findPasswordTapPublisher,
-      didTapSignUpButton: signUpButton.tapPublisher
+      didTapSignUpButton: signUpButton.tapPublisher,
+      didTapAppleLoginButton: snsLoginView.didTapAppleLoginButton,
+      didTapKakaoLoginButton: snsLoginView.didTapKakaoLoginButton,
+      didTapGoogleLoginButton: snsLoginView.didTapGoogleLoginButton
     )
    
     let output = viewModel.transform(input: input)

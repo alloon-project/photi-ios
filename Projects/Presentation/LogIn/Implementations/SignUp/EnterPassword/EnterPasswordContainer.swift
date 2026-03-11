@@ -7,11 +7,8 @@
 //
 
 import Coordinator
-import UseCase
 
-protocol EnterPasswordDependency { 
-  var signUpUseCase: SignUpUseCase { get }
-}
+protocol EnterPasswordDependency { }
 
 protocol EnterPasswordContainable: Containable {
   func coordinator(listener: EnterPasswordListener) -> ViewableCoordinating
@@ -19,7 +16,7 @@ protocol EnterPasswordContainable: Containable {
 
 final class EnterPasswordContainer: Container<EnterPasswordDependency>, EnterPasswordContainable {
   func coordinator(listener: EnterPasswordListener) -> ViewableCoordinating {
-    let viewModel = EnterPasswordViewModel(useCase: dependency.signUpUseCase)
+    let viewModel = EnterPasswordViewModel()
     let viewContollerable = EnterPasswordViewController(viewModel: viewModel)
     
     let coordinator = EnterPasswordCoordinator(

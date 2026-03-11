@@ -30,16 +30,21 @@ final class SignUpCoordinator: Coordinator {
   private let enterPasswordContainable: EnterPasswordContainable
   private var enterPasswordCoordinator: Coordinating?
   
+  private let agreementContainable: AgreementContainable
+  private var agreementCoordinator: Coordinating?
+  
   init(
     navigationControllerable: NavigationControllerable,
     enterEmailContainable: EnterEmailContainable,
     enterIdContainable: EnterIdContainable,
-    enterPasswordContainable: EnterPasswordContainable
+    enterPasswordContainable: EnterPasswordContainable,
+    agreementContainable: AgreementContainable
   ) {
     self.navigationControllerable = navigationControllerable
     self.enterEmailContainable = enterEmailContainable
     self.enterIdContainable = enterIdContainable
     self.enterPasswordContainable = enterPasswordContainable
+    self.agreementContainable = agreementContainable
     super.init()
   }
   
@@ -56,7 +61,7 @@ final class SignUpCoordinator: Coordinator {
     }
   }
 }
- 
+
 // MARK: - EnterEmail
 @MainActor extension SignUpCoordinator {
   func attachEnterEmail() {
@@ -119,6 +124,27 @@ final class SignUpCoordinator: Coordinator {
   }
 }
 
+// MARK: - Agreement
+@MainActor extension SignUpCoordinator {
+  func attachAgreement(password: String) {
+    guard agreementCoordinator == nil else { return }
+    
+    let coordinater = agreementContainable.coordinator(listener: self, password: password)
+    addChild(coordinater)
+    
+    navigationControllerable.pushViewController(coordinater.viewControllerable, animated: false)
+    self.agreementCoordinator = coordinater
+  }
+  
+  func detachAgreement() {
+    guard let coordinater = agreementCoordinator else { return }
+    
+    removeChild(coordinater)
+    navigationControllerable.popViewController(animated: false)
+    self.agreementCoordinator = nil
+  }
+}
+
 // MARK: - EnterEmailListener
 extension SignUpCoordinator: EnterEmailListener {
   func didTapBackButtonAtEnterEmail() {
@@ -149,7 +175,18 @@ extension SignUpCoordinator: EnterPasswordListener {
     Task { await detachEnterPassword() }
   }
   
-  func didFinishEnterPassword(userName: String) {
+  func didFinishEnterPassword(password: String) {
+    Task { await attachAgreement(password: password) }
+  }
+}
+
+// MARK: - AgreementListener
+extension SignUpCoordinator: AgreementListener {
+  func didTapBackButtonAtAgreement() {
+    Task { await detachAgreement() }
+  }
+  
+  func didFinishAgreement(userName: String) {
     listener?.didFinishSignUp(userName: userName)
   }
 }

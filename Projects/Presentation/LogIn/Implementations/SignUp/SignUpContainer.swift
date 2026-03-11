@@ -23,7 +23,8 @@ final class SignUpContainer:
   SignUpContainable,
   EnterEmailDependency,
   EnterIdDependency,
-  EnterPasswordDependency {
+  EnterPasswordDependency,
+  AgreementDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
   
   func coordinator(
@@ -33,12 +34,14 @@ final class SignUpContainer:
     let enterEmailContainable = EnterEmailContainer(dependency: self)
     let enterIdContainable = EnterIdContainer(dependency: self)
     let enterPasswordContainable = EnterPasswordContainer(dependency: self)
+    let agreementContainable = AgreementContainer(dependency: self)
     
     let coordinator = SignUpCoordinator(
       navigationControllerable: navigationControllerable,
       enterEmailContainable: enterEmailContainable,
       enterIdContainable: enterIdContainable,
-      enterPasswordContainable: enterPasswordContainable
+      enterPasswordContainable: enterPasswordContainable,
+      agreementContainable: agreementContainable
     )
     coordinator.listener = listener
     return coordinator

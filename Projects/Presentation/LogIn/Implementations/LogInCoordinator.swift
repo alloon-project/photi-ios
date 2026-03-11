@@ -24,19 +24,24 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
   
   private let findPasswordContainable: FindPasswordContainable
   private var findPasswordCoordinator: ViewableCoordinating?
-  
+
+  private let oAuthSignUpContainable: OAuthSignUpContainable
+  private var oAuthSignUpCoordinator: Coordinating?
+
   init(
     viewControllerable: ViewControllerable,
     viewModel: LogInViewModel,
     signUpContainable: SignUpContainable,
     findIdContainable: FindIdContainable,
-    findPasswordContainable: FindPasswordContainable
+    findPasswordContainable: FindPasswordContainable,
+    oAuthSignUpContainable: OAuthSignUpContainable
   ) {
     self.viewModel = viewModel
     self.signUpContainable = signUpContainable
     self.findIdContainable = findIdContainable
     self.findPasswordContainable = findPasswordContainable
-    
+    self.oAuthSignUpContainable = oAuthSignUpContainable
+
     super.init(viewControllerable)
     viewModel.coordinator = self
   }
@@ -60,6 +65,27 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
     guard let coordinater = signUpCoordinator else { return }
     removeChild(coordinater)
     self.signUpCoordinator = nil
+  }
+}
+
+// MARK: - OAuthSignUp
+@MainActor extension LogInCoordinator {
+  func attachOAuthSignUp() {
+    guard
+      oAuthSignUpCoordinator == nil,
+      let navigationController = viewControllerable.uiviewController.navigationController
+    else { return }
+
+    let navigation = NavigationControllerable(navigationController: navigationController)
+    let coordinater = oAuthSignUpContainable.coordinator(navigationControllerable: navigation, listener: self)
+    addChild(coordinater)
+    self.oAuthSignUpCoordinator = coordinater
+  }
+
+  func detachOAuthSignUp() {
+    guard let coordinater = oAuthSignUpCoordinator else { return }
+    removeChild(coordinater)
+    self.oAuthSignUpCoordinator = nil
   }
 }
 
@@ -106,6 +132,18 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
+  func didTapAppleLoginButton() {
+    attachOAuthSignUp()
+  }
+
+  func didTapKakaoLoginButton() {
+    attachOAuthSignUp()
+  }
+
+  func didTapGoogleLoginButton() {
+    attachOAuthSignUp()
+  }
+  
   func didFinishLogIn(userName: String) {
     listener?.didFinishLogIn(userName: userName)
   }
@@ -124,6 +162,18 @@ extension LogInCoordinator: SignUpListener {
   
   func didTapBackButtonAtSignUp() {
     Task { await detachSignUp() }
+  }
+}
+
+// MARK: - OAuthSignUpListener
+extension LogInCoordinator: OAuthSignUpListener {
+  func didFinishOAuthSignUp(userName: String) {
+    Task { await detachOAuthSignUp() }
+    listener?.didFinishLogIn(userName: userName)
+  }
+
+  func didTapBackButtonAtOAuthSignUp() {
+    Task { await detachOAuthSignUp() }
   }
 }
 
