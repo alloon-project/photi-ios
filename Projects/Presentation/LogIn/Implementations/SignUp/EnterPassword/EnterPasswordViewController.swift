@@ -10,18 +10,12 @@ import UIKit
 import Combine
 import Coordinator
 import SnapKit
-import Core
 import CoreUI
 import DesignSystem
 
 final class EnterPasswordViewController: UIViewController, ViewControllerable {
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: EnterPasswordViewModel
-  
-  private let bottomSheetTitle = "포티 서비스 이용을 위한\n필수 약관에 동의해주세요"
-  private let bottomSheetDataSource = ["서비스 이용약관 동의", "개인정보 수집 및 이용 동의"]
-  
-  private let didTapContinueButton = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -177,19 +171,11 @@ private extension EnterPasswordViewController {
       password: passwordTextField.textPublisher,
       reEnteredPassword: passwordCheckTextField.textPublisher,
       didTapBackButton: navigationBar.didTapBackButton,
-      didTapContinueButton: didTapContinueButton.eraseToAnyPublisher()
+      didTapContinueButton: nextButton.tapPublisher
     )
     
     let output = viewModel.transform(input: input)
-    viewBind()
     bind(output: output)
-  }
-  
-  func viewBind() {
-    nextButton.tapPublisher
-      .sinkOnMain(with: self) { owner, _ in
-        owner.presentBottomSheet()
-      }.store(in: &cancellables)
   }
   
   func bind(output: EnterPasswordViewModel.Output) {
@@ -224,68 +210,8 @@ private extension EnterPasswordViewController {
         owner.passwordCheckTextField.isHidden = false
         owner.passwordCheckTitleLabel.isHidden = false
       }.store(in: &cancellables)
-    
-    output.networkUnstable
-      .sinkOnMain(with: self) { owner, _ in
-        owner.presentNetworkUnstableAlert()
-      }.store(in: &cancellables)
-    
-    output.registerError
-      .sinkOnMain(with: self) { owner, message in
-        owner.presentRegisterFailWarning(message: message)
-      }.store(in: &cancellables)
   }
 }
 
 // MARK: - EnterPasswordPresentable
 extension EnterPasswordViewController: EnterPasswordPresentable { }
-
-// MARK: - Private Methods
-private extension EnterPasswordViewController {
-  func presentBottomSheet() {
-    let alert = ListBottomSheetViewController(
-      title: bottomSheetTitle,
-      button: "동의 후 계속",
-      dataSource: bottomSheetDataSource
-    )
-    alert.delegate = self
-    
-    alert.present(to: self, animated: true) { [weak self] in
-      self?.progressBar.step = .five
-    }
-    
-    alert.didDismiss
-      .map { _ in PhotiProgressStep.four }
-      .bind(to: \.step, on: progressBar)
-      .store(in: &cancellables)
-  }
-  
-  func presentRegisterFailWarning(message: String) {
-    let alert = AlertViewController(
-      alertType: .confirm,
-      title: "회원가입 오류가 발생했어요",
-      subTitle: message
-    )
-    
-    alert.present(to: self, animted: true)
-  }
-}
-
-extension EnterPasswordViewController: ListBottomSheetDelegate {
-  func didTapIcon(_ bottomSheet: ListBottomSheetViewController, at index: Int) {
-    let url = index == 0 ? ServiceConfiguration.shared.termsUrl : ServiceConfiguration.shared.privacyUrl
-    let webviewController = WebViewController(url: url)
-    webviewController.modalPresentationStyle = .pageSheet
-    
-    if let sheet = webviewController.sheetPresentationController {
-      sheet.prefersGrabberVisible = true
-  }
-
-    bottomSheet.present(webviewController, animated: true)
-  }
-  
-  func didTapButton(_ bottomSheet: ListBottomSheetViewController) {
-    bottomSheet.dismissBottomSheet()
-    didTapContinueButton.send(())
-  }
-}

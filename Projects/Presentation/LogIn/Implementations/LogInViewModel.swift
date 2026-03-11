@@ -12,8 +12,12 @@ import UseCase
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
+  func attachOAuthSignUp()
   func attachFindId()
   func attachFindPassword()
+  func didTapAppleLoginButton()
+  func didTapKakaoLoginButton()
+  func didTapGoogleLoginButton()
   func didFinishLogIn(userName: String)
   func didTapBackButton()
 }
@@ -48,6 +52,9 @@ final class LogInViewModel: LogInViewModelType {
     let didTapFindIdButton: AnyPublisher<Void, Never>
     let didTapFindPasswordButton: AnyPublisher<Void, Never>
     let didTapSignUpButton: AnyPublisher<Void, Never>
+    let didTapAppleLoginButton: AnyPublisher<Void, Never>
+    let didTapKakaoLoginButton: AnyPublisher<Void, Never>
+    let didTapGoogleLoginButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
@@ -83,6 +90,21 @@ final class LogInViewModel: LogInViewModelType {
     input.didTapBackButton
       .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
+      }.store(in: &cancellables)
+    
+    input.didTapAppleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.coordinator?.didTapAppleLoginButton()
+      }.store(in: &cancellables)
+    
+    input.didTapKakaoLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.coordinator?.didTapKakaoLoginButton()
+      }.store(in: &cancellables)
+    
+    input.didTapGoogleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.coordinator?.didTapGoogleLoginButton()
       }.store(in: &cancellables)
     
     let didTapLoginButtonWithInfo = input.didTapLoginButton
