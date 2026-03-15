@@ -9,15 +9,14 @@
 import Combine
 import Entity
 import UseCase
+import KakaoSDKAuth
+import KakaoSDKUser
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
-  func attachOAuthSignUp()
+  func attachOAuthSignUp(provider: String, idToken: String)
   func attachFindId()
   func attachFindPassword()
-  func didTapAppleLoginButton()
-  func didTapKakaoLoginButton()
-  func didTapGoogleLoginButton()
   func didFinishLogIn(userName: String)
   func didTapBackButton()
 }
@@ -25,19 +24,19 @@ protocol LogInCoordinatable: AnyObject {
 protocol LogInViewModelType {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: LogInCoordinatable? { get set }
-  
-  init(useCase: LogInUseCase)
-  
+
+  init(loginUseCase: LogInUseCase)
+
   func transform(input: Input) -> Output
 }
 
 final class LogInViewModel: LogInViewModelType {
   private var cancellables = Set<AnyCancellable>()
   weak var coordinator: LogInCoordinatable?
-  
-  private let useCase: LogInUseCase
+
+  private let loginUseCase: LogInUseCase
   private let loadingAnimationSubject = PassthroughSubject<Bool, Never>()
   private let invalidIdOrPasswordSubject = PassthroughSubject<Void, Never>()
   private let deletedUserSubject = PassthroughSubject<Void, Never>()
@@ -67,8 +66,8 @@ final class LogInViewModel: LogInViewModelType {
   }
   
   // MARK: - Initializers
-  init(useCase: LogInUseCase) {
-    self.useCase = useCase
+  init(loginUseCase: LogInUseCase) {
+    self.loginUseCase = loginUseCase
   }
   
   func transform(input: Input) -> Output {
@@ -94,17 +93,17 @@ final class LogInViewModel: LogInViewModelType {
     
     input.didTapAppleLoginButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.coordinator?.didTapAppleLoginButton()
+        // TODO: Apple 로그인 구현
       }.store(in: &cancellables)
-    
+
     input.didTapKakaoLoginButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.coordinator?.didTapKakaoLoginButton()
+        owner.requestKakaoLogin()
       }.store(in: &cancellables)
-    
+
     input.didTapGoogleLoginButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.coordinator?.didTapGoogleLoginButton()
+        // TODO: Google 로그인 구현
       }.store(in: &cancellables)
     
     let didTapLoginButtonWithInfo = input.didTapLoginButton
@@ -136,11 +135,37 @@ private extension LogInViewModel {
   func requestLogin(userName: String, password: String) async {
     loadingAnimationSubject.send(true)
     do {
-      try await useCase.login(username: userName, password: password)
+      try await loginUseCase.login(username: userName, password: password)
       coordinator?.didFinishLogIn(userName: userName)
     } catch {
       loadingAnimationSubject.send(false)
       requestFailed(with: error)
+    }
+  }
+
+  func requestKakaoLogin() {
+    let loginCompletion: (OAuthToken?, Error?) -> Void = { [weak self] oauthToken, error in
+      guard let self = self else { return }
+
+      if error != nil {
+        self.networkUnstableSubject.send(())
+        return
+      }
+
+      guard let idToken = oauthToken?.idToken else {
+        self.networkUnstableSubject.send(())
+        return
+      }
+
+      Task { @MainActor in
+        self.coordinator?.attachOAuthSignUp(provider: "KAKAO", idToken: idToken)
+      }
+    }
+
+    if UserApi.isKakaoTalkLoginAvailable() {
+      UserApi.shared.loginWithKakaoTalk(completion: loginCompletion)
+    } else {
+      UserApi.shared.loginWithKakaoAccount(completion: loginCompletion)
     }
   }
   
