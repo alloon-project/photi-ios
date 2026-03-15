@@ -133,15 +133,15 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
   func didTapAppleLoginButton() {
-    attachOAuthSignUp()
+    Task { @MainActor in attachOAuthSignUp() }
   }
 
   func didTapKakaoLoginButton() {
-    attachOAuthSignUp()
+    Task { @MainActor in attachOAuthSignUp() }
   }
 
   func didTapGoogleLoginButton() {
-    attachOAuthSignUp()
+    Task { @MainActor in attachOAuthSignUp() }
   }
   
   func didFinishLogIn(userName: String) {
