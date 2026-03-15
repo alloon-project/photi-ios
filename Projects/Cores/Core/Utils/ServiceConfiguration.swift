@@ -20,6 +20,13 @@ public final class ServiceConfiguration {
 
     return URL(string: baseUrl + "/api/v2")!
   }
+
+  public var kakaoNativeAppKey: String {
+    guard let appKey = Bundle.main.object(forInfoDictionaryKey: "KakaoNativeAppKey") as? String else {
+      fatalError("Kakao Native App Key could not find in plist. Please check plist or user-defined!")
+    }
+    return appKey
+  }
   
   /// 사용자의 `userName`을 리턴합니다.
   public var userName: String {
