@@ -1,12 +1,14 @@
+TUIST = ~/.tuist/versions/3.17.0/tuist
+
 generate:
-	tuist fetch
-	TUIST_ROOT_DIR=${PWD} tuist generate
+	$(TUIST) fetch
+	TUIST_ROOT_DIR=${PWD} $(TUIST) generate
 
 reset:
-	tuist clean
+	$(TUIST) clean
 	rm -rf **/**/*.xcodeproj
 	rm -rf *.xcworkspace
 
-regenerate: 
+regenerate:
 	make reset
 	make generate
