@@ -23,37 +23,37 @@ extension OAuthAPI: TargetType {
 
   public var path: String {
     switch self {
-      case let .login(provider, _):
-        return "oauth/\(provider)/login"
-      case .setUsername:
-        return "oauth/username"
+    case let .login(provider, _):
+      return "oauth/\(provider)/login"
+    case .setUsername:
+      return "oauth/username"
     }
   }
 
   public var method: HTTPMethod {
     switch self {
-      case .login:
-        return .get
-      case .setUsername:
-        return .post
+    case .login:
+      return .get
+    case .setUsername:
+      return .post
     }
   }
 
   public var task: TaskType {
     switch self {
-      case let .login(_, idToken):
-        let parameters = ["id_token": idToken]
-        return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
+    case let .login(_, idToken):
+      let parameters = ["id_token": idToken]
+      return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
 
-      case let .setUsername(dto):
-        return .requestJSONEncodable(dto)
+    case let .setUsername(dto):
+      return .requestJSONEncodable(dto)
     }
   }
 
   public var sampleResponse: EndpointSampleResponse {
     switch self {
-      case .login:
-        let data = """
+    case .login:
+      let data = """
           {
             "code": "200 OK",
             "message": "성공",
@@ -62,19 +62,19 @@ extension OAuthAPI: TargetType {
             }
           }
         """
-        let jsonData = data.data(using: .utf8)
-        return .networkResponse(200, jsonData ?? Data(), "", "")
+      let jsonData = data.data(using: .utf8)
+      return .networkResponse(200, jsonData ?? Data(), "", "")
 
-      case .setUsername:
-        let data = """
+    case .setUsername:
+      let data = """
           {
             "code": "200 OK",
             "message": "성공",
             "data": null
           }
         """
-        let jsonData = data.data(using: .utf8)
-        return .networkResponse(200, jsonData ?? Data(), "", "")
+      let jsonData = data.data(using: .utf8)
+      return .networkResponse(200, jsonData ?? Data(), "", "")
     }
   }
 }

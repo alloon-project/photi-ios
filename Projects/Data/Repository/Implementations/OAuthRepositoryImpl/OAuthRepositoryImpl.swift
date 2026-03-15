@@ -8,6 +8,7 @@
 
 import Core
 import DTO
+import Entity
 import Repository
 import PhotiNetwork
 
