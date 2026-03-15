@@ -144,6 +144,8 @@ private extension LogInViewModel {
   }
 
   func requestKakaoLogin() {
+    let nonce = UUID().uuidString
+
     let loginCompletion: (OAuthToken?, Error?) -> Void = { [weak self] oauthToken, error in
       guard let self = self else { return }
 
@@ -163,9 +165,9 @@ private extension LogInViewModel {
     }
 
     if UserApi.isKakaoTalkLoginAvailable() {
-      UserApi.shared.loginWithKakaoTalk(completion: loginCompletion)
+      UserApi.shared.loginWithKakaoTalk(nonce: nonce, completion: loginCompletion)
     } else {
-      UserApi.shared.loginWithKakaoAccount(completion: loginCompletion)
+      UserApi.shared.loginWithKakaoAccount(nonce: nonce, completion: loginCompletion)
     }
   }
   
