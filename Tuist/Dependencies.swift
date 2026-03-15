@@ -32,6 +32,14 @@ let dependencies = Dependencies(
         .remote(
           url: "https://github.com/jungseokyoung-cloud/Coordinator.git",
           requirement: .exact("1.1.3")
+        ),
+        .remote(
+          url: "https://github.com/Alamofire/Alamofire.git",
+          requirement: .exact("5.9.0")
+        ),
+        .remote(
+          url: "https://github.com/kakao/kakao-ios-sdk.git",
+          requirement: .exact("2.23.0")
         )
 		],
 		platforms: [.iOS]
