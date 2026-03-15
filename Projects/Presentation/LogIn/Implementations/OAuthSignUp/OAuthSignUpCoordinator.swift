@@ -6,6 +6,7 @@
 //
 
 import Coordinator
+import UseCase
 
 protocol OAuthSignUpListener: AnyObject {
   func didFinishOAuthSignUp(userName: String)
@@ -23,20 +24,49 @@ final class OAuthSignUpCoordinator: Coordinator {
   private let agreementContainable: AgreementContainable
   private var agreementCoordinator: Coordinating?
 
+  private let oauthUseCase: OAuthUseCase
+  private let provider: String
+  private let idToken: String
+
   init(
     navigationControllerable: NavigationControllerable,
     enterIdContainable: EnterIdContainable,
-    agreementContainable: AgreementContainable
+    agreementContainable: AgreementContainable,
+    oauthUseCase: OAuthUseCase,
+    provider: String,
+    idToken: String
   ) {
     self.navigationControllerable = navigationControllerable
     self.enterIdContainable = enterIdContainable
     self.agreementContainable = agreementContainable
+    self.oauthUseCase = oauthUseCase
+    self.provider = provider
+    self.idToken = idToken
     super.init()
   }
 
   override func start() {
     navigationControllerable.navigationController.navigationBar.isHidden = true
-    Task { await attachEnterId() }
+    Task { await requestOAuthLogin() }
+  }
+
+  private func requestOAuthLogin() async {
+    do {
+      let result = try await oauthUseCase.login(provider: provider, idToken: idToken)
+
+      await MainActor.run {
+        switch result {
+          case let .existingUser(username):
+            listener?.didFinishOAuthSignUp(userName: username)
+          case .newUser:
+            Task { await attachEnterId() }
+        }
+      }
+    } catch {
+      await MainActor.run {
+        listener?.didTapBackButtonAtOAuthSignUp()
+      }
+    }
   }
 
   override func stop() {

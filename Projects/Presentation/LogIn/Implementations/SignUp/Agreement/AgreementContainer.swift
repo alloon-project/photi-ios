@@ -11,6 +11,7 @@ import UseCase
 
 protocol AgreementDependency {
   var signUpUseCase: SignUpUseCase { get }
+  var oauthUseCase: OAuthUseCase { get }
 }
 
 protocol AgreementContainable: Containable {
@@ -19,7 +20,11 @@ protocol AgreementContainable: Containable {
 
 final class AgreementContainer: Container<AgreementDependency>, AgreementContainable {
   func coordinator(listener: AgreementListener, password: String) -> ViewableCoordinating {
-    let viewModel = AgreementViewModel(useCase: dependency.signUpUseCase, password: password)
+    let viewModel = AgreementViewModel(
+      signUpUseCase: dependency.signUpUseCase,
+      oauthUseCase: dependency.oauthUseCase,
+      password: password
+    )
     let viewControllerable = AgreementViewController(viewModel: viewModel)
     
     let coordinator = AgreementCoordinator(
