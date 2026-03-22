@@ -16,7 +16,9 @@ public class SignUpUseCaseImpl: SignUpUseCase {
   private let repository: SignUpRepository
   private var email: String?
   private var username: String?
-  
+
+  public var configuredUsername: String { username ?? "" }
+
   public init(repository: SignUpRepository) {
     self.repository = repository
   }

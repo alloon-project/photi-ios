@@ -70,15 +70,21 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 
 // MARK: - OAuthSignUp
 @MainActor extension LogInCoordinator {
-  func attachOAuthSignUp() {
+  func attachOAuthSignUp(provider: String, idToken: String) {
     guard
       oAuthSignUpCoordinator == nil,
       let navigationController = viewControllerable.uiviewController.navigationController
     else { return }
 
     let navigation = NavigationControllerable(navigationController: navigationController)
-    let coordinater = oAuthSignUpContainable.coordinator(navigationControllerable: navigation, listener: self)
+    let coordinater = oAuthSignUpContainable.coordinator(
+      navigationControllerable: navigation,
+      listener: self,
+      provider: provider,
+      idToken: idToken
+    )
     addChild(coordinater)
+    coordinater.start()
     self.oAuthSignUpCoordinator = coordinater
   }
 
@@ -132,22 +138,10 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 
 // MARK: - Coorinatable
 extension LogInCoordinator: LogInCoordinatable {
-  func didTapAppleLoginButton() {
-    attachOAuthSignUp()
-  }
-
-  func didTapKakaoLoginButton() {
-    attachOAuthSignUp()
-  }
-
-  func didTapGoogleLoginButton() {
-    attachOAuthSignUp()
-  }
-  
   func didFinishLogIn(userName: String) {
     listener?.didFinishLogIn(userName: userName)
   }
-  
+
   func didTapBackButton() {
     listener?.didTapBackButtonAtLogIn()
   }

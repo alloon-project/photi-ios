@@ -13,6 +13,7 @@ import UseCase
 public protocol LogInDependency {
   var signUpUseCase: SignUpUseCase { get }
   var logInUseCase: LogInUseCase { get }
+  var oauthUseCase: OAuthUseCase { get }
   var resetPasswordContainable: ResetPasswordContainable { get }
 }
 
@@ -27,9 +28,10 @@ public final class LogInContainer:
   
   public var loginUseCase: LogInUseCase { dependency.logInUseCase }
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
+  var oauthUseCase: OAuthUseCase { dependency.oauthUseCase }
 
   public func coordinator(listener: LogInListener) -> ViewableCoordinating {
-    let viewModel = LogInViewModel(useCase: dependency.logInUseCase)
+    let viewModel = LogInViewModel(loginUseCase: dependency.logInUseCase)
     let viewControllerable = LogInViewController(viewModel: viewModel)
 
     let signUp = SignUpContainer(dependency: self)

@@ -32,7 +32,10 @@ let project = Project.make(
         .Project.Presentation.Report,
         .Project.Presentation.ReportImpl,
         .Project.Domain.UseCaseImpl,
-        .Project.Data.RepositoryImpl
+        .Project.Data.RepositoryImpl,
+        .SPM.KakaoSDKAuth,
+        .SPM.KakaoSDKUser,
+        .SPM.KakaoSDKCommon
       ],
       settings: .settings(
         base: [
@@ -66,7 +69,10 @@ let project = Project.make(
         .Project.Presentation.Report,
         .Project.Presentation.ReportImpl,
         .Project.Domain.UseCaseImpl,
-        .Project.Data.RepositoryImpl
+        .Project.Data.RepositoryImpl,
+        .SPM.KakaoSDKAuth,
+        .SPM.KakaoSDKUser,
+        .SPM.KakaoSDKCommon
       ],
       settings: .settings(
         base: [

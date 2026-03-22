@@ -103,6 +103,13 @@ final class AppContainer:
   lazy var signUpUseCase: SignUpUseCase = {
     return SignUpUseCaseImpl(repository: signUpRepository)
   }()
+
+  lazy var oauthUseCase: OAuthUseCase = {
+    return OAuthUseCaseImpl(
+      oauthRepository: oauthRepository,
+      authRepository: authRepository
+    )
+  }()
   
   lazy var myPageUseCase: MyPageUseCase = {
     return MyPageUseCaseImpl(
@@ -175,6 +182,10 @@ final class AppContainer:
 
   lazy var signUpRepository: SignUpRepository = {
     return SignUpRepositoryImpl(dataMapper: SignUpDataMapperImpl())
+  }()
+
+  lazy var oauthRepository: OAuthRepository = {
+    return OAuthRepositoryImpl()
   }()
   
   lazy var myPageRepository: MyPageRepository = {

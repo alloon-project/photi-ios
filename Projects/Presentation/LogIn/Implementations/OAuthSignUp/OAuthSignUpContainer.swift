@@ -10,12 +10,15 @@ import UseCase
 
 protocol OAuthSignUpDependency {
   var signUpUseCase: SignUpUseCase { get }
+  var oauthUseCase: OAuthUseCase { get }
 }
 
 protocol OAuthSignUpContainable: Containable {
   func coordinator(
     navigationControllerable: NavigationControllerable,
-    listener: OAuthSignUpListener
+    listener: OAuthSignUpListener,
+    provider: String,
+    idToken: String
   ) -> Coordinating
 }
 
@@ -25,10 +28,13 @@ final class OAuthSignUpContainer:
   EnterIdDependency,
   AgreementDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
+  var oauthUseCase: OAuthUseCase { dependency.oauthUseCase }
 
   func coordinator(
     navigationControllerable: NavigationControllerable,
-    listener: OAuthSignUpListener
+    listener: OAuthSignUpListener,
+    provider: String,
+    idToken: String
   ) -> Coordinating {
     let enterIdContainable = EnterIdContainer(dependency: self)
     let agreementContainable = AgreementContainer(dependency: self)
@@ -36,7 +42,10 @@ final class OAuthSignUpContainer:
     let coordinator = OAuthSignUpCoordinator(
       navigationControllerable: navigationControllerable,
       enterIdContainable: enterIdContainable,
-      agreementContainable: agreementContainable
+      agreementContainable: agreementContainable,
+      oauthUseCase: dependency.oauthUseCase,
+      provider: provider,
+      idToken: idToken
     )
     coordinator.listener = listener
     return coordinator
