@@ -15,7 +15,8 @@ public enum APIError: Error {
   case challengeFailed(reason: ChallengeFailedReason)
   case myPageFailed(reason: MyPageFailedReason)
   case organazieFailed(reason: OrganizedFailedReason)
-  
+  case oauthFailed(reason: OAuthFailedReason)
+
   case userNotFound
 }
 
@@ -81,5 +82,13 @@ extension APIError {
     case notChallengeMemeber
     case forbidden
     case challengeLimitExceed
+  }
+}
+
+// MARK: - OAuth
+extension APIError {
+  public enum OAuthFailedReason {
+    case invalidIdToken
+    case usernameAlreadyExists
   }
 }

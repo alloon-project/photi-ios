@@ -103,7 +103,9 @@ let project = Project.make(
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
-				.SPM.SnapKit
+				.SPM.SnapKit,
+				.SPM.KakaoSDKAuth,
+				.SPM.KakaoSDKUser
 			]
 		),
 		.make(

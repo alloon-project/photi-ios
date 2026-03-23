@@ -7,6 +7,8 @@
 //
 
 public protocol SignUpUseCase {
+  var configuredUsername: String { get }
+
   func configureEmail(_ email: String)
   func configureUsername(_ username: String)
 

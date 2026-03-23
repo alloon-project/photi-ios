@@ -12,6 +12,7 @@ import UseCase
 
 protocol SignUpDependency {
   var signUpUseCase: SignUpUseCase { get }
+  var oauthUseCase: OAuthUseCase { get }
 }
 
 protocol SignUpContainable: Containable {
@@ -26,6 +27,7 @@ final class SignUpContainer:
   EnterPasswordDependency,
   AgreementDependency {
   var signUpUseCase: SignUpUseCase { dependency.signUpUseCase }
+  var oauthUseCase: OAuthUseCase { dependency.oauthUseCase }
   
   func coordinator(
     navigationControllerable: NavigationControllerable,
