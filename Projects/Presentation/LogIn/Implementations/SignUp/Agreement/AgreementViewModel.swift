@@ -7,6 +7,7 @@
 //
 
 import Combine
+import Core
 import Entity
 import UseCase
 
@@ -24,11 +25,12 @@ protocol AgreementViewModelType: AnyObject {
 
 final class AgreementViewModel: AgreementViewModelType {
   private var cancellables = Set<AnyCancellable>()
-  private let useCase: SignUpUseCase
+  private let signUpUseCase: SignUpUseCase
+  private let oauthUseCase: OAuthUseCase
   private let password: String
-  
+
   weak var coordinator: AgreementCoordinatable?
-  
+
   private let networkUnstableSubject = PassthroughSubject<Void, Never>()
   private let registerErrorSubject = PassthroughSubject<String, Never>()
   
@@ -42,8 +44,9 @@ final class AgreementViewModel: AgreementViewModelType {
     let registerError: AnyPublisher<String, Never>
   }
   
-  init(useCase: SignUpUseCase, password: String) {
-    self.useCase = useCase
+  init(signUpUseCase: SignUpUseCase, oauthUseCase: OAuthUseCase, password: String) {
+    self.signUpUseCase = signUpUseCase
+    self.oauthUseCase = oauthUseCase
     self.password = password
   }
   
@@ -68,8 +71,16 @@ final class AgreementViewModel: AgreementViewModelType {
 private extension AgreementViewModel {
   func register() async {
     do {
-      let userName = try await useCase.register(password: password)
-      coordinator?.didFinishAgreement(userName: userName)
+      if password.isEmpty {
+        // OAuth 회원가입: username만 설정
+        let userName = signUpUseCase.configuredUsername
+        try await oauthUseCase.setUsername(userName)
+        coordinator?.didFinishAgreement(userName: userName)
+      } else {
+        // 일반 회원가입: 전체 등록
+        let userName = try await signUpUseCase.register(password: password)
+        coordinator?.didFinishAgreement(userName: userName)
+      }
     } catch {
       requestFailed(with: error)
     }
