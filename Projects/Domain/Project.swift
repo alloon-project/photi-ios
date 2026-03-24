@@ -45,6 +45,18 @@ let project = Project.make(
 			dependencies: [
 				.Project.Domain.Entity
 			]
+		),
+		.make(
+			name: "UseCaseImplTests",
+			product: .unitTests,
+			bundleId: "com.photi.useCaseImplTests",
+			sources: ["UseCase/Tests/**"],
+			dependencies: [
+				.target(name: "UseCaseImpl"),
+				.Project.Domain.UseCase,
+				.Project.Domain.Repository,
+				.Project.Domain.Entity
+			]
 		)
 	]
 )
