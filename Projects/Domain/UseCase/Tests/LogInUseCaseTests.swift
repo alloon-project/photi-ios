@@ -112,7 +112,9 @@ extension LogInUseCaseTests {
   func test_updatePassword_임시토큰없으면_authenticationFailed던짐() async {
     // verifyTemporaryPassword 호출 없이 바로 updatePassword 호출
     await XCTAssertThrowsErrorAsync(try await sut.updatePassword("newPassword123")) { error in
-      XCTAssertEqual(error as? APIError, .authenticationFailed)
+      guard case APIError.authenticationFailed = error else {
+        return XCTFail("예상치 못한 에러 타입: \(error)")
+      }
     }
   }
 
