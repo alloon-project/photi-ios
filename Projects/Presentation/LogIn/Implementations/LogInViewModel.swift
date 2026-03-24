@@ -51,7 +51,7 @@ final class LogInViewModel: LogInViewModelType {
     let didTapFindIdButton: AnyPublisher<Void, Never>
     let didTapFindPasswordButton: AnyPublisher<Void, Never>
     let didTapSignUpButton: AnyPublisher<Void, Never>
-    let didTapAppleLoginButton: AnyPublisher<Void, Never>
+    let appleIdToken: AnyPublisher<String, Never>
     let didTapKakaoLoginButton: AnyPublisher<Void, Never>
     let didTapGoogleLoginButton: AnyPublisher<Void, Never>
   }
@@ -91,9 +91,9 @@ final class LogInViewModel: LogInViewModelType {
         owner.coordinator?.didTapBackButton()
       }.store(in: &cancellables)
     
-    input.didTapAppleLoginButton
-      .sinkOnMain(with: self) { owner, _ in
-        // TODO: Apple 로그인 구현
+    input.appleIdToken
+      .sinkOnMain(with: self) { owner, idToken in
+        owner.coordinator?.attachOAuthSignUp(provider: "APPLE", idToken: idToken)
       }.store(in: &cancellables)
 
     input.didTapKakaoLoginButton
@@ -186,3 +186,5 @@ private extension LogInViewModel {
     }
   }
 }
+
+

@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import AuthenticationServices
 import UIKit
 import Combine
 import Coordinator
@@ -16,6 +17,8 @@ import DesignSystem
 final class LogInViewController: UIViewController, ViewControllerable {
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: LogInViewModel
+  private let appleIdTokenSubject = PassthroughSubject<String, Never>()
+  private var appleAuthController: ASAuthorizationController?
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
@@ -148,7 +151,7 @@ private extension LogInViewController {
       didTapFindIdButton: findView.findIdTapPublisher,
       didTapFindPasswordButton: findView.findPasswordTapPublisher,
       didTapSignUpButton: signUpButton.tapPublisher,
-      didTapAppleLoginButton: snsLoginView.didTapAppleLoginButton,
+      appleIdToken: appleIdTokenSubject.eraseToAnyPublisher(),
       didTapKakaoLoginButton: snsLoginView.didTapKakaoLoginButton,
       didTapGoogleLoginButton: snsLoginView.didTapGoogleLoginButton
     )
@@ -174,6 +177,11 @@ private extension LogInViewController {
     loginButton.tapPublisher
       .sinkOnMain(with: self) { owner, _ in
         owner.view.endEditing(true)
+      }.store(in: &cancellables)
+
+    snsLoginView.didTapAppleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.requestAppleLogin()
       }.store(in: &cancellables)
   }
   
@@ -218,8 +226,53 @@ private extension LogInViewController {
 // MARK: - LogInPresentable
 extension LogInViewController: LogInPresentable { }
 
+// MARK: - Apple Sign In
+extension LogInViewController: ASAuthorizationControllerPresentationContextProviding {
+  func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    view.window ?? UIWindow()
+  }
+}
+
+extension LogInViewController: ASAuthorizationControllerDelegate {
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithAuthorization authorization: ASAuthorization
+  ) {
+    appleAuthController = nil
+    guard
+      let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+      let identityTokenData = credential.identityToken,
+      let idToken = String(data: identityTokenData, encoding: .utf8)
+    else { return }
+
+    appleIdTokenSubject.send(idToken)
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithError error: Error
+  ) {
+    appleAuthController = nil
+    if let authError = error as? ASAuthorizationError, authError.code == .canceled { return }
+  }
+}
+
 // MARK: - Private Methods
 private extension LogInViewController {
+  func requestAppleLogin() {
+    let nonce = UUID().uuidString
+    let provider = ASAuthorizationAppleIDProvider()
+    let request = provider.createRequest()
+    request.requestedScopes = [.fullName, .email]
+    request.nonce = nonce
+
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = self
+    controller.presentationContextProvider = self
+    appleAuthController = controller
+    controller.performRequests()
+  }
+
   func displayWarningToastView() {
     warningToastView.present(to: self)
   }
