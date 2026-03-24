@@ -40,7 +40,7 @@ extension LogInUseCaseTests {
   func test_login_잘못된_비밀번호시_에러던짐() async {
     mockLoginRepo.logInResult = .failure(APIError.loginFailed(reason: .invalidEmailOrPassword))
 
-    await XCTAssertThrowsErrorAsync(try await sut.login(username: "testUser", password: "wrongPw")) { error in
+    await XCTAssertThrowsErrorAsync(try await self.sut.login(username: "testUser", password: "wrongPw")) { error in
       guard case APIError.loginFailed(let reason) = error else {
         return XCTFail("예상치 못한 에러 타입: \(error)")
       }
@@ -51,7 +51,7 @@ extension LogInUseCaseTests {
   func test_login_탈퇴한_유저시_에러던짐() async {
     mockLoginRepo.logInResult = .failure(APIError.loginFailed(reason: .deletedUser))
 
-    await XCTAssertThrowsErrorAsync(try await sut.login(username: "deletedUser", password: "pw")) { error in
+    await XCTAssertThrowsErrorAsync(try await self.sut.login(username: "deletedUser", password: "pw")) { error in
       guard case APIError.loginFailed(let reason) = error else {
         return XCTFail("예상치 못한 에러 타입: \(error)")
       }
@@ -139,7 +139,7 @@ extension LogInUseCaseTests {
 
     mockLoginRepo.updatePasswordError = APIError.serverError
 
-    await XCTAssertThrowsErrorAsync(try await sut.updatePassword("newPassword123")) { _ in }
+    await XCTAssertThrowsErrorAsync(try await self.sut.updatePassword("newPassword123")) { _ in }
     // 실패해도 토큰은 정리되어야 함
     XCTAssertNil(mockAuthRepo.storedToken)
   }
