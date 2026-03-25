@@ -7,7 +7,7 @@ import UIKit
 import GoogleMobileAds
 
 public final class BannerAdView: UIView {
-  private let bannerView = BannerView(adSize: GADAdSizeBanner)
+  private let bannerView = BannerView(adSize: AdSizeBanner)
 
   // MARK: - Init
 

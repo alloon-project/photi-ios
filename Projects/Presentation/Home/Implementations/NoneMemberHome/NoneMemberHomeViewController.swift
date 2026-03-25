@@ -34,6 +34,7 @@ final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
   
   private let mainImageView = UIImageView(image: .homeNoneMember)
   private let loginButton = FilledRoundButton(type: .primary, size: .xLarge, text: "회원가입하고 참여하기")
+  private let bottomBannerView = BannerAdView(placement: .homeBottom)
   
   // MARK: - Initializers
   init(viewModel: NoneMemberHomeViewModel) {
@@ -53,6 +54,11 @@ final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
   }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    bottomBannerView.load(from: self)
+  }
 }
 
 // MARK: - UI Methods
@@ -65,7 +71,7 @@ private extension NoneMemberHomeViewController {
   }
   
   func setViewHierarchy() {
-    view.addSubviews(navigationBar, titleLabel, mainImageView, loginButton)
+    view.addSubviews(navigationBar, titleLabel, mainImageView, loginButton, bottomBannerView)
   }
   
   func setConstraints() {
@@ -93,6 +99,12 @@ private extension NoneMemberHomeViewController {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(mainImageView.snp.bottom).offset(16)
       $0.bottom.lessThanOrEqualToSuperview().inset(tabBarHeight + 16)
+    }
+    
+    bottomBannerView.snp.makeConstraints {
+      $0.top.equalTo(loginButton.snp.bottom).offset(16)
+      $0.leading.trailing.equalToSuperview()
+      $0.height.equalTo(50)
     }
   }
 }
