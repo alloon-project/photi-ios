@@ -9,6 +9,7 @@
 import UIKit
 import Core
 import Coordinator
+import GoogleMobileAds
 import KakaoSDKCommon
 import KakaoSDKAuth
 
@@ -22,6 +23,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    // GoogleMobileAds 초기화
+    MobileAds.shared.start()
+
     // KakaoSDK 초기화
     KakaoSDK.initSDK(appKey: ServiceConfiguration.shared.kakaoNativeAppKey)
 

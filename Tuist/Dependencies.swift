@@ -40,6 +40,10 @@ let dependencies = Dependencies(
         .remote(
           url: "https://github.com/kakao/kakao-ios-sdk.git",
           requirement: .exact("2.23.0")
+        ),
+        .remote(
+          url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
+          requirement: .upToNextMajor(from: "11.0.0")
         )
 		],
 		platforms: [.iOS]

@@ -35,7 +35,8 @@ let project = Project.make(
         .Project.Data.RepositoryImpl,
         .SPM.KakaoSDKAuth,
         .SPM.KakaoSDKUser,
-        .SPM.KakaoSDKCommon
+        .SPM.KakaoSDKCommon,
+        .SPM.GoogleMobileAds
       ],
       settings: .settings(
         base: [
@@ -72,7 +73,8 @@ let project = Project.make(
         .Project.Data.RepositoryImpl,
         .SPM.KakaoSDKAuth,
         .SPM.KakaoSDKUser,
-        .SPM.KakaoSDKCommon
+        .SPM.KakaoSDKCommon,
+        .SPM.GoogleMobileAds
       ],
       settings: .settings(
         base: [
