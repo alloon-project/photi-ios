@@ -74,5 +74,11 @@
 	<string>Launch Screen</string>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-4519140016182239~4091786920</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>맞춤형 광고를 제공하여 더 나은 서비스를 제공하기 위해 사용자의 활동을 추적합니다.</string>
+	<key>SKAdNetworkItems</key>
+	<string>cstr6suwn9.skadnetwork</string>
 </dict>
 </plist>
