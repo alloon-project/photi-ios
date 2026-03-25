@@ -5,6 +5,7 @@
 
 import UIKit
 import GoogleMobileAds
+import SnapKit
 
 public final class BannerAdView: UIView {
   private let bannerView = BannerView(adSize: AdSizeBanner)
@@ -44,10 +45,8 @@ public final class BannerAdView: UIView {
 private extension BannerAdView {
   func setupUI() {
     addSubview(bannerView)
-    bannerView.translatesAutoresizingMaskIntoConstraints = false
-    NSLayoutConstraint.activate([
-      bannerView.centerXAnchor.constraint(equalTo: centerXAnchor),
-      bannerView.centerYAnchor.constraint(equalTo: centerYAnchor)
-    ])
+    bannerView.snp.makeConstraints {
+      $0.center.equalToSuperview()
+    }
   }
 }
