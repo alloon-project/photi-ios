@@ -20,7 +20,8 @@ let project = Project.make(
 			dependencies: [
             .Project.Cores.CoreUI,
 				.SPM.SnapKit,
-				.SPM.Lottie
+				.SPM.Lottie,
+				.SPM.GoogleMobileAds
       ]
 		)
 	],
