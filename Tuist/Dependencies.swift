@@ -43,7 +43,7 @@ let dependencies = Dependencies(
         ),
         .remote(
           url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
-          requirement: .upToNextMajor(from: "11.0.0")
+          requirement: .upToNextMajor(from: "13.1.0")
         ),
         .remote(
           url: "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git",
