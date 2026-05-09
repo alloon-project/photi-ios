@@ -16,6 +16,7 @@ import MyPage
 @MainActor protocol AppPresentable {
   func attachNavigationControllers(_ viewControllerables: NavigationControllerable...)
   func changeNavigationControllerToHome()
+  func changeNavigationControllerToSearchChallenge()
   func presentWelcomeToastView(_ username: String)
   func presentTokenExpiredAlertView(to navigationControllerable: NavigationControllerable)
   func presentTabMyPageWithoutLogInAlertView(to navigationControllerable: NavigationControllerable)
@@ -33,6 +34,7 @@ final class AppCoordinator: ViewableCoordinator<AppPresentable> {
   
   private let searchChallengeContainer: SearchChallengeContainable
   private var searchChallengeCoordinator: ViewableCoordinating?
+  private weak var searchChallengeDeepLinkable: SearchChallengeDeepLinkable?
   
   private let myPageContainer: MyPageContainable
   private var myPageCoordinator: ViewableCoordinating?
@@ -130,11 +132,12 @@ private extension AppCoordinator {
 private extension AppCoordinator {
   @MainActor func attachSearchChallenge() {
     guard searchChallengeCoordinator == nil else { return }
-    
+
     let coordinator = searchChallengeContainer.coordinator(listener: self)
     searchChallengeNavigationControllerable.setViewControllers([coordinator.viewControllerable], animated: true)
     addChild(coordinator)
     self.searchChallengeCoordinator = coordinator
+    self.searchChallengeDeepLinkable = coordinator as? SearchChallengeDeepLinkable
   }
   
   @MainActor func detachSearchChallenge() {
@@ -171,9 +174,16 @@ extension AppCoordinator: AppCoordinatable {
       await presenter.presentTabMyPageWithoutLogInAlertView(to: homeNavigationControllerable)
     }
   }
-  
+
   func attachLogIn() {
     Task { await attachLogIn(at: homeNavigationControllerable) }
+  }
+
+  func handleDeepLink(challengeId: Int) {
+    Task {
+      await presenter.changeNavigationControllerToSearchChallenge()
+      await searchChallengeDeepLinkable?.routeToChallenge(challengeId: challengeId)
+    }
   }
 }
 

@@ -120,10 +120,16 @@ extension AppViewController: AppPresentable {
   
   func changeNavigationControllerToHome() {
     guard viewControllers != nil else { return }
-    selectedIndex = 0 // 첫 번째 탭으로 전환
-    
+    selectedIndex = 0
+
     guard let viewController = viewControllers?.first else { return }
     viewController.showTabBar(animted: true)
+  }
+
+  func changeNavigationControllerToSearchChallenge() {
+    guard let viewControllers, viewControllers.count > 1 else { return }
+    selectedIndex = 1
+    viewControllers[1].showTabBar(animted: true)
   }
   
   func presentWelcomeToastView(_ username: String) {

@@ -17,3 +17,7 @@ public protocol SearchChallengeListener: AnyObject {
   func attachLoginPopup()
   func didLoginAtSearchChallenge()
 }
+
+public protocol SearchChallengeDeepLinkable: AnyObject {
+  @MainActor func routeToChallenge(challengeId: Int)
+}
