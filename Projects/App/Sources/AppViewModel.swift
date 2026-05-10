@@ -13,6 +13,7 @@ import UseCase
 protocol AppCoordinatable: AnyObject {
   func shouldReloadAllPage()
   func attachLogIn()
+  func handleDeepLink(challengeId: Int)
 }
 
 protocol AppViewModelType: AnyObject {

@@ -32,6 +32,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>photi.app</string>
+				<string>photi</string>
 			</array>
 		</dict>
 		<dict>

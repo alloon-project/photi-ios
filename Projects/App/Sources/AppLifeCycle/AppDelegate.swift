@@ -15,6 +15,8 @@ import KakaoSDKAuth
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
   private var appCoordinator: Coordinating?
+  private weak var appCoordinatable: AppCoordinatable?
+  private var pendingDeepLinkChallengeId: Int?
   private let appContainer = AppContainer(dependency: AppDependency())
   var window: UIWindow?
 
@@ -39,6 +41,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     if AuthApi.isKakaoTalkLoginUrl(url) {
       return AuthController.handleOpenUrl(url: url)
     }
+
+    if url.scheme == "photi", url.host == "challenge",
+       let challengeId = Int(url.lastPathComponent) {
+      if let coordinator = appCoordinatable {
+        coordinator.handleDeepLink(challengeId: challengeId)
+      } else {
+        pendingDeepLinkChallengeId = challengeId
+      }
+      return true
+    }
+
     return false
   }
 }
@@ -59,11 +72,17 @@ private extension AppDelegate {
   func launchMainApp() {
     guard let window else { return }
     let appCoordinator = appContainer.coordinator()
-    
+
     appCoordinator.start()
-    
+
     window.rootViewController = appCoordinator.viewControllerable.uiviewController
     self.appCoordinator = appCoordinator
+    self.appCoordinatable = appCoordinator as? AppCoordinatable
+
+    if let challengeId = pendingDeepLinkChallengeId {
+      pendingDeepLinkChallengeId = nil
+      appCoordinatable?.handleDeepLink(challengeId: challengeId)
+    }
   }
 }
 

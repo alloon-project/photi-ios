@@ -243,6 +243,13 @@ extension SearchChallengeCoordinator: ChallengeListener {
   }
 }
 
+// MARK: - SearchChallengeDeepLinkable
+extension SearchChallengeCoordinator: SearchChallengeDeepLinkable {
+  func routeToChallenge(challengeId: Int) {
+    Task { await viewModel.decideRouteForChallenge(id: challengeId) }
+  }
+}
+
 // MARK: - NoneMemberChallengeListener
 extension SearchChallengeCoordinator: NoneMemberChallengeListener {
   func didTapBackButtonAtNoneMemberChallenge() {
