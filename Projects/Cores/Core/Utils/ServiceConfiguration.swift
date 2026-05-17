@@ -40,6 +40,15 @@ public final class ServiceConfiguration {
   public func setUserName(_ name: String) {
     UserDefaults.standard.set(name, forKey: "userName")
   }
+
+  /// 사용자의 `authProvider`를 리턴합니다.
+  public var authProvider: String {
+    return UserDefaults.standard.string(forKey: "authProvider") ?? "normal"
+  }
+
+  public func setAuthProvider(_ provider: String) {
+    UserDefaults.standard.set(provider, forKey: "authProvider")
+  }
   
   // 개인정보 처리방침
   public var privacyUrl: URL {

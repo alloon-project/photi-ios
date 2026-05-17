@@ -123,7 +123,8 @@ final class AppContainer:
       authRepository: authRepository,
       loginRepository: logInRepository,
       imageUploader: imageUploader,
-      myPageRepository: myPageRepository
+      myPageRepository: myPageRepository,
+      oauthRepository: oauthRepository
     )
   }()
   

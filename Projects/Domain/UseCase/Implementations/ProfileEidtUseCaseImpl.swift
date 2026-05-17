@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Core
 import Entity
 import UseCase
 import Repository
@@ -16,23 +17,28 @@ public final class ProfileEditUseCaseImpl: ProfileEditUseCase {
   private let loginRepository: LogInRepository
   private let imageUploader: PresignedImageUploader
   private let myPageRepository: MyPageRepository
-  
+  private let oauthRepository: OAuthRepository
+
   public init(
     authRepository: AuthRepository,
     loginRepository: LogInRepository,
     imageUploader: PresignedImageUploader,
-    myPageRepository: MyPageRepository
+    myPageRepository: MyPageRepository,
+    oauthRepository: OAuthRepository
   ) {
     self.authRepository = authRepository
     self.loginRepository = loginRepository
     self.imageUploader = imageUploader
     self.myPageRepository = myPageRepository
+    self.oauthRepository = oauthRepository
   }
 }
 
 public extension ProfileEditUseCaseImpl {
   func loadUserProfile() async throws -> UserProfile {
-    return try await myPageRepository.fetchUserProfile()
+    let profile = try await myPageRepository.fetchUserProfile()
+    ServiceConfiguration.shared.setAuthProvider(profile.provider.rawValue)
+    return profile
   }
   
   func updateProfileImage(_ imageData: Data, type: String) async throws -> URL? {
@@ -42,8 +48,22 @@ public extension ProfileEditUseCaseImpl {
     return try await myPageRepository.uploadProfileImage(path: url)
   }
   
-  func withdraw(with password: String) async throws {
-    try await myPageRepository.deleteUserAccount(password: password)
+  func withdraw(with credential: WithdrawCredential) async throws {
+    switch credential {
+    case let .password(password):
+      try await myPageRepository.deleteUserAccount(password: password)
+    case let .oauth(provider):
+      switch provider {
+      case .kakao:
+        try await oauthRepository.withdrawKakao()
+      case .google:
+        try await oauthRepository.withdrawGoogle()
+      case .apple:
+        try await oauthRepository.withdrawApple()
+      case .normal:
+        break
+      }
+    }
     authRepository.removeToken()
   }
   

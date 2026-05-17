@@ -37,7 +37,8 @@ let project = Project.make(
         .Project.Data.DTO,
         .Project.Data.DataMapper,
         .Project.Data.PhotiNetwork,
-        .Project.Domain.Repository
+        .Project.Domain.Repository,
+        .SPM.KakaoSDKUser
       ]
     ),
     .make(
