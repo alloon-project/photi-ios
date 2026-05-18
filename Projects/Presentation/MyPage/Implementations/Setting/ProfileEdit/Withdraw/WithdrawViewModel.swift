@@ -115,6 +115,8 @@ private extension WithdrawViewModel {
 
   @MainActor
   func withdrawOAuth(provider: AuthProvider) async {
+    defer { isLoadingSubject.send(false) }
+
     isLoadingSubject.send(true)
 
     do {
