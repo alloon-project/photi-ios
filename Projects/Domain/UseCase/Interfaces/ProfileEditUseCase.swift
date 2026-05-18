@@ -12,7 +12,7 @@ import Entity
 public protocol ProfileEditUseCase {
   func loadUserProfile() async throws -> UserProfile
   func updateProfileImage(_ imageData: Data, type: String) async throws -> URL?
-  func withdraw(with password: String) async throws
+  func withdraw(with credential: WithdrawCredential) async throws
   func changePassword(from password: String, to newPassword: String) async throws
   func sendTemporaryPassword(to email: String, userName: String) async throws
 }

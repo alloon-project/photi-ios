@@ -10,6 +10,7 @@ public struct UserProfileResponseDTO: Decodable {
   public let imageUrl: String?
   public let username: String
   public let email: String
+  public let provider: String?
 }
 
 public extension UserProfileResponseDTO {
@@ -20,7 +21,8 @@ public extension UserProfileResponseDTO {
   "data": {
     "imageUrl": "https://url.kr/5MhHhD",
     "username": "photi",
-    "email": "photi@photi.com"
+    "email": "photi@photi.com",
+    "provider": null
   }
 }
 """

@@ -83,7 +83,7 @@ final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
 private extension WithdrawAuthViewModel {
   @MainActor func withdraw(password: String) async {
     do {
-      try await useCase.withdraw(with: password)
+      try await useCase.withdraw(with: .password(password))
       coordinator?.withdrawalSucceed()
     } catch {
       requestFailed(with: error)

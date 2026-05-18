@@ -20,10 +20,10 @@ final class WithdrawCoordinator: ViewableCoordinator<WithdrawPresentable> {
   weak var listener: WithdrawListener?
 
   private let viewModel: WithdrawViewModel
-  
+
   private let withdrawAuthContainable: WithdrawAuthContainable
   private var withdrawAuthCoordinator: ViewableCoordinating?
-  
+
   init(
     viewControllerable: ViewControllerable,
     viewModel: WithdrawViewModel,
@@ -32,7 +32,7 @@ final class WithdrawCoordinator: ViewableCoordinator<WithdrawPresentable> {
     self.viewModel = viewModel
     self.withdrawAuthContainable = withdrawAuthContainable
     super.init(viewControllerable)
-    viewModel.coodinator = self
+    viewModel.coordinator = self
   }
 }
 
@@ -40,16 +40,16 @@ final class WithdrawCoordinator: ViewableCoordinator<WithdrawPresentable> {
 @MainActor extension WithdrawCoordinator {
   func attachWithdrawAuth() {
     guard withdrawAuthCoordinator == nil else { return }
-    
+
     let coordinator = withdrawAuthContainable.coordinator(listener: self)
     addChild(coordinator)
     viewControllerable.pushViewController(coordinator.viewControllerable, animated: true)
     self.withdrawAuthCoordinator = coordinator
   }
-  
-  func withdrawAuthPassword() {
+
+  func detachWithdrawAuth() {
     guard let coordinator = withdrawAuthCoordinator else { return }
-    
+
     removeChild(coordinator)
     viewControllerable.popViewController(animated: true)
     self.withdrawAuthCoordinator = nil
@@ -61,22 +61,30 @@ extension WithdrawCoordinator: WithdrawCoordinatable {
   func didTapBackButton() {
     listener?.didTapBackButtonAtWithdraw()
   }
-  
+
   func didTapCancelButton() {
     listener?.didTapBackButtonAtWithdraw()
+  }
+
+  func withdrawalSucceed() {
+    listener?.didFinishWithdrawal()
+  }
+
+  func authenticatedFailed() {
+    listener?.authenticatedFailedAtWithdraw()
   }
 }
 
 // MARK: - WithdrawAuthListener
 extension WithdrawCoordinator: WithdrawAuthListener {
   func didTapBackButtonAtWithdrawAuth() {
-    Task { await withdrawAuthPassword() }
+    Task { await detachWithdrawAuth() }
   }
-  
+
   func didFinishWithdrawal() {
     listener?.didFinishWithdrawal()
   }
-  
+
   func authenticatedFailedAtWithdrawAuth() {
     listener?.authenticatedFailedAtWithdraw()
   }

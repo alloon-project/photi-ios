@@ -22,20 +22,20 @@ final class WithdrawContainer:
   WithdrawContainable,
   WithdrawAuthDependency {
   var profileEditUsecase: ProfileEditUseCase { dependency.profileEditUseCase }
-  
+
   func coordinator(listener: WithdrawListener) -> ViewableCoordinating {
-    let viewModel = WithdrawViewModel()
+    let viewModel = WithdrawViewModel(useCase: dependency.profileEditUseCase)
     let viewControllerable = WithdrawViewController(viewModel: viewModel)
-    
+
     let withdrawAuth = WithdrawAuthContainer(dependency: self)
     let coordinator = WithdrawCoordinator(
       viewControllerable: viewControllerable,
       viewModel: viewModel,
       withdrawAuthContainable: withdrawAuth
     )
-    
+
     coordinator.listener = listener
-    
+
     return coordinator
   }
 }

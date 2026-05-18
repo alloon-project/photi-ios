@@ -89,7 +89,8 @@ public extension MyPageDataMapperImpl {
     return .init(
       imageUrl: imageURL(from: dto.imageUrl),
       name: dto.username,
-      email: dto.email
+      email: dto.email,
+      provider: authProvider(from: dto.provider)
     )
   }
   
@@ -107,5 +108,10 @@ private extension MyPageDataMapperImpl {
   func imageURL(from strURL: String?) -> URL? {
     guard let strURL else { return nil }
     return URL(string: strURL)
+  }
+
+  func authProvider(from provider: String?) -> AuthProvider {
+    guard let provider else { return .normal }
+    return AuthProvider(rawValue: provider) ?? .normal
   }
 }
