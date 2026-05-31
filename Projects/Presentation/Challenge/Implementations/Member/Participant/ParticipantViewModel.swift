@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import Core
 import Entity
 import UseCase
@@ -22,7 +22,7 @@ protocol ParticipantCoordinatable: AnyObject {
 protocol ParticipantViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: ParticipantCoordinatable? { get set }
 }
 
@@ -31,50 +31,50 @@ final class ParticipantViewModel: ParticipantViewModelType {
   let challengeId: Int
   let challengeName: String
 
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: ChallengeUseCase
-  
-  private let participants = BehaviorRelay<[ParticipantPresentationModel]>(value: [])
+
+  private let participantsSubject = CurrentValueSubject<[ParticipantPresentationModel], Never>([])
 
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
-    let contentOffset: Signal<Double>
-    let didTapEditButton: Signal<String>
+    let requestData: AnyPublisher<Void, Never>
+    let contentOffset: AnyPublisher<Double, Never>
+    let didTapEditButton: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let participants: Driver<[ParticipantPresentationModel]>
+    let participants: AnyPublisher<[ParticipantPresentationModel], Never>
   }
-  
+
   // MARK: - Initializers
   init(challengeId: Int, challegeName: String, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.challengeName = challegeName
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchParticipants() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.contentOffset
-      .emit(with: self) { owner, offSet in
+      .sinkOnMain(with: self) { owner, offSet in
         owner.coordinator?.didChangeContentOffset(offSet)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapEditButton
-      .emit(with: self) { owner, goal in
+      .sinkOnMain(with: self) { owner, goal in
         owner.coordinator?.didTapEditButton(goal: goal)
       }
-      .disposed(by: disposeBag)
-    
-    return Output(participants: participants.asDriver())
+      .store(in: &cancellables)
+
+    return Output(participants: participantsSubject.eraseToAnyPublisher())
   }
 }
 
@@ -84,10 +84,10 @@ private extension ParticipantViewModel {
     do {
       let members = try await useCase.fetchChallengeMembers(challengeId: challengeId)
       let models = members.map { mapToPresentationModel($0) }
-      participants.accept(models)
+      participantsSubject.send(models)
     } catch {
       requestFailed(with: error)
-    }    
+    }
   }
   
   func mapToPresentationModel(_ member: ChallengeMember) -> ParticipantPresentationModel {
