@@ -7,9 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxGesture
-import RxSwift
+import Combine
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -20,7 +18,8 @@ protocol InvitationCodeViewControllerDelegate: AnyObject {
 }
 
 final class InvitationCodeViewController: UIViewController {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
+  private let codeTextSubject = CurrentValueSubject<String, Never>("")
   weak var delegate: InvitationCodeViewControllerDelegate?
   var keyboardShowNotification: NSObjectProtocol?
   var keyboardHideNotification: NSObjectProtocol?
@@ -147,37 +146,42 @@ private extension InvitationCodeViewController {
 // MARK: - Bind Methods
 private extension InvitationCodeViewController {
   func bind() {
-    dimmedView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        if owner.codeTextField.isEditing {
-          owner.view.endEditing(true)
-        } else {
-          owner.dismissWithAnimation()
-        }
+    setupTapGestures()
+
+    NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification, object: codeTextField)
+      .compactMap { ($0.object as? UITextField)?.text }
+      .sink { [weak self] text in
+        self?.codeTextSubject.send(text)
+        self?.didChangeVerificationCode(text)
       }
-      .disposed(by: disposeBag)
-    
-    codeTextField.rx.text
-      .compactMap { $0 }
-      .bind(with: self) { owner, text in
-        owner.didChangeVerificationCode(text)
+      .store(in: &cancellables)
+
+    confirmButton.tapPublisher
+      .sink { [weak self] in
+        self?.view.endEditing(true)
       }
-      .disposed(by: disposeBag)
-    
-    confirmButton.rx.tap
-      .bind(with: self) { owner, _ in
-        owner.view.endEditing(true)
+      .store(in: &cancellables)
+
+    confirmButton.tapPublisher
+      .withLatestFrom(codeTextSubject)
+      .sink { [weak self] code in
+        guard let self else { return }
+        self.delegate?.didTapUnlockButton(self, code: code)
       }
-      .disposed(by: disposeBag)
-    
-    confirmButton.rx.tap
-      .withLatestFrom(codeTextField.rx.text)
-      .compactMap { $0 }
-      .bind(with: self) { owner, code in
-        owner.delegate?.didTapUnlockButton(owner, code: code)
-      }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
+  }
+
+  func setupTapGestures() {
+    let dimmedTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapDimmedView))
+    dimmedView.addGestureRecognizer(dimmedTapGesture)
+  }
+
+  @objc func didTapDimmedView() {
+    if codeTextField.isEditing {
+      view.endEditing(true)
+    } else {
+      dismissWithAnimation()
+    }
   }
 }
 
