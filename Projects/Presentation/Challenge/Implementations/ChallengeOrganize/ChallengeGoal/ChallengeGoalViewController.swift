@@ -9,20 +9,17 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class ChallengeGoalViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
-  
+  private var cancellables = Set<AnyCancellable>()
+
   private let mode: ChallengeOrganizeMode
   private let viewModel: ChallengeGoalViewModel
-  private let proveTimeRelay = PublishRelay<String>()
-  private let endDateRelay = PublishRelay<Date>()
+  private let proveTimeSubject = PassthroughSubject<String, Never>()
+  private let endDateSubject = PassthroughSubject<Date, Never>()
   private var selectedHour: Int = 13
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -117,8 +114,8 @@ final class ChallengeGoalViewController: UIViewController, ViewControllerable {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     if case .modify = mode {
-      proveTimeRelay.accept(proveTimeTextField.text ?? "")
-      endDateRelay.accept(dateTextField.endDate ?? Date())
+      proveTimeSubject.send(proveTimeTextField.text ?? "")
+      endDateSubject.send(dateTextField.endDate ?? Date())
     }
   }
   
@@ -238,62 +235,36 @@ private extension ChallengeGoalViewController {
 // MARK: - Bind Methods
 private extension ChallengeGoalViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
-    let challengeGoal: ControlProperty<String> = {
-      let values = Observable<String>.create { [weak challengeGoalTextView] observer in
-        guard let textView = challengeGoalTextView else { return Disposables.create() }
-        let cancellable = textView.textPublisher
-          .sink { value in observer.onNext(value) }
-        return Disposables.create { cancellable.cancel() }
-      }
-
-      let sink = AnyObserver<String> { [weak challengeGoalTextView] event in
-        if case .next(let text) = event {
-          challengeGoalTextView?.text = text
-        }
-      }
-      return ControlProperty(values: values, valueSink: sink)
-    }()
-    
     let input = ChallengeGoalViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      challengeGoal: challengeGoal,
-      proveTime: proveTimeRelay.asObservable(),
-      date: endDateRelay.asObservable(),
-      didTapNextButton: nextButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      challengeGoal: challengeGoalTextView.textPublisher,
+      proveTime: proveTimeSubject.eraseToAnyPublisher(),
+      date: endDateSubject.eraseToAnyPublisher(),
+      didTapNextButton: nextButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     bind(for: output)
-    
     viewBind()
   }
-  
+
   func bind(for output: ChallengeGoalViewModel.Output) {
     output.isEnabledNextButton
-      .drive(with: self) { owner, isEnabled in
+      .sinkOnMain(with: self) { owner, isEnabled in
         owner.nextButton.isEnabled = isEnabled
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
-  
+
   func viewBind() {
-    downImageView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.showTimePickerBottomSheet()
-      }.disposed(by: disposeBag)
-    
+    let tapGesture = UITapGestureRecognizer()
+    downImageView.addGestureRecognizer(tapGesture)
+    downImageView.isUserInteractionEnabled = true
+    tapGesture.addAction(UIAction { [weak self] _ in
+      self?.showTimePickerBottomSheet()
+    }, for: .ended)
+
     dateTextField.didTapButtonPublisher
-      .sink(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.showCalendar()
       }.store(in: &cancellables)
   }
@@ -342,7 +313,7 @@ extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
   func didSelect(hour: Int) {
     guard let timeString = hour.hourToTimeString() else { return }
     proveTimeTextField.text = timeString
-    proveTimeRelay.accept(timeString)
+    proveTimeSubject.send(timeString)
     proveComment.isActivate = true
     selectedHour = hour
   }
@@ -350,7 +321,7 @@ extension ChallengeGoalViewController: TimePickerBottomSheetDelegate {
 
 extension ChallengeGoalViewController: DatePickerBottomSheetDelegate {
   func didSelect(date: Date) {
-    endDateRelay.accept(date)
+    endDateSubject.send(date)
     dateTextField.endDate = date
   }
 }
