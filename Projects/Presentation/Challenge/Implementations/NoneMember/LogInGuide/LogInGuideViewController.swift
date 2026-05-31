@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -17,7 +16,7 @@ import DesignSystem
 final class LogInGuideViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let viewModel: LogInGuideViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -95,29 +94,12 @@ private extension LogInGuideViewController {
 // MARK: - Bind Methods
 private extension LogInGuideViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = LogInGuideViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapLogInButton: button.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapLogInButton: button.tapPublisher
     )
-    let output = viewModel.transform(input: input)
-    
-    viewBind()
-    viewModelBind(for: output)
+    _ = viewModel.transform(input: input)
   }
-  
-  func viewBind() { }
-  
-  func viewModelBind(for output: LogInGuideViewModel.Output) { }
 }
 
 // MARK: - LogInGuidePresentable
