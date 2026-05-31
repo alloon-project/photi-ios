@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import Entity
 import UseCase
 
@@ -20,7 +20,7 @@ protocol DescriptionCoordinatable: AnyObject {
 protocol DescriptionViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: DescriptionCoordinatable? { get set }
 }
 
@@ -28,48 +28,47 @@ final class DescriptionViewModel: DescriptionViewModelType {
   weak var coordinator: DescriptionCoordinatable?
   private let challengeId: Int
   private let useCase: ChallengeUseCase
-  private let disposeBag = DisposeBag()
-  
-  private let descriptionRelay = BehaviorRelay<ChallengeDescription?>(value: nil)
-  private let descriptionObservable: Observable<ChallengeDescription>
+  private var cancellables = Set<AnyCancellable>()
+
+  private let descriptionSubject = CurrentValueSubject<ChallengeDescription?, Never>(nil)
 
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
+    let requestData: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let rules: Driver<[String]>
-    let proveTime: Driver<String>
-    let goal: Driver<String>
-    let duration: Driver<String>
+    let rules: AnyPublisher<[String], Never>
+    let proveTime: AnyPublisher<String, Never>
+    let goal: AnyPublisher<String, Never>
+    let duration: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Initializers
   init(challengeId: Int, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.useCase = useCase
-    self.descriptionObservable = descriptionRelay.compactMap { $0 }
   }
-  
+
   func transform(input: Input) -> Output {
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchDescription() }
       }
-      .disposed(by: disposeBag)
-    
-    let proveTime = descriptionObservable.map { $0.proveTime.toString("HH : mm") }
-    let duration = descriptionObservable.map {
+      .store(in: &cancellables)
+
+    let descriptionPublisher = descriptionSubject.compactMap { $0 }.eraseToAnyPublisher()
+    let proveTime = descriptionPublisher.map { $0.proveTime.toString("HH : mm") }.eraseToAnyPublisher()
+    let duration = descriptionPublisher.map {
       "\($0.startDate.toString("yyyy.MM.dd")) ~ \($0.endDate.toString("yyyy-MM-dd"))"
-    }
-    
+    }.eraseToAnyPublisher()
+
     return Output(
-      rules: descriptionObservable.map { $0.rules }.asDriver(onErrorJustReturn: []),
-      proveTime: proveTime.asDriver(onErrorJustReturn: ""),
-      goal: descriptionObservable.map { $0.goal }.asDriver(onErrorJustReturn: ""),
-      duration: duration.asDriver(onErrorJustReturn: "")
+      rules: descriptionPublisher.map { $0.rules }.eraseToAnyPublisher(),
+      proveTime: proveTime,
+      goal: descriptionPublisher.map { $0.goal }.eraseToAnyPublisher(),
+      duration: duration
     )
   }
 }
@@ -79,7 +78,7 @@ private extension DescriptionViewModel {
   func fetchDescription() async {
     do {
       let description = try await useCase.fetchChallengeDescription(id: challengeId)
-      self.descriptionRelay.accept(description)
+      self.descriptionSubject.send(description)
     } catch {
       requestFailed(with: error)
     }
