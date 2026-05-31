@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -23,11 +22,11 @@ final class EnterChallengeGoalViewController: UIViewController, ViewControllerab
   
   // MARK: - Properties
   private let viewModel: EnterChallengeGoalViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeGoalMode
   private let challengeName: String
 
-  private let didTapSkipButtonRelay = PublishRelay<Void>()
+  private let didTapSkipButtonSubject = PassthroughSubject<Void, Never>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -158,24 +157,15 @@ private extension EnterChallengeGoalViewController {
 // MARK: - Bind Methods
 private extension EnterChallengeGoalViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = EnterChallengeGoalViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      goalText: textField.textField.rx.text.orEmpty,
-      didTapSaveButton: saveButton.rx.tap,
-      didTapSkipButton: didTapSkipButtonRelay.asSignal()
+      didTapBackButton: navigationBar.didTapBackButton,
+      goalText: textField.textPublisher,
+      didTapSaveButton: saveButton.tapPublisher,
+      didTapSkipButton: didTapSkipButtonSubject.eraseToAnyPublisher()
     )
+
     let output = viewModel.transform(input: input)
-    
+
     viewBind()
     viewModelBind(for: output)
   }
@@ -187,43 +177,39 @@ private extension EnterChallengeGoalViewController {
   }
   
   func addGoalModeViewBind() {
-    textField.textField.rx.text.orEmpty
+    textField.textPublisher
       .map { $0.isEmpty }
-      .bind(with: self) { owner, isEmpty in
+      .sinkOnMain(with: self) { owner, isEmpty in
         owner.skipButton.isHidden = !isEmpty
         owner.saveButton.isHidden = isEmpty
-      }
-      .disposed(by: disposeBag)
-    
-    skipButton.rx.tap
-      .bind(with: self) { owner, _ in
-        owner.didTapSkipButtonRelay.accept(())
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
+
+    skipButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapSkipButtonSubject.send(())
+      }.store(in: &cancellables)
   }
   
   func viewModelBind(for output: EnterChallengeGoalViewModel.Output) {
-    output.saveButtonisEnabled
-      .drive(saveButton.rx.isEnabled)
-      .disposed(by: disposeBag)
-    
+    output.saveButtonIsEnabled
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.saveButton.isEnabled = isEnabled
+      }.store(in: &cancellables)
+
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.alreadyJoined
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.displayAlreadyJoinPopUp()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.exceedMaximumChallenge
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentExceedMaximumChallengeAlert(message: message)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
