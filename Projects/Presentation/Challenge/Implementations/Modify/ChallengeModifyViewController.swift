@@ -10,8 +10,6 @@ import UIKit
 import Combine
 import Coordinator
 import Kingfisher
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -23,25 +21,24 @@ final class ChallengeModifyViewController: UIViewController, ViewControllerable 
   
   // MARK: - Properties
   private let viewModel: ChallengeModifyViewModel
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
+  private var cancellables = Set<AnyCancellable>()
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
-  private let didTapChallengeNameRelay = PublishRelay<Void>()
-  private let didTapChallengeHashtagRelay = PublishRelay<Void>()
-  private let didTapChallengeGoalRelay = PublishRelay<Void>()
-  private let didTapChallengeCoverRelay = PublishRelay<Void>()
-  private let didTapChallengeRuleRelay = PublishRelay<Void>()
-  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
-  
-  private let titleTextRelay = PublishRelay<String>()
-  private let hashtagsRelay = PublishRelay<[String]>()
-  private let proveTimeRelay = PublishRelay<String>()
-  private let goalRelay = PublishRelay<String>()
-  private let imageRelay = PublishRelay<UIImageWrapper>()
-  private let rulesRelay = PublishRelay<[String]>()
-  private let endDateRelay = PublishRelay<String>()
+  private let didTapChallengeNameSubject = PassthroughSubject<Void, Never>()
+  private let didTapChallengeHashtagSubject = PassthroughSubject<Void, Never>()
+  private let didTapChallengeGoalSubject = PassthroughSubject<Void, Never>()
+  private let didTapChallengeCoverSubject = PassthroughSubject<Void, Never>()
+  private let didTapChallengeRuleSubject = PassthroughSubject<Void, Never>()
+  private let didTapConfirmButtonAtAlertSubject = PassthroughSubject<Void, Never>()
+
+  private let titleTextSubject = PassthroughSubject<String, Never>()
+  private let hashtagsSubject = PassthroughSubject<[String], Never>()
+  private let proveTimeSubject = PassthroughSubject<String, Never>()
+  private let goalSubject = PassthroughSubject<String, Never>()
+  private let imageSubject = PassthroughSubject<UIImageWrapper, Never>()
+  private let rulesSubject = PassthroughSubject<[String], Never>()
+  private let endDateSubject = PassthroughSubject<String, Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -209,7 +206,7 @@ private extension ChallengeModifyViewController {
   
   func renderThumbnail(from urlString: String) {
     guard let url = URL(string: urlString) else { return }
-    
+
     thumbnailImageView.kf.setImage(
       with: url,
       options: [.callbackQueue(.mainCurrentOrAsync)]
@@ -217,9 +214,9 @@ private extension ChallengeModifyViewController {
       guard let self else { return }
       switch result {
         case .success(let imageResult):
-          self.imageRelay.accept(UIImageWrapper(image: imageResult.image))
+          self.imageSubject.send(UIImageWrapper(image: imageResult.image))
         case .failure:
-          self.imageRelay.accept(UIImageWrapper(image: .challengeOrganizeLuckyday))
+          self.imageSubject.send(UIImageWrapper(image: .challengeOrganizeLuckyday))
       }
     }
   }
@@ -228,166 +225,159 @@ private extension ChallengeModifyViewController {
 // MARK: - Bind Methods
 private extension ChallengeModifyViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeModifyViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapChallengeName: didTapChallengeNameRelay.asSignal(),
-      didTapChallengeHashtag: didTapChallengeHashtagRelay.asSignal(),
-      didTapChallengeGoal: didTapChallengeGoalRelay.asSignal(),
-      didTapChallengeCover: didTapChallengeCoverRelay.asSignal(),
-      didTapChallengeRule: didTapChallengeRuleRelay.asSignal(),
-      didTapModifyButton: modifyButton.rx.tap,
-      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      titleText: titleTextRelay.asSignal(),
-      hashtags: hashtagsRelay.asSignal(),
-      proveTime: proveTimeRelay.asSignal(),
-      goal: goalRelay.asSignal(),
-      image: imageRelay.asSignal(),
-      rules: rulesRelay.asSignal(),
-      endDate: endDateRelay.asSignal()
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapChallengeName: didTapChallengeNameSubject.eraseToAnyPublisher(),
+      didTapChallengeHashtag: didTapChallengeHashtagSubject.eraseToAnyPublisher(),
+      didTapChallengeGoal: didTapChallengeGoalSubject.eraseToAnyPublisher(),
+      didTapChallengeCover: didTapChallengeCoverSubject.eraseToAnyPublisher(),
+      didTapChallengeRule: didTapChallengeRuleSubject.eraseToAnyPublisher(),
+      didTapModifyButton: modifyButton.tapPublisher,
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlertSubject.eraseToAnyPublisher(),
+      titleText: titleTextSubject.eraseToAnyPublisher(),
+      hashtags: hashtagsSubject.eraseToAnyPublisher(),
+      proveTime: proveTimeSubject.eraseToAnyPublisher(),
+      goal: goalSubject.eraseToAnyPublisher(),
+      image: imageSubject.eraseToAnyPublisher(),
+      rules: rulesSubject.eraseToAnyPublisher(),
+      endDate: endDateSubject.eraseToAnyPublisher()
     )
-    
+
     let output = viewModel.transform(input: input)
-    
+
     viewBind()
     bind(for: output)
   }
   
   func viewBind() {
-    ruleView.rx.didTapViewAllRulesButton
-      .bind(with: self) { owner, rules in
+    ruleView.didTapViewAllRulesButton
+      .sinkOnMain(with: self) { owner, rules in
         owner.displayRuleDetailViewController(rules)
-      }
-      .disposed(by: disposeBag)
-    
-    challengeTitleLabel.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeNameRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    hashTagCollectionView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeHashtagRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    goalView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeGoalRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    verificationTimeView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeGoalRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    deadLineView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeGoalRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    thumbnailImageView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeCoverRelay.accept(())
-      }.disposed(by: disposeBag)
-    
-    ruleView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
-        owner.didTapChallengeRuleRelay.accept(())
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
+
+    setupTapGestures()
+  }
+
+  func setupTapGestures() {
+    let titleTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapTitle))
+    challengeTitleLabel.isUserInteractionEnabled = true
+    challengeTitleLabel.addGestureRecognizer(titleTapGesture)
+
+    let hashTagTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapHashtag))
+    hashTagCollectionView.addGestureRecognizer(hashTagTapGesture)
+
+    let goalTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapGoal))
+    goalView.addGestureRecognizer(goalTapGesture)
+
+    let verificationTimeTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapGoal))
+    verificationTimeView.addGestureRecognizer(verificationTimeTapGesture)
+
+    let deadLineTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapGoal))
+    deadLineView.addGestureRecognizer(deadLineTapGesture)
+
+    let thumbnailTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapCover))
+    thumbnailImageView.isUserInteractionEnabled = true
+    thumbnailImageView.addGestureRecognizer(thumbnailTapGesture)
+
+    let ruleTapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapRule))
+    ruleView.addGestureRecognizer(ruleTapGesture)
+  }
+
+  @objc func didTapTitle() {
+    didTapChallengeNameSubject.send(())
+  }
+
+  @objc func didTapHashtag() {
+    didTapChallengeHashtagSubject.send(())
+  }
+
+  @objc func didTapGoal() {
+    didTapChallengeGoalSubject.send(())
+  }
+
+  @objc func didTapCover() {
+    didTapChallengeCoverSubject.send(())
+  }
+
+  @objc func didTapRule() {
+    didTapChallengeRuleSubject.send(())
   }
   
   func bind(for output: ChallengeModifyViewModel.Output) {
     output.presentationModel
-      .drive(with: self) { owner, model in
+      .sinkOnMain(with: self) { owner, model in
         owner.render(with: model)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.notChallengeMember
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.fileTooLargeError
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.imageTypeError
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.notPartyManager
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.notExistChallenge
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentAlertWaring(message: message)
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
-// MARK: - NoneMemberChallengePresentable
+// MARK: - ChallengeModifyPresentable
 extension ChallengeModifyViewController: ChallengeModifyPresentable {
   func modifyName(name: String) {
     configureTitleLabel(name)
-    titleTextRelay.accept(name)
+    titleTextSubject.send(name)
   }
-  
+
   func modifyGoal(goal: String, verificationTime: String, endDate: String) {
     goalView.goal = goal
     verificationTimeView.verificationTime = verificationTime
     deadLineView.deadLine = endDate
-    
-    goalRelay.accept(goal)
-    proveTimeRelay.accept(verificationTime)
-    endDateRelay.accept(endDate)
+
+    goalSubject.send(goal)
+    proveTimeSubject.send(verificationTime)
+    endDateSubject.send(endDate)
   }
-  
+
   func modifyCover(image: UIImageWrapper) {
     thumbnailImageView.image = image.image
-    imageRelay.accept(image)
+    imageSubject.send(image)
   }
-  
+
   func modifyHashtags(hashtags: [String]) {
     self.hashTags = hashtags
-    hashtagsRelay.accept(hashtags)
+    hashtagsSubject.send(hashtags)
   }
-  
+
   func modifyRules(rules: [String]) {
     ruleView.rules = rules
-    rulesRelay.accept(rules)
+    rulesSubject.send(rules)
   }
-  
+
   func presentAlertWaring(message: String) {
     let alert = AlertViewController(alertType: .confirm, title: message)
     alert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
+        owner.didTapConfirmButtonAtAlertSubject.send(())
       }.store(in: &cancellables)
     alert.present(to: self, animted: true)
   }

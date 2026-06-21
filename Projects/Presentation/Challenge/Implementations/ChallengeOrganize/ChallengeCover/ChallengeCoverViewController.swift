@@ -7,10 +7,9 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
 import Kingfisher
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -23,14 +22,13 @@ final class ChallengeCoverViewController: UIViewController, ViewControllerable, 
       imageCollectionView.reloadData()
     }
   }
-  private let didTapSmapleImageCell = PublishRelay<Int>()
 
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeCoverViewModel
-  
-  private let viewDidLoadRelay = PublishRelay<Void>()
-  private var coverImageRelay: BehaviorRelay<UIImageWrapper> = BehaviorRelay(
-    value: .init(image: .challengeOrganizeLuckyday)
+
+  private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
+  private let coverImageSubject = CurrentValueSubject<UIImageWrapper, Never>(
+    .init(image: .challengeOrganizeLuckyday)
   )
   
   // MARK: - UI Components
@@ -93,14 +91,14 @@ final class ChallengeCoverViewController: UIViewController, ViewControllerable, 
   // MARK: - Life Cylces
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+
     setupUI()
     bind()
-    
+
     imageCollectionView.delegate = self
     imageCollectionView.dataSource = self
     imageCollectionView.registerCell(SampleImageCell.self)
-    viewDidLoadRelay.accept(())
+    viewDidLoadSubject.send(())
   }
   
   // MARK: - UI Responder
@@ -186,39 +184,29 @@ private extension ChallengeCoverViewController {
 // MARK: - Bind Methods
 private extension ChallengeCoverViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeCoverViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: backButtonEvent,
-      challengeCoverImage: coverImageRelay.asObservable(),
-      didTapNextButton: nextButton.rx.tap
+      viewDidLoad: viewDidLoadSubject.eraseToAnyPublisher(),
+      didTapBackButton: navigationBar.didTapBackButton,
+      challengeCoverImage: coverImageSubject.eraseToAnyPublisher(),
+      didTapNextButton: nextButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     bind(for: output)
   }
-  
+
   func bind(for output: ChallengeCoverViewModel.Output) {
     output.sampleImages
-      .emit(with: self) { owner, imageList in
+      .sinkOnMain(with: self) { owner, imageList in
         var newDataSources = [SampleImageCellPresentaionModel(imageUrlString: "Photo")]
         newDataSources.append(contentsOf: imageList.map { SampleImageCellPresentaionModel(imageUrlString: $0) })
         owner.cellDataSources = newDataSources
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.imageSizeError
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentFileTooLargeAlert()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -238,15 +226,13 @@ private extension ChallengeCoverViewController {
 // MARK: - UICollectionView Delegate
 extension ChallengeCoverViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    didTapSmapleImageCell.accept(indexPath.item)
-    
     if indexPath.item == 0 { // 기본일경우
       requestOpenLibrary(delegate: self)
     } else { // 서버에서 받아온 이미지
       guard let url = URL(string: cellDataSources[indexPath.item].imageUrlString) else { return }
       mainImageView.kf.setImage(with: url)
       guard let coverImage = mainImageView.image else { return }
-      coverImageRelay.accept(UIImageWrapper(image: coverImage))
+      coverImageSubject.send(UIImageWrapper(image: coverImage))
     }
   }
 }
@@ -274,8 +260,8 @@ extension ChallengeCoverViewController: UIImagePickerControllerDelegate, UINavig
       return
     }
     picker.dismiss(animated: true)
-    
+
     self.mainImageView.image = image
-    coverImageRelay.accept(UIImageWrapper(image: image))
+    coverImageSubject.send(UIImageWrapper(image: image))
   }
 }

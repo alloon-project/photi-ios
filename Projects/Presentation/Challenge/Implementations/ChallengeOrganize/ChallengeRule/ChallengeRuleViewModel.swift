@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import UseCase
 
 protocol ChallengeRuleCoordinatable: AnyObject {
@@ -18,31 +17,31 @@ protocol ChallengeRuleCoordinatable: AnyObject {
 protocol ChallengeRuleViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ChallengeRuleCoordinatable? { get set }
 }
 
 final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
-  
+
   weak var coordinator: ChallengeRuleCoordinatable?
-    
-  private let isRuleSelected = BehaviorRelay<Bool>(value: false)
+
+  private let isRuleSelectedSubject = CurrentValueSubject<Bool, Never>(false)
+
   // MARK: - Input
   struct Input {
-    var didTapBackButton: ControlEvent<Void>
-    var challengeRules: Signal<[String]>
-    var didTapNextButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let challengeRules: AnyPublisher<[String], Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let isRuleSelected: Driver<Bool>
+    let isRuleSelected: AnyPublisher<Bool, Never>
   }
-  
+
   // MARK: - Initializers
   init(
     mode: ChallengeOrganizeMode,
@@ -51,36 +50,32 @@ final class ChallengeRuleViewModel: ChallengeRuleViewModelType {
     self.mode = mode
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtChallengeRule()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.challengeRules
-      .asObservable()
       .map { rules in
         let hasAtLeastOne = !rules.isEmpty
         let underLimit = rules.count <= 5
         return hasAtLeastOne && underLimit
       }
-      .bind(with: self, onNext: { owner, isSelected in
-        owner.isRuleSelected.accept(isSelected)
-      })
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, isSelected in
+        owner.isRuleSelectedSubject.send(isSelected)
+      }.store(in: &cancellables)
+
     input.didTapNextButton
       .withLatestFrom(input.challengeRules)
-      .bind(with: self) { owner, rules in
+      .sinkOnMain(with: self) { owner, rules in
         owner.coordinator?.didFinishAtChallengeRule(challengeRules: rules)
         owner.useCase.configureChallengePayload(.rules(rules))
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     return Output(
-      isRuleSelected: isRuleSelected.asDriver(onErrorJustReturn: false)
+      isRuleSelected: isRuleSelectedSubject.eraseToAnyPublisher()
     )
   }
 }

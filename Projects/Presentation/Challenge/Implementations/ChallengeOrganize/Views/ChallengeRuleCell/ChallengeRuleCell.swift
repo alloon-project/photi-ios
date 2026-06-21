@@ -7,13 +7,12 @@
 //
 
 import UIKit
+import Combine
 import DesignSystem
-import RxCocoa
-import RxSwift
 
 final class ChallengeRuleCell: UICollectionViewCell {
   // MARK: - Variables
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   var onTapClose: (() -> Void)?
 
   // MARK: - UI Components
@@ -25,7 +24,7 @@ final class ChallengeRuleCell: UICollectionViewCell {
 
     return view
   }()
-  
+
   private let challengeRuleLabel = {
     let label = UILabel()
     label.numberOfLines = 3
@@ -33,37 +32,39 @@ final class ChallengeRuleCell: UICollectionViewCell {
       font: .caption1,
       color: .gray600
     )
-    
+
     return label
   }()
-  
+
   let deleteButton = {
     let button = UIButton()
     button.imageView?.contentMode = .scaleAspectFit
     button.setImage(.closeCircleLight, for: .normal)
     button.setImage(.closeCircleBlue, for: .selected)
-    
+
     button.backgroundColor = .clear
     return button
   }()
-  
+
   // MARK: - Initializers
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
     bind()
   }
-  
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   override func prepareForReuse() {
     super.prepareForReuse()
     onTapClose = nil
+    cancellables.removeAll()
+    bind()
   }
-  
+
   // MARK: - Configure Methods
   func configure(
     with rule: String,
@@ -93,23 +94,23 @@ private extension ChallengeRuleCell {
     setViewHierarchy()
     setConstraints()
   }
-  
+
   func setViewHierarchy() {
     contentView.addSubviews(stackView)
-    
+
     stackView.addArrangedSubviews(challengeRuleLabel, deleteButton)
   }
-  
+
   func setConstraints() {
     stackView.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview().inset(16)
       $0.top.bottom.equalToSuperview()
     }
-    
+
     challengeRuleLabel.snp.makeConstraints {
       $0.height.equalToSuperview()
     }
-    
+
     deleteButton.snp.makeConstraints {
       $0.height.width.equalTo(16)
     }
@@ -119,9 +120,10 @@ private extension ChallengeRuleCell {
 // MARK: - Bind Method
 private extension ChallengeRuleCell {
   func bind() {
-    deleteButton.rx.tap
-      .bind { [weak self] in
+    deleteButton.tapPublisher
+      .sink { [weak self] in
         self?.onTapClose?()
-      }.disposed(by: disposeBag)
+      }
+      .store(in: &cancellables)
   }
 }

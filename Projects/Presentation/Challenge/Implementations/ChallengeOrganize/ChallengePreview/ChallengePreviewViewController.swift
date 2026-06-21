@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -18,10 +17,10 @@ final class ChallengePreviewViewController: UIViewController, ViewControllerable
   enum Constants {
     static let navigationHeight: CGFloat = 56
   }
-  
+
   // MARK: - Properties
   private let viewModel: ChallengePreviewViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
@@ -189,55 +188,41 @@ private extension ChallengePreviewViewController {
 // MARK: - Bind Methods
 private extension ChallengePreviewViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengePreviewViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapOrganizeButton: organizeButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapOrganizeButton: organizeButton.tapPublisher
     )
     let output = viewModel.transform(input: input)
     bind(for: output)
     viewBind()
   }
-  
+
   func viewBind() {
-    ruleView.rx.didTapViewAllRulesButton
-      .bind(with: self) { owner, rules in
+    ruleView.didTapViewAllRulesButton
+      .sinkOnMain(with: self) { owner, rules in
         owner.displayRuleDetailViewController(rules)
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
-  
+
   func bind(for output: ChallengePreviewViewModel.Output) {
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.emptyFileError
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentEmptyImageAlert(message: message)
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.exceedChallengeMaximum
-      .emit(with: self) { owner, message in
+      .sinkOnMain(with: self) { owner, message in
         owner.presentExceedMaximumChallengeAlert(message: message)
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     output.isLoading
-      .emit { $0 ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop() }
-      .disposed(by: disposeBag)
+      .sinkOnMain { $0 ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop() }
+      .store(in: &cancellables)
   }
 }
 

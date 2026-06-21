@@ -7,8 +7,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxCocoa
+import Combine
 import CoreUI
 import Entity
 import UseCase
@@ -21,59 +20,57 @@ protocol ChallengePreviewCoordinatable: AnyObject {
 protocol ChallengePreviewViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: ChallengePreviewCoordinatable? { get set }
 }
 
 final class ChallengePreviewViewModel: ChallengePreviewViewModelType, @unchecked Sendable {
   weak var coordinator: ChallengePreviewCoordinatable?
-  private let disposeBag = DisposeBag()
-  
+  private var cancellables = Set<AnyCancellable>()
+
   private let useCase: OrganizeUseCase
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let exceedChallengeMaximumRelay = PublishRelay<String>()
-  private let emptyFileErrorRelay = PublishRelay<String>()
-  private let isLoadingRelay = PublishRelay<Bool>()
-  
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let exceedChallengeMaximumSubject = PassthroughSubject<String, Never>()
+  private let emptyFileErrorSubject = PassthroughSubject<String, Never>()
+  private let isLoadingSubject = PassthroughSubject<Bool, Never>()
+
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapOrganizeButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapOrganizeButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let isLoading: Signal<Bool>
-    let networkUnstable: Signal<Void>
-    let exceedChallengeMaximum: Signal<String>
-    let emptyFileError: Signal<String>
+    let isLoading: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let exceedChallengeMaximum: AnyPublisher<String, Never>
+    let emptyFileError: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Initializers
   init(useCase: OrganizeUseCase) {
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtPreview()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapOrganizeButton
-      .throttle(.seconds(5), latest: false, scheduler: MainScheduler.instance)
-      .bind(with: self) { owner, _ in
+      .throttle(for: .seconds(5), scheduler: DispatchQueue.main, latest: false)
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.organizeChallenge() }
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     return Output(
-      isLoading: isLoadingRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      exceedChallengeMaximum: exceedChallengeMaximumRelay.asSignal(),
-      emptyFileError: emptyFileErrorRelay.asSignal()
-      )
+      isLoading: isLoadingSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      exceedChallengeMaximum: exceedChallengeMaximumSubject.eraseToAnyPublisher(),
+      emptyFileError: emptyFileErrorSubject.eraseToAnyPublisher()
+    )
   }
 }
 
@@ -83,32 +80,32 @@ private extension ChallengePreviewViewModel {}
 // MARK: - API Methods
 private extension ChallengePreviewViewModel {
   @MainActor func organizeChallenge() async {
-    isLoadingRelay.accept(true)
-    
+    isLoadingSubject.send(true)
+
     do {
       let challenge = try await useCase.organizeChallenge()
-      isLoadingRelay.accept(false)
+      isLoadingSubject.send(false)
       coordinator?.didFinishOrganizeChallenge(challengeId: challenge.id)
     } catch {
       requestFailed(with: error)
-      isLoadingRelay.accept(false)
+      isLoadingSubject.send(false)
     }
   }
-  
+
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
-    
+
     switch error {
     case .organazieFailed(.challengeLimitExceed):
       let message = "챌린지는 최대 20개까지 참여할 수 있습니다."
-      exceedChallengeMaximumRelay.accept(message)
+      exceedChallengeMaximumSubject.send(message)
     case .organazieFailed(.emptyFileInvalid):
       let message = "비어있는 파일은 저장할 수 없습니다."
-      emptyFileErrorRelay.accept(message)
+      emptyFileErrorSubject.send(message)
     default:
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
 }

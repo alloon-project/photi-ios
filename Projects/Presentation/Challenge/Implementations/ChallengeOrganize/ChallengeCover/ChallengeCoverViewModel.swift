@@ -6,9 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import Foundation
-import RxCocoa
-import RxSwift
 import CoreUI
 import Entity
 import UseCase
@@ -21,37 +20,36 @@ protocol ChallengeCoverCoordinatable: AnyObject {
 protocol ChallengeCoverViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ChallengeCoverCoordinatable? { get set }
 }
 
 final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
 
   weak var coordinator: ChallengeCoverCoordinatable?
-  
-  private let sampleImagesRelay = PublishRelay<[String]>()
-  private let requestFailedRelay = PublishRelay<Void>()
-  private let imageSizeErrorRelay = PublishRelay<Void>()
+
+  private let sampleImagesSubject = PassthroughSubject<[String], Never>()
+  private let requestFailedSubject = PassthroughSubject<Void, Never>()
+  private let imageSizeErrorSubject = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
-    let didTapBackButton: ControlEvent<Void>
-    let challengeCoverImage: Observable<UIImageWrapper>
-    let didTapNextButton: ControlEvent<Void>
+    let viewDidLoad: AnyPublisher<Void, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let challengeCoverImage: AnyPublisher<UIImageWrapper, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let sampleImages: Signal<[String]>
-    let requestFailed: Signal<Void>
-    let imageSizeError: Signal<Void>
+    let sampleImages: AnyPublisher<[String], Never>
+    let requestFailed: AnyPublisher<Void, Never>
+    let imageSizeError: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Initializers
   init(
     mode: ChallengeOrganizeMode,
@@ -60,36 +58,34 @@ final class ChallengeCoverViewModel: ChallengeCoverViewModelType {
     self.mode = mode
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.viewDidLoad
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchCoverImages() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtChallengeCover()
-      }
-      .disposed(by: disposeBag)
-  
+      }.store(in: &cancellables)
+
     input.didTapNextButton
       .withLatestFrom(input.challengeCoverImage)
-      .bind(with: self) { owner, image in
+      .sinkOnMain(with: self) { owner, image in
         guard let (data, type) = owner.imageToData(image, maxMB: 8) else {
-          owner.imageSizeErrorRelay.accept(())
+          owner.imageSizeErrorSubject.send(())
           return
         }
         owner.coordinator?.didFinishedChallengeCover(coverImage: image)
         owner.useCase.configureChallengePayload(.image(data))
         owner.useCase.configureChallengePayload(.imageType(type))
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     return Output(
-      sampleImages: sampleImagesRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal(),
-      imageSizeError: imageSizeErrorRelay.asSignal()
+      sampleImages: sampleImagesSubject.eraseToAnyPublisher(),
+      requestFailed: requestFailedSubject.eraseToAnyPublisher(),
+      imageSizeError: imageSizeErrorSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -99,24 +95,24 @@ private extension ChallengeCoverViewModel {
   func fetchCoverImages() async {
     do {
       let images = try await useCase.fetchChallengeSampleImages()
-      sampleImagesRelay.accept(images)
+      sampleImagesSubject.send(images)
     } catch {
       fetchImagesFailed(with: error)
     }
   }
-  
+
   func fetchImagesFailed(with error: Error) {
     guard let error = error as? APIError else { return }
-    
+
     switch error {
       default:
-        requestFailedRelay.accept(())
+        requestFailedSubject.send(())
     }
   }
-  
+
   func imageToData(_ image: UIImageWrapper, maxMB: Int) -> (image: Data, type: String)? {
     let maxSizeBytes = maxMB * 1024 * 1024
-    
+
     if let data = image.image.pngData(), data.count <= maxSizeBytes {
       return (data, "png")
     } else if let data = image.image.converToJPEG(maxSizeMB: 8) {

@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Foundation
+import Combine
 import Core
 import Entity
 import UseCase
@@ -25,8 +25,7 @@ protocol ChallengeCoordinatable: AnyObject {
 protocol ChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ChallengeCoordinatable? { get set }
 }
 
@@ -38,67 +37,67 @@ enum DropDownMenu: String {
 
 final class ChallengeViewModel: ChallengeViewModelType {
   private let useCase: ChallengeUseCase
-  
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
+
   let challengeId: Int
   var challengeDetail: ChallengeDetail?
   private(set) var challengeName: String = ""
-  
+
   weak var coordinator: ChallengeCoordinatable?
-  
-  private let challengeModelRelay = BehaviorRelay<ChallengeTitlePresentationModel>(value: .default)
-  private let memberCount = BehaviorRelay<Int>(value: 0)
-  private let dropDownMenusRelay = BehaviorRelay<[DropDownMenu]>(value: [])
-  private let challengeNotFoundRelay = PublishRelay<Void>()
-  private let networkUnstable = PublishRelay<Void>()
-  
+
+  private let challengeModelSubject = CurrentValueSubject<ChallengeTitlePresentationModel, Never>(.default)
+  private let memberCountSubject = CurrentValueSubject<Int, Never>(0)
+  private let dropDownMenusSubject = CurrentValueSubject<[DropDownMenu], Never>([])
+  private let challengeNotFoundSubject = PassthroughSubject<Void, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
-    let didTapBackButton: Signal<Void>
-    let didTapConfirmButtonAtAlert: Signal<Void>
-    let didTapLeaveButton: Signal<Void>
-    let didTapReportButton: Signal<Void>
-    let didTapEditButton: Signal<Void>
-    let didTapShareButton: Signal<Void>
+    let viewDidLoad: AnyPublisher<Void, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapConfirmButtonAtAlert: AnyPublisher<Void, Never>
+    let didTapLeaveButton: AnyPublisher<Void, Never>
+    let didTapReportButton: AnyPublisher<Void, Never>
+    let didTapEditButton: AnyPublisher<Void, Never>
+    let didTapShareButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let challengeInfo: Driver<ChallengeTitlePresentationModel>
-    let memberCount: Driver<Int>
-    let dropDownMenus: Driver<[DropDownMenu]>
-    let challengeNotFound: Signal<Void>
-    let networnUnstable: Signal<Void>
+    let challengeInfo: AnyPublisher<ChallengeTitlePresentationModel, Never>
+    let memberCount: AnyPublisher<Int, Never>
+    let dropDownMenus: AnyPublisher<[DropDownMenu], Never>
+    let challengeNotFound: AnyPublisher<Void, Never>
+    let networnUnstable: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Initializers
   init(useCase: ChallengeUseCase, challengeId: Int) {
     self.useCase = useCase
     self.challengeId = challengeId
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapReportButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachChallengeReport(challengeId: owner.challengeId) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapLeaveButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.leaveChallenge() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapEditButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         guard let challengeDetail = owner.challengeDetail else { return }
         let viewPresentaionModel = owner.mapToEditPresentaionModel(challengeDetail)
         Task { await
@@ -108,26 +107,26 @@ final class ChallengeViewModel: ChallengeViewModelType {
           )
         }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapConfirmButtonAtAlert
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapConfirmButtonAtAlert()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapShareButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.shareChallenge()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output(
-      challengeInfo: challengeModelRelay.asDriver(),
-      memberCount: memberCount.asDriver(),
-      dropDownMenus: dropDownMenusRelay.asDriver(),
-      challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networnUnstable: networkUnstable.asSignal()
+      challengeInfo: challengeModelSubject.eraseToAnyPublisher(),
+      memberCount: memberCountSubject.eraseToAnyPublisher(),
+      dropDownMenus: dropDownMenusSubject.eraseToAnyPublisher(),
+      challengeNotFound: challengeNotFoundSubject.eraseToAnyPublisher(),
+      networnUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -139,25 +138,25 @@ extension ChallengeViewModel {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
       let model = mapToPresentationModel(challenge)
       challengeDetail = challenge
-      challengeModelRelay.accept(model)
-      memberCount.accept(challenge.memberCount)
+      challengeModelSubject.send(model)
+      memberCountSubject.send(challenge.memberCount)
       challengeName = challenge.name
-      
+
       configureDropDownMenus(creator: challenge.creator)
-      
+
       return challenge
     } catch {
       requestFailed(with: error)
       return nil
     }
   }
-  
+
   func shareChallenge() {
     guard
       let challengeDetail = self.challengeDetail,
       let isPublic = challengeDetail.isPublic
     else { return }
-    
+
     if isPublic { // 전체 공개일경우 바로 공유하기
       coordinator?.didTapShareButton(challengeId: self.challengeId, inviteCode: nil, challengeName: self.challengeName)
     } else { // 친구 공개일경우 초대코드 조회해서 공유하기
@@ -176,7 +175,7 @@ private extension ChallengeViewModel {
       requestFailed(with: error)
     }
   }
-  
+
   func fetchChallengeInviteCode() {
     Task {
       do {
@@ -193,16 +192,16 @@ private extension ChallengeViewModel {
       }
     }
   }
-  
+
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstable.accept(()) }
-    
+    guard let error = error as? APIError else { return networkUnstableSubject.send(()) }
+
     switch error {
     case .authenticationFailed:
       coordinator?.authenticatedFailed()
     case let .challengeFailed(reason) where reason == .challengeNotFound:
-      challengeNotFoundRelay.accept(())
-    default: networkUnstable.accept(())
+      challengeNotFoundSubject.send(())
+    default: networkUnstableSubject.send(())
     }
   }
 }
@@ -211,12 +210,12 @@ private extension ChallengeViewModel {
 private extension ChallengeViewModel {
   func configureDropDownMenus(creator: String) {
     if creator == ServiceConfiguration.shared.userName {
-      dropDownMenusRelay.accept([.edit, .leave])
+      dropDownMenusSubject.send([.edit, .leave])
     } else {
-      dropDownMenusRelay.accept([.report, .leave])
+      dropDownMenusSubject.send([.report, .leave])
     }
   }
-  
+
   func mapToPresentationModel(_ challenge: ChallengeDetail) -> ChallengeTitlePresentationModel {
     return .init(
       title: challenge.name,
@@ -224,7 +223,7 @@ private extension ChallengeViewModel {
       imageURL: challenge.imageUrl
     )
   }
-  
+
   func mapToEditPresentaionModel(_ challengeDetail: ChallengeDetail) -> ModifyPresentationModel {
     return ModifyPresentationModel(
       title: challengeDetail.name,

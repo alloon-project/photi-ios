@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -17,9 +16,9 @@ import DesignSystem
 final class DescriptionViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let viewModel: DescriptionViewModel
-  private let disposeBag = DisposeBag()
-  
-  private let requestData = PublishRelay<Void>()
+  private var cancellables = Set<AnyCancellable>()
+
+  private let requestDataSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let mainContainerView = UIView()
@@ -55,8 +54,8 @@ final class DescriptionViewController: UIViewController, ViewControllerable {
     super.viewDidLoad()
     setupUI()
     bind()
-    
-    requestData.accept(())
+
+    requestDataSubject.send(())
   }
 }
 
@@ -116,27 +115,35 @@ private extension DescriptionViewController {
 // MARK: - Bind Methods
 private extension DescriptionViewController {
   func bind() {
-    let input = DescriptionViewModel.Input(requestData: requestData.asSignal())
+    let input = DescriptionViewModel.Input(requestData: requestDataSubject.eraseToAnyPublisher())
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
   }
-  
+
   func viewModelBind(for output: DescriptionViewModel.Output) {
     output.rules
-      .drive(ruleDescriptionView.rx.rules)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, rules in
+        owner.ruleDescriptionView.rules = rules
+      }
+      .store(in: &cancellables)
+
     output.proveTime
-      .drive(ruleDescriptionView.rx.proveTime)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, proveTime in
+        owner.ruleDescriptionView.proveTime = proveTime
+      }
+      .store(in: &cancellables)
+
     output.goal
-      .drive(goalDescriptionView.rx.content)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, goal in
+        owner.goalDescriptionView.content = goal
+      }
+      .store(in: &cancellables)
+
     output.duration
-      .drive(durationDescriptionView.rx.content)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, duration in
+        owner.durationDescriptionView.content = duration
+      }
+      .store(in: &cancellables)
   }
 }
 

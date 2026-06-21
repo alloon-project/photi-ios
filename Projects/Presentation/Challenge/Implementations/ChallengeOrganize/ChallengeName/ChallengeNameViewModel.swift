@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import UseCase
 
 protocol ChallengeNameCoordinatable: AnyObject {
@@ -18,29 +17,28 @@ protocol ChallengeNameCoordinatable: AnyObject {
 protocol ChallengeNameViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ChallengeNameCoordinatable? { get set }
 }
 
 final class ChallengeNameViewModel: ChallengeNameViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
-  
+
   weak var coordinator: ChallengeNameCoordinatable?
-    
+
   // MARK: - Input
   struct Input {
-    var didTapBackButton: ControlEvent<Void>
-    var challengeName: ControlProperty<String>
-    var isPublicChallenge: Observable<Bool>
-    var didTapNextButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let challengeName: AnyPublisher<String, Never>
+    let isPublicChallenge: AnyPublisher<Bool, Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {}
-  
+
   // MARK: - Initializers
   init(
     mode: ChallengeOrganizeMode,
@@ -49,28 +47,24 @@ final class ChallengeNameViewModel: ChallengeNameViewModelType {
     self.mode = mode
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtChallengeName()
-      }
-      .disposed(by: disposeBag)
-  
+      }.store(in: &cancellables)
+
     input.didTapNextButton
-      .withLatestFrom(
-        Observable.combineLatest(input.challengeName, input.isPublicChallenge)
-        )
-      .bind(with: self) { owner, pieceOfChallenge in
+      .withLatestFrom(input.challengeName.combineLatest(input.isPublicChallenge))
+      .sinkOnMain(with: self) { owner, pieceOfChallenge in
         owner.coordinator?.attachChallengeGoal(
           challengeName: pieceOfChallenge.0,
           isPublic: pieceOfChallenge.1
         )
-         owner.useCase.configureChallengePayload(.name(pieceOfChallenge.0))
-         owner.useCase.configureChallengePayload(.isPublic(pieceOfChallenge.1))
-      }
-      .disposed(by: disposeBag)
-    
+        owner.useCase.configureChallengePayload(.name(pieceOfChallenge.0))
+        owner.useCase.configureChallengePayload(.isPublic(pieceOfChallenge.1))
+      }.store(in: &cancellables)
+
     return Output()
   }
 }
