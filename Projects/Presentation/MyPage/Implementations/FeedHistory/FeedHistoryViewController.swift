@@ -6,11 +6,10 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
 import Kingfisher
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -27,12 +26,12 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
   private let viewModel: FeedHistoryViewModel
   
   // MARK: - Properties
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
-  private let didTapShareButton = PublishRelay<(challengeId: Int, feedId: Int)>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapFeed = PassthroughSubject<(challengeId: Int, feedId: Int), Never>()
+  private let didTapShareButton = PassthroughSubject<(challengeId: Int, feedId: Int), Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -80,7 +79,7 @@ final class FeedHistoryViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -148,21 +147,13 @@ private extension FeedHistoryViewController {
 // MARK: - Bind Method
 private extension FeedHistoryViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = FeedHistoryViewModel.Input(
       didTapBackButton: backButtonEvent,
-      didTapFeed: didTapFeed.asSignal(),
-      didTapShareButton: didTapShareButton.asSignal(),
-      requestData: requestData.asSignal()
+      didTapFeed: didTapFeed.eraseToAnyPublisher(),
+      didTapShareButton: didTapShareButton.eraseToAnyPublisher(),
+      requestData: requestData.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -171,36 +162,36 @@ private extension FeedHistoryViewController {
   
   func bind(for output: FeedHistoryViewModel.Output) {
     output.feeds
-      .drive(with: self) { owner, feeds in
+      .sinkOnMain(with: self) { owner, feeds in
         owner.append(models: feeds)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.requestOpenInsagramStory
-      .emit(with: self) { owner, info in
+      .sinkOnMain(with: self) { owner, info in
         Task { await owner.openInstagramToShareStory(url: info.0, challengeName: info.1) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.deletedChallenge
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentDeletedChallengeToastView()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func bind(for cell: FeedHistoryCell, model: FeedCardPresentationModel) {
-    cell.rx.didTapShareButton
-      .bind(with: self) { owner, _ in
-        owner.didTapShareButton.accept((model.challengeId, model.feedId))
+    cell.didTapShareButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.didTapShareButton.send((model.challengeId, model.feedId))
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -295,12 +286,12 @@ extension FeedHistoryViewController: UICollectionViewDelegate {
     
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapFeed.accept((item.challengeId, item.feedId))
+    didTapFeed.send((item.challengeId, item.feedId))
   }
 }
 

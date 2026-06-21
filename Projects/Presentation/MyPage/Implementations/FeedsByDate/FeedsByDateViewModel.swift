@@ -6,9 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import Foundation
-import RxCocoa
-import RxSwift
 import CoreUI
 import Entity
 import UseCase
@@ -28,24 +27,24 @@ protocol FeedsByDateViewModelType: AnyObject {
 
 final class FeedsByDateViewModel: FeedsByDateViewModelType {
   weak var coordinator: FeedsByDateCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: MyPageUseCase
   let date: Date
   
-  private let feedsRelay = BehaviorRelay<[FeedsByDatePresentationModel]>(value: [])
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let feedsRelay = CurrentValueSubject<[FeedsByDatePresentationModel], Never>([])
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: Signal<Void>
-    let requestData: Signal<Void>
-    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let requestData: AnyPublisher<Void, Never>
+    let didTapFeed: AnyPublisher<(challengeId: Int, feedId: Int), Never>
   }
   
   // MARK: - Output
   struct Output {
-    let feeds: Driver<[FeedsByDatePresentationModel]>
-    let networkUnstable: Signal<Void>
+    let feeds: AnyPublisher<[FeedsByDatePresentationModel], Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -56,26 +55,26 @@ final class FeedsByDateViewModel: FeedsByDateViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.loadFeedsByDate() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapFeed
-      .emit(with: self) { owner, ids in
+      .sinkOnMain(with: self) { owner, ids in
         Task { await owner.coordinator?.attachChallengeWithFeed(challengeId: ids.challengeId, feedId: ids.feedId) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      feeds: feedsRelay.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      feeds: feedsRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -89,19 +88,19 @@ private extension FeedsByDateViewModel {
       let feeds = try await useCase.loadFeeds(byDate: date)
       let models = feeds.map { mapToFeedsByDatePresentationModel($0) }
       
-      feedsRelay.accept(models)
+      feedsRelay.send(models)
     } catch {
       requestFailed(with: error)
     }
   }
   
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     if case .authenticationFailed = error {
       coordinator?.authenticateFailed()
     } else {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }

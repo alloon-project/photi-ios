@@ -6,9 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import Foundation
-import RxCocoa
-import RxSwift
 import CoreUI
 import UseCase
 
@@ -29,7 +28,7 @@ protocol SettingViewModelType: AnyObject {
 final class SettingViewModel: SettingViewModelType {
   weak var coordinator: SettingCoordinatable?
   
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: MyPageUseCase
   private let settingMenuItems: [SettingMenuItem] = [
     .editProfile,
@@ -40,25 +39,25 @@ final class SettingViewModel: SettingViewModelType {
     .logout
   ]
   
-  private let settingMenuItemsRelay = BehaviorRelay<[SettingMenuItem]>(value: [])
-  private let shouldPresentLogoutAlert = PublishRelay<Void>()
-  private let presentPrivacyPolicy = PublishRelay<Void>()
-  private let presentServiceTerms = PublishRelay<Void>()
+  private let settingMenuItemsRelay = CurrentValueSubject<[SettingMenuItem], Never>([])
+  private let shouldPresentLogoutAlert = PassthroughSubject<Void, Never>()
+  private let presentPrivacyPolicy = PassthroughSubject<Void, Never>()
+  private let presentServiceTerms = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: Signal<Void>
-    let requestData: Signal<Void>
-    let didTapSettingMenu: Signal<SettingMenuItem>
-    let requestLogOut: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let requestData: AnyPublisher<Void, Never>
+    let didTapSettingMenu: AnyPublisher<SettingMenuItem, Never>
+    let requestLogOut: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let settingMenuItems: Driver<[SettingMenuItem]>
-    let shouldPresentLogoutAlert: Signal<Void>
-    let presentPrivacyPolicy: Signal<Void>
-    let presentServiceTerms: Signal<Void>
+    let settingMenuItems: AnyPublisher<[SettingMenuItem], Never>
+    let shouldPresentLogoutAlert: AnyPublisher<Void, Never>
+    let presentPrivacyPolicy: AnyPublisher<Void, Never>
+    let presentServiceTerms: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -68,34 +67,34 @@ final class SettingViewModel: SettingViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestData
-      .emit(with: self) { owner, _ in
-        owner.settingMenuItemsRelay.accept(owner.settingMenuItems)
+      .sinkOnMain(with: self) { owner, _ in
+        owner.settingMenuItemsRelay.send(owner.settingMenuItems)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
 
     input.didTapSettingMenu
-      .emit(with: self) { owner, menu in
+      .sinkOnMain(with: self) { owner, menu in
         Task { await owner.navigate(for: menu) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestLogOut
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.requestLogOut()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      settingMenuItems: settingMenuItemsRelay.asDriver(),
-      shouldPresentLogoutAlert: shouldPresentLogoutAlert.asSignal(),
-      presentPrivacyPolicy: presentPrivacyPolicy.asSignal(),
-      presentServiceTerms: presentServiceTerms.asSignal()
+      settingMenuItems: settingMenuItemsRelay.eraseToAnyPublisher(),
+      shouldPresentLogoutAlert: shouldPresentLogoutAlert.eraseToAnyPublisher(),
+      presentPrivacyPolicy: presentPrivacyPolicy.eraseToAnyPublisher(),
+      presentServiceTerms: presentServiceTerms.eraseToAnyPublisher()
     )
   }
 }
@@ -106,9 +105,9 @@ private extension SettingViewModel {
     switch settingMenu {
       case .editProfile: coordinator?.attachProfileEdit()
       case .contactSupport: coordinator?.attachInquiry()
-      case .termsOfService: presentServiceTerms.accept(())
-      case .privacyPolicy: presentPrivacyPolicy.accept(())
-      case .logout: shouldPresentLogoutAlert.accept(())
+      case .termsOfService: presentServiceTerms.send(())
+      case .privacyPolicy: presentPrivacyPolicy.send(())
+      case .logout: shouldPresentLogoutAlert.send(())
       default: break
     }
   }

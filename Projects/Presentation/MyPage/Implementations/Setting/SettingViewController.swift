@@ -9,8 +9,6 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import Core
 import CoreUI
@@ -18,16 +16,15 @@ import DesignSystem
 
 final class SettingViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: SettingViewModel
   private var settingMenuItems = [SettingMenuItem]() {
     didSet { menuTableView.reloadData() }
   }
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapSettingMenu = PublishRelay<SettingMenuItem>()
-  private let requestLogOut = PublishRelay<Void>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapSettingMenu = PassthroughSubject<SettingMenuItem, Never>()
+  private let requestLogOut = PassthroughSubject<Void, Never>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "설정", displayMode: .dark)
@@ -71,7 +68,7 @@ final class SettingViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -109,21 +106,13 @@ private extension SettingViewController {
 // MARK: - Bind Methods
 private extension SettingViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = SettingViewModel.Input(
-      didTapBackButton: backButtonEvent.asSignal(),
-      requestData: requestData.asSignal(),
-      didTapSettingMenu: didTapSettingMenu.asSignal(),
-      requestLogOut: requestLogOut.asSignal()
+      didTapBackButton: backButtonEvent.eraseToAnyPublisher(),
+      requestData: requestData.eraseToAnyPublisher(),
+      didTapSettingMenu: didTapSettingMenu.eraseToAnyPublisher(),
+      requestLogOut: requestLogOut.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -134,32 +123,34 @@ private extension SettingViewController {
   func viewBind() {
     logOutAlertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.requestLogOut.accept(())
+        owner.requestLogOut.send(())
       }.store(in: &cancellables)
   }
   
   func bind(for output: SettingViewModel.Output) {
     output.settingMenuItems
-      .drive(rx.settingMenuItems)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, items in
+        owner.settingMenuItems = items
+      }
+      .store(in: &cancellables)
     
     output.shouldPresentLogoutAlert
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.logOutAlertView.present(to: owner, animted: true)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.presentPrivacyPolicy
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentPrivacyPolicyWebView()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.presentServiceTerms
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentServiceTermsWebView()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -195,7 +186,7 @@ extension SettingViewController: UITableViewDataSource {
 extension SettingViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let item = settingMenuItems[indexPath.row]
-    didTapSettingMenu.accept(item)
+    didTapSettingMenu.send(item)
   }
 }
 

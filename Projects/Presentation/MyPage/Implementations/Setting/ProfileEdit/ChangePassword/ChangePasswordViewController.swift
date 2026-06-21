@@ -6,10 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -19,8 +18,8 @@ final class ChangePasswordViewController: UIViewController, ViewControllerable {
   var keyboardHideNotification: NSObjectProtocol?
   
   private let viewModel: ChangePasswordViewModel
-  private let disposeBag = DisposeBag()
-  private let didTapContinueButton = PublishRelay<Void>()
+  private var cancellables = Set<AnyCancellable>()
+  private let didTapContinueButton = PassthroughSubject<Void, Never>()
   private var isKeyboardDisplay: Bool = false
   private var keyboardOffSet: CGFloat?
   
@@ -229,23 +228,15 @@ private extension ChangePasswordViewController {
 // MARK: - Bind
 private extension ChangePasswordViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = ChangePasswordViewModel.Input(
-      currentPassword: currentPasswordTextField.textField.rx.text.orEmpty,
-      newPassword: newPasswordTextField.textField.rx.text.orEmpty,
-      reEnteredPassword: newPasswordCheckTextField.textField.rx.text.orEmpty,
+      currentPassword: currentPasswordTextField.textField.textPublisher,
+      newPassword: newPasswordTextField.textField.textPublisher,
+      reEnteredPassword: newPasswordCheckTextField.textField.textPublisher,
       didTapBackButton: backButtonEvent,
-      didTapForgetPasswordButton: forgotPasswordButton.rx.tap,
-      didTapChangePasswordButton: changePasswordButton.rx.tap
+      didTapForgetPasswordButton: forgotPasswordButton.tapPublisher,
+      didTapChangePasswordButton: changePasswordButton.tapPublisher
     )
     
     let output = viewModel.transform(input: input)
@@ -254,87 +245,103 @@ private extension ChangePasswordViewController {
   }
   
   func viewBind() {
-    currentPasswordTextField.textField.rx.text.orEmpty
-      .distinctUntilChanged()
-      .bind(with: self) { owner, _ in
+    currentPasswordTextField.textField.textPublisher
+      .removeDuplicates()
+      .sinkOnMain(with: self) { owner, _ in
         guard !owner.currentPasswordTextField.commentViews.isEmpty else { return }
         owner.currentPasswordTextField.mode = .default
         owner.currentPasswordTextField.commentViews = []
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
-    newPasswordTextField.textField.rx.text.orEmpty
-      .distinctUntilChanged()
-      .bind(with: self) { owner, _ in
+    newPasswordTextField.textField.textPublisher
+      .removeDuplicates()
+      .sinkOnMain(with: self) { owner, _ in
         guard owner.newPasswordTextField.commentViews != owner.newPassWordCommentViews else { return }
         owner.newPasswordTextField.mode = .default
         owner.newPasswordTextField.commentViews = owner.newPassWordCommentViews
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func bind(output: ChangePasswordViewModel.Output) {
     output.containAlphabet
-      .drive(containAlphabetCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.containAlphabetCommentView.isActivate = isActivate
+      }
+      .store(in: &cancellables)
     
     output.containNumber
-      .drive(containNumberCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.containNumberCommentView.isActivate = isActivate
+      }
+      .store(in: &cancellables)
     
     output.containSpecial
-      .drive(containSpecialCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.containSpecialCommentView.isActivate = isActivate
+      }
+      .store(in: &cancellables)
     
     output.isValidRange
-      .drive(validRangeCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.validRangeCommentView.isActivate = isActivate
+      }
+      .store(in: &cancellables)
     
     output.isValidNewPassword
       .map { !$0 }
-      .drive(newPasswordCheckTextField.rx.isHidden)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isHidden in
+        owner.newPasswordCheckTextField.isHidden = isHidden
+      }
+      .store(in: &cancellables)
     
     output.isValidNewPassword
       .map { !$0 }
-      .drive(newPasswordCheckTitleLabel.rx.isHidden)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isHidden in
+        owner.newPasswordCheckTitleLabel.isHidden = isHidden
+      }
+      .store(in: &cancellables)
     
     output.isValidNewPassword
       .filter { $0 == false }
-      .drive(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.newPasswordCheckTextField.text = ""
         owner.correnspondNewPasswordCommentView.isActivate = false
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.correspondNewPassword
-      .drive(correnspondNewPasswordCommentView.rx.isActivate)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.correnspondNewPasswordCommentView.isActivate = isActivate
+      }
+      .store(in: &cancellables)
     
     output.isEnabledNextButton
-      .drive(changePasswordButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.changePasswordButton.isEnabled = isEnabled
+      }
+      .store(in: &cancellables)
     
     output.invalidCurrentPassword
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.currentPasswordTextField.mode = .error
         owner.currentPasswordTextField.commentViews = [owner.invalidCurrentPasswordCommentView]
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.duplicatePassword
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.newPasswordTextField.mode = .error
         owner.newPasswordTextField.commentViews = [owner.duplicatePasswordCommentView]
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 

@@ -6,27 +6,25 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import PhotosUI
 import Coordinator
 import Kingfisher
-import RxCocoa
-import RxGesture
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class ProfileEditViewController: UIViewController, ViewControllerable {
   private let viewModel: ProfileEditViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var menuItems = [ProfileEditMenuItem]() {
     didSet { menuTableView.reloadData() }
   }
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapProfileEditMenu = PublishRelay<ProfileEditMenuItem>()
-  private let didSelectImageRelay = PublishRelay<UIImageWrapper>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapProfileEditMenu = PassthroughSubject<ProfileEditMenuItem, Never>()
+  private let didSelectImageRelay = PassthroughSubject<UIImageWrapper, Never>()
 
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, title: "프로필 수정", displayMode: .dark)
@@ -77,7 +75,7 @@ final class ProfileEditViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
     
-    requestData.accept(())
+    requestData.send(())
   }
 }
 
@@ -132,22 +130,14 @@ private extension ProfileEditViewController {
 // MARK: - Bind
 private extension ProfileEditViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = ProfileEditViewModel.Input(
-      didTapBackButton: backButtonEvent.asSignal(),
-      didTapProfileEditMenu: didTapProfileEditMenu.asSignal(),
-      didTapWithdrawButton: withdrawButton.rx.tap.asSignal(),
-      requestData: requestData.asSignal(),
-      didSelectImage: didSelectImageRelay.asSignal()
+      didTapBackButton: backButtonEvent.eraseToAnyPublisher(),
+      didTapProfileEditMenu: didTapProfileEditMenu.eraseToAnyPublisher(),
+      didTapWithdrawButton: withdrawButton.tapPublisher,
+      requestData: requestData.eraseToAnyPublisher(),
+      didSelectImage: didSelectImageRelay.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -156,40 +146,41 @@ private extension ProfileEditViewController {
   }
   
   func viewBind() {
-    profileImageView.rx.tapGesture()
-      .when(.recognized)
-      .bind(with: self) { owner, _ in
+    profileImageView.tapGesturePublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentImagePicker()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func bind(output: ProfileEditViewModel.Output) {
     output.profileEditMenuItemsRelay
-      .drive(rx.menuItems)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, items in
+        owner.menuItems = items
+      }
+      .store(in: &cancellables)
     
     output.profileImageUrl
-      .drive(with: self) { owner, url in
+      .sinkOnMain(with: self) { owner, url in
         Task {
           let image = await owner.profileImage(with: url)
           owner.profileImageView.configureImage(image)
         }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.isSuccessedUploadImage
-      .emit(with: self) { owner, isSuccess in
+      .sinkOnMain(with: self) { owner, isSuccess in
         LoadingAnimation.logo.stop()
         owner.presentToastView(isSuccess: isSuccess)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -227,7 +218,7 @@ extension ProfileEditViewController: UITableViewDataSource {
 extension ProfileEditViewController: UITableViewDelegate {
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let item = menuItems[indexPath.row]
-    didTapProfileEditMenu.accept(item)
+    didTapProfileEditMenu.send(item)
   }
 }
 
@@ -246,7 +237,7 @@ extension ProfileEditViewController: PHPickerViewControllerDelegate {
       DispatchQueue.main.async {
         LoadingAnimation.logo.start(at: self.view)
       }
-      self.didSelectImageRelay.accept(.init(image: image))
+      self.didSelectImageRelay.send(.init(image: image))
     }
   }
 }
