@@ -152,8 +152,6 @@ let project = Project.make(
 				.Project.Domain.UseCase,
 				.Project.Domain.Entity,
 				.Project.DesignSystem,
-				.SPM.RxCocoa,
-				.SPM.RxGesture,
 				.SPM.SnapKit
 			]
 		),
