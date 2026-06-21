@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import UseCase
 
 protocol HashTagResultCoordinatable: AnyObject {
@@ -26,32 +26,32 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   private let useCase: SearchUseCase
   private let modelMapper: SearchChallengePresentaionModelMapper
   
-  private let disposeBag = DisposeBag()
-  private let searchInput: Driver<String>
+  private var cancellables = Set<AnyCancellable>()
+  private let searchInput: AnyPublisher<String, Never>
   private var isFetching = false
   private var isLastPage = false
   private var currentPage = 0
   private var fetchingChallengeTask: Task<Void, Never>?
   
-  private let initialChallengesRelay = BehaviorRelay<[ResultChallengeCardPresentationModel]>(value: [])
-  private let challengesRelay = BehaviorRelay<[ResultChallengeCardPresentationModel]>(value: [])
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let initialChallengesRelay = CurrentValueSubject<[ResultChallengeCardPresentationModel], Never>([])
+  private let challengesRelay = CurrentValueSubject<[ResultChallengeCardPresentationModel], Never>([])
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
-    let didTapChallenge: Signal<Int>
+    let requestData: AnyPublisher<Void, Never>
+    let didTapChallenge: AnyPublisher<Int, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let initialChallenges: Driver<[ResultChallengeCardPresentationModel]>
-    let challenges: Driver<[ResultChallengeCardPresentationModel]>
-    let networkUnstable: Signal<Void>
+    let initialChallenges: AnyPublisher<[ResultChallengeCardPresentationModel], Never>
+    let challenges: AnyPublisher<[ResultChallengeCardPresentationModel], Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
-  init(useCase: SearchUseCase, searchInput: Driver<String>) {
+  init(useCase: SearchUseCase, searchInput: AnyPublisher<String, Never>) {
     self.useCase = useCase
     self.modelMapper = SearchChallengePresentaionModelMapper()
     self.searchInput = searchInput
@@ -61,23 +61,23 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
   func transform(input: Input) -> Output {
     input.requestData
       .withLatestFrom(searchInput)
-      .emit(with: self) { owner, input in
+      .sinkOnMain(with: self) { owner, input in
         owner.fetchingChallengeTask = Task {
           await owner.fetchNextPage(for: input)
         }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapChallenge
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         owner.coordinator?.didTapChallenge(challengeId: id)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      initialChallenges: initialChallengesRelay.asDriver(),
-      challenges: challengesRelay.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      initialChallenges: initialChallengesRelay.eraseToAnyPublisher(),
+      challenges: challengesRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -86,7 +86,7 @@ final class HashTagResultViewModel: HashTagResultViewModelType {
 private extension HashTagResultViewModel {
   func resetAndfetchChallenges(for keyword: String) async {
     guard !keyword.isEmpty else {
-      challengesRelay.accept([])
+      challengesRelay.send([])
       isLastPage = true
       return
     }
@@ -122,9 +122,9 @@ private extension HashTagResultViewModel {
         case .lastPage: isLastPage = true
         default: break
       }
-      currentPage == 0 ? initialChallengesRelay.accept(models) : challengesRelay.accept(models)
+      currentPage == 0 ? initialChallengesRelay.send(models) : challengesRelay.send(models)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }
@@ -133,9 +133,9 @@ private extension HashTagResultViewModel {
 private extension HashTagResultViewModel {
   func bind() {
     searchInput
-      .drive(with: self) { owner, text in
+      .sinkOnMain(with: self) { owner, text in
         Task { await owner.resetAndfetchChallenges(for: text) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }

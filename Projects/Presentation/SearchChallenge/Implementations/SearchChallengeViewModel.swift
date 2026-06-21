@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import Entity
 import UseCase
 
@@ -23,30 +23,30 @@ protocol SearchChallengeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
+  var cancellables: Set<AnyCancellable> { get set }
   var coordinator: SearchChallengeCoordinatable? { get set }
 }
 
 final class SearchChallengeViewModel: SearchChallengeViewModelType {
   private let useCase: SearchUseCase
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   weak var coordinator: SearchChallengeCoordinatable?
   
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let exceedMaxChallengeCountRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
+  private let exceedMaxChallengeCountRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapChallengeOrganizeButton: ControlEvent<Void>
-    let didTapSearchBar: Signal<Void>
-    let didTapLogInButton: Signal<Void>
+    let didTapChallengeOrganizeButton: AnyPublisher<Void, Never>
+    let didTapSearchBar: AnyPublisher<Void, Never>
+    let didTapLogInButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let networkUnstable: Signal<Void>
-    let exceedMaxChallengeCount: Signal<Void>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let exceedMaxChallengeCount: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -56,18 +56,18 @@ final class SearchChallengeViewModel: SearchChallengeViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapChallengeOrganizeButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.handleChallengeOrganizeSelection()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapSearchBar
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didStartSearch()
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     return Output(
-      networkUnstable: networkUnstableRelay.asSignal(),
-      exceedMaxChallengeCount: exceedMaxChallengeCountRelay.asSignal()
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher(),
+      exceedMaxChallengeCount: exceedMaxChallengeCountRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -80,7 +80,7 @@ extension SearchChallengeViewModel {
       
       didJoined ? coordinator?.attachChallenge(id: id) : coordinator?.attachNonememberChallenge(id: id)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }
@@ -90,7 +90,7 @@ private extension SearchChallengeViewModel {
   @MainActor func routeToChallengeOrganizeIfPossible() async {
     let isPossible = await useCase.isPossibleToCreateChallenge()
     
-    isPossible ? coordinator?.attachChallengeOrganize() : exceedMaxChallengeCountRelay.accept(())
+    isPossible ? coordinator?.attachChallengeOrganize() : exceedMaxChallengeCountRelay.send(())
   }
   
   func handleChallengeOrganizeSelection() {
