@@ -17,12 +17,12 @@ let project = Project.make(
 			bundleId: "com.photi.designSystem",
 			sources: ["Sources/**"],
 			resources: ["Resources/**"],
-			dependencies: [
-            .Project.Cores.CoreUI,
-				.SPM.SnapKit,
-				.SPM.Lottie
-      ]
-		)
+            dependencies: [
+                .Project.Cores.CoreUI,
+                .SPM.SnapKit,
+                .SPM.Lottie
+            ]
+        )
 	],
 	resourceSynthesizers: [
 		.fonts(),
