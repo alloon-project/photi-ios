@@ -6,9 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import Foundation
-import RxCocoa
-import RxSwift
 import CoreUI
 import Entity
 import UseCase
@@ -33,31 +32,31 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   weak var coordinator: ProfileEditCoordinatable?
   
   private let useCase: ProfileEditUseCase
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
-  private let profileEditMenuItemsRelay = BehaviorRelay<[ProfileEditMenuItem]>(value: [])
-  private let profileImageUrlRelay = BehaviorRelay<URL?>(value: nil)
-  private let isSuccessedUploadImageRelay = PublishRelay<Bool>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let profileEditMenuItemsRelay = CurrentValueSubject<[ProfileEditMenuItem], Never>([])
+  private let profileImageUrlRelay = CurrentValueSubject<URL?, Never>(nil)
+  private let isSuccessedUploadImageRelay = PassthroughSubject<Bool, Never>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   private var userName: String?
   private var userEmail: String?
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: Signal<Void>
-    let didTapProfileEditMenu: Signal<ProfileEditMenuItem>
-    let didTapWithdrawButton: Signal<Void>
-    let requestData: Signal<Void>
-    let didSelectImage: Signal<UIImageWrapper>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapProfileEditMenu: AnyPublisher<ProfileEditMenuItem, Never>
+    let didTapWithdrawButton: AnyPublisher<Void, Never>
+    let requestData: AnyPublisher<Void, Never>
+    let didSelectImage: AnyPublisher<UIImageWrapper, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let profileEditMenuItemsRelay: Driver<[ProfileEditMenuItem]>
-    let profileImageUrl: Driver<URL?>
-    let isSuccessedUploadImage: Signal<Bool>
-    let networkUnstable: Signal<Void>
+    let profileEditMenuItemsRelay: AnyPublisher<[ProfileEditMenuItem], Never>
+    let profileImageUrl: AnyPublisher<URL?, Never>
+    let isSuccessedUploadImage: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -67,39 +66,39 @@ final class ProfileEditViewModel: ProfileEditViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.loadUserProfile() }
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapProfileEditMenu
-      .emit(with: self) { owner, item in
+      .sinkOnMain(with: self) { owner, item in
         Task { await owner.navigate(to: item) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didSelectImage
-      .emit(with: self) { owner, image in
+      .sinkOnMain(with: self) { owner, image in
         Task { await owner.updateUserProfile(image) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapWithdrawButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachWithdraw() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      profileEditMenuItemsRelay: profileEditMenuItemsRelay.asDriver(),
-      profileImageUrl: profileImageUrlRelay.asDriver(),
-      isSuccessedUploadImage: isSuccessedUploadImageRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      profileEditMenuItemsRelay: profileEditMenuItemsRelay.eraseToAnyPublisher(),
+      profileImageUrl: profileImageUrlRelay.eraseToAnyPublisher(),
+      isSuccessedUploadImage: isSuccessedUploadImageRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -113,8 +112,8 @@ private extension ProfileEditViewModel {
       userEmail = profile.email
       let menuItems: [ProfileEditMenuItem] = [.id(profile.name), .email(profile.email), .editPassword]
       
-      profileEditMenuItemsRelay.accept(menuItems)
-      profileImageUrlRelay.accept(profile.imageUrl)
+      profileEditMenuItemsRelay.send(menuItems)
+      profileImageUrlRelay.send(profile.imageUrl)
     } catch {
       requestFailed(with: error)
     }
@@ -126,15 +125,15 @@ private extension ProfileEditViewModel {
         let (imageData, type) = image.imageToData(maxMB: 8)
       else { throw APIError.myPageFailed(reason: .fileTooLarge) }
       let url = try await useCase.updateProfileImage(imageData, type: type)
-      profileImageUrlRelay.accept(url)
-      isSuccessedUploadImageRelay.accept(true)
+      profileImageUrlRelay.send(url)
+      isSuccessedUploadImageRelay.send(true)
     } catch {
       uploadFailed(with: error)
     }
   }
   
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     switch error {
       case .authenticationFailed:
@@ -142,19 +141,19 @@ private extension ProfileEditViewModel {
       case let .myPageFailed(reason) where reason == .userNotFound:
         coordinator?.authenticatedFailed()
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableRelay.send(())
     }
   }
   
   func uploadFailed(with error: Error) {
-    guard let error = error as? APIError else { return isSuccessedUploadImageRelay.accept(false) }
+    guard let error = error as? APIError else { return isSuccessedUploadImageRelay.send(false) }
     
     switch error {
       case .authenticationFailed:
         coordinator?.authenticatedFailed()
       case let .myPageFailed(reason) where reason == .userNotFound:
         coordinator?.authenticatedFailed()
-      default: isSuccessedUploadImageRelay.accept(false)
+      default: isSuccessedUploadImageRelay.send(false)
     }
   }
 }

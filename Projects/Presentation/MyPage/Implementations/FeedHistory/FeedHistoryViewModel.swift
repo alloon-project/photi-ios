@@ -6,9 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
+import CoreUI
 import Foundation
-import RxCocoa
-import RxSwift
 import Entity
 import UseCase
 
@@ -27,31 +27,31 @@ protocol FeedHistoryViewModelType: AnyObject {
 
 final class FeedHistoryViewModel: FeedHistoryViewModelType {
   weak var coordinator: FeedHistoryCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: MyPageUseCase
   private var isFetching = false
   private var isLastPage = false
   private var currentPage = 0
 
-  private let feedsRelay = BehaviorRelay<[FeedCardPresentationModel]>(value: [])
-  private let requestOpenInsagramStoryRelay = PublishRelay<(URL?, String)>()
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let deletedChallengeRelay = PublishRelay<Void>()
+  private let feedsRelay = CurrentValueSubject<[FeedCardPresentationModel], Never>([])
+  private let requestOpenInsagramStoryRelay = PassthroughSubject<(URL?, String), Never>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
+  private let deletedChallengeRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
-    let didTapShareButton: Signal<(challengeId: Int, feedId: Int)>
-    let requestData: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapFeed: AnyPublisher<(challengeId: Int, feedId: Int), Never>
+    let didTapShareButton: AnyPublisher<(challengeId: Int, feedId: Int), Never>
+    let requestData: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let feeds: Driver<[FeedCardPresentationModel]>
-    let requestOpenInsagramStory: Signal<(URL?, String)>
-    let deletedChallenge: Signal<Void>
-    let networkUnstable: Signal<Void>
+    let feeds: AnyPublisher<[FeedCardPresentationModel], Never>
+    let requestOpenInsagramStory: AnyPublisher<(URL?, String), Never>
+    let deletedChallenge: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -61,36 +61,36 @@ final class FeedHistoryViewModel: FeedHistoryViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapFeed
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         owner.moveToFeedIfActive(challengeId: id.challengeId, feedId: id.feedId)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.loadFeedHistory() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapShareButton
-      .emit(with: self) { owner, info in
+      .sinkOnMain(with: self) { owner, info in
         guard let feedCard = owner.feedCard(challengeId: info.challengeId, feedId: info.feedId) else { return }
         
-        owner.requestOpenInsagramStoryRelay.accept((feedCard.feedImageUrl, feedCard.challengeTitle))
+        owner.requestOpenInsagramStoryRelay.send((feedCard.feedImageUrl, feedCard.challengeTitle))
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      feeds: feedsRelay.asDriver(),
-      requestOpenInsagramStory: requestOpenInsagramStoryRelay.asSignal(),
-      deletedChallenge: deletedChallengeRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      feeds: feedsRelay.eraseToAnyPublisher(),
+      requestOpenInsagramStory: requestOpenInsagramStoryRelay.eraseToAnyPublisher(),
+      deletedChallenge: deletedChallengeRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -110,7 +110,7 @@ private extension FeedHistoryViewModel {
     do {
       let result = try await useCase.loadFeedHistory(page: currentPage, size: 15)
       let models = result.values.map { mapToFeedPresentationModel($0) }
-      feedsRelay.accept(models)
+      feedsRelay.send(models)
       
       switch result {
         case .lastPage: isLastPage = true
@@ -122,12 +122,12 @@ private extension FeedHistoryViewModel {
   }
   
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     if case .authenticationFailed = error {
       coordinator?.authenticateFailed()
     } else {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }
@@ -154,7 +154,7 @@ private extension FeedHistoryViewModel {
     guard let card = feedCard(challengeId: challengeId, feedId: feedId) else { return }
     
     if card.isDeleted {
-      deletedChallengeRelay.accept(())
+      deletedChallengeRelay.send(())
     } else {
       Task { await coordinator?.attachChallengeWithFeed(challengeId: challengeId, feedId: feedId) }
     }
