@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -19,60 +18,59 @@ protocol NoneChallengeHomeCoordinatable: AnyObject {
 protocol NoneChallengeHomeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: NoneChallengeHomeCoordinatable? { get set }
 }
 
 final class NoneChallengeHomeViewModel: NoneChallengeHomeViewModelType {
   private let useCase: HomeUseCase
-  let disposeBag = DisposeBag()
-  
+  private var cancellables = Set<AnyCancellable>()
+
   weak var coordinator: NoneChallengeHomeCoordinatable?
-  
-  private let challengesRelay = PublishRelay<[ChallengePresentationModel]>()
-  private let requestFailedRelay = PublishRelay<Void>()
+
+  private let challengesSubject = PassthroughSubject<[ChallengePresentationModel], Never>()
+  private let requestFailedSubject = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
-    let requestJoinChallenge: Signal<Int>
-    let requestCreateChallenge: Signal<Void>
+    let viewDidLoad: AnyPublisher<Void, Never>
+    let requestJoinChallenge: AnyPublisher<Int, Never>
+    let requestCreateChallenge: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let challenges: Signal<[ChallengePresentationModel]>
-    let requestFailed: Signal<Void>
+    let challenges: AnyPublisher<[ChallengePresentationModel], Never>
+    let requestFailed: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Initializers
   init(useCase: HomeUseCase) {
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.viewDidLoad
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchPopularChallenge() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.requestJoinChallenge
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         Task { await owner.coordinator?.attachNoneMemberChallenge(challengeId: id) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.requestCreateChallenge
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachChallengeOrganize() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
 
     return Output(
-      challenges: challengesRelay.asSignal(),
-      requestFailed: requestFailedRelay.asSignal()
+      challenges: challengesSubject.eraseToAnyPublisher(),
+      requestFailed: requestFailedSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -83,10 +81,10 @@ private extension NoneChallengeHomeViewModel {
     do {
       let response = try await useCase.fetchPopularChallenge()
       let models = response.map { mapToChallengePresentationModel($0) }
-      
-      challengesRelay.accept(models)
+
+      challengesSubject.send(models)
     } catch {
-      requestFailedRelay.accept(())
+      requestFailedSubject.send(())
     }
   }
   

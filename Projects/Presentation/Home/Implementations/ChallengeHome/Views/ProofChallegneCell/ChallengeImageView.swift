@@ -7,38 +7,40 @@
 //
 
 import UIKit
+import Combine
 import Kingfisher
-import RxCocoa
-import RxGesture
-import RxSwift
 import CoreUI
 import DesignSystem
 
 final class ChallengeImageView: UIView {
   typealias ModelType = MyChallengeFeedPresentationModel.ModelType
-  
+
   fileprivate var modelType: ModelType = .didNotProof
-  
+  let didTapImage = PassthroughSubject<Void, Never>()
+
   override var intrinsicContentSize: CGSize {
     return .init(width: 198, height: 198)
   }
-  
+
   // MARK: - UI Components
   private let cornerView: UIView = {
     let view = UIView()
     view.layer.cornerRadius = 8
     return view
   }()
-  fileprivate let imageView =  {
+  fileprivate let imageView = {
     let imageView = UIImageView()
     imageView.contentMode = .scaleAspectFill
-    
+    imageView.isUserInteractionEnabled = true
+
     return imageView
   }()
+
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
     setupUI()
+    setupGesture()
   }
   
   @available(*, unavailable)
@@ -62,6 +64,15 @@ private extension ChallengeImageView {
   func setupUI() {
     setViewHeirarchy()
     setConstraints()
+  }
+
+  func setupGesture() {
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleImageTap))
+    imageView.addGestureRecognizer(tapGesture)
+  }
+
+  @objc func handleImageTap() {
+    didTapImage.send(())
   }
   
   func setupUI(for type: ModelType) {
@@ -120,11 +131,3 @@ private extension ChallengeImageView {
   }
 }
 
-extension Reactive where Base: ChallengeImageView {
-  var didTapImage: ControlEvent<Void> {
-    let observable = base.imageView.rx.tapGesture()
-      .when(.recognized)
-      .map { _ in }
-    return ControlEvent(events: observable)
-  }
-}

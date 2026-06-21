@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxRelay
+import Combine
 import CoreUI
 import DesignSystem
 
@@ -16,9 +15,9 @@ final class HomeBottomView: UIView {
   var dataSources = [MyChallengePresentationModel]() {
     didSet { tableView.reloadData() }
   }
-  
-  let didTapChallenge: Signal<Int>
-  private let didTapChallengeRelay: PublishRelay<Int>
+
+  let didTapChallenge: AnyPublisher<Int, Never>
+  private let didTapChallengeSubject = PassthroughSubject<Int, Never>()
   
   // MARK: - UI Components
   private let seperatorView: UIImageView = {
@@ -53,9 +52,7 @@ final class HomeBottomView: UIView {
   
   // MARK: - Initializers
   init() {
-    let relay = PublishRelay<Int>()
-    self.didTapChallengeRelay = relay
-    self.didTapChallenge = relay.asSignal()
+    self.didTapChallenge = didTapChallengeSubject.eraseToAnyPublisher()
     super.init(frame: .zero)
     setupUI()
     tableView.dataSource = self
@@ -135,7 +132,7 @@ extension HomeBottomView: UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let challengeId = dataSources[indexPath.section].id
-    
-    didTapChallengeRelay.accept(challengeId)
+
+    didTapChallengeSubject.send(challengeId)
   }
 }

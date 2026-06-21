@@ -7,15 +7,15 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxSwift
 import SnapKit
 import DesignSystem
 import CoreUI
 
 final class NoneMemberHomeViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: NoneMemberHomeViewModel
   
   // MARK: - UI Components
@@ -100,8 +100,8 @@ private extension NoneMemberHomeViewController {
 // MARK: - Bind Methods
 private extension NoneMemberHomeViewController {
   func bind() {
-    let input = NoneMemberHomeViewModel.Input(didTapLogInButton: loginButton.rx.tap)
-    
+    let input = NoneMemberHomeViewModel.Input(didTapLogInButton: loginButton.tapPublisher)
+
     viewModel.transform(input: input)
   }
 }

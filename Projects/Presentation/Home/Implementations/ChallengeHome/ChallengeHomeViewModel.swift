@@ -7,8 +7,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxCocoa
+import Combine
 import CoreUI
 import Entity
 import UseCase
@@ -23,7 +22,7 @@ protocol ChallengeHomeCoordinatable: AnyObject {
 protocol ChallengeHomeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: ChallengeHomeCoordinatable? { get set }
 }
 
@@ -34,85 +33,86 @@ enum UploadChallnegeFeedResult {
 
 final class ChallengeHomeViewModel: ChallengeHomeViewModelType {
   weak var coordinator: ChallengeHomeCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: HomeUseCase
   private var firstJoinedChallengeId: Int?
-  
-  private let myChallengeFeedsRelay = BehaviorRelay<[MyChallengeFeedPresentationModel]>(value: [])
-  private let myChallengesRelay = BehaviorRelay<[MyChallengePresentationModel]>(value: [])
-  private let didUploadChallengeFeed = PublishRelay<UploadChallnegeFeedResult>()
-  private let networkUnstableRelay = PublishRelay<String?>()
-  private let fileTooLargeRelay = PublishRelay<Void>()
-  private let alreadProveChallengeRelay = PublishRelay<Void>()
+
+  private let myChallengeFeedsSubject = CurrentValueSubject<[MyChallengeFeedPresentationModel], Never>([])
+  private let myChallengesSubject = CurrentValueSubject<[MyChallengePresentationModel], Never>([])
+  private let didUploadChallengeFeedSubject = PassthroughSubject<UploadChallnegeFeedResult, Never>()
+  private let networkUnstableSubject = PassthroughSubject<String?, Never>()
+  private let fileTooLargeSubject = PassthroughSubject<Void, Never>()
+  private let alreadProveChallengeSubject = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let viewDidAppear: Signal<Void>
-    let requestData: Signal<Void>
-    let didTapChallenge: Signal<Int>
-    let uploadChallengeFeed: Signal<(Int, UIImageWrapper)>
-    let didTapFeed: Signal<(challengeId: Int, feedId: Int)>
+    let viewDidAppear: AnyPublisher<Void, Never>
+    let requestData: AnyPublisher<Void, Never>
+    let didTapChallenge: AnyPublisher<Int, Never>
+    let uploadChallengeFeed: AnyPublisher<(Int, UIImageWrapper), Never>
+    let didTapFeed: AnyPublisher<(challengeId: Int, feedId: Int), Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let myChallengeFeeds: Driver<[MyChallengeFeedPresentationModel]>
-    let myChallenges: Driver<[MyChallengePresentationModel]>
-    let didUploadChallengeFeed: Signal<UploadChallnegeFeedResult>
-    let networkUnstable: Signal<String?>
-    let fileTooLarge: Signal<Void>
-    let alreadProveChallenge: Signal<Void>
+    let myChallengeFeeds: AnyPublisher<[MyChallengeFeedPresentationModel], Never>
+    let myChallenges: AnyPublisher<[MyChallengePresentationModel], Never>
+    let didUploadChallengeFeed: AnyPublisher<UploadChallnegeFeedResult, Never>
+    let networkUnstable: AnyPublisher<String?, Never>
+    let fileTooLarge: AnyPublisher<Void, Never>
+    let alreadProveChallenge: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Initializers
   init(useCase: HomeUseCase, firstJoinedChallengeId: Int? = nil) {
     self.useCase = useCase
     self.firstJoinedChallengeId = firstJoinedChallengeId
   }
-  
+
   func reloadData() {
     Task { await fetchInitialData() }
   }
-  
+
   func transform(input: Input) -> Output {
     input.viewDidAppear
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         guard let id = owner.firstJoinedChallengeId else { return }
         Task { await owner.coordinator?.attachChallenge(id: id) }
         owner.firstJoinedChallengeId = nil
-      }.disposed(by: disposeBag)
-    
+      }
+      .store(in: &cancellables)
+
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchInitialData() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.uploadChallengeFeed
-      .emit(with: self) { owner, info in
+      .sinkOnMain(with: self) { owner, info in
         Task { await owner.uploadChallengeFeed(id: info.0, image: info.1) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapChallenge
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         Task { await owner.coordinator?.attachChallenge(id: id) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapFeed
-      .emit(with: self) { owner, infos in
-        Task { await  owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1) }
+      .sinkOnMain(with: self) { owner, infos in
+        Task { await owner.coordinator?.attachChallengeWithFeed(challengeId: infos.0, feedId: infos.1) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output(
-      myChallengeFeeds: myChallengeFeedsRelay.asDriver(),
-      myChallenges: myChallengesRelay.asDriver(),
-      didUploadChallengeFeed: didUploadChallengeFeed.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      fileTooLarge: fileTooLargeRelay.asSignal(),
-      alreadProveChallenge: alreadProveChallengeRelay.asSignal()
+      myChallengeFeeds: myChallengeFeedsSubject.eraseToAnyPublisher(),
+      myChallenges: myChallengesSubject.eraseToAnyPublisher(),
+      didUploadChallengeFeed: didUploadChallengeFeedSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      fileTooLarge: fileTooLargeSubject.eraseToAnyPublisher(),
+      alreadProveChallenge: alreadProveChallengeSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -128,13 +128,13 @@ private extension ChallengeHomeViewModel {
       }
       let feedModels = mapToMyChallengeFeeds(challenges)
       let challengeModels = mapToMyChallenges(challenges)
-      myChallengeFeedsRelay.accept(feedModels)
-      myChallengesRelay.accept(challengeModels)
+      myChallengeFeedsSubject.send(feedModels)
+      myChallengesSubject.send(challengeModels)
     } catch {
       requestFailed(with: error)
     }
   }
-  
+
   func uploadChallengeFeed(id: Int, image: UIImageWrapper) async {
     do {
       guard
@@ -142,24 +142,24 @@ private extension ChallengeHomeViewModel {
         throw APIError.challengeFailed(reason: .fileTooLarge)
       }
       let feed = try await useCase.uploadChallengeFeed(challengeId: id, imageData: imageData, type: type)
-      didUploadChallengeFeed.accept(.success(challengeId: id, feedId: feed.id, url: feed.imageURL))
+      didUploadChallengeFeedSubject.send(.success(challengeId: id, feedId: feed.id, url: feed.imageURL))
     } catch {
-      didUploadChallengeFeed.accept(.failure)
+      didUploadChallengeFeedSubject.send(.failure)
       requestFailed(with: error, message: "네트워크가 불안정해, 챌린지 인증에 실패했어요.\n다시 시도해주세요.")
     }
   }
-  
+
   func requestFailed(with error: Error, message: String? = nil) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(message) }
-    
+    guard let error = error as? APIError else { return networkUnstableSubject.send(message) }
+
     switch error {
       case .authenticationFailed:
         coordinator?.authenticatedFailed()
       case let .challengeFailed(reason) where reason == .fileTooLarge:
-        fileTooLargeRelay.accept(())
+        fileTooLargeSubject.send(())
       case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
-        alreadProveChallengeRelay.accept(())
-      default: networkUnstableRelay.accept(message)
+        alreadProveChallengeSubject.send(())
+      default: networkUnstableSubject.send(message)
     }
   }
   
