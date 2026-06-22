@@ -9,18 +9,15 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class SearchChallengeViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: SearchChallengeViewModel
   private var segmentIndex: Int = 0
-  private let didTapLogInButton = PublishRelay<Void>()
+  private let didTapLogInButton = PassthroughSubject<Void, Never>()
 
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -124,9 +121,9 @@ private extension SearchChallengeViewController {
 private extension SearchChallengeViewController {
   func bind() {
     let input = SearchChallengeViewModel.Input(
-      didTapChallengeOrganizeButton: challengeOrganizeButton.rx.tap,
-      didTapSearchBar: searchBar.rx.tapGesture().when(.recognized).map { _ in () }.asSignal(onErrorJustReturn: ()),
-      didTapLogInButton: didTapLogInButton.asSignal()
+      didTapChallengeOrganizeButton: challengeOrganizeButton.tapPublisher,
+      didTapSearchBar: searchBar.tapGesturePublisher,
+      didTapLogInButton: didTapLogInButton.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -142,22 +139,22 @@ private extension SearchChallengeViewController {
     
     logInAlertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapLogInButton.accept(())
+        owner.didTapLogInButton.send(())
       }.store(in: &cancellables)
   }
   
   func bind(output: SearchChallengeViewModel.Output) {
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.exceedMaxChallengeCount
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentExceedMaxChallengeCountToastView()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 

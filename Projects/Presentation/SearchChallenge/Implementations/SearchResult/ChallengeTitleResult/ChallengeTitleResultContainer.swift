@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import Coordinator
-import RxCocoa
 import UseCase
 
 protocol ChallengeTitleResultDependency {
@@ -17,14 +17,14 @@ protocol ChallengeTitleResultDependency {
 protocol ChallengeTitleResultContainable: Containable {
   func coordinator(
     listener: ChallengeTitleResultListener,
-    searchInput: Driver<String>
+    searchInput: AnyPublisher<String, Never>
   ) -> ViewableCoordinating
 }
 
 final class ChallengeTitleResultContainer: Container<ChallengeTitleResultDependency>, ChallengeTitleResultContainable {
   func coordinator(
     listener: ChallengeTitleResultListener,
-    searchInput: Driver<String>
+    searchInput: AnyPublisher<String, Never>
   ) -> ViewableCoordinating {
     let viewModel = ChallengeTitleResultViewModel(
       useCase: dependency.searchUseCase,

@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import UseCase
 
 protocol SearchResultCoordinatable: AnyObject {
@@ -32,83 +32,83 @@ final class SearchResultViewModel: SearchResultViewModelType {
   typealias SearchMode = SearchResultViewController.SearchMode
   
   weak var coordinator: SearchResultCoordinatable?
-  let titleSearchInput: Driver<String>
-  let hashTagSearchInput: Driver<String>
+  let titleSearchInput: AnyPublisher<String, Never>
+  let hashTagSearchInput: AnyPublisher<String, Never>
   
-  private let titleSearchInputRelay = BehaviorRelay(value: "")
-  private let hashTagSearchInputRelay = BehaviorRelay(value: "")
-  private let disposeBag = DisposeBag()
+  private let titleSearchInputRelay = CurrentValueSubject<String, Never>("")
+  private let hashTagSearchInputRelay = CurrentValueSubject<String, Never>("")
+  private var cancellables = Set<AnyCancellable>()
   private let useCase: SearchUseCase
   
-  private let searchResultModeRelay = BehaviorRelay<SearchResultMode>(value: .searchInputSuggestion(recent: []))
+  private let searchResultModeRelay = CurrentValueSubject<SearchResultMode, Never>(.searchInputSuggestion(recent: []))
   private var searchMode = SearchMode.title
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
-    let didTapBackButton: Signal<Void>
-    let searchText: Signal<String>
-    let deleteAllRecentSearchInputs: Signal<Void>
-    let deleteRecentSearchInput: Signal<String>
-    let searchMode: Driver<(mode: SearchMode, input: String)>
+    let viewDidLoad: AnyPublisher<Void, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let searchText: AnyPublisher<String, Never>
+    let deleteAllRecentSearchInputs: AnyPublisher<Void, Never>
+    let deleteRecentSearchInput: AnyPublisher<String, Never>
+    let searchMode: AnyPublisher<(mode: SearchMode, input: String), Never>
   }
   
   // MARK: - Output
   struct Output {
-    let searchResultMode: Driver<SearchResultMode>
-    let networkUnstable: Signal<Void>
+    let searchResultMode: AnyPublisher<SearchResultMode, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
   init(useCase: SearchUseCase) {
     self.useCase = useCase
-    titleSearchInput = titleSearchInputRelay.asDriver()
-    hashTagSearchInput = hashTagSearchInputRelay.asDriver()
+    titleSearchInput = titleSearchInputRelay.eraseToAnyPublisher()
+    hashTagSearchInput = hashTagSearchInputRelay.eraseToAnyPublisher()
   }
   
   func transform(input: Input) -> Output {
     input.viewDidLoad
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.updateSearchResultMode("")
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapBackButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.searchText
-      .emit(with: self) { owner, text in
+      .sinkOnMain(with: self) { owner, text in
         owner.enterSearchInput(text)
         owner.updateSearchResultMode(text)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
 
     input.deleteAllRecentSearchInputs
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.deleteAllRecentSearchInputs()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.searchMode
-      .drive(with: self) { owner, search in
+      .sinkOnMain(with: self) { owner, search in
         owner.searchMode = search.mode
         owner.enterSearchInput(search.input)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.deleteRecentSearchInput
-      .emit(with: self) { owner, input in
+      .sinkOnMain(with: self) { owner, input in
         owner.deleteRecentSearchInput(input)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
 
     return Output(
-      searchResultMode: searchResultModeRelay.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      searchResultMode: searchResultModeRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -121,7 +121,7 @@ extension SearchResultViewModel {
       
       didJoined ? coordinator?.attachChallenge(id: id) : coordinator?.attachNonememberChallenge(id: id)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }
@@ -129,23 +129,23 @@ extension SearchResultViewModel {
 // MARK: - Private Methods
 private extension SearchResultViewModel {
   func updateSearchResultMode(_ text: String) {
-    guard text.isEmpty else { return searchResultModeRelay.accept(.searchResult) }
+    guard text.isEmpty else { return searchResultModeRelay.send(.searchResult) }
     let input = useCase.searchHistory()
     let mode: SearchResultMode = text.isEmpty ? .searchInputSuggestion(recent: input) : .searchResult
     
-    searchResultModeRelay.accept(mode)
+    searchResultModeRelay.send(mode)
   }
   
   func enterSearchInput(_ input: String) {
     guard !input.isEmpty else {
-      titleSearchInputRelay.accept(input)
-      hashTagSearchInputRelay.accept(input)
+      titleSearchInputRelay.send(input)
+      hashTagSearchInputRelay.send(input)
       return
     }
     
     switch searchMode {
-      case .title: titleSearchInputRelay.accept(input)
-      case .hashTag: hashTagSearchInputRelay.accept(input)
+      case .title: titleSearchInputRelay.send(input)
+      case .hashTag: hashTagSearchInputRelay.send(input)
     }
     
     useCase.saveSearchKeyword(input)
@@ -153,11 +153,11 @@ private extension SearchResultViewModel {
   
   func deleteAllRecentSearchInputs() {
     useCase.clearSearchHistory()
-    searchResultModeRelay.accept(.searchInputSuggestion(recent: []))
+    searchResultModeRelay.send(.searchInputSuggestion(recent: []))
   }
   
   func deleteRecentSearchInput(_ input: String) {
     let searchHistories = useCase.deleteSearchKeyword(input)
-    searchResultModeRelay.accept(.searchInputSuggestion(recent: searchHistories))
+    searchResultModeRelay.send(.searchInputSuggestion(recent: searchHistories))
   }
 }

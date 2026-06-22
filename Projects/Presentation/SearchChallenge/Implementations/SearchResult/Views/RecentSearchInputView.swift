@@ -6,9 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -16,21 +15,33 @@ import DesignSystem
 final class RecentSearchInputView: UIView {
   typealias DataSourceType = UICollectionViewDiffableDataSource<Int, String>
   typealias SnapShot = NSDiffableDataSourceSnapshot<Int, String>
-  
+
   // MARK: - Properties
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
-  fileprivate let deleteRecentSearchInput = PublishRelay<String>()
-  fileprivate let didTapRecentSearchInput = PublishRelay<String>()
-  
+  fileprivate let deleteRecentSearchInput = PassthroughSubject<String, Never>()
+  fileprivate let didTapRecentSearchInput = PassthroughSubject<String, Never>()
+
+  var deleteRecentSearchInputPublisher: AnyPublisher<String, Never> {
+    deleteRecentSearchInput.eraseToAnyPublisher()
+  }
+
+  var deleteAllRecentSearchInputsPublisher: AnyPublisher<Void, Never> {
+    deleteAllButton.tapPublisher
+  }
+
+  var didTapRecentSearchInputPublisher: AnyPublisher<String, Never> {
+    didTapRecentSearchInput.eraseToAnyPublisher()
+  }
+
   // MARK: - UI Components
   private let titleLabel: UILabel = {
     let label = UILabel()
     label.attributedText = "최근 검색어".attributedString(font: .body1Bold, color: .gray900)
-    
+
     return label
   }()
-  
+
   fileprivate let deleteAllButton = TextButton(text: "전체삭제", size: .xSmall, type: .gray)
   private let recentSearchInputCollectionView: UICollectionView = {
     let layout = UICollectionViewFlowLayout()
@@ -43,10 +54,10 @@ final class RecentSearchInputView: UIView {
     collectionView.showsHorizontalScrollIndicator = false
     collectionView.automaticallyAdjustsScrollIndicatorInsets = false
     collectionView.contentInsetAdjustmentBehavior = .never
-    
+
     return collectionView
   }()
-  
+
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
@@ -68,22 +79,22 @@ private extension RecentSearchInputView {
     setViewHeirarchy()
     setConstraints()
   }
-  
+
   func setViewHeirarchy() {
     addSubviews(titleLabel, deleteAllButton, recentSearchInputCollectionView)
   }
-  
+
   func setConstraints() {
     titleLabel.snp.makeConstraints {
       $0.leading.equalToSuperview()
       $0.centerY.equalTo(deleteAllButton)
     }
-    
+
     deleteAllButton.snp.makeConstraints {
       $0.top.equalToSuperview()
       $0.trailing.equalToSuperview().inset(16)
     }
-    
+
     recentSearchInputCollectionView.snp.makeConstraints {
       $0.top.equalTo(deleteAllButton.snp.bottom).offset(12)
       $0.leading.trailing.bottom.equalToSuperview()
@@ -117,44 +128,44 @@ private extension RecentSearchInputView {
       let cell = collectionView.dequeueCell(RecentSearchInputCell.self, for: indexPath)
       cell.configure(with: input)
       self?.bind(cell: cell, input: input)
-      
+
       return cell
     }
   }
-  
+
   func initialzeDatasource() {
     var snapshot = SnapShot()
     snapshot.appendSections([0])
-    
+
     datasource?.apply(snapshot)
   }
-  
+
   func append(items: [String]) {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
-    
+
     let duplicateItems = items.filter { snapshot.itemIdentifiers.contains($0) }
     snapshot.deleteItems(duplicateItems)
-    
+
     if let first = snapshot.itemIdentifiers.first {
       snapshot.insertItems(items, beforeItem: first)
     } else {
       snapshot.appendItems(items)
     }
-    
+
     datasource.apply(snapshot)
   }
-  
+
   func delete(item: String) {
     guard let datasource else { return }
-    
+
     var snapshot = datasource.snapshot()
-    
+
     guard let model = snapshot.itemIdentifiers.first(where: { $0 == item }) else { return }
     snapshot.deleteItems([model])
     datasource.apply(snapshot)
   }
-  
+
   func deleteAll() {
     guard let datasource else { return }
     var snapshot = datasource.snapshot()
@@ -166,41 +177,26 @@ private extension RecentSearchInputView {
 extension RecentSearchInputView: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapRecentSearchInput.accept(item)
+    didTapRecentSearchInput.send(item)
   }
 }
 
 // MARK: - Private Methods
 private extension RecentSearchInputView {
   func bind() {
-    deleteAllButton.rx.tap
-      .bind(with: self) { owner, _ in
+    deleteAllButton.tapPublisher
+      .sinkOnMain(with: self) { owner, _ in
         owner.deleteAll()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
-  
+
   func bind(cell: RecentSearchInputCell, input: String) {
-    cell.rx.didTapDeleteButton
-      .bind(with: self) { owner, _ in
-        owner.deleteRecentSearchInput.accept(input)
+    cell.didTapDeleteButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.deleteRecentSearchInput.send(input)
         owner.delete(item: input)
       }
-      .disposed(by: disposeBag)
-  }
-}
-
-// MARK: - Reactive Extension
-extension Reactive where Base: RecentSearchInputView {
-  var deleteRecentSearchInput: Signal<String> {
-    return base.deleteRecentSearchInput.asSignal()
-  }
-  
-  var deleteAllRecentSearchInputs: Signal<Void> {
-    return base.deleteAllButton.rx.tap.asSignal()
-  }
-  
-  var didTapRecentSearchInput: Signal<String> {
-    return base.didTapRecentSearchInput.asSignal()
+      .store(in: &cancellables)
   }
 }

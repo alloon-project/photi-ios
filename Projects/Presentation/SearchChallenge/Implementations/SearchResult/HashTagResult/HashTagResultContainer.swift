@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import Coordinator
-import RxCocoa
 import UseCase
 
 protocol HashTagResultDependency {
@@ -17,14 +17,14 @@ protocol HashTagResultDependency {
 protocol HashTagResultContainable: Containable {
   func coordinator(
     listener: HashTagResultListener,
-    searchInput: Driver<String>
+    searchInput: AnyPublisher<String, Never>
   ) -> ViewableCoordinating
 }
 
 final class HashTagResultContainer: Container<HashTagResultDependency>, HashTagResultContainable {
   func coordinator(
     listener: HashTagResultListener,
-    searchInput: Driver<String>
+    searchInput: AnyPublisher<String, Never>
   ) -> ViewableCoordinating {
     let viewModel = HashTagResultViewModel(
      useCase: dependency.searchUseCase,
