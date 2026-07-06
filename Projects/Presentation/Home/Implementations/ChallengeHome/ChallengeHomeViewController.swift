@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import DesignSystem
 import CoreUI
@@ -20,20 +19,20 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
     static let itemLeading: CGFloat = 24
     static let itemTrailing: CGFloat = 45
   }
-  
+
   typealias MyChallengeFeedDataSourceType = UICollectionViewDiffableDataSource<Int, MyChallengeFeedPresentationModel>
   typealias SnapShot = NSDiffableDataSourceSnapshot<Int, MyChallengeFeedPresentationModel>
-  
+
   // MARK: - Properties
   private var uploadChallengeId: Int = 0
   private var datasource: MyChallengeFeedDataSourceType?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeHomeViewModel
-  
-  private let viewDidAppearRelay = PublishRelay<Void>()
-  private let requestData = PublishRelay<Void>()
-  private let uploadChallengeFeed = PublishRelay<(Int, UIImageWrapper)>()
-  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
+
+  private let viewDidAppearSubject = PassthroughSubject<Void, Never>()
+  private let requestDataSubject = PassthroughSubject<Void, Never>()
+  private let uploadChallengeFeedSubject = PassthroughSubject<(Int, UIImageWrapper), Never>()
+  private let didTapFeedSubject = PassthroughSubject<(challengeId: Int, feedId: Int), Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .logo, displayMode: .dark)
@@ -87,12 +86,12 @@ final class ChallengeHomeViewController: UIViewController, CameraRequestable, Vi
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    requestData.accept(())
+    requestDataSubject.send(())
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    viewDidAppearRelay.accept(())
+    viewDidAppearSubject.send(())
   }
 }
 
@@ -150,63 +149,65 @@ private extension ChallengeHomeViewController {
 private extension ChallengeHomeViewController {
   func bind() {
     let input = ChallengeHomeViewModel.Input(
-      viewDidAppear: viewDidAppearRelay.asSignal(),
-      requestData: requestData.asSignal(),
+      viewDidAppear: viewDidAppearSubject.eraseToAnyPublisher(),
+      requestData: requestDataSubject.eraseToAnyPublisher(),
       didTapChallenge: bottomView.didTapChallenge,
-      uploadChallengeFeed: uploadChallengeFeed.asSignal(),
-      didTapFeed: didTapFeed.asSignal()
+      uploadChallengeFeed: uploadChallengeFeedSubject.eraseToAnyPublisher(),
+      didTapFeed: didTapFeedSubject.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     viewModelBind(for: output)
   }
-  
+
   func viewModelBind(for output: ChallengeHomeViewModel.Output) {
     output.myChallengeFeeds
-      .drive(with: self) { owner, challengeFeeds in
+      .sinkOnMain(with: self) { owner, challengeFeeds in
         owner.initalize(models: challengeFeeds)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.myChallenges
-      .drive(bottomView.rx.dataSources)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, myChallenges in
+        owner.bottomView.dataSources = myChallenges
+      }
+      .store(in: &cancellables)
+
     output.didUploadChallengeFeed
-      .emit(with: self) { owner, result in
+      .sinkOnMain(with: self) { owner, result in
         LoadingAnimation.logo.stop()
         if case let .success(challengeId, feedId, url) = result {
           owner.update(challengeId: challengeId, feedId: feedId, url: url)
           owner.presentVerificationSuccessToast()
         }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.networkUnstable
-      .emit(with: self) { owner, reason in
+      .sinkOnMain(with: self) { owner, reason in
         owner.presentNetworkUnstableAlert(reason: reason)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.fileTooLarge
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentFileTooLargeAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
-  
-  func bind(for cell: ProofChallengeCell, isNotProof: Bool) {
-    cell.rx.didTapCameraButton
-      .bind(with: self) { owner, _ in
+
+  func bind(for cell: ProofChallengeCell) {
+    cell.didTapCameraButton
+      .sinkOnMain(with: self) { owner, _ in
         owner.uploadChallengeId = cell.challengeId
         owner.requestOpenCamera(delegate: owner)
       }
-      .disposed(by: disposeBag)
-    
-    cell.rx.didTapFeed
-      .bind(with: self) { owner, infos in
-        owner.didTapFeed.accept(infos)
+      .store(in: &cancellables)
+
+    cell.didTapFeed
+      .sinkOnMain(with: self) { owner, infos in
+        owner.didTapFeedSubject.send(infos)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -222,7 +223,7 @@ extension ChallengeHomeViewController {
       let cell = collectionView.dequeueCell(ProofChallengeCell.self, for: indexPath)
       let isLast = isLastItem(row: indexPath.row)
       cell.configure(with: model, isLast: isLast)
-      bind(for: cell, isNotProof: model.type == .didNotProof)
+      bind(for: cell)
       
       return cell
     }
@@ -277,7 +278,7 @@ extension ChallengeHomeViewController: UIImagePickerControllerDelegate, UINaviga
 extension ChallengeHomeViewController: UploadPhotoPopOverDelegate {
   func upload(_ popOver: UploadPhotoPopOverViewController, image: UIImage) {
     LoadingAnimation.logo.start()
-    uploadChallengeFeed.accept((uploadChallengeId, .init(image: image)))
+    uploadChallengeFeedSubject.send((uploadChallengeId, .init(image: image)))
   }
 }
 

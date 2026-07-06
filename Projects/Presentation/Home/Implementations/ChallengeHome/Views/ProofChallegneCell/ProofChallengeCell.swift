@@ -7,25 +7,39 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import DesignSystem
 import CoreUI
 
 final class ProofChallengeCell: UICollectionViewCell {
   typealias ModelType = MyChallengeFeedPresentationModel.ModelType
-  
+
   // MARK: - Properties
   private(set) var isLast: Bool = false
   private(set) var challengeId: Int = 0
-  
+  private var cancellables = Set<AnyCancellable>()
+
+  var didTapCameraButton: AnyPublisher<Int, Never> {
+    challengeImageView.didTapImage
+      .filter { [weak self] _ in self?.type == .didNotProof }
+      .map { [weak self] _ in self?.challengeId ?? 0 }
+      .eraseToAnyPublisher()
+  }
+
+  var didTapFeed: AnyPublisher<(challengeId: Int, feedId: Int), Never> {
+    challengeImageView.didTapImage
+      .filter { [weak self] _ in self?.type != .didNotProof }
+      .map { [weak self] _ in (challengeId: self?.challengeId ?? 0, feedId: self?.feedId ?? -1) }
+      .eraseToAnyPublisher()
+  }
+
   // MARK: - UI Components
   private let deadLineChip = TextChip(type: .green, size: .large)
   private let titleView = ChallengeTitleView()
   private let seperatorView = UIView()
-  fileprivate var type: ModelType = .didNotProof
-  fileprivate var feedId: Int = -1
-  fileprivate let challengeImageView = ChallengeImageView()
+  private var type: ModelType = .didNotProof
+  private var feedId: Int = -1
+  private let challengeImageView = ChallengeImageView()
   
   // MARK: - Initializers
   override init(frame: CGRect) {
@@ -130,19 +144,3 @@ private extension ProofChallengeCell {
   }
 }
 
-extension Reactive where Base: ProofChallengeCell {
-  var didTapCameraButton: ControlEvent<Int> {
-    let source = base.challengeImageView.rx.didTapImage
-      .filter { _ in base.type == .didNotProof }
-      .map { _ in base.challengeId }
-    return .init(events: source)
-  }
-  
-  var didTapFeed: ControlEvent<(challengeId: Int, feedId: Int)> {
-    let source = base.challengeImageView.rx.didTapImage
-      .filter { _ in base.type != .didNotProof }
-      .map { _ in (challengeId: base.challengeId, feedId: base.feedId) }
-    
-    return .init(events: source)
-  }
-}

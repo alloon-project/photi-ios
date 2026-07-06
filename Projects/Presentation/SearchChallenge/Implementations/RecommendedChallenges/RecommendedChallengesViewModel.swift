@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import UseCase
 
 protocol RecommendedChallengesCoordinatable: AnyObject {
@@ -26,7 +26,7 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   
   private let useCase: SearchUseCase
   private let modelMapper: SearchChallengePresentaionModelMapper
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var fetchingHashTagChallengeTask: Task<Void, Never>?
   private var isFetching = false
   private var isLastPage = false
@@ -38,27 +38,27 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
     }
   }
   
-  private let popularChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
-  private let hashTagsRelay = BehaviorRelay<[String]>(value: [])
-  private let hashTagInitialChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
-  private let hashTagChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let popularChallenges = CurrentValueSubject<[ChallengeCardPresentationModel], Never>([])
+  private let hashTagsRelay = CurrentValueSubject<[String], Never>([])
+  private let hashTagInitialChallenges = CurrentValueSubject<[ChallengeCardPresentationModel], Never>([])
+  private let hashTagChallenges = CurrentValueSubject<[ChallengeCardPresentationModel], Never>([])
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
-    let requestHashTagChallenge: Signal<Void>
-    let didSelectHashTag: Signal<String>
-    let didTapChallenge: Signal<Int>
+    let requestData: AnyPublisher<Void, Never>
+    let requestHashTagChallenge: AnyPublisher<Void, Never>
+    let didSelectHashTag: AnyPublisher<String, Never>
+    let didTapChallenge: AnyPublisher<Int, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let popularChallenges: Driver<[ChallengeCardPresentationModel]>
-    let hashTags: Driver<[String]>
-    let hashTagInitialChallenges: Driver<[ChallengeCardPresentationModel]>
-    let hashTagChallenges: Driver<[ChallengeCardPresentationModel]>
-    let networkUnstable: Signal<Void>
+    let popularChallenges: AnyPublisher<[ChallengeCardPresentationModel], Never>
+    let hashTags: AnyPublisher<[String], Never>
+    let hashTagInitialChallenges: AnyPublisher<[ChallengeCardPresentationModel], Never>
+    let hashTagChallenges: AnyPublisher<[ChallengeCardPresentationModel], Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -69,35 +69,35 @@ final class RecommendedChallengesViewModel: RecommendedChallengesViewModelType {
   
   func transform(input: Input) -> Output {
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchAllData() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didSelectHashTag
-      .emit(with: self) { owner, hashTag in
+      .sinkOnMain(with: self) { owner, hashTag in
         owner.selectedHashTag = hashTag
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.requestHashTagChallenge
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchHashTagChallenge(hashTag: owner.selectedHashTag) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapChallenge
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         owner.coordinator?.didTapChallenge(challengeId: id)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
 
     return Output(
-      popularChallenges: popularChallenges.asDriver(),
-      hashTags: hashTagsRelay.asDriver(),
-      hashTagInitialChallenges: hashTagInitialChallenges.asDriver(),
-      hashTagChallenges: hashTagChallenges.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      popularChallenges: popularChallenges.eraseToAnyPublisher(),
+      hashTags: hashTagsRelay.eraseToAnyPublisher(),
+      hashTagInitialChallenges: hashTagInitialChallenges.eraseToAnyPublisher(),
+      hashTagChallenges: hashTagChallenges.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -111,10 +111,10 @@ private extension RecommendedChallengesViewModel {
       async let hashtags = fetchHastags()
       async let challenges = fetchPopularChallenges()
 
-      try await popularChallenges.accept(challenges)
-      try await hashTagsRelay.accept(hashtags)
+      try await popularChallenges.send(challenges)
+      try await hashTagsRelay.send(hashtags)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
   
@@ -153,9 +153,9 @@ private extension RecommendedChallengesViewModel {
         case .lastPage: isLastPage = true
         default: break
       }
-      currentPage == 0 ? hashTagInitialChallenges.accept(models) : hashTagChallenges.accept(models)
+      currentPage == 0 ? hashTagInitialChallenges.send(models) : hashTagChallenges.send(models)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
   

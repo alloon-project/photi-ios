@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -20,7 +19,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
   
   // MARK: - Properties
   private let viewModel: RecommendedChallengesViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
   private var hashTagIsSticky = false {
     didSet {
@@ -30,10 +29,10 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     }
   }
   
-  private let requestData = PublishRelay<Void>()
-  private let requestHashTagChallenge = PublishRelay<Void>()
-  private let didSelectHashTag = PublishRelay<String>()
-  private let didTapChallenge = PublishRelay<Int>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let requestHashTagChallenge = PassthroughSubject<Void, Never>()
+  private let didSelectHashTag = PassthroughSubject<String, Never>()
+  private let didTapChallenge = PassthroughSubject<Int, Never>()
   
   private var popularChallenges = [ChallengeCardPresentationModel]() {
     didSet { popularChallengesCollectionView.reloadData() }
@@ -103,7 +102,7 @@ final class RecommendedChallengesViewController: UIViewController, ViewControlle
     hashtagChallengeTableView.dataSource = hashTagDataSource
     hashtagChallengeTableView.delegate = self
     
-    requestData.accept(())
+    requestData.send(())
   }
 }
 
@@ -176,10 +175,10 @@ private extension RecommendedChallengesViewController {
 private extension RecommendedChallengesViewController {
   func bind() {
     let input = RecommendedChallengesViewModel.Input(
-      requestData: requestData.asSignal(),
-      requestHashTagChallenge: requestHashTagChallenge.asSignal(),
-      didSelectHashTag: didSelectHashTag.asSignal(),
-      didTapChallenge: didTapChallenge.asSignal()
+      requestData: requestData.eraseToAnyPublisher(),
+      requestHashTagChallenge: requestHashTagChallenge.eraseToAnyPublisher(),
+      didSelectHashTag: didSelectHashTag.eraseToAnyPublisher(),
+      didTapChallenge: didTapChallenge.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     
@@ -188,38 +187,44 @@ private extension RecommendedChallengesViewController {
   }
   
   func viewBind() {
-    popularHashTagView.rx.didSelectHasTag
-      .skip(1)
-      .bind(to: didSelectHashTag)
-      .disposed(by: disposeBag)
+    popularHashTagView.didSelectHashTag
+      .dropFirst()
+      .sinkOnMain(with: self) { owner, hashTag in
+        owner.didSelectHashTag.send(hashTag)
+      }
+      .store(in: &cancellables)
   }
   
   func viewModelBind(for output: RecommendedChallengesViewModel.Output) {
     output.popularChallenges
-      .drive(rx.popularChallenges)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, challenges in
+        owner.popularChallenges = challenges
+      }
+      .store(in: &cancellables)
     
     output.hashTags
-      .drive(popularHashTagView.rx.hashTags)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, hashTags in
+        owner.popularHashTagView.hashTags = hashTags
+      }
+      .store(in: &cancellables)
     
     output.hashTagInitialChallenges
-      .drive(with: self) { owner, models in
+      .sinkOnMain(with: self) { owner, models in
         owner.initialize(with: models)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.hashTagChallenges
-      .drive(with: self) { owner, models in
+      .sinkOnMain(with: self) { owner, models in
         owner.append(models: models)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -236,7 +241,7 @@ extension RecommendedChallengesViewController: UIScrollViewDelegate {
     
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
-    requestHashTagChallenge.accept(())
+    requestHashTagChallenge.send(())
   }
 }
 
@@ -257,7 +262,7 @@ extension RecommendedChallengesViewController: UICollectionViewDataSource {
 extension RecommendedChallengesViewController: UICollectionViewDelegate {
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let item = popularChallenges[indexPath.row]
-    didTapChallenge.accept(item.id)
+    didTapChallenge.send(item.id)
   }
 }
 
@@ -308,7 +313,7 @@ extension RecommendedChallengesViewController: UITableViewDelegate {
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapChallenge.accept(item.id)
+    didTapChallenge.send(item.id)
   }
 }
 

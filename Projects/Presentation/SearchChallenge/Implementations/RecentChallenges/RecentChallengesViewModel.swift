@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import UseCase
 
 protocol RecentChallengesCoordinatable: AnyObject {
@@ -25,27 +25,27 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   weak var coordinator: RecentChallengesCoordinatable?
   private let useCase: SearchUseCase
   private let modelMapper: SearchChallengePresentaionModelMapper
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var isFetching = false
   private var isLastPage = false
   private var currentPage = 0
   
-  private let initialChallenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
-  private let challenges = BehaviorRelay<[ChallengeCardPresentationModel]>(value: [])
+  private let initialChallenges = CurrentValueSubject<[ChallengeCardPresentationModel], Never>([])
+  private let challenges = CurrentValueSubject<[ChallengeCardPresentationModel], Never>([])
   
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
 
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
-    let didTapChallenge: Signal<Int>
+    let requestData: AnyPublisher<Void, Never>
+    let didTapChallenge: AnyPublisher<Int, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let initialChallenges: Driver<[ChallengeCardPresentationModel]>
-    let challenges: Driver<[ChallengeCardPresentationModel]>
-    let networkUnstable: Signal<Void>
+    let initialChallenges: AnyPublisher<[ChallengeCardPresentationModel], Never>
+    let challenges: AnyPublisher<[ChallengeCardPresentationModel], Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -56,21 +56,21 @@ final class RecentChallengesViewModel: RecentChallengesViewModelType {
   
   func transform(input: Input) -> Output {
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchChallenges() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapChallenge
-      .emit(with: self) { owner, id in
+      .sinkOnMain(with: self) { owner, id in
         owner.coordinator?.didTapChallenge(challengeId: id)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      initialChallenges: initialChallenges.asDriver(),
-      challenges: challenges.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      initialChallenges: initialChallenges.eraseToAnyPublisher(),
+      challenges: challenges.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -97,9 +97,9 @@ private extension RecentChallengesViewModel {
         case .lastPage: isLastPage = true
         default: break
       }
-      currentPage == 0 ? initialChallenges.accept(models) : challenges.accept(models)
+      currentPage == 0 ? initialChallenges.send(models) : challenges.send(models)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
 }   

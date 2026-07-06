@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import DesignSystem
 import CoreUI
@@ -19,10 +18,10 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
     static let itemSize = 160.0
     static let groupSpacing = 10.0
   }
-  
+
   // MARK: - Properties
   private let viewModel: NoneChallengeHomeViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var currentPage = 0
   private var dataSource: [ChallengePresentationModel] = [] {
     didSet {
@@ -32,10 +31,10 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
       }
     }
   }
-  
-  private let viewDidLoadRelay = PublishRelay<Void>()
-  private let requestJoinChallenge = PublishRelay<Int>()
-  private let requestCreateChallenge = PublishRelay<Void>()
+
+  private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
+  private let requestJoinChallengeSubject = PassthroughSubject<Int, Never>()
+  private let requestCreateChallengeSubject = PassthroughSubject<Void, Never>()
 
   // MARK: - UI Components
   private let logoImageView: UIImageView = {
@@ -95,12 +94,12 @@ final class NoneChallengeHomeViewController: UIViewController, ViewControllerabl
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+
     challengeImageCollectionView.collectionViewLayout = compositionalLayout()
     challengeImageCollectionView.dataSource = self
     setupUI()
     bind()
-    viewDidLoadRelay.accept(())
+    viewDidLoadSubject.send(())
   }
 }
 
@@ -179,40 +178,44 @@ private extension NoneChallengeHomeViewController {
 private extension NoneChallengeHomeViewController {
   func bind() {
     let input = NoneChallengeHomeViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal(),
-      requestJoinChallenge: requestJoinChallenge.asSignal(),
-      requestCreateChallenge: requestCreateChallenge.asSignal()
+      viewDidLoad: viewDidLoadSubject.eraseToAnyPublisher(),
+      requestJoinChallenge: requestJoinChallengeSubject.eraseToAnyPublisher(),
+      requestCreateChallenge: requestCreateChallengeSubject.eraseToAnyPublisher()
     )
-    
+
     let output = viewModel.transform(input: input)
     viewBind()
     bind(for: output)
   }
-  
+
   func viewBind() {
-    challengeInformationView.rx.didTapJoinButton
-      .bind(to: requestJoinChallenge)
-      .disposed(by: disposeBag)
-    
-    createChallengeInformationView.rx.didTapCreateButton
-      .bind(to: requestCreateChallenge)
-      .disposed(by: disposeBag)
+    challengeInformationView.didTapJoinButton
+      .sinkOnMain(with: self) { owner, id in
+        owner.requestJoinChallengeSubject.send(id)
+      }
+      .store(in: &cancellables)
+
+    createChallengeInformationView.didTapCreateButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.requestCreateChallengeSubject.send(())
+      }
+      .store(in: &cancellables)
   }
-  
+
   func bind(for output: NoneChallengeHomeViewModel.Output) {
     output.challenges
-      .emit(with: self) { owner, challenges in
+      .sinkOnMain(with: self) { owner, challenges in
         owner.dataSource = challenges
         guard !challenges.isEmpty else { return }
         owner.challengeInformationView.configure(with: challenges[owner.currentPage])
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.requestFailed
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
