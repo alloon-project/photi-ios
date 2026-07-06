@@ -6,11 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Kingfisher
-import RxCocoa
-import RxGesture
-import RxSwift
 import CoreUI
 import DesignSystem
 
@@ -18,7 +16,11 @@ final class FeedsByDateImageView: UIView {
   override var intrinsicContentSize: CGSize {
     return .init(width: 198, height: 198)
   }
-  
+
+  var didTapImage: AnyPublisher<Void, Never> {
+    imageView.tapGesturePublisher
+  }
+
   // MARK: - UI Components
   private let cornerView: UIView = {
     let view = UIView()
@@ -26,23 +28,23 @@ final class FeedsByDateImageView: UIView {
     return view
   }()
   fileprivate let imageView = UIImageView()
-  
+
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
     setupUI()
   }
-  
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   // MARK: - Configure Methods
   func configure(with url: URL?) {
     imageView.kf.setImage(with: url)
   }
-  
+
   // MARK: - LayoutSubviews
   override func layoutSubviews() {
     super.layoutSubviews()
@@ -63,24 +65,15 @@ private extension FeedsByDateImageView {
   func setViewHeirarchy() {
     addSubviews(cornerView, imageView)
   }
-  
+
   func setConstraints() {
     cornerView.snp.makeConstraints {
       $0.width.height.equalTo(28)
       $0.bottom.trailing.equalToSuperview()
     }
-    
+
     imageView.snp.makeConstraints {
       $0.edges.equalToSuperview()
     }
-  }
-}
-
-extension Reactive where Base: FeedsByDateImageView {
-  var didTapImage: ControlEvent<Void> {
-    let observable = base.imageView.rx.tapGesture()
-      .when(.recognized)
-      .map { _ in }
-    return ControlEvent(events: observable)
   }
 }

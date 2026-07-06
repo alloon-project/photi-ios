@@ -6,9 +6,9 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Combine
+import CoreUI
 import Foundation
-import RxCocoa
-import RxSwift
 import Entity
 import UseCase
 
@@ -24,44 +24,44 @@ protocol MyPageViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
+  var cancellables: Set<AnyCancellable> { get set }
   var coordinator: MyPageCoordinatable? { get set }
 }
 
 final class MyPageViewModel: MyPageViewModelType {
   private let useCase: MyPageUseCase
   
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   weak var coordinator: MyPageCoordinatable?
-  private let username = BehaviorRelay(value: "")
-  private let profileImageURL = BehaviorRelay<URL?>(value: nil)
-  private let calendarStartDate = BehaviorRelay<Date>(value: Date())
-  private let verifiedChallengeDates = BehaviorRelay<[Date]>(value: [])
-  private let feedHistoryCount = BehaviorRelay(value: 0)
-  private let endedChallengeCount = BehaviorRelay(value: 0)
-  private let todayRelay = BehaviorRelay<Date>(value: Date())
+  private let username = CurrentValueSubject<String, Never>("")
+  private let profileImageURL = CurrentValueSubject<URL?, Never>(nil)
+  private let calendarStartDate = CurrentValueSubject<Date, Never>(Date())
+  private let verifiedChallengeDates = CurrentValueSubject<[Date], Never>([])
+  private let feedHistoryCount = CurrentValueSubject<Int, Never>(0)
+  private let endedChallengeCount = CurrentValueSubject<Int, Never>(0)
+  private let todayRelay = CurrentValueSubject<Date, Never>(Date())
   
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapSettingButton: ControlEvent<Void>
-    let didTapAuthCountBox: ControlEvent<Void>
-    let didTapEndedChallengeBox: ControlEvent<Void>
-    let didBecomeVisible: Signal<Void>
-    let didTapDate: Signal<Date>
+    let didTapSettingButton: AnyPublisher<Void, Never>
+    let didTapAuthCountBox: AnyPublisher<Void, Never>
+    let didTapEndedChallengeBox: AnyPublisher<Void, Never>
+    let didBecomeVisible: AnyPublisher<Void, Never>
+    let didTapDate: AnyPublisher<Date, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let username: Driver<String>
-    let profileImageURL: Driver<URL?>
-    let feedsCount: Driver<Int>
-    let endedChallengeCount: Driver<Int>
-    let calendarStartDate: Driver<Date>
-    let verifiedChallengeDates: Driver<[Date]>
-    let today: Driver<Date>
+    let username: AnyPublisher<String, Never>
+    let profileImageURL: AnyPublisher<URL?, Never>
+    let feedsCount: AnyPublisher<Int, Never>
+    let endedChallengeCount: AnyPublisher<Int, Never>
+    let calendarStartDate: AnyPublisher<Date, Never>
+    let verifiedChallengeDates: AnyPublisher<[Date], Never>
+    let today: AnyPublisher<Date, Never>
   }
   
   // MARK: - Initializers
@@ -71,47 +71,47 @@ final class MyPageViewModel: MyPageViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapSettingButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachSetting() }
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapAuthCountBox
       .withLatestFrom(feedHistoryCount)
       .filter { $0 > 0 }
-      .bind(with: self) { owner, count in
+      .sinkOnMain(with: self) { owner, count in
         Task { await owner.coordinator?.attachFeedHistory(count: count) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapEndedChallengeBox
       .withLatestFrom(endedChallengeCount)
       .filter { $0 > 0 }
-      .bind(with: self) { owner, count in
+      .sinkOnMain(with: self) { owner, count in
         Task { await owner.coordinator?.attachEndedChallenge(count: count) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapDate
-      .emit(with: self) { owner, date in
+      .sinkOnMain(with: self) { owner, date in
         guard owner.verifiedChallengeDates.value.contains(date) else { return }
         Task { await owner.coordinator?.attachFeedsBy(date: date) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didBecomeVisible
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.loadData()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      username: username.asDriver(),
-      profileImageURL: profileImageURL.asDriver(),
-      feedsCount: feedHistoryCount.asDriver(),
-      endedChallengeCount: endedChallengeCount.asDriver(),
-      calendarStartDate: calendarStartDate.asDriver(),
-      verifiedChallengeDates: verifiedChallengeDates.asDriver(),
-      today: todayRelay.asDriver()
+      username: username.eraseToAnyPublisher(),
+      profileImageURL: profileImageURL.eraseToAnyPublisher(),
+      feedsCount: feedHistoryCount.eraseToAnyPublisher(),
+      endedChallengeCount: endedChallengeCount.eraseToAnyPublisher(),
+      calendarStartDate: calendarStartDate.eraseToAnyPublisher(),
+      verifiedChallengeDates: verifiedChallengeDates.eraseToAnyPublisher(),
+      today: todayRelay.eraseToAnyPublisher()
     )
   }
 }
@@ -121,17 +121,17 @@ private extension MyPageViewModel {
   func loadData() {
     Task { await loadUserInformation() }
     Task { await loadVerifiedChallengeDates() }
-    todayRelay.accept(todayDate())
+    todayRelay.send(todayDate())
   }
   
   func loadUserInformation() async {
     do {
       let summary = try await useCase.loadMyPageSummry()
-      username.accept(summary.userName)
-      calendarStartDate.accept(summary.registerDate)
-      profileImageURL.accept(summary.imageUrl)
-      feedHistoryCount.accept(summary.feedCount)
-      endedChallengeCount.accept(summary.endedChallengeCount)
+      username.send(summary.userName)
+      calendarStartDate.send(summary.registerDate)
+      profileImageURL.send(summary.imageUrl)
+      feedHistoryCount.send(summary.feedCount)
+      endedChallengeCount.send(summary.endedChallengeCount)
     } catch {
       requestFailed(with: error)
     }
@@ -140,14 +140,14 @@ private extension MyPageViewModel {
   func loadVerifiedChallengeDates() async {
     do {
       let dates = try await useCase.loadVerifiedChallengeDates()
-      verifiedChallengeDates.accept(dates)
+      verifiedChallengeDates.send(dates)
     } catch {
       requestFailed(with: error)
     }
   }
   
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     switch error {
       case .authenticationFailed:
@@ -155,7 +155,7 @@ private extension MyPageViewModel {
       case let .myPageFailed(reason) where reason == .userNotFound:
         coordinator?.authenticatedFailed()
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableRelay.send(())
     }
   }
 }

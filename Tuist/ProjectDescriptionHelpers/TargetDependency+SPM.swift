@@ -8,19 +8,15 @@
 import ProjectDescription
 
 public extension TargetDependency {
-	enum SPM {}
+    enum SPM {}
 }
 
 public extension TargetDependency.SPM {
-	static let RxSwift = TargetDependency.external(name: "RxSwift")
-	static let RxCocoa = TargetDependency.external(name: "RxCocoa")
-	static let RxRelay = TargetDependency.external(name: "RxRelay")
-	static let RxGesture = TargetDependency.external(name: "RxGesture")
-	static let SnapKit = TargetDependency.external(name: "SnapKit")
-	static let Kingfisher = TargetDependency.external(name: "Kingfisher")
-	static let Lottie = TargetDependency.external(name: "Lottie")
-  static let Coordinator = TargetDependency.external(name: "Coordinator")
-  static let KakaoSDKAuth = TargetDependency.external(name: "KakaoSDKAuth")
-  static let KakaoSDKUser = TargetDependency.external(name: "KakaoSDKUser")
-  static let KakaoSDKCommon = TargetDependency.external(name: "KakaoSDKCommon")
+    static let SnapKit = TargetDependency.external(name: "SnapKit")
+    static let Kingfisher = TargetDependency.external(name: "Kingfisher")
+    static let Lottie = TargetDependency.external(name: "Lottie")
+    static let Coordinator = TargetDependency.external(name: "Coordinator")
+    static let KakaoSDKAuth = TargetDependency.external(name: "KakaoSDKAuth")
+    static let KakaoSDKUser = TargetDependency.external(name: "KakaoSDKUser")
+    static let KakaoSDKCommon = TargetDependency.external(name: "KakaoSDKCommon")
 }

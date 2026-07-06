@@ -6,10 +6,10 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
+import CoreUI
 import Foundation
 
-import RxCocoa
-import RxSwift
 import Entity
 import UseCase
 
@@ -23,31 +23,31 @@ protocol WithdrawAuthViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var disposeBag: DisposeBag { get }
+  var cancellables: Set<AnyCancellable> { get set }
   var coordinator: WithdrawAuthCoordinatable? { get set }
 }
 
 final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   weak var coordinator: WithdrawAuthCoordinatable?
   
   private let useCase: ProfileEditUseCase
-  private let didFailPasswordVerificationRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let didFailPasswordVerificationRelay = PassthroughSubject<Void, Never>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let password: ControlProperty<String>
-    let didTapWithdrawButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let password: AnyPublisher<String, Never>
+    let didTapWithdrawButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let didFailPasswordVerification: Signal<Void>
-    let networkUnstable: Signal<Void>
-    let isEnabledWithdrawButton: Driver<Bool>
+    let didFailPasswordVerification: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let isEnabledWithdrawButton: AnyPublisher<Bool, Never>
   }
   
   // MARK: - Initializers
@@ -57,24 +57,24 @@ final class WithdrawAuthViewModel: WithdrawAuthViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     let isEnabledWithdrawButton = input.password.map { $0.isValidPassword }
     
     input.didTapWithdrawButton
       .withLatestFrom(input.password)
-      .bind(with: self) { owner, password in
+      .sinkOnMain(with: self) { owner, password in
         Task { await owner.withdraw(password: password) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     return Output(
-      didFailPasswordVerification: didFailPasswordVerificationRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      isEnabledWithdrawButton: isEnabledWithdrawButton.asDriver(onErrorJustReturn: false)
+      didFailPasswordVerification: didFailPasswordVerificationRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher(),
+      isEnabledWithdrawButton: isEnabledWithdrawButton.eraseToAnyPublisher()
     )
   }
 }
@@ -91,17 +91,17 @@ private extension WithdrawAuthViewModel {
   }
   
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     switch error {
       case .authenticationFailed:
         coordinator?.authenticatedFailed()
       case let .myPageFailed(reason) where reason == .loginUnAuthenticated:
-        didFailPasswordVerificationRelay.accept(())
+        didFailPasswordVerificationRelay.send(())
       case let .myPageFailed(reason) where reason == .userNotFound:
         coordinator?.authenticatedFailed()
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableRelay.send(())
     }
   }
 }

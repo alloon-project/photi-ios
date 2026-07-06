@@ -6,17 +6,15 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
-import RxRelay
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class WithdrawAuthViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: WithdrawAuthViewModel
 
   // MARK: - UI Components
@@ -103,20 +101,12 @@ private extension WithdrawAuthViewController {
 // MARK: - Bind Method
 private extension WithdrawAuthViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = WithdrawAuthViewModel.Input(
       didTapBackButton: backButtonEvent,
-      password: passwordTextField.textField.rx.text.orEmpty,
-      didTapWithdrawButton: withdrawButton.rx.tap
+      password: passwordTextField.textField.textPublisher,
+      didTapWithdrawButton: withdrawButton.tapPublisher
     )
     
     let output = viewModel.transform(input: input)
@@ -125,30 +115,32 @@ private extension WithdrawAuthViewController {
   }
   
   func viewBind() {
-    passwordTextField.textField.rx.text.orEmpty
+    passwordTextField.textField.textPublisher
       .map { !$0.isEmpty }
-      .bind(with: self) { owner, isEntered in
+      .sinkOnMain(with: self) { owner, isEntered in
         owner.withdrawButton.isEnabled = isEntered
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func bind(for output: WithdrawAuthViewModel.Output) {
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.didFailPasswordVerification
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.didFailPasswordVerificationAlert.present(to: owner, animted: true)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.isEnabledWithdrawButton
-      .drive(withdrawButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.withdrawButton.isEnabled = isEnabled
+      }
+      .store(in: &cancellables)
   }
 }
 

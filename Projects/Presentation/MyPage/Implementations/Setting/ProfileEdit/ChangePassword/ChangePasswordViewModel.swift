@@ -6,8 +6,8 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 import Entity
 import UseCase
 
@@ -29,39 +29,39 @@ protocol ChangePasswordViewModelType {
 
 final class ChangePasswordViewModel: ChangePasswordViewModelType {
   private let useCase: ProfileEditUseCase
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   
   private let name: String
   private let email: String
   
   weak var coordinator: ChangePasswordCoordinatable?
   
-  private let invalidCurrentPasswordRelay = PublishRelay<Void>()
-  private let duplicatePasswordRelay = PublishRelay<Void>()
-  private let networkUnstableRelay = PublishRelay<Void>()
+  private let invalidCurrentPasswordRelay = PassthroughSubject<Void, Never>()
+  private let duplicatePasswordRelay = PassthroughSubject<Void, Never>()
+  private let networkUnstableRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let currentPassword: ControlProperty<String>
-    let newPassword: ControlProperty<String>
-    let reEnteredPassword: ControlProperty<String>
-    let didTapBackButton: ControlEvent<Void>
-    let didTapForgetPasswordButton: ControlEvent<Void>
-    let didTapChangePasswordButton: ControlEvent<Void>
+    let currentPassword: AnyPublisher<String, Never>
+    let newPassword: AnyPublisher<String, Never>
+    let reEnteredPassword: AnyPublisher<String, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapForgetPasswordButton: AnyPublisher<Void, Never>
+    let didTapChangePasswordButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let containAlphabet: Driver<Bool>
-    let containNumber: Driver<Bool>
-    let containSpecial: Driver<Bool>
-    let isValidRange: Driver<Bool>
-    let isValidNewPassword: Driver<Bool>
-    let correspondNewPassword: Driver<Bool>
-    let isEnabledNextButton: Driver<Bool>
-    let invalidCurrentPassword: Signal<Void>
-    let duplicatePassword: Signal<Void>
-    let networkUnstable: Signal<Void>
+    let containAlphabet: AnyPublisher<Bool, Never>
+    let containNumber: AnyPublisher<Bool, Never>
+    let containSpecial: AnyPublisher<Bool, Never>
+    let isValidRange: AnyPublisher<Bool, Never>
+    let isValidNewPassword: AnyPublisher<Bool, Never>
+    let correspondNewPassword: AnyPublisher<Bool, Never>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
+    let invalidCurrentPassword: AnyPublisher<Void, Never>
+    let duplicatePassword: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -86,62 +86,70 @@ final class ChangePasswordViewModel: ChangePasswordViewModelType {
     let isValidRange = input.newPassword
       .map { $0.count >= 8 && $0.count <= 30 }
     
-    let isValidNewPassword = Observable.combineLatest(
-      containAlphabet, containNumber, containSpecial, isValidRange
-    ) { $0 && $1 && $2 && $3 }
+    let isValidNewPassword = containAlphabet
+      .combineLatest(containNumber, containSpecial)
+      .combineLatest(isValidRange)
+      .map { checks, isValidRange in
+        checks.0 && checks.1 && checks.2 && isValidRange
+      }
+      .eraseToAnyPublisher()
     
-    let correspondNewPassword = Observable.combineLatest(
-      input.newPassword, input.reEnteredPassword
-    ) { $0 == $1 }
+    let correspondNewPassword = input.newPassword
+      .combineLatest(input.reEnteredPassword)
+      .map { password, reEnteredPassword in
+        password == reEnteredPassword
+      }
+      .eraseToAnyPublisher()
 
-    let isEnabledNextButton = Observable.combineLatest(
-      isValidNewPassword, correspondNewPassword, input.currentPassword.map { $0.isValidPassword }
-    ) { $0 && $1 && $2 }
+    let isEnabledNextButton = isValidNewPassword
+      .combineLatest(correspondNewPassword, input.currentPassword.map { $0.isValidPassword })
+      .map { isValidNewPassword, correspondNewPassword, isValidCurrentPassword in
+        isValidNewPassword && correspondNewPassword && isValidCurrentPassword
+      }
+      .eraseToAnyPublisher()
         
     return Output(
-      containAlphabet: containAlphabet.asDriver(onErrorJustReturn: false),
-      containNumber: containNumber.asDriver(onErrorJustReturn: false),
-      containSpecial: containSpecial.asDriver(onErrorJustReturn: false),
-      isValidRange: isValidRange.asDriver(onErrorJustReturn: false),
-      isValidNewPassword: isValidNewPassword.asDriver(onErrorJustReturn: false),
-      correspondNewPassword: correspondNewPassword.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false),
-      invalidCurrentPassword: invalidCurrentPasswordRelay.asSignal(),
-      duplicatePassword: duplicatePasswordRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal()
+      containAlphabet: containAlphabet.eraseToAnyPublisher(),
+      containNumber: containNumber.eraseToAnyPublisher(),
+      containSpecial: containSpecial.eraseToAnyPublisher(),
+      isValidRange: isValidRange.eraseToAnyPublisher(),
+      isValidNewPassword: isValidNewPassword.eraseToAnyPublisher(),
+      correspondNewPassword: correspondNewPassword.eraseToAnyPublisher(),
+      isEnabledNextButton: isEnabledNextButton.eraseToAnyPublisher(),
+      invalidCurrentPassword: invalidCurrentPasswordRelay.eraseToAnyPublisher(),
+      duplicatePassword: duplicatePasswordRelay.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableRelay.eraseToAnyPublisher()
     )
   }
   
   func bind(input: Input) {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     input.didTapForgetPasswordButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.requestTempoaryPassword() }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
-    let passwords = Observable.combineLatest(
-      input.currentPassword, input.newPassword
-    )
+    let passwords = input.currentPassword.combineLatest(input.newPassword)
     
     input.didTapChangePasswordButton
       .withLatestFrom(passwords)
-      .subscribe(with: self) { owner, info in
+      .sinkOnMain(with: self) { owner, info in
         Task { await owner.changePassword(from: info.0, to: info.1) }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
 // MARK: - Private Methods
 private extension ChangePasswordViewModel {
   @MainActor func changePassword(from password: String, to newPassword: String) async {
-    guard password != newPassword else { return duplicatePasswordRelay.accept(()) }
+    guard password != newPassword else { return duplicatePasswordRelay.send(()) }
       
     do {
       try await useCase.changePassword(from: password, to: newPassword)
@@ -156,19 +164,19 @@ private extension ChangePasswordViewModel {
       try await useCase.sendTemporaryPassword(to: email, userName: name)
       coordinator?.attachResetPassword(email: email, name: name)
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableRelay.send(())
     }
   }
   
   @MainActor func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableRelay.send(()) }
     
     switch error {
       case let .myPageFailed(reason) where reason == .loginUnAuthenticated:
-        invalidCurrentPasswordRelay.accept(())
+        invalidCurrentPasswordRelay.send(())
       case .authenticationFailed:
         coordinator?.authenticationFailed()
-      default: networkUnstableRelay.accept(())
+      default: networkUnstableRelay.send(())
     }
   }
 }

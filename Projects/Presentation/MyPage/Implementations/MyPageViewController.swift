@@ -10,19 +10,16 @@ import UIKit
 import Combine
 import Coordinator
 import Kingfisher
-import RxSwift
-import RxCocoa
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class MyPageViewController: UIViewController, ViewControllerable {
   private let viewModel: MyPageViewModel
-  private let disposeBag = DisposeBag()
-  private var cancallables = Set<AnyCancellable>()
+  private var cancellables = Set<AnyCancellable>()
   
-  private let didTapDate = PublishRelay<Date>()
-  private let isVisbleRelay = PublishRelay<Void>()
+  private let didTapDate = PassthroughSubject<Date, Never>()
+  private let isVisbleRelay = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let scrollView: UIScrollView = {
@@ -225,11 +222,11 @@ private extension MyPageViewController {
 private extension MyPageViewController {
   func bind() {
     let input = MyPageViewModel.Input(
-      didTapSettingButton: settingButton.rx.tap,
-      didTapAuthCountBox: feedsCountBox.rx.didTapBox,
-      didTapEndedChallengeBox: endedChallengeCountBox.rx.didTapBox,
-      didBecomeVisible: isVisbleRelay.asSignal(),
-      didTapDate: didTapDate.asSignal()
+      didTapSettingButton: settingButton.tapPublisher,
+      didTapAuthCountBox: feedsCountBox.didTapBox,
+      didTapEndedChallengeBox: endedChallengeCountBox.didTapBox,
+      didBecomeVisible: isVisbleRelay.eraseToAnyPublisher(),
+      didTapDate: didTapDate.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -239,43 +236,53 @@ private extension MyPageViewController {
   
   func viewBind() {
     isVisiblePublisher.sink { [weak self] _ in
-      self?.isVisbleRelay.accept(())
+      self?.isVisbleRelay.send(())
     }
-    .store(in: &cancallables)
+    .store(in: &cancellables)
   }
   
   func bind(output: MyPageViewModel.Output) {
     output.username
       .map { $0.attributedString(font: .heading1, color: .white, alignment: .center) }
-      .drive(userNameLabel.rx.attributedText)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, text in
+        owner.userNameLabel.attributedText = text
+      }
+      .store(in: &cancellables)
     
     output.feedsCount
-      .drive(feedsCountBox.rx.count)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, count in
+        owner.feedsCountBox.count = count
+      }
+      .store(in: &cancellables)
     
     output.endedChallengeCount
-      .drive(endedChallengeCountBox.rx.count)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, count in
+        owner.endedChallengeCountBox.count = count
+      }
+      .store(in: &cancellables)
     
     output.profileImageURL
-      .drive(with: self) { owner, url in
+      .sinkOnMain(with: self) { owner, url in
         Task {
           let image = await owner.profileImage(with: url)
           owner.profileImageView.configureImage(image)
         }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.calendarStartDate
-      .distinctUntilChanged()
-      .drive(calendarView.rx.startDate)
-      .disposed(by: disposeBag)
+      .removeDuplicates()
+      .sinkOnMain(with: self) { owner, date in
+        owner.calendarView.startDate = date
+      }
+      .store(in: &cancellables)
     
     output.verifiedChallengeDates
-      .distinctUntilChanged()
-      .drive(calendarView.rx.defaultSelectedDates)
-      .disposed(by: disposeBag)
+      .removeDuplicates()
+      .sinkOnMain(with: self) { owner, dates in
+        owner.calendarView.defaultSelectedDates = dates
+      }
+      .store(in: &cancellables)
   }
 }
 
@@ -285,7 +292,7 @@ extension MyPageViewController: MyPagePresentable { }
 // MARK: - CalendarViewDelegate
 extension MyPageViewController: CalendarViewDelegate {
   func didSelect(_ date: Date) {
-    didTapDate.accept(date)
+    didTapDate.send(date)
   }
   
   func didTapCloseButton() { }

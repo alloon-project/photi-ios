@@ -6,10 +6,8 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import Combine
 import UIKit
-import RxCocoa
-import RxSwift
-import RxGesture
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -19,15 +17,19 @@ final class ChallengeCountBox: UIView {
   var title: String {
     didSet { setTitleLabel(title) }
   }
-  
+
   var count: Int {
     didSet { setCountLabel("\(count)") }
+  }
+
+  var didTapBox: AnyPublisher<Void, Never> {
+    tapGesturePublisher
   }
 
   // MARK: - UI Components
   private let titleLabel = UILabel()
   private let countLabel = UILabel()
-  
+
   // MARK: - Initializers
   init(title: String, count: Int = 0) {
     self.title = title
@@ -35,7 +37,7 @@ final class ChallengeCountBox: UIView {
     super.init(frame: .zero)
     self.setupUI()
   }
-  
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -52,7 +54,7 @@ private extension ChallengeCountBox {
     setTitleLabel(title)
     setCountLabel("\(count)")
   }
-  
+
   func setViewHierarchy() {
     self.addSubviews(titleLabel, countLabel)
   }
@@ -62,7 +64,7 @@ private extension ChallengeCountBox {
       $0.centerX.equalToSuperview()
       $0.top.equalToSuperview().offset(20)
     }
-    
+
     countLabel.snp.makeConstraints {
       $0.centerX.equalToSuperview()
       $0.top.equalTo(titleLabel.snp.bottom).offset(12)
@@ -76,16 +78,8 @@ private extension ChallengeCountBox {
   func setTitleLabel(_ text: String) {
     titleLabel.attributedText = text.attributedString(font: .body2Bold, color: .white)
   }
-  
+
   func setCountLabel(_ text: String) {
     countLabel.attributedText = text.attributedString(font: .heading1, color: .white)
-  }
-}
-
-// MARK: - Reactive Extension
-extension Reactive where Base: ChallengeCountBox {
-  var didTapBox: ControlEvent<Void> {
-    let source = base.rx.tapGesture().when(.recognized).map { _ in }
-    return .init(events: source)
   }
 }
