@@ -19,6 +19,6 @@ public protocol OAuthRepository {
   /// 구글 회원 탈퇴 - SDK disconnect + 서버 API 호출
   func withdrawGoogle() async throws
 
-  /// 애플 회원 탈퇴 - 서버에서 revoke 처리
-  func withdrawApple() async throws
+  /// 애플 회원 탈퇴 - 서버에서 authorization code를 토큰으로 교환한 뒤 revoke 처리
+  func withdrawApple(authorizationCode: String) async throws
 }

@@ -11,6 +11,7 @@ import DTO
 import Entity
 import Repository
 import PhotiNetwork
+import GoogleSignIn
 import KakaoSDKUser
 
 public struct OAuthRepositoryImpl: OAuthRepository {
@@ -41,17 +42,68 @@ public extension OAuthRepositoryImpl {
   }
 
   func withdrawGoogle() async throws {
-    // TODO: 구글 SDK 연동 후 구현
-    // 1. GIDSignIn.sharedInstance.currentUser?.userID로 sub 획득
-    // 2. GIDSignIn.sharedInstance.disconnect()로 연결 해제
-    // 3. requestWithdraw(provider: "GOOGLE", sub: sub) 호출
-    throw APIError.serverError
+    try configureGoogleSignInIfNeeded()
+    let user = try await restoreGoogleUserIfNeeded()
+    guard let sub = user.userID, !sub.isEmpty else {
+      throw APIError.authenticationFailed
+    }
+
+    try await disconnectGoogle()
+    try await requestWithdraw(provider: "GOOGLE", sub: sub)
   }
 
-  func withdrawApple() async throws {
-    // TODO: 애플 재인증 후 authorization code 획득하여 서버 전달
-    // ASAuthorizationAppleIDProvider를 사용하여 재인증
-    throw APIError.serverError
+  func withdrawApple(authorizationCode: String) async throws {
+    try await requestAuthorizableAPI(
+      api: OAuthAPI.withdrawApple(authorizationCode: authorizationCode),
+      responseType: SuccessResponseDTO.self
+    )
+  }
+}
+
+// MARK: - Google SDK Methods
+private extension OAuthRepositoryImpl {
+  func configureGoogleSignInIfNeeded() throws {
+    guard GIDSignIn.sharedInstance.configuration == nil else { return }
+
+    let clientId = ServiceConfiguration.shared.googleClientId
+    guard !clientId.isEmpty, !clientId.hasPrefix("$(") else {
+      throw APIError.authenticationFailed
+    }
+
+    GIDSignIn.sharedInstance.configuration = GIDConfiguration(
+      clientID: clientId,
+      serverClientID: ServiceConfiguration.shared.googleServerClientId
+    )
+  }
+
+  func restoreGoogleUserIfNeeded() async throws -> GIDGoogleUser {
+    if let currentUser = GIDSignIn.sharedInstance.currentUser {
+      return currentUser
+    }
+
+    return try await withCheckedThrowingContinuation { continuation in
+      GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
+        if let error {
+          continuation.resume(throwing: error)
+        } else if let user {
+          continuation.resume(returning: user)
+        } else {
+          continuation.resume(throwing: APIError.authenticationFailed)
+        }
+      }
+    }
+  }
+
+  func disconnectGoogle() async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      GIDSignIn.sharedInstance.disconnect { error in
+        if let error {
+          continuation.resume(throwing: error)
+        } else {
+          continuation.resume()
+        }
+      }
+    }
   }
 }
 
@@ -117,6 +169,8 @@ private extension OAuthRepositoryImpl {
         return
       } else if result.statusCode == 401 || result.statusCode == 403 {
         throw APIError.authenticationFailed
+      } else if result.statusCode == 404 {
+        throw APIError.userNotFound
       } else if result.statusCode == 409 {
         throw APIError.oauthFailed(reason: .usernameAlreadyExists)
       } else {
@@ -150,6 +204,8 @@ private extension OAuthRepositoryImpl {
         throw APIError.authenticationFailed
       } else if result.statusCode == 403 {
         throw APIError.authenticationFailed
+      } else if result.statusCode == 404 {
+        throw APIError.userNotFound
       } else if result.statusCode == 409 {
         throw APIError.oauthFailed(reason: .usernameAlreadyExists)
       } else {

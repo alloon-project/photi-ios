@@ -34,6 +34,7 @@ final class WithdrawViewModel: WithdrawViewModelType {
 
   private let useCase: ProfileEditUseCase
   private let showOAuthAlertSubject = PassthroughSubject<String, Never>()
+  private let requestAppleAuthorizationSubject = PassthroughSubject<Void, Never>()
   private let isLoadingSubject = CurrentValueSubject<Bool, Never>(false)
   private let networkUnstableSubject = PassthroughSubject<Void, Never>()
 
@@ -43,11 +44,14 @@ final class WithdrawViewModel: WithdrawViewModelType {
     let didTapWithdrawButton: AnyPublisher<Void, Never>
     let didTapCancelButton: AnyPublisher<Void, Never>
     let didConfirmOAuthWithdraw: AnyPublisher<Void, Never>
+    let appleAuthorizationCode: AnyPublisher<String, Never>
+    let appleAuthorizationFailed: AnyPublisher<Void, Never>
   }
 
   // MARK: - Output
   struct Output {
     let showOAuthAlert: AnyPublisher<String, Never>
+    let requestAppleAuthorization: AnyPublisher<Void, Never>
     let isLoading: AnyPublisher<Bool, Never>
     let networkUnstable: AnyPublisher<Void, Never>
   }
@@ -90,15 +94,39 @@ final class WithdrawViewModel: WithdrawViewModelType {
         guard let self else { return }
         let providerString = ServiceConfiguration.shared.authProvider
         let provider = AuthProvider(rawValue: providerString) ?? .normal
-        Task { await self.withdrawOAuth(provider: provider) }
+        if provider == .apple {
+          self.requestAppleAuthorizationSubject.send(())
+        } else {
+          Task { await self.withdrawOAuth(provider: provider) }
+        }
       }
       .store(in: &cancellables)
 
+    bindAppleAuthorization(input: input)
+
     return Output(
       showOAuthAlert: showOAuthAlertSubject.eraseToAnyPublisher(),
+      requestAppleAuthorization: requestAppleAuthorizationSubject.eraseToAnyPublisher(),
       isLoading: isLoadingSubject.eraseToAnyPublisher(),
       networkUnstable: networkUnstableSubject.eraseToAnyPublisher()
     )
+  }
+}
+
+// MARK: - Bind Methods
+private extension WithdrawViewModel {
+  func bindAppleAuthorization(input: Input) {
+    input.appleAuthorizationCode
+      .sink { [weak self] authorizationCode in
+        Task { await self?.withdrawApple(authorizationCode: authorizationCode) }
+      }
+      .store(in: &cancellables)
+
+    input.appleAuthorizationFailed
+      .sink { [weak self] in
+        self?.networkUnstableSubject.send(())
+      }
+      .store(in: &cancellables)
   }
 }
 
@@ -120,10 +148,31 @@ private extension WithdrawViewModel {
     isLoadingSubject.send(true)
 
     do {
-      try await useCase.withdraw(with: .oauth(provider: provider))
+      switch provider {
+      case .kakao:
+        try await useCase.withdraw(with: .kakao)
+      case .google:
+        try await useCase.withdraw(with: .google)
+      case .apple, .normal:
+        throw APIError.serverError
+      }
       coordinator?.withdrawalSucceed()
     } catch {
       isLoadingSubject.send(false)
+      handleError(error)
+    }
+  }
+
+  @MainActor
+  func withdrawApple(authorizationCode: String) async {
+    defer { isLoadingSubject.send(false) }
+
+    isLoadingSubject.send(true)
+
+    do {
+      try await useCase.withdraw(with: .apple(authorizationCode: authorizationCode))
+      coordinator?.withdrawalSucceed()
+    } catch {
       handleError(error)
     }
   }

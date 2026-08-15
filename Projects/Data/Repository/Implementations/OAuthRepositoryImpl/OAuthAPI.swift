@@ -16,8 +16,8 @@ public enum OAuthAPI {
   case setUsername(dto: OAuthUsernameRequestDTO)
   /// 카카오/구글 탈퇴 - 클라이언트에서 unlink 후 호출
   case withdrawKakaoGoogle(dto: OAuthWithdrawRequestDTO)
-  /// 애플 탈퇴 - 서버에서 revoke 처리
-  case withdrawApple(accessToken: String)
+  /// 애플 탈퇴 - 재인증에서 받은 authorization code를 access_token 파라미터로 전달
+  case withdrawApple(authorizationCode: String)
 }
 
 extension OAuthAPI: TargetType {
@@ -61,8 +61,8 @@ extension OAuthAPI: TargetType {
     case let .withdrawKakaoGoogle(dto):
       return .requestJSONEncodable(dto)
 
-    case let .withdrawApple(accessToken):
-      let parameters = ["access_token": accessToken]
+    case let .withdrawApple(authorizationCode):
+      let parameters = ["access_token": authorizationCode]
       return .requestParameters(parameters: parameters, encoding: URLEncoding.queryString)
     }
   }
