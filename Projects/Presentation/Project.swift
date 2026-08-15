@@ -105,8 +105,18 @@ let project = Project.make(
 				.Project.DesignSystem,
 				.SPM.SnapKit,
 				.SPM.KakaoSDKAuth,
-				.SPM.KakaoSDKUser
-			]
+				.SPM.KakaoSDKUser,
+				.SPM.GoogleSignIn,
+				.SPM.GTMSessionFetcherCore
+			],
+			settings: .settings(
+				base: [
+					"HEADER_SEARCH_PATHS": [
+						"$(inherited)",
+						"$(SRCROOT)/../../Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
+					]
+				]
+			)
 		),
 		.make(
 			name: "LogIn",

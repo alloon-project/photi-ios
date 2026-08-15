@@ -55,7 +55,7 @@ final class LogInViewModel: LogInViewModelType {
     let didTapSignUpButton: AnyPublisher<Void, Never>
     let appleIdToken: AnyPublisher<String, Never>
     let didTapKakaoLoginButton: AnyPublisher<Void, Never>
-    let didTapGoogleLoginButton: AnyPublisher<Void, Never>
+    let googleIdToken: AnyPublisher<String, Never>
   }
   
   // MARK: - Output
@@ -104,9 +104,9 @@ final class LogInViewModel: LogInViewModelType {
         owner.requestKakaoLogin()
       }.store(in: &cancellables)
 
-    input.didTapGoogleLoginButton
-      .sinkOnMain(with: self) { _, _ in
-        // TODO: Google 로그인 구현
+    input.googleIdToken
+      .sink(with: self) { owner, idToken in
+        Task { await owner.requestOAuthLogin(provider: "GOOGLE", idToken: idToken) }
       }.store(in: &cancellables)
     
     let didTapLoginButtonWithInfo = input.didTapLoginButton

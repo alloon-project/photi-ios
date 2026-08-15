@@ -15,6 +15,7 @@ public extension Target {
 		bundleId: String,
 		deploymentTarget: DeploymentTarget = .iOS(targetVersion: "15.0", devices: [.iphone]),
 		infoPlist: InfoPlist = .default,
+        entitlements: Path? = nil,
 		sources: SourceFilesList,
 		resources: ResourceFileElements? = nil,
 		scripts: [TargetScript] = [],
@@ -30,6 +31,7 @@ public extension Target {
 			infoPlist: infoPlist,
 			sources: sources,
 			resources: resources,
+            entitlements: entitlements,
 			scripts: scripts,
 			dependencies: dependencies,
 			settings: settings

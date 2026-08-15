@@ -10,14 +10,17 @@ import AuthenticationServices
 import UIKit
 import Combine
 import Coordinator
+import Core
 import SnapKit
 import CoreUI
 import DesignSystem
+import GoogleSignIn
 
 final class LogInViewController: UIViewController, ViewControllerable {
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: LogInViewModel
   private let appleIdTokenSubject = PassthroughSubject<String, Never>()
+  private let googleIdTokenSubject = PassthroughSubject<String, Never>()
   private var appleAuthController: ASAuthorizationController?
   
   // MARK: - UI Components
@@ -153,7 +156,7 @@ private extension LogInViewController {
       didTapSignUpButton: signUpButton.tapPublisher,
       appleIdToken: appleIdTokenSubject.eraseToAnyPublisher(),
       didTapKakaoLoginButton: snsLoginView.didTapKakaoLoginButton,
-      didTapGoogleLoginButton: snsLoginView.didTapGoogleLoginButton
+      googleIdToken: googleIdTokenSubject.eraseToAnyPublisher()
     )
    
     let output = viewModel.transform(input: input)
@@ -182,6 +185,11 @@ private extension LogInViewController {
     snsLoginView.didTapAppleLoginButton
       .sinkOnMain(with: self) { owner, _ in
         owner.requestAppleLogin()
+      }.store(in: &cancellables)
+
+    snsLoginView.didTapGoogleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.requestGoogleLogin()
       }.store(in: &cancellables)
   }
   
@@ -270,6 +278,26 @@ private extension LogInViewController {
     controller.presentationContextProvider = self
     appleAuthController = controller
     controller.performRequests()
+  }
+
+  func requestGoogleLogin() {
+    let clientId = ServiceConfiguration.shared.googleClientId
+    let serverClientId = ServiceConfiguration.shared.googleServerClientId
+
+    guard !clientId.isEmpty else { return }
+
+    GIDSignIn.sharedInstance.configuration = GIDConfiguration(
+      clientID: clientId,
+      serverClientID: serverClientId
+    )
+
+    GIDSignIn.sharedInstance.signIn(withPresenting: self) { [weak self] result, error in
+      if error != nil { return }
+
+      guard let idToken = result?.user.idToken?.tokenString else { return }
+
+      self?.googleIdTokenSubject.send(idToken)
+    }
   }
 
   func displayWarningToastView() {

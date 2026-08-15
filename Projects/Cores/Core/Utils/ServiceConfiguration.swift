@@ -27,6 +27,24 @@ public final class ServiceConfiguration {
     }
     return appKey
   }
+
+  public var googleClientId: String {
+    guard let clientId = Bundle.main.object(forInfoDictionaryKey: "GoogleClientID") as? String else {
+      fatalError("Google Client ID could not find in plist. Please check plist or user-defined!")
+    }
+    return clientId
+  }
+
+  public var googleServerClientId: String? {
+    guard
+      let clientId = Bundle.main.object(forInfoDictionaryKey: "GoogleServerClientID") as? String,
+      !clientId.isEmpty,
+      !clientId.hasPrefix("$(")
+    else {
+      return nil
+    }
+    return clientId
+  }
   
   /// 사용자의 `userName`을 리턴합니다.
   public var userName: String {
