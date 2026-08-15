@@ -52,17 +52,12 @@ public extension ProfileEditUseCaseImpl {
     switch credential {
     case let .password(password):
       try await myPageRepository.deleteUserAccount(password: password)
-    case let .oauth(provider):
-      switch provider {
-      case .kakao:
-        try await oauthRepository.withdrawKakao()
-      case .google:
-        try await oauthRepository.withdrawGoogle()
-      case .apple:
-        try await oauthRepository.withdrawApple()
-      case .normal:
-        break
-      }
+    case .kakao:
+      try await oauthRepository.withdrawKakao()
+    case .google:
+      try await oauthRepository.withdrawGoogle()
+    case let .apple(authorizationCode):
+      try await oauthRepository.withdrawApple(authorizationCode: authorizationCode)
     }
     authRepository.removeToken()
   }

@@ -6,6 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import AuthenticationServices
 import UIKit
 import Combine
 import Coordinator
@@ -18,6 +19,9 @@ final class WithdrawViewController: UIViewController, ViewControllerable {
 
   private var cancellables = Set<AnyCancellable>()
   private let didConfirmOAuthWithdrawSubject = PassthroughSubject<Void, Never>()
+  private let appleAuthorizationCodeSubject = PassthroughSubject<String, Never>()
+  private let appleAuthorizationFailedSubject = PassthroughSubject<Void, Never>()
+  private var appleAuthorizationController: ASAuthorizationController?
 
   // MARK: - UIComponents
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -112,7 +116,9 @@ private extension WithdrawViewController {
       didTapBackButton: navigationBar.didTapBackButton,
       didTapWithdrawButton: withdrawButton.tapPublisher,
       didTapCancelButton: cancelButton.tapPublisher,
-      didConfirmOAuthWithdraw: didConfirmOAuthWithdrawSubject.eraseToAnyPublisher()
+      didConfirmOAuthWithdraw: didConfirmOAuthWithdrawSubject.eraseToAnyPublisher(),
+      appleAuthorizationCode: appleAuthorizationCodeSubject.eraseToAnyPublisher(),
+      appleAuthorizationFailed: appleAuthorizationFailedSubject.eraseToAnyPublisher()
     )
 
     let output = viewModel.transform(input: input)
@@ -143,6 +149,13 @@ private extension WithdrawViewController {
       }
       .store(in: &cancellables)
 
+    output.requestAppleAuthorization
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] in
+        self?.requestAppleAuthorization()
+      }
+      .store(in: &cancellables)
+
     output.networkUnstable
       .receive(on: DispatchQueue.main)
       .sink { [weak self] in
@@ -168,6 +181,59 @@ private extension WithdrawViewController {
       .store(in: &cancellables)
 
     alert.present(to: self, animted: true)
+  }
+}
+
+// MARK: - Apple Authorization
+extension WithdrawViewController: ASAuthorizationControllerPresentationContextProviding {
+  func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    view.window ?? UIWindow()
+  }
+}
+
+extension WithdrawViewController: ASAuthorizationControllerDelegate {
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithAuthorization authorization: ASAuthorization
+  ) {
+    appleAuthorizationController = nil
+
+    guard
+      let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+      let authorizationCodeData = credential.authorizationCode,
+      let authorizationCode = String(data: authorizationCodeData, encoding: .utf8)
+    else {
+      appleAuthorizationFailedSubject.send(())
+      return
+    }
+
+    appleAuthorizationCodeSubject.send(authorizationCode)
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithError error: Error
+  ) {
+    appleAuthorizationController = nil
+
+    if let authorizationError = error as? ASAuthorizationError,
+       authorizationError.code == .canceled {
+      return
+    }
+
+    appleAuthorizationFailedSubject.send(())
+  }
+}
+
+// MARK: - Apple Authorization Methods
+private extension WithdrawViewController {
+  func requestAppleAuthorization() {
+    let request = ASAuthorizationAppleIDProvider().createRequest()
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = self
+    controller.presentationContextProvider = self
+    appleAuthorizationController = controller
+    controller.performRequests()
   }
 }
 

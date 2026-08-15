@@ -167,8 +167,15 @@ private extension HomeCoordinator {
       
       count == 0 ? await attachNoneChallengeHome(animated: animated) : await attachChallengeHome(animated: animated)
     } catch {
-      if let error = error as? APIError, case .authenticationFailed = error {
-        await attachNoneMemberHome(animated: animated)
+      if let error = error as? APIError {
+        switch error {
+          case .authenticationFailed:
+            await attachNoneMemberHome(animated: animated)
+          case .challengeFailed(reason: .userNotFound):
+            await presentNetworkUnstableAlert(shouldRetry: false)
+          default:
+            await presentNetworkUnstableAlert()
+        }
       } else {
         await presentNetworkUnstableAlert()
       }
@@ -181,9 +188,11 @@ private extension HomeCoordinator {
     await detachNoneChallengeHome()
   }
   
-  @MainActor func presentNetworkUnstableAlert() {
+  @MainActor func presentNetworkUnstableAlert(shouldRetry: Bool = true) {
     let alert = navigationControllerable.navigationController.presentNetworkUnstableAlert()
-    
+
+    guard shouldRetry else { return }
+
     alert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
         Task { await owner.attachInitialScreenIfNeeded() }

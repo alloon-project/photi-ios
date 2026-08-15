@@ -24,7 +24,6 @@ protocol MyPageViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var cancellables: Set<AnyCancellable> { get set }
   var coordinator: MyPageCoordinatable? { get set }
 }
 

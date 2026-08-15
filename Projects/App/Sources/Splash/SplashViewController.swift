@@ -7,13 +7,11 @@
 //
 
 import UIKit
-import RxSwift
 import Combine
 import SnapKit
 import DesignSystem
 
 final class SplashViewController: UIViewController {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
   private let viewModel: SplashViewModel
   private let logoImageView = UIImageView(image: .logo)
@@ -69,10 +67,9 @@ private extension SplashViewController {
     let output = viewModel.transform(input: input)
     
     output.requiredForceUpdate
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentRequiredForceUpdateAlert()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     forceUpdateAlert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in

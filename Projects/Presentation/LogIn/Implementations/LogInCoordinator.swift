@@ -70,7 +70,7 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
 
 // MARK: - OAuthSignUp
 @MainActor extension LogInCoordinator {
-  func attachOAuthSignUp(provider: String, idToken: String) {
+  func attachOAuthSignUp() {
     guard
       oAuthSignUpCoordinator == nil,
       let navigationController = viewControllerable.uiviewController.navigationController
@@ -79,12 +79,9 @@ final class LogInCoordinator: ViewableCoordinator<LogInPresentable> {
     let navigation = NavigationControllerable(navigationController: navigationController)
     let coordinater = oAuthSignUpContainable.coordinator(
       navigationControllerable: navigation,
-      listener: self,
-      provider: provider,
-      idToken: idToken
+      listener: self
     )
     addChild(coordinater)
-    coordinater.start()
     self.oAuthSignUpCoordinator = coordinater
   }
 

@@ -9,17 +9,14 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import DesignSystem
 
 final class AppViewController: UITabBarController, ViewControllerable {
-  private let disposeBag = DisposeBag()
   private var cancellables: Set<AnyCancellable> = []
   private let viewModel: AppViewModel
-  private let didTapMyPageTabBarItem = PublishRelay<Void>()
-  private let didTapLogInButton = PublishRelay<Void>()
+  private let didTapMyPageTabBarItem = PassthroughSubject<Void, Never>()
+  private let didTapLogInButton = PassthroughSubject<Void, Never>()
   private var homeNavigationController: UIViewController?
   
   private let tapMyPageWithoutLogInAlertView: AlertViewController = {
@@ -80,26 +77,25 @@ final class AppViewController: UITabBarController, ViewControllerable {
 private extension AppViewController {
   func bind() {
     let input = AppViewModel.Input(
-      didTapMyPageTabBarItem: didTapMyPageTabBarItem.asSignal(),
-      didTapLogInButton: didTapLogInButton.asSignal()
+      didTapMyPageTabBarItem: didTapMyPageTabBarItem.eraseToAnyPublisher(),
+      didTapLogInButton: didTapLogInButton.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
     
     output.allowMoveToMyPage
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.selectedIndex = 2
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     tapMyPageWithoutLogInAlertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapLogInButton.accept(())
+        owner.didTapLogInButton.send(())
       }.store(in: &cancellables)
     
     tokenExpiredAlertView.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapLogInButton.accept(())
+        owner.didTapLogInButton.send(())
       }.store(in: &cancellables)
   }
 }
@@ -198,7 +194,7 @@ extension AppViewController: UITabBarControllerDelegate {
   func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
     guard let viewControllers = tabBarController.viewControllers else { return false }
     guard let selectedIndex = viewControllers.firstIndex(of: viewController) else { return false }
-    if selectedIndex == 2 && self.selectedIndex != 2 { didTapMyPageTabBarItem.accept(()) }
+    if selectedIndex == 2 && self.selectedIndex != 2 { didTapMyPageTabBarItem.send(()) }
     return selectedIndex != 2
   }
 }

@@ -25,15 +25,13 @@ final class FeedCommentTextField: UIView {
   }
 
   var didBeginInitialEditing: AnyPublisher<Void, Never> {
-    textField.publisher(for: .editingDidBegin)
+    textField.eventPublisher(for: .editingDidBegin)
       .first()
-      .map { _ in () }
       .eraseToAnyPublisher()
   }
 
   var didTapReturn: AnyPublisher<Void, Never> {
-    textField.publisher(for: .editingDidEndOnExit)
-      .map { _ in () }
+    textField.eventPublisher(for: .editingDidEndOnExit)
       .eraseToAnyPublisher()
   }
 

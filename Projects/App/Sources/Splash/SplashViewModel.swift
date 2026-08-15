@@ -7,9 +7,8 @@
 //
 
 import Foundation
+import Combine
 import UseCase
-import RxCocoa
-import RxSwift
 
 protocol SplashListener: AnyObject {
   func didFinishSplash()
@@ -24,15 +23,14 @@ final class SplashViewModel: SplashViewModelType {
   private let useCase: AppUseCase
   weak var listener: SplashListener?
   
-  private let disposeBag = DisposeBag()
-  private let requiredForceUpdateRelay = PublishRelay<Void>()
+  private let requiredForceUpdateSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input { }
   
   // MARK: - Output
   struct Output {
-    let requiredForceUpdate: Signal<Void>
+    let requiredForceUpdate: AnyPublisher<Void, Never>
   }
   
   public init(useCase: AppUseCase) {
@@ -41,7 +39,7 @@ final class SplashViewModel: SplashViewModelType {
   
   func transform(input: Input) -> Output {
     Task { await checkForceUpdate() }
-    return Output(requiredForceUpdate: requiredForceUpdateRelay.asSignal())
+    return Output(requiredForceUpdate: requiredForceUpdateSubject.eraseToAnyPublisher())
   }
 }
 
@@ -51,9 +49,11 @@ private extension SplashViewModel {
     do {
       let isRequired = try await useCase.isAppForceUpdateRequired()
 
-      isRequired ? requiredForceUpdateRelay.accept(()) : await MainActor.run { listener?.didFinishSplash() }
+      await MainActor.run {
+        isRequired ? requiredForceUpdateSubject.send(()) : listener?.didFinishSplash()
+      }
     } catch {
-      exit(0)
+      await MainActor.run { listener?.didFinishSplash() }
     }
   }
 }

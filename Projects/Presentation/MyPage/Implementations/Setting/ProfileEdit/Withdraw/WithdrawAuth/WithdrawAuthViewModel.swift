@@ -23,7 +23,6 @@ protocol WithdrawAuthViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
   
-  var cancellables: Set<AnyCancellable> { get set }
   var coordinator: WithdrawAuthCoordinatable? { get set }
 }
 

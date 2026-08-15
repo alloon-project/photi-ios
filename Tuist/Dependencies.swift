@@ -8,7 +8,8 @@
 import ProjectDescription
 
 let dependencies = Dependencies(
-		swiftPackageManager: [
+		swiftPackageManager: .init(
+      [
 				.remote(
 						url: "https://github.com/ReactiveX/RxSwift.git",
 						requirement: .exact("6.6.0")
@@ -40,7 +41,16 @@ let dependencies = Dependencies(
         .remote(
           url: "https://github.com/kakao/kakao-ios-sdk.git",
           requirement: .exact("2.23.0")
+        ),
+        .remote(
+          url: "https://github.com/google/GoogleSignIn-iOS.git",
+          requirement: .exact("7.1.0")
         )
-		],
+		  ],
+      productTypes: [
+        "AppAuthCore": .staticLibrary,
+        "GTMSessionFetcherCore": .staticLibrary
+      ]
+    ),
 		platforms: [.iOS]
 )

@@ -17,7 +17,9 @@ public enum AuthProvider: String {
 
 public enum WithdrawCredential {
   case password(String)
-  case oauth(provider: AuthProvider)
+  case kakao
+  case google
+  case apple(authorizationCode: String)
 }
 
 public struct UserProfile {
