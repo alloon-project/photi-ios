@@ -53,7 +53,7 @@ private extension SplashViewModel {
 
       isRequired ? requiredForceUpdateRelay.accept(()) : await MainActor.run { listener?.didFinishSplash() }
     } catch {
-      exit(0)
+      await MainActor.run { listener?.didFinishSplash() }
     }
   }
 }

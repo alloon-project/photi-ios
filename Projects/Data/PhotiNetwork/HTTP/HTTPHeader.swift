@@ -37,7 +37,8 @@ public extension HTTPHeader {
   
   /// `acessToken`을 통해 `Bearer` `Authorization` 헤더를 리턴합니다.
   static func authorization(acessToken: String) -> HTTPHeader {
-    authorization("Bearer \(acessToken)")
+    let value = acessToken.hasPrefix("Bearer ") ? acessToken : "Bearer \(acessToken)"
+    return authorization(value)
   }
   
   /// `Refresh-Token`헤더를 리턴합니다.

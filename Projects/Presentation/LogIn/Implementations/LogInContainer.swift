@@ -31,7 +31,10 @@ public final class LogInContainer:
   var oauthUseCase: OAuthUseCase { dependency.oauthUseCase }
 
   public func coordinator(listener: LogInListener) -> ViewableCoordinating {
-    let viewModel = LogInViewModel(loginUseCase: dependency.logInUseCase)
+    let viewModel = LogInViewModel(
+      loginUseCase: dependency.logInUseCase,
+      oauthUseCase: dependency.oauthUseCase
+    )
     let viewControllerable = LogInViewController(viewModel: viewModel)
 
     let signUp = SignUpContainer(dependency: self)
