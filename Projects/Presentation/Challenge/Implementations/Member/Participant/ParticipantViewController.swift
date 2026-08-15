@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -17,17 +16,17 @@ import DesignSystem
 final class ParticipantViewController: UIViewController, ViewControllerable {
   // MARK: - Properties
   private let viewModel: ParticipantViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var dataSource = [ParticipantPresentationModel]() {
     didSet {
       participantTableView.reloadData()
       configureCountLabel(count: dataSource.count)
     }
   }
-  
-  private let requestData = PublishRelay<Void>()
-  private let contentOffset = PublishRelay<Double>()
-  private let didTapEditButtonRelay = PublishRelay<String>()
+
+  private let requestDataSubject = PassthroughSubject<Void, Never>()
+  private let contentOffsetSubject = PassthroughSubject<Double, Never>()
+  private let didTapEditButtonSubject = PassthroughSubject<String, Never>()
 
   // MARK: - UI Components
   private let participantCountLabel = UILabel()
@@ -55,13 +54,13 @@ final class ParticipantViewController: UIViewController, ViewControllerable {
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
-    
+
     participantTableView.dataSource = self
     participantTableView.delegate = self
     setupUI()
     bind()
-    
-    requestData.accept(())
+
+    requestDataSubject.send(())
   }
 }
 
@@ -94,22 +93,20 @@ private extension ParticipantViewController {
 private extension ParticipantViewController {
   func bind() {
     let input = ParticipantViewModel.Input(
-      requestData: requestData.asSignal(),
-      contentOffset: contentOffset.asSignal(),
-      didTapEditButton: didTapEditButtonRelay.asSignal()
+      requestData: requestDataSubject.eraseToAnyPublisher(),
+      contentOffset: contentOffsetSubject.eraseToAnyPublisher(),
+      didTapEditButton: didTapEditButtonSubject.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
-    
-    viewBind()
     viewModelBind(for: output)
   }
-  
-  func viewBind() { }
-  
+
   func viewModelBind(for output: ParticipantViewModel.Output) {
     output.participants
-      .drive(rx.dataSource)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, participants in
+        owner.dataSource = participants
+      }
+      .store(in: &cancellables)
   }
 }
 
@@ -128,17 +125,19 @@ extension ParticipantViewController: UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return dataSource.count
   }
-  
+
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(ParticipantCell.self, for: indexPath)
     cell.configure(with: dataSource[indexPath.row])
-    
-    cell.rx.didTapEditButton
-      .withUnretained(self)
-      .map { ($0.0.dataSource[indexPath.row].goal) }
-      .bind(to: didTapEditButtonRelay)
-      .disposed(by: disposeBag)
-    
+
+    cell.didTapEditButton
+      .sink { [weak self] in
+        guard let self else { return }
+        let goal = self.dataSource[indexPath.row].goal
+        self.didTapEditButtonSubject.send(goal)
+      }
+      .store(in: &cancellables)
+
     return cell
   }
 }
@@ -147,7 +146,7 @@ extension ParticipantViewController: UITableViewDataSource {
 extension ParticipantViewController: UITableViewDelegate {
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     let offSet = scrollView.contentOffset.y
-    contentOffset.accept(offSet)
+    contentOffsetSubject.send(offSet)
   }
 }
 

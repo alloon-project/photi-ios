@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 
 protocol NoneMemberHomeCoordinatable: AnyObject {
   func didTapLogInButton()
@@ -16,35 +15,34 @@ protocol NoneMemberHomeCoordinatable: AnyObject {
 protocol NoneMemberHomeViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: NoneMemberHomeCoordinatable? { get set }
 }
 
 final class NoneMemberHomeViewModel: NoneMemberHomeViewModelType {
-  let disposeBag = DisposeBag()
-  
+  private var cancellables = Set<AnyCancellable>()
+
   weak var coordinator: NoneMemberHomeCoordinatable?
-  
+
   // MARK: - Input
   struct Input {
-    let didTapLogInButton: ControlEvent<Void>
+    let didTapLogInButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output { }
-  
+
   // MARK: - Initializers
   init() { }
-  
+
   @discardableResult
   func transform(input: Input) -> Output {
     input.didTapLogInButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapLogInButton()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output()
   }
 }

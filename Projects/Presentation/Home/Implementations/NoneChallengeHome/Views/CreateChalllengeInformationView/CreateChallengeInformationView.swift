@@ -7,13 +7,16 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class CreateChallengeInformationView: UIView {
+  var didTapCreateButton: AnyPublisher<Void, Never> {
+    createChallengeButton.tapPublisher
+  }
+
   // MARK: - UI Components
   private let titleLabel: UILabel = {
     let label = UILabel()
@@ -23,20 +26,20 @@ final class CreateChallengeInformationView: UIView {
     )
     label.textAlignment = .center
     label.numberOfLines = 0
-    
+
     return label
   }()
-  
+
   private let leftContentView = CreateChallengeContentView(
-    text: "‘챌린지' 탭으로 이동해\n다양한 챌린지를 만나보세요.",
+    text: "'챌린지' 탭으로 이동해\n다양한 챌린지를 만나보세요.",
     image: .homeMemberSignboard
   )
   private let rightContentView = CreateChallengeContentView(
     text: "새로운 열정을\n만들어 보세요.",
     image: .homeMemberFire
   )
-  
-  fileprivate let createChallengeButton = LineRoundButton(text: "챌린지 만들기", type: .primary, size: .small)
+
+  private let createChallengeButton = LineRoundButton(text: "챌린지 만들기", type: .primary, size: .small)
   
   // MARK: - Initializers
   init() {
@@ -86,8 +89,3 @@ private extension CreateChallengeInformationView {
   }
 }
 
-extension Reactive where Base: CreateChallengeInformationView {
-  var didTapCreateButton: ControlEvent<Void> {
-    return base.createChallengeButton.rx.tap
-  }
-}

@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import UseCase
 
 protocol ChallengeHashtagCoordinatable: AnyObject {
@@ -18,33 +17,32 @@ protocol ChallengeHashtagCoordinatable: AnyObject {
 protocol ChallengeHashtagViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ChallengeHashtagCoordinatable? { get set }
 }
 
 final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
-  let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeOrganizeMode
   private let useCase: OrganizeUseCase
-  
+
   weak var coordinator: ChallengeHashtagCoordinatable?
-      
+
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let enteredHashtag: ControlProperty<String>
-    let selectedHashtags: Driver<[String]>
-    let didTapNextButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let enteredHashtag: AnyPublisher<String, Never>
+    let selectedHashtags: AnyPublisher<[String], Never>
+    let didTapNextButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let isValidHashtag: Driver<Bool>
-    let isEnableAddHashtagButton: Driver<Bool>
-    let isEnabledNextButton: Driver<Bool>
+    let isValidHashtag: AnyPublisher<Bool, Never>
+    let isEnableAddHashtagButton: AnyPublisher<Bool, Never>
+    let isEnabledNextButton: AnyPublisher<Bool, Never>
   }
-  
+
   // MARK: - Initializers
   init(
     mode: ChallengeOrganizeMode,
@@ -53,38 +51,35 @@ final class ChallengeHashtagViewModel: ChallengeHashtagViewModelType {
     self.mode = mode
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtChallengeHashtag()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapNextButton
       .withLatestFrom(input.selectedHashtags)
-      .bind(with: self) { owner, hashtags in
+      .sinkOnMain(with: self) { owner, hashtags in
         owner.coordinator?.didFinishedAtChallengeHashtag(challengeHashtags: hashtags)
         owner.useCase.configureChallengePayload(.hashtags(hashtags))
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
 
     let isValidHashtag = input.enteredHashtag
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .map { !$0.isEmpty && $0.count <= 6 }
 
-    let isEnableAddHashtagButton = Observable.combineLatest(
-      isValidHashtag,
-      input.selectedHashtags.asObservable()
-    ) { ($0, $1) }
+    let isEnableAddHashtagButton = isValidHashtag
+      .combineLatest(input.selectedHashtags)
       .map { $0 && $1.count < 3 }
-    
-    let isEnabledNextButton = input.selectedHashtags.map { !$0.isEmpty }
+
+    let isEnabledNextButton = input.selectedHashtags
+      .map { !$0.isEmpty }
 
     return Output(
-      isValidHashtag: isValidHashtag.asDriver(onErrorJustReturn: false),
-      isEnableAddHashtagButton: isEnableAddHashtagButton.asDriver(onErrorJustReturn: false),
-      isEnabledNextButton: isEnabledNextButton.asDriver(onErrorJustReturn: false)
+      isValidHashtag: isValidHashtag.eraseToAnyPublisher(),
+      isEnableAddHashtagButton: isEnableAddHashtagButton.eraseToAnyPublisher(),
+      isEnabledNextButton: isEnabledNextButton.eraseToAnyPublisher()
     )
   }
 }

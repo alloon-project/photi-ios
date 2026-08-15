@@ -9,8 +9,6 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -23,13 +21,12 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
   
   // MARK: - Properties
   private let viewModel: SearchResultViewModel
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
+  private var cancellables = Set<AnyCancellable>()
   private var segmentIndex: Int = 0
   
-  private let searchText = PublishRelay<String>()
-  private let viewDidLoadRelay = PublishRelay<Void>()
-  private let searchMode = BehaviorRelay<(mode: SearchMode, input: String)>(value: (.title, ""))
+  private let searchText = PassthroughSubject<String, Never>()
+  private let viewDidLoadRelay = PassthroughSubject<Void, Never>()
+  private let searchMode = CurrentValueSubject<(mode: SearchMode, input: String), Never>((.title, ""))
   
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
@@ -77,7 +74,7 @@ final class SearchResultViewController: UIViewController, ViewControllerable {
     
     setupUI()
     bind()
-    viewDidLoadRelay.accept(())
+    viewDidLoadRelay.send(())
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -178,12 +175,12 @@ private extension SearchResultViewController {
 private extension SearchResultViewController {
   func bind() {
     let input = SearchResultViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: backButton.rx.tap.asSignal(),
-      searchText: searchText.asSignal(),
-      deleteAllRecentSearchInputs: recentSearchInputView.rx.deleteAllRecentSearchInputs,
-      deleteRecentSearchInput: recentSearchInputView.rx.deleteRecentSearchInput,
-      searchMode: searchMode.asDriver()
+      viewDidLoad: viewDidLoadRelay.eraseToAnyPublisher(),
+      didTapBackButton: backButton.tapPublisher,
+      searchText: searchText.eraseToAnyPublisher(),
+      deleteAllRecentSearchInputs: recentSearchInputView.deleteAllRecentSearchInputsPublisher,
+      deleteRecentSearchInput: recentSearchInputView.deleteRecentSearchInputPublisher,
+      searchMode: searchMode.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     
@@ -192,40 +189,38 @@ private extension SearchResultViewController {
   }
   
   func viewBind() {
-    recentSearchInputView.rx.didTapRecentSearchInput
-      .emit(with: self) { owner, searchInput in
+    recentSearchInputView.didTapRecentSearchInputPublisher
+      .sinkOnMain(with: self) { owner, searchInput in
         owner.searchBar.text = searchInput
         owner.searchBar.sendActions(for: .editingDidEnd)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     segmentControl.selectedSegment
       .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
       }.store(in: &cancellables)
     
-    searchBar.rx.controlEvent(.editingDidEnd)
-      .withLatestFrom(searchBar.rx.text)
-      .compactMap { $0 }
+    searchBar.eventPublisher(for: .editingDidEnd)
+      .withLatestFrom(searchBar.textPublisher)
       .filter { !$0.isEmpty }
-      .bind(with: self) { owner, text in
-        owner.searchText.accept(text)
+      .sinkOnMain(with: self) { owner, text in
+        owner.searchText.send(text)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
-    searchBar.rx.controlEvent(.editingChanged)
-      .withLatestFrom(searchBar.rx.text)
-      .compactMap { $0 }
+    searchBar.eventPublisher(for: .editingChanged)
+      .withLatestFrom(searchBar.textPublisher)
       .filter { $0.isEmpty }
-      .bind(with: self) { owner, _ in
-        owner.searchText.accept("")
+      .sinkOnMain(with: self) { owner, _ in
+        owner.searchText.send("")
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func viewModelBind(for output: SearchResultViewModel.Output) {
     output.searchResultMode
-      .drive(with: self) { owner, mode in
+      .sinkOnMain(with: self) { owner, mode in
         switch mode {
           case .searchInputSuggestion(let suggestion):
             owner.configureSearchSuggestionView(suggestion)
@@ -236,7 +231,7 @@ private extension SearchResultViewController {
             owner.searchResultView.isHidden = false
         }
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -255,7 +250,7 @@ private extension SearchResultViewController {
     defer { segmentIndex = index }
     let mode: SearchMode = index == 0 ? .title : .hashTag
     
-    searchMode.accept((mode, searchBar.text ?? ""))
+    searchMode.send((mode, searchBar.text ?? ""))
     removeViewController(segmentIndex: segmentIndex)
     attachViewController(segmentIndex: index)
   }

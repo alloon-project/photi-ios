@@ -6,8 +6,8 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
+import CoreUI
 
 protocol LogInGuideCoordinatable: AnyObject {
   func didTapBackButton()
@@ -17,39 +17,39 @@ protocol LogInGuideCoordinatable: AnyObject {
 protocol LogInGuideViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: LogInGuideCoordinatable? { get set }
 }
 
 final class LogInGuideViewModel: LogInGuideViewModelType {
   weak var coordinator: LogInGuideCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
 
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapLogInButton: ControlEvent<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapLogInButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output { }
-  
+
   // MARK: - Initializers
   init() { }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapLogInButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapLogInButton()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output()
   }
 }

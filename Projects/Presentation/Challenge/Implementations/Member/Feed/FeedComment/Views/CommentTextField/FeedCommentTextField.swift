@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import CoreUI
 import DesignSystem
 
@@ -24,23 +23,36 @@ final class FeedCommentTextField: UIView {
       textField.text = newValue
     }
   }
-  
+
+  var didBeginInitialEditing: AnyPublisher<Void, Never> {
+    textField.publisher(for: .editingDidBegin)
+      .first()
+      .map { _ in () }
+      .eraseToAnyPublisher()
+  }
+
+  var didTapReturn: AnyPublisher<Void, Never> {
+    textField.publisher(for: .editingDidEndOnExit)
+      .map { _ in () }
+      .eraseToAnyPublisher()
+  }
+
   // MARK: - UI Components
-  fileprivate let textField = LeftImageTextField()
+  private let textField = LeftImageTextField()
   private let textCountLabel = UILabel()
-  
+
   // MARK: - Initializers
   init() {
     super.init(frame: .zero)
     setupUI()
-    
+
     textField.addTarget(
       self,
       action: #selector(textDidChange),
       for: .editingChanged
     )
   }
-  
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -54,17 +66,17 @@ private extension FeedCommentTextField {
     setConstraints()
     setTextCountLabel(0)
   }
-  
+
   func setViewHeirarchy() {
     addSubviews(textField, textCountLabel)
   }
-  
+
   func setConstraints() {
     textField.snp.makeConstraints {
       $0.leading.top.trailing.equalToSuperview()
       $0.height.equalTo(42)
     }
-    
+
     textCountLabel.snp.makeConstraints {
       $0.trailing.bottom.equalToSuperview()
       $0.top.equalTo(textField.snp.bottom).offset(8)
@@ -78,26 +90,11 @@ private extension FeedCommentTextField {
     textField.text = text.trimmingPrefix(count: Constants.maxTextCount)
     setTextCountLabel(text.count)
   }
-  
+
   func setTextCountLabel(_ count: Int) {
     textCountLabel.attributedText = "\(count)/\(Constants.maxTextCount)".attributedString(
       font: .caption1,
       color: .gray600
     )
-  }
-}
-
-// MARK: - Reactive Extension
-extension Reactive where Base: FeedCommentTextField {
-  var didBeginInitialEditing: ControlEvent<Void> {
-    let event = base.textField.rx.controlEvent(.editingDidBegin).take(1)
-    
-    return ControlEvent(events: event)
-  }
-  
-  var didTapReturn: ControlEvent<Void> {
-    let event = base.textField.rx.controlEvent(.editingDidEndOnExit)
-    
-    return ControlEvent(events: event)
   }
 }

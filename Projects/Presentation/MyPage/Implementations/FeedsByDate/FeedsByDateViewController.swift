@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -23,13 +22,13 @@ final class FeedsByDateViewController: UIViewController, ViewControllerable {
   
   // MARK: - Properties
   private let viewModel: FeedsByDateViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var feeds = [FeedsByDatePresentationModel]() {
     didSet { feedsCollectionView.reloadData() }
   }
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapFeed = PublishRelay<(challengeId: Int, feedId: Int)>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapFeed = PassthroughSubject<(challengeId: Int, feedId: Int), Never>()
   
   // MARK: - UI Components
   private let navigationBar: PhotiNavigationBar
@@ -68,7 +67,7 @@ final class FeedsByDateViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
     
-    requestData.accept(())
+    requestData.send(())
   }
 }
 
@@ -107,20 +106,12 @@ private extension FeedsByDateViewController {
 // MARK: - Bind Methods
 private extension FeedsByDateViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = FeedsByDateViewModel.Input(
-      didTapBackButton: backButtonEvent.asSignal(),
-      requestData: requestData.asSignal(),
-      didTapFeed: didTapFeed.asSignal()
+      didTapBackButton: backButtonEvent.eraseToAnyPublisher(),
+      requestData: requestData.eraseToAnyPublisher(),
+      didTapFeed: didTapFeed.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     
@@ -129,22 +120,24 @@ private extension FeedsByDateViewController {
   
   func viewModelBind(for output: FeedsByDateViewModel.Output) {
     output.feeds
-      .drive(rx.feeds)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, feeds in
+        owner.feeds = feeds
+      }
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
   
   func bind(for cell: FeedsByDateCell) {
-    cell.rx.didTapFeed
-      .bind(with: self) { owner, ids in
-        owner.didTapFeed.accept(ids)
+    cell.didTapFeed
+      .sinkOnMain(with: self) { owner, ids in
+        owner.didTapFeed.send(ids)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 

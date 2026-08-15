@@ -7,8 +7,8 @@
 //
 
 import Foundation
-import RxSwift
-import RxCocoa
+import Combine
+import CoreUI
 import Entity
 import UseCase
 
@@ -28,115 +28,114 @@ protocol NoneMemberChallengeViewModelType: AnyObject {
 
 final class NoneMemberChallengeViewModel: NoneMemberChallengeViewModelType, @unchecked Sendable {
   weak var coordinator: NoneMemberChallengeCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
 
   private let challengeId: Int
   private let useCase: ChallengeUseCase
 
   private var challengeName = ""
   private var isPrivateChallenge: Bool = true
-  
-  private let displayUnlockViewRelay = PublishRelay<Void>()
-  private let verifyCodeResultRelay = PublishRelay<Bool>()
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let challengeNotFoundRelay = PublishRelay<Void>()
-  private let exceededJoinableChallengeLimitReay = PublishRelay<Void>()
-  
-  private let challengeRelay = BehaviorRelay<ChallengeDetail?>(value: nil)
-  private let challengeObservable: Observable<ChallengeDetail>
+
+  private let displayUnlockViewSubject = PassthroughSubject<Void, Never>()
+  private let verifyCodeResultSubject = PassthroughSubject<Bool, Never>()
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let challengeNotFoundSubject = PassthroughSubject<Void, Never>()
+  private let exceededJoinableChallengeLimitSubject = PassthroughSubject<Void, Never>()
+
+  private let challengeSubject = CurrentValueSubject<ChallengeDetail?, Never>(nil)
 
   // MARK: - Input
   struct Input {
-    let viewDidLoad: Signal<Void>
-    let didTapBackButton: ControlEvent<Void>
-    let didTapJoinButton: ControlEvent<Void>
-    let requestVerifyInvitationCode: Signal<String>
-    let didFinishVerify: Signal<Void>
-    let didTapConfirmButtonAtChallengeNotFound: Signal<Void>
+    let viewDidLoad: AnyPublisher<Void, Never>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapJoinButton: AnyPublisher<Void, Never>
+    let requestVerifyInvitationCode: AnyPublisher<String, Never>
+    let didFinishVerify: AnyPublisher<Void, Never>
+    let didTapConfirmButtonAtChallengeNotFound: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let isPrivateChallenge: Driver<Bool>
-    let displayUnlockView: Signal<Void>
-    let verifyCodeResult: Signal<Bool>
-    let challengeTitle: Driver<String>
-    let hashTags: Driver<[String]>
-    let verificationTime: Driver<String>
-    let goal: Driver<String>
-    let challengeImageURL: Driver<URL?>
-    let memberCount: Driver<Int>
-    let rules: Driver<[String]>
-    let deadLine: Driver<String>
-    let memberThumbnailURLs: Driver<[URL]>
-    let challengeNotFound: Signal<Void>
-    let networkUnstable: Signal<Void>
-    let exceededJoinableChallengeLimit: Signal<Void>
+    let isPrivateChallenge: AnyPublisher<Bool, Never>
+    let displayUnlockView: AnyPublisher<Void, Never>
+    let verifyCodeResult: AnyPublisher<Bool, Never>
+    let challengeTitle: AnyPublisher<String, Never>
+    let hashTags: AnyPublisher<[String], Never>
+    let verificationTime: AnyPublisher<String, Never>
+    let goal: AnyPublisher<String, Never>
+    let challengeImageURL: AnyPublisher<URL?, Never>
+    let memberCount: AnyPublisher<Int, Never>
+    let rules: AnyPublisher<[String], Never>
+    let deadLine: AnyPublisher<String, Never>
+    let memberThumbnailURLs: AnyPublisher<[URL], Never>
+    let challengeNotFound: AnyPublisher<Void, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let exceededJoinableChallengeLimit: AnyPublisher<Void, Never>
   }
 
   // MARK: - Initializers
   init(challengeId: Int, useCase: ChallengeUseCase) {
     self.challengeId = challengeId
     self.useCase = useCase
-    self.challengeObservable = challengeRelay.compactMap { $0 }
   }
-  
+
   func transform(input: Input) -> Output {
     input.viewDidLoad
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.fetchChallenge() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapJoinButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.attemptToJoinChallenge() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didFinishVerify
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.attachEnterChallengeGoal(challengeName: owner.challengeName, challengeID: owner.challengeId)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.requestVerifyInvitationCode
-      .emit(with: self) { owner, code in
+      .sinkOnMain(with: self) { owner, code in
         Task { await owner.verifyInvitationCode(code) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapConfirmButtonAtChallengeNotFound
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.requestDetach()
       }
-      .disposed(by: disposeBag)
-    
-    let verificatoinTimeObservable = challengeObservable.map { $0.proveTime.toString("HH : mm") }
-    let deadLineObservable = challengeObservable.map { $0.endDate.toString("yyyy.MM.dd") }
-    
+      .store(in: &cancellables)
+
+    let challengePublisher = challengeSubject.compactMap { $0 }.eraseToAnyPublisher()
+    let verificationTimePublisher = challengePublisher.map { $0.proveTime.toString("HH : mm") }.eraseToAnyPublisher()
+    let deadLinePublisher = challengePublisher.map { $0.endDate.toString("yyyy.MM.dd") }.eraseToAnyPublisher()
+
     return Output(
-      isPrivateChallenge: challengeObservable.map { !($0.isPublic ?? false) }.asDriver(onErrorJustReturn: false),
-      displayUnlockView: displayUnlockViewRelay.asSignal(),
-      verifyCodeResult: verifyCodeResultRelay.asSignal(),
-      challengeTitle: challengeObservable.map(\.name).asDriver(onErrorJustReturn: ""),
-      hashTags: challengeObservable.map(\.hashTags).asDriver(onErrorJustReturn: []),
-      verificationTime: verificatoinTimeObservable.asDriver(onErrorJustReturn: ""),
-      goal: challengeObservable.map(\.goal).asDriver(onErrorJustReturn: ""),
-      challengeImageURL: challengeObservable.map(\.imageUrl).asDriver(onErrorJustReturn: nil),
-      memberCount: challengeObservable.map(\.memberCount).asDriver(onErrorJustReturn: 0),
-      rules: challengeObservable.compactMap(\.rules).asDriver(onErrorJustReturn: []),
-      deadLine: deadLineObservable.asDriver(onErrorJustReturn: ""),
-      memberThumbnailURLs: challengeObservable.map(\.memberImages).asDriver(onErrorJustReturn: []),
-      challengeNotFound: challengeNotFoundRelay.asSignal(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      exceededJoinableChallengeLimit: exceededJoinableChallengeLimitReay.asSignal()
+      isPrivateChallenge: challengePublisher.map { !($0.isPublic ?? false) }.eraseToAnyPublisher(),
+      displayUnlockView: displayUnlockViewSubject.eraseToAnyPublisher(),
+      verifyCodeResult: verifyCodeResultSubject.eraseToAnyPublisher(),
+      challengeTitle: challengePublisher.map(\.name).eraseToAnyPublisher(),
+      hashTags: challengePublisher.map(\.hashTags).eraseToAnyPublisher(),
+      verificationTime: verificationTimePublisher,
+      goal: challengePublisher.map(\.goal).eraseToAnyPublisher(),
+      challengeImageURL: challengePublisher.map(\.imageUrl).eraseToAnyPublisher(),
+      memberCount: challengePublisher.map(\.memberCount).eraseToAnyPublisher(),
+      rules: challengePublisher.compactMap(\.rules).eraseToAnyPublisher(),
+      deadLine: deadLinePublisher,
+      memberThumbnailURLs: challengePublisher.map(\.memberImages).eraseToAnyPublisher(),
+      challengeNotFound: challengeNotFoundSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      exceededJoinableChallengeLimit: exceededJoinableChallengeLimitSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -154,20 +153,20 @@ private extension NoneMemberChallengeViewModel {
     do {
       let isLogin = try await useCase.isLogIn()
       let isPossibleToJoin = await useCase.isPossibleToJoinChallenge()
-      
-      isPossibleToJoin ? decideJoinFlowBasedOnLogIn(isLogin: isLogin) : exceededJoinableChallengeLimitReay.accept(())
+
+      isPossibleToJoin ? decideJoinFlowBasedOnLogIn(isLogin: isLogin) : exceededJoinableChallengeLimitSubject.send(())
     } catch {
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
-  
+
   func decideJoinFlowBasedOnLogIn(isLogin: Bool) {
     isLogin ? routeBasedOnChallengePrivacy() : coordinator?.attachLogInGuide()
   }
-  
+
   func routeBasedOnChallengePrivacy() {
     isPrivateChallenge ?
-    displayUnlockViewRelay.accept(()) :
+    displayUnlockViewSubject.send(()) :
     coordinator?.attachEnterChallengeGoal(challengeName: challengeName, challengeID: challengeId)
   }
 }
@@ -179,30 +178,30 @@ private extension NoneMemberChallengeViewModel {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
       challengeName = challenge.name
       isPrivateChallenge = !(challenge.isPublic ?? false)
-      challengeRelay.accept(challenge)
+      challengeSubject.send(challenge)
     } catch {
       requestFailed(with: error)
     }
   }
-  
+
   func verifyInvitationCode(_ code: String) async {
     do {
       let isMatch = try await useCase.verifyInvitationCode(id: challengeId, code: code)
-      verifyCodeResultRelay.accept(isMatch)
+      verifyCodeResultSubject.send(isMatch)
     } catch {
       requestFailed(with: error)
     }
   }
-  
+
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
+    guard let error = error as? APIError else { return networkUnstableSubject.send(()) }
     switch error {
       case let .challengeFailed(reason) where reason == .challengeNotFound:
-        challengeNotFoundRelay.accept(())
+        challengeNotFoundSubject.send(())
       case .authenticationFailed:
         coordinator?.attachLogInGuide()
       default:
-        networkUnstableRelay.accept(())
+        networkUnstableSubject.send(())
     }
   }
 }

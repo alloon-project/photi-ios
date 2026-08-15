@@ -6,8 +6,7 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import DesignSystem
 import Entity
 import UseCase
@@ -18,45 +17,44 @@ protocol ReportCoordinatable: AnyObject {
   func didFinishReport()
 }
 
-protocol ReportViewModelType {
+protocol ReportViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
-  var disposeBag: DisposeBag { get }
+
   var coordinator: ReportCoordinatable? { get set }
-  
+
   func transform(input: Input) -> Output
 }
 
 final class ReportViewModel: ReportViewModelType {
-  let disposeBag = DisposeBag()
-  
+  private var cancellables = Set<AnyCancellable>()
+
   weak var coordinator: ReportCoordinatable?
-  
+
   private let reportUseCase: ReportUseCase
   private let inquiryUseCase: InquiryUseCase
-  private let requestFailedRelay = PublishRelay<Void>()
+  private let requestFailedSubject = PassthroughSubject<Void, Never>()
   let reportType: ReportType
-  
+
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let didTapReportButton: ControlEvent<Void>
-    let reasonAndType: Observable<String> // 신고 이유 및 문의 내용 타입
-    let content: ControlProperty<String> // 신고 및 문의 상세내용
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapReportButton: AnyPublisher<Void, Never>
+    let reasonAndType: AnyPublisher<String, Never> // 신고 이유 및 문의 내용 타입
+    let content: AnyPublisher<String, Never> // 신고 및 문의 상세내용
   }
-  
+
   // MARK: - Output
   struct Output {
-    var requestFailed: Signal<Void>
-    var title: String
-    var contents: [String]
-    var reason: [String]
-    var textViewTitle: String
-    var textViewPlaceHolder: String
-    var buttonTitle: String
+    let requestFailed: AnyPublisher<Void, Never>
+    let title: String
+    let contents: [String]
+    let reason: [String]
+    let textViewTitle: String
+    let textViewPlaceHolder: String
+    let buttonTitle: String
   }
-  
+
   // MARK: - Initializers
   init(
     reportUseCase: ReportUseCase,
@@ -67,17 +65,18 @@ final class ReportViewModel: ReportViewModelType {
     self.inquiryUseCase = inquiryUseCase
     self.reportType = reportType
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButtonAtReport()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapReportButton
-      .withLatestFrom(Observable.combineLatest(input.reasonAndType, input.content))
-      .bind(with: self) { owner, reasonWithContent in
+      .combineLatest(input.reasonAndType, input.content)
+      .map { ($0.1, $0.2) }
+      .sinkOnMain(with: self) { owner, reasonWithContent in
         switch owner.reportType {
         case .challenge(let id), .member(let id), .feed(let id):
           Task {
@@ -97,10 +96,10 @@ final class ReportViewModel: ReportViewModelType {
           }
         }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output(
-      requestFailed: requestFailedRelay.asSignal(),
+      requestFailed: requestFailedSubject.eraseToAnyPublisher(),
       title: reportType.title,
       contents: reportType.contents,
       reason: reportType.reason,
@@ -143,7 +142,7 @@ private extension ReportViewModel {
   
   func requestFailed(with error: Error) {
     if error is APIError {
-      requestFailedRelay.accept(())
+      requestFailedSubject.send(())
     }
   }
 }

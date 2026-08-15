@@ -8,8 +8,6 @@
 
 import UIKit
 import Kingfisher
-import RxCocoa
-import RxSwift
 import CoreUI
 import DesignSystem
 

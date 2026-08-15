@@ -9,20 +9,17 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class ReportViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ReportViewModel
   // MARK: - Properties
-  private let didTapBackButtonRelay = PublishRelay<Void>()
+  private let didTapBackButtonSubject = PassthroughSubject<Void, Never>()
   private var selectedIndexPath: IndexPath?
-  private let selectedRowRelay = PublishRelay<String>()
+  private let selectedRowSubject = PassthroughSubject<String, Never>()
   private var isDisplayDetailContent = false
   
   // MARK: - UI Components
@@ -150,47 +147,32 @@ private extension ReportViewController {
 // MARK: - Bind Methods
 private extension ReportViewController {
   func bind() {
-    let content: ControlProperty<String> = {
-      let values = Observable<String>.create { [weak detailContentTextView] observer in
-        guard let textView = detailContentTextView else { return Disposables.create() }
-        let cancellable = textView.textPublisher
-          .sink { value in observer.onNext(value) }
-        return Disposables.create { cancellable.cancel() }
-      }
-
-      let sink = AnyObserver<String> { [weak detailContentTextView] event in
-        if case .next(let text) = event {
-          detailContentTextView?.text = text
-        }
-      }
-      return ControlProperty(values: values, valueSink: sink)
-    }()
-      
     let input = ReportViewModel.Input(
-      didTapBackButton: .init(events: didTapBackButtonRelay),
-      didTapReportButton: reportButton.rx.tap,
-      reasonAndType: selectedRowRelay.asObservable(),
-      content: content
+      didTapBackButton: didTapBackButtonSubject.eraseToAnyPublisher(),
+      didTapReportButton: reportButton.tapPublisher,
+      reasonAndType: selectedRowSubject.eraseToAnyPublisher(),
+      content: detailContentTextView.textPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     viewBind()
     bind(output: output)
   }
-  
+
   func viewBind() {
     navigationBar.didTapBackButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapBackButtonRelay.accept(())
-      }.store(in: &cancellables)
+        owner.didTapBackButtonSubject.send(())
+      }
+      .store(in: &cancellables)
   }
-  
+
   func bind(output: ReportViewModel.Output) {
     output.requestFailed
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.displayAlertPopUp()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -231,7 +213,7 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
 
       let previousIndexPath = selectedIndexPath
       selectedIndexPath = indexPath
-      selectedRowRelay.accept(viewModel.reportType.reason[indexPath.row])
+      selectedRowSubject.send(viewModel.reportType.reason[indexPath.row])
 
       setupDetailContentUI()
 

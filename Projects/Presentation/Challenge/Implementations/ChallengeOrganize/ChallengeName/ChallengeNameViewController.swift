@@ -7,18 +7,17 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class ChallengeNameViewController: UIViewController, ViewControllerable {
   private let mode: ChallengeOrganizeMode
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeNameViewModel
-  private var isPublicRelay: BehaviorRelay<Bool> = BehaviorRelay(value: true)
+  private let isPublicSubject = CurrentValueSubject<Bool, Never>(true)
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -245,42 +244,33 @@ private extension ChallengeNameViewController {
 // MARK: - Bind Methods
 private extension ChallengeNameViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeNameViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      challengeName: challengeNameTextField.textField.rx.text.orEmpty,
-      isPublicChallenge: isPublicRelay.asObservable(),
-      didTapNextButton: nextButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      challengeName: challengeNameTextField.textPublisher,
+      isPublicChallenge: isPublicSubject.eraseToAnyPublisher(),
+      didTapNextButton: nextButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     bind(for: output)
     viewBind()
   }
-  
+
   func bind(for output: ChallengeNameViewModel.Output) { }
-  
+
   func viewBind() {
-    challengeNameTextField.textField.rx.text.orEmpty
+    challengeNameTextField.textPublisher
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .map { !$0.isEmpty }
-      .bind(to: nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
-      
-    isPublicRelay.asObservable()
-      .bind(with: self) { owner, isPublic in
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.nextButton.isEnabled = isEnabled
+      }.store(in: &cancellables)
+
+    isPublicSubject
+      .sinkOnMain(with: self) { owner, isPublic in
         owner.publicCommentBox.isHidden = !isPublic
         owner.privateComment.isHidden = isPublic
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -295,6 +285,6 @@ extension ChallengeNameViewController: ChallengeNamePresentable {
 private extension ChallengeNameViewController {
   @objc
   func toggleSwitch() {
-    isPublicRelay.accept(publicSwitch.isOn)
+    isPublicSubject.send(publicSwitch.isOn)
   }
 }

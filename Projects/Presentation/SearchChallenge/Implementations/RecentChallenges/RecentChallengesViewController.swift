@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -24,11 +23,11 @@ final class RecentChallengesViewController: UIViewController, ViewControllerable
   
   // MARK: - Properties
   private let viewModel: RecentChallengesViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapChallenge = PublishRelay<Int>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapChallenge = PassthroughSubject<Int, Never>()
   
   // MARK: - UI Components
   private let challengeCollectionView: UICollectionView = {
@@ -68,7 +67,7 @@ final class RecentChallengesViewController: UIViewController, ViewControllerable
     challengeCollectionView.dataSource = datasource
     challengeCollectionView.delegate = self
     
-    requestData.accept(())
+    requestData.send(())
   }
 }
 
@@ -95,8 +94,8 @@ private extension RecentChallengesViewController {
 private extension RecentChallengesViewController {
   func bind() {
     let input = RecentChallengesViewModel.Input(
-      requestData: requestData.asSignal(),
-      didTapChallenge: didTapChallenge.asSignal()
+      requestData: requestData.eraseToAnyPublisher(),
+      didTapChallenge: didTapChallenge.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     
@@ -108,22 +107,22 @@ private extension RecentChallengesViewController {
   
   func viewModelBind(for output: RecentChallengesViewModel.Output) {
     output.initialChallenges
-      .drive(with: self) { owner, challengs in
+      .sinkOnMain(with: self) { owner, challengs in
         owner.initialize(with: challengs)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.challenges
-      .drive(with: self) { owner, challengs in
+      .sinkOnMain(with: self) { owner, challengs in
         owner.append(models: challengs)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -221,11 +220,11 @@ extension RecentChallengesViewController: UICollectionViewDelegate {
     
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapChallenge.accept(item.id)
+    didTapChallenge.send(item.id)
   }
 }

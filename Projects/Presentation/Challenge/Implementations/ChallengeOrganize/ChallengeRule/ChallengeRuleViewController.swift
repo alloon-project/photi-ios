@@ -7,9 +7,8 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -22,7 +21,7 @@ struct Rule {
 final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   // MARK: Variables
   private let mode: ChallengeOrganizeMode
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeRuleViewModel
   private var defaultRules: [Rule] = [
     Rule(title: "일주일 3회 이상 인증하기", isSelected: false),
@@ -32,7 +31,7 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
     Rule(title: "팀원 인증글에 하트 누르기", isSelected: false),
     Rule(title: "사적인 질문하지 않기", isSelected: false)
   ]
-  
+
   private var additionalRules: [Rule] = [
     Rule(title: "+", isSelected: false)
   ] {
@@ -42,10 +41,10 @@ final class ChallengeRuleViewController: UIViewController, ViewControllerable {
   }
   private var selectedRules: [String] = [] {
     didSet {
-      selectedRulesRelay.accept(selectedRules)
+      selectedRulesSubject.send(selectedRules)
     }
   }
-  private let selectedRulesRelay = PublishRelay<[String]>()
+  private let selectedRulesSubject = PassthroughSubject<[String], Never>()
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
   
@@ -187,30 +186,21 @@ private extension ChallengeRuleViewController {
 // MARK: - Bind Methods
 private extension ChallengeRuleViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeRuleViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      challengeRules: selectedRulesRelay.asSignal(),
-      didTapNextButton: nextButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      challengeRules: selectedRulesSubject.eraseToAnyPublisher(),
+      didTapNextButton: nextButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     bind(for: output)
   }
-  
+
   func bind(for output: ChallengeRuleViewModel.Output) {
     output.isRuleSelected
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.nextButton.isEnabled = isEnabled
+      }.store(in: &cancellables)
   }
 }
 

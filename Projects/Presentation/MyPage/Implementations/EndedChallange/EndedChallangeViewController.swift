@@ -6,10 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -26,11 +25,11 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
   
   // MARK: - Properties
   private let viewModel: EndedChallengeViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapChallenge = PublishRelay<Int>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapChallenge = PassthroughSubject<Int, Never>()
   
   // MARK: - UIComponents
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -78,7 +77,7 @@ final class EndedChallengeViewController: UIViewController, ViewControllerable {
     setupUI()
     bind()
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -144,20 +143,12 @@ private extension EndedChallengeViewController {
 // MARK: - Bind Method
 private extension EndedChallengeViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
+    let backButtonEvent = navigationBar.didTapBackButton
     
     let input = EndedChallengeViewModel.Input(
       didTapBackButton: backButtonEvent,
-      requestData: requestData.asSignal(),
-      didTapChallenge: didTapChallenge.asSignal()
+      requestData: requestData.eraseToAnyPublisher(),
+      didTapChallenge: didTapChallenge.eraseToAnyPublisher()
     )
     
     let output = viewModel.transform(input: input)
@@ -167,16 +158,16 @@ private extension EndedChallengeViewController {
   
   func bind(for output: EndedChallengeViewModel.Output) {
     output.endedChallenges
-      .drive(with: self) { owner, challenges in
+      .sinkOnMain(with: self) { owner, challenges in
         owner.append(models: challenges)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -257,11 +248,11 @@ extension EndedChallengeViewController: UICollectionViewDelegate {
     
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapChallenge.accept(item.id)
+    didTapChallenge.send(item.id)
   }
 }

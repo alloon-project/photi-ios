@@ -7,15 +7,23 @@
 //
 
 import UIKit
+import Combine
 import Kingfisher
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class FeedCell: UICollectionViewCell {
-  fileprivate var feedId: Int = 0
+  // MARK: - Properties
+  private var feedId: Int = 0
+
+  var didTapLikeButton: AnyPublisher<(Bool, Int), Never> {
+    likeButton.tapPublisher
+      .map { [weak self] in
+        (self?.likeButton.isSelected ?? false, self?.feedId ?? 0)
+      }
+      .eraseToAnyPublisher()
+  }
   
   // MARK: - UI Components
   private let dimmedLayer: CALayer = {
@@ -33,7 +41,7 @@ final class FeedCell: UICollectionViewCell {
   }()
   private let userNameLabel = UILabel()
   private let updateTimeLabel = UILabel()
-  fileprivate let likeButton = FeedLikeButton()
+  private let likeButton = FeedLikeButton()
   
   // MARK: - Initializers
   override init(frame: CGRect) {
@@ -110,12 +118,3 @@ private extension FeedCell {
   }
 }
 
-extension Reactive where Base: FeedCell {
-  var didTapLikeButton: ControlEvent<(Bool, Int)> {
-    let source = base.likeButton.rx.tap.map { _ in
-      (base.likeButton.isSelected, base.feedId)
-    }
-    
-    return .init(events: source)
-  }
-}

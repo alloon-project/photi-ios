@@ -9,8 +9,6 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -18,14 +16,13 @@ import DesignSystem
 final class ChallengeHashtagViewController: UIViewController, ViewControllerable {
   // MARK: - Variables
   private let mode: ChallengeOrganizeMode
-  private let disposeBag = DisposeBag()
-  private var cancellables: Set<AnyCancellable> = []
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeHashtagViewModel
-  
+
   private var hashtagsDataSource: [String] = [] {
     didSet { hashtagCollectionView.reloadData() }
   }
-  private var selectedHashtags = BehaviorRelay<[String]>(value: [])
+  private let selectedHashtagsSubject = CurrentValueSubject<[String], Never>([])
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -165,59 +162,51 @@ private extension ChallengeHashtagViewController {
 // MARK: - Bind Methods
 private extension ChallengeHashtagViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeHashtagViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      enteredHashtag: addHashtagTextField.textField.rx.text.orEmpty,
-      selectedHashtags: selectedHashtags.asDriver(),
-      didTapNextButton: nextButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      enteredHashtag: addHashtagTextField.textPublisher,
+      selectedHashtags: selectedHashtagsSubject.eraseToAnyPublisher(),
+      didTapNextButton: nextButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     viewBind()
     bind(for: output)
   }
-  
+
   func viewBind() {
     addHashtagTextField.buttonTapPublisher
       .withLatestFrom(addHashtagTextField.textPublisher)
       .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
       .sinkOnMain(with: self) { owner, hashTag in
         owner.hashtagsDataSource.append(hashTag)
-        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+        owner.selectedHashtagsSubject.send(owner.hashtagsDataSource)
         owner.addHashtagTextField.text = ""
       }.store(in: &cancellables)
-    
-    selectedHashtags
+
+    selectedHashtagsSubject
       .filter { $0.count >= 3 }
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.view.endEditing(true)
         owner.presentHashtagLimitToastView()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
-  
+
   func bind(for output: ChallengeHashtagViewModel.Output) {
     output.isValidHashtag
-      .drive(commentView.rx.isActivate)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, isActivate in
+        owner.commentView.isActivate = isActivate
+      }.store(in: &cancellables)
+
     output.isEnableAddHashtagButton
-      .drive(addHashtagTextField.rx.buttonIsEnabled)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.addHashtagTextField.buttonIsEnabled = isEnabled
+      }.store(in: &cancellables)
+
     output.isEnabledNextButton
-      .drive(nextButton.rx.isEnabled)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, isEnabled in
+        owner.nextButton.isEnabled = isEnabled
+      }.store(in: &cancellables)
   }
 }
 
@@ -258,7 +247,7 @@ extension ChallengeHashtagViewController: UICollectionViewDataSource {
       .sinkOnMain(with: self) { owner, _ in
         guard let indexPath = collectionView.indexPath(for: cell) else { return }
         owner.hashtagsDataSource.remove(at: indexPath.item)
-        owner.selectedHashtags.accept(owner.hashtagsDataSource)
+        owner.selectedHashtagsSubject.send(owner.hashtagsDataSource)
       }.store(in: &cancellables)
     
     return cell

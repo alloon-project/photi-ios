@@ -7,13 +7,17 @@
 //
 
 import UIKit
+import Combine
 import Kingfisher
-import RxCocoa
-import RxSwift
 import CoreUI
 import DesignSystem
 
 final class ParticipantCell: UITableViewCell {
+  // MARK: - Properties
+  var didTapEditButton: AnyPublisher<Void, Never> {
+    editButton.tapPublisher
+  }
+
   // MARK: - UI Components
   private let containerView = UIView()
   private let userNameLabel = UILabel()
@@ -21,17 +25,17 @@ final class ParticipantCell: UITableViewCell {
   private let userProfileView = AvatarImageView(size: .medium)
   private let participantInfoUpperView = UIView()
   private let participantGoalView = ParticipantGoalView()
-  
+
   private let participantStackView: UIStackView = {
     let stackView = UIStackView()
     stackView.axis = .vertical
     stackView.spacing = 8
-    
+
     return stackView
   }()
-  
+
   private let ownerBadge = Badge(mode: .line, size: .medium, text: "파티장")
-  fileprivate let editButton = {
+  private let editButton = {
     let button = UIButton()
     button.setImage(.pencilGray700, for: .normal)
     return button
@@ -149,11 +153,5 @@ private extension ParticipantCell {
         self?.userProfileView.configureImage(image.image)
       }
     }
-  }
-}
-
-extension Reactive where Base: ParticipantCell {
-  var didTapEditButton: ControlEvent<Void> {
-    base.editButton.rx.tap
   }
 }

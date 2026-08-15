@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import Entity
 import UseCase
 
@@ -20,37 +19,37 @@ protocol EnterChallengeGoalCoordinatable: AnyObject {
 protocol EnterChallengeGoalViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: EnterChallengeGoalCoordinatable? { get set }
 }
 
 final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
   weak var coordinator: EnterChallengeGoalCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let mode: ChallengeGoalMode
   private let useCase: ChallengeUseCase
   private let challengeID: Int
-  
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let alreadyJoinedRelay = PublishRelay<Void>()
-  private let exceedChallengeMaximumRelay = PublishRelay<String>()
-  
+
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let alreadyJoinedSubject = PassthroughSubject<Void, Never>()
+  private let exceedChallengeMaximumSubject = PassthroughSubject<String, Never>()
+
   // MARK: - Input
   struct Input {
-    let didTapBackButton: ControlEvent<Void>
-    let goalText: ControlProperty<String>
-    let didTapSaveButton: ControlEvent<Void>
-    let didTapSkipButton: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let goalText: AnyPublisher<String, Never>
+    let didTapSaveButton: AnyPublisher<Void, Never>
+    let didTapSkipButton: AnyPublisher<Void, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let saveButtonisEnabled: Driver<Bool>
-    let networkUnstable: Signal<Void>
-    let alreadyJoined: Signal<Void>
-    let exceedMaximumChallenge: Signal<String>
+    let saveButtonIsEnabled: AnyPublisher<Bool, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let alreadyJoined: AnyPublisher<Void, Never>
+    let exceedMaximumChallenge: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Initializers
   init(
     mode: ChallengeGoalMode,
@@ -61,32 +60,33 @@ final class EnterChallengeGoalViewModel: EnterChallengeGoalViewModelType {
     self.challengeID = challengeID
     self.useCase = useCase
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapSaveButton
       .withLatestFrom(input.goalText)
-      .bind(with: self) { owner, goal in
+      .sinkOnMain(with: self) { owner, goal in
         Task { await owner.handleGoalSubmission(goal) }
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapSkipButton
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.handleSkipEnteredGoal() }
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
+    let saveButtonIsEnabled = input.goalText
+      .map { !$0.isEmpty }
+      .eraseToAnyPublisher()
+
     return Output(
-      saveButtonisEnabled: input.goalText.map { !$0.isEmpty }.asDriver(onErrorJustReturn: false),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      alreadyJoined: alreadyJoinedRelay.asSignal(),
-      exceedMaximumChallenge: exceedChallengeMaximumRelay.asSignal()
+      saveButtonIsEnabled: saveButtonIsEnabled,
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      alreadyJoined: alreadyJoinedSubject.eraseToAnyPublisher(),
+      exceedMaximumChallenge: exceedChallengeMaximumSubject.eraseToAnyPublisher()
     )
   }
 }
@@ -101,13 +101,13 @@ private extension EnterChallengeGoalViewModel {
       await updateChallengeGoal(goal)
     }
   }
-  
+
   func handleSkipEnteredGoal() async {
     if case .join = mode {
       await joinChallenge(goal: "")
     }
   }
-  
+
   @MainActor func joinChallenge(goal: String) async {
     do {
       try await useCase.joinChallenge(id: challengeID, goal: goal)
@@ -116,7 +116,7 @@ private extension EnterChallengeGoalViewModel {
       requestFailed(with: error)
     }
   }
-  
+
   @MainActor func updateChallengeGoal(_ goal: String) async {
     do {
       try await useCase.updateChallengeGoal(goal, challengeId: challengeID)
@@ -125,21 +125,21 @@ private extension EnterChallengeGoalViewModel {
       requestFailed(with: error)
     }
   }
-  
+
   func requestFailed(with error: Error) {
-    guard let error = error as? APIError else { return networkUnstableRelay.accept(()) }
-    
+    guard let error = error as? APIError else { return networkUnstableSubject.send(()) }
+
     switch error {
     case .challengeFailed(reason: .challengeLimitExceed):
       let message = "챌린지는 최대 20개까지 참여할 수 있습니다."
-      exceedChallengeMaximumRelay.accept(message)
+      exceedChallengeMaximumSubject.send(message)
     case let .challengeFailed(reason) where reason == .alreadyJoinedChallenge:
-      alreadyJoinedRelay.accept(())
-      
+      alreadyJoinedSubject.send(())
+
     case .authenticationFailed:
       coordinator?.authenticatedFailed()
     default:
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
 }

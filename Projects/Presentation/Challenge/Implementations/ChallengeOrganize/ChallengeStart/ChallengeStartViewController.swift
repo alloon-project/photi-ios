@@ -7,15 +7,14 @@
 //
 
 import UIKit
+import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
 
 final class ChallengeStartViewController: UIViewController, ViewControllerable {
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let viewModel: ChallengeStartViewModel
   
   // MARK: - UI Components
@@ -152,22 +151,12 @@ private extension ChallengeStartViewController {
 // MARK: - Bind Method
 private extension ChallengeStartViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeStartViewModel.Input(
-      didTapBackButton: backButtonEvent,
-      didTapStartButton: startButton.rx.tap
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapStartButton: startButton.tapPublisher
     )
-    
-    let output = viewModel.transform(input: input)
+
+    _ = viewModel.transform(input: input)
   }
 }
 

@@ -9,8 +9,6 @@
 import UIKit
 import Combine
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -22,18 +20,17 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
   
   // MARK: - Properties
   private let viewModel: NoneMemberChallengeViewModel
-  private let disposeBag = DisposeBag()
   private var cancellables = Set<AnyCancellable>()
   private var hashTags = [String]() {
     didSet { hashTagCollectionView.reloadData() }
   }
   private var invitationCodeViewController: InvitationCodeViewController?
   private var isUnlocked: Bool = false
-  
-  private let viewDidLoadRelay = PublishRelay<Void>()
-  private let codeRelay = PublishRelay<String>()
-  private let didFinishVerifyRelay = PublishRelay<Void>()
-  private let didTapConfirmButtonAtChallengeNotFound = PublishRelay<Void>()
+
+  private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
+  private let codeSubject = PassthroughSubject<String, Never>()
+  private let didFinishVerifySubject = PassthroughSubject<Void, Never>()
+  private let didTapConfirmButtonAtChallengeNotFoundSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(leftView: .backButton, displayMode: .dark)
@@ -74,7 +71,7 @@ final class NoneMemberChallengeViewController: UIViewController, ViewControllera
     hashTagCollectionView.dataSource = self
     setupUI()
     bind()
-    viewDidLoadRelay.accept(())
+    viewDidLoadSubject.send(())
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -182,127 +179,126 @@ private extension NoneMemberChallengeViewController {
 // MARK: - Bind Methods
 private extension NoneMemberChallengeViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = NoneMemberChallengeViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: backButtonEvent,
-      didTapJoinButton: joinButton.rx.tap,
-      requestVerifyInvitationCode: codeRelay.asSignal(),
-      didFinishVerify: didFinishVerifyRelay.asSignal().asSharedSequence(),
-      didTapConfirmButtonAtChallengeNotFound: didTapConfirmButtonAtChallengeNotFound.asSignal()
+      viewDidLoad: viewDidLoadSubject.eraseToAnyPublisher(),
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapJoinButton: joinButton.tapPublisher,
+      requestVerifyInvitationCode: codeSubject.eraseToAnyPublisher(),
+      didFinishVerify: didFinishVerifySubject.eraseToAnyPublisher(),
+      didTapConfirmButtonAtChallengeNotFound: didTapConfirmButtonAtChallengeNotFoundSubject.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
-    
+
     viewBind()
     viewModelBind(for: output)
   }
-  
+
   func viewBind() {
-    ruleView.rx.didTapViewAllRulesButton
-      .bind(with: self) { owner, rules in
+    ruleView.didTapViewAllRulesButton
+      .sinkOnMain(with: self) { owner, rules in
         owner.displayRuleDetailViewController(rules)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     challengeNotFoundAlert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtChallengeNotFound.accept(())
+        owner.didTapConfirmButtonAtChallengeNotFoundSubject.send(())
       }.store(in: &cancellables)
   }
-  
+
   func viewModelBind(for output: NoneMemberChallengeViewModel.Output) {
     bindLeftView(for: output)
     bindRightView(for: output)
     bindFailedView(for: output)
-    
+
     output.isPrivateChallenge
-      .drive(with: self) { owner, isPrivate in
+      .sinkOnMain(with: self) { owner, isPrivate in
         guard isPrivate else { return }
         owner.joinButton.icon = .lockClosedWhite
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.displayUnlockView
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.isUnlocked = false
         owner.displayInvitationCodeViewController()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.verifyCodeResult
-      .emit(with: self) { owner, result in
+      .sinkOnMain(with: self) { owner, result in
         guard let viewController = owner.invitationCodeViewController else { return }
         result ? viewController.convertToUnlock() : viewController.displayToastView()
         owner.isUnlocked = result
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
-  
+
   func bindLeftView(for output: NoneMemberChallengeViewModel.Output) {
     output.challengeTitle
-      .drive(with: self) { owner, title in
+      .sinkOnMain(with: self) { owner, title in
         owner.configureTitleLabel(title)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.hashTags
-      .drive(with: self) { owner, hashTags in
+      .sinkOnMain(with: self) { owner, hashTags in
         owner.hashTags = hashTags
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.verificationTime
-      .drive(verificationTimeView.rx.verificationTime)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, time in
+        owner.verificationTimeView.verificationTime = time
+      }
+      .store(in: &cancellables)
+
     output.goal
-      .drive(goalView.rx.goal)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, goal in
+        owner.goalView.goal = goal
+      }
+      .store(in: &cancellables)
   }
-  
+
   func bindRightView(for output: NoneMemberChallengeViewModel.Output) {
-    Driver.zip(output.memberCount, output.challengeImageURL, output.memberThumbnailURLs)
-      .drive(with: self) { owner, result in
+    output.memberCount
+      .combineLatest(output.challengeImageURL, output.memberThumbnailURLs)
+      .sinkOnMain(with: self) { owner, result in
         owner.thumbnailView.configure(count: result.0, thumbnailImageURL: result.1, avartarImageURLs: result.2)
       }
-      .disposed(by: disposeBag)
-      
+      .store(in: &cancellables)
+
     output.rules
-      .drive(ruleView.rx.rules)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, rules in
+        owner.ruleView.rules = rules
+      }
+      .store(in: &cancellables)
+
     output.deadLine
-      .drive(deadLineView.rx.deadLine)
-      .disposed(by: disposeBag)
+      .sinkOnMain(with: self) { owner, deadLine in
+        owner.deadLineView.deadLine = deadLine
+      }
+      .store(in: &cancellables)
   }
-  
+
   func bindFailedView(for output: NoneMemberChallengeViewModel.Output) {
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.challengeNotFound
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentChallengeNotFoundAlert()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.exceededJoinableChallengeLimit
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentExceededJoinableChallengeLimitToastView()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -356,13 +352,13 @@ extension NoneMemberChallengeViewController: UICollectionViewDelegateFlowLayout 
 // MARK: - InvitationCodeViewControllerDelegate
 extension NoneMemberChallengeViewController: InvitationCodeViewControllerDelegate {
   func didTapUnlockButton(_ viewController: InvitationCodeViewController, code: String) {
-    codeRelay.accept(code)
+    codeSubject.send(code)
   }
-  
+
   func didDismiss() {
     invitationCodeViewController = nil
-    
-    if isUnlocked { didFinishVerifyRelay.accept(()) }
+
+    if isUnlocked { didFinishVerifySubject.send(()) }
   }
 }
 

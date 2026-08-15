@@ -6,10 +6,9 @@
 //  Copyright © 2024 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Kingfisher
-import RxCocoa
-import RxSwift
 import CoreUI
 import DesignSystem
 

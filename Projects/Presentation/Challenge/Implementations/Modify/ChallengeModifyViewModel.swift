@@ -7,8 +7,7 @@
 //
 
 import Foundation
-import RxSwift
-import RxCocoa
+import Combine
 import CoreUI
 import Entity
 import UseCase
@@ -27,58 +26,58 @@ protocol ChallengeModifyCoordinatable: AnyObject {
 protocol ChallengeModifyViewModelType: AnyObject {
   associatedtype Input
   associatedtype Output
-  
+
   var coordinator: ChallengeModifyCoordinatable? { get set }
 }
 
 final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   weak var coordinator: ChallengeModifyCoordinatable?
   private var draft: ChallengeModifyDraft
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let challengeId: Int
   private let useCase: OrganizeUseCase
-  
-  private let stateRelay: BehaviorRelay<ModifyPresentationModel>
-  private let networkUnstableRelay = PublishRelay<Void>()
-  private let emptyFileErrorRelay = PublishRelay<String>()
-  private let imageTypeErrorRelay = PublishRelay<String>()
-  private let notPartyManagerRelay = PublishRelay<String>()
-  private let fileTooLargeErrorRelay = PublishRelay<String>()
-  private let notChallengeMemberRelay = PublishRelay<String>()
-  private let notExistChallengeRelay = PublishRelay<String>()
+
+  private let stateSubject: CurrentValueSubject<ModifyPresentationModel, Never>
+  private let networkUnstableSubject = PassthroughSubject<Void, Never>()
+  private let emptyFileErrorSubject = PassthroughSubject<String, Never>()
+  private let imageTypeErrorSubject = PassthroughSubject<String, Never>()
+  private let notPartyManagerSubject = PassthroughSubject<String, Never>()
+  private let fileTooLargeErrorSubject = PassthroughSubject<String, Never>()
+  private let notChallengeMemberSubject = PassthroughSubject<String, Never>()
+  private let notExistChallengeSubject = PassthroughSubject<String, Never>()
 
   // MARK: - Input
   struct Input {
     // 동작
-    let didTapBackButton: ControlEvent<Void>
-    let didTapChallengeName: Signal<Void>
-    let didTapChallengeHashtag: Signal<Void>
-    let didTapChallengeGoal: Signal<Void>
-    let didTapChallengeCover: Signal<Void>
-    let didTapChallengeRule: Signal<Void>
-    let didTapModifyButton: ControlEvent<Void>
-    let didTapConfirmButtonAtAlert: Signal<Void>
+    let didTapBackButton: AnyPublisher<Void, Never>
+    let didTapChallengeName: AnyPublisher<Void, Never>
+    let didTapChallengeHashtag: AnyPublisher<Void, Never>
+    let didTapChallengeGoal: AnyPublisher<Void, Never>
+    let didTapChallengeCover: AnyPublisher<Void, Never>
+    let didTapChallengeRule: AnyPublisher<Void, Never>
+    let didTapModifyButton: AnyPublisher<Void, Never>
+    let didTapConfirmButtonAtAlert: AnyPublisher<Void, Never>
     // 값
-    let titleText: Signal<String>
-    let hashtags: Signal<[String]>
-    let proveTime: Signal<String>
-    let goal: Signal<String>
-    let image: Signal<UIImageWrapper>
-    let rules: Signal<[String]>
-    let endDate: Signal<String>
+    let titleText: AnyPublisher<String, Never>
+    let hashtags: AnyPublisher<[String], Never>
+    let proveTime: AnyPublisher<String, Never>
+    let goal: AnyPublisher<String, Never>
+    let image: AnyPublisher<UIImageWrapper, Never>
+    let rules: AnyPublisher<[String], Never>
+    let endDate: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let presentationModel: Driver<ModifyPresentationModel>
-    let networkUnstable: Signal<Void>
-    let imageTypeError: Signal<String>
-    let notPartyManager: Signal<String>
-    let fileTooLargeError: Signal<String>
-    let notChallengeMember: Signal<String>
-    let notExistChallenge: Signal<String>
+    let presentationModel: AnyPublisher<ModifyPresentationModel, Never>
+    let networkUnstable: AnyPublisher<Void, Never>
+    let imageTypeError: AnyPublisher<String, Never>
+    let notPartyManager: AnyPublisher<String, Never>
+    let fileTooLargeError: AnyPublisher<String, Never>
+    let notChallengeMember: AnyPublisher<String, Never>
+    let notExistChallenge: AnyPublisher<String, Never>
   }
-  
+
   // MARK: - Initializers
   init(
     useCase: OrganizeUseCase,
@@ -87,8 +86,8 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
   ) {
     self.useCase = useCase
     self.challengeId = challengeId
-    self.stateRelay = .init(value: presentationMdoel)
-    
+    self.stateSubject = .init(presentationMdoel)
+
     draft = .init(
       name: presentationMdoel.title,
       hashtags: presentationMdoel.hashtags,
@@ -98,102 +97,101 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
       rules: presentationMdoel.rules,
       existingImageURL: presentationMdoel.imageUrlString
     )
-    
+
     self.useCase.setChallengeId(id: challengeId)
   }
-  
+
   func transform(input: Input) -> Output {
     input.didTapBackButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapBackButton()
-      }
-      .disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapChallengeName
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachModifyName() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapChallengeHashtag
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachModifyHashtag() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapChallengeGoal
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachModifyGoal() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapChallengeCover
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachModifyCover() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapChallengeRule
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         Task { await owner.coordinator?.attachModifyRule() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapModifyButton
-      .bind(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.useCase.setChallengeId(id: owner.challengeId)
         Task { await owner.modifyChallenge() }
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.didTapConfirmButtonAtAlert
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.coordinator?.didTapAlert()
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     transformData(input: input)
-    
+
     return Output(
-      presentationModel: stateRelay.asDriver(),
-      networkUnstable: networkUnstableRelay.asSignal(),
-      imageTypeError: imageTypeErrorRelay.asSignal(),
-      notPartyManager: notPartyManagerRelay.asSignal(),
-      fileTooLargeError: fileTooLargeErrorRelay.asSignal(),
-      notChallengeMember: notChallengeMemberRelay.asSignal(),
-      notExistChallenge: notExistChallengeRelay.asSignal()
+      presentationModel: stateSubject.eraseToAnyPublisher(),
+      networkUnstable: networkUnstableSubject.eraseToAnyPublisher(),
+      imageTypeError: imageTypeErrorSubject.eraseToAnyPublisher(),
+      notPartyManager: notPartyManagerSubject.eraseToAnyPublisher(),
+      fileTooLargeError: fileTooLargeErrorSubject.eraseToAnyPublisher(),
+      notChallengeMember: notChallengeMemberSubject.eraseToAnyPublisher(),
+      notExistChallenge: notExistChallengeSubject.eraseToAnyPublisher()
     )
   }
-  
+
   func transformData(input: Input) {
     input.titleText
-      .emit(with: self) { owner, title in
+      .sinkOnMain(with: self) { owner, title in
         owner.draft.name = title
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.hashtags
-      .emit(with: self) { owner, hashtags in
+      .sinkOnMain(with: self) { owner, hashtags in
         owner.draft.hashtags = hashtags
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.goal
-      .emit(with: self) { owner, goal in
+      .sinkOnMain(with: self) { owner, goal in
         owner.draft.goal = goal
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.proveTime
-      .emit(with: self) { owner, proveTime in
+      .sinkOnMain(with: self) { owner, proveTime in
         owner.draft.verificationTime = proveTime
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.image
-      .skip(1)
-      .emit(with: self) { owner, image in
+      .dropFirst()
+      .sinkOnMain(with: self) { owner, image in
         owner.draft.newImage = image
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.rules
-      .emit(with: self) { owner, rules in
+      .sinkOnMain(with: self) { owner, rules in
         owner.draft.rules = rules
-      }.disposed(by: disposeBag)
-    
+      }.store(in: &cancellables)
+
     input.endDate
-      .emit(with: self) { owner, endDate in
+      .sinkOnMain(with: self) { owner, endDate in
         owner.draft.deadline = endDate
-      }.disposed(by: disposeBag)
+      }.store(in: &cancellables)
   }
 }
 
@@ -201,7 +199,7 @@ final class ChallengeModifyViewModel: ChallengeModifyViewModelType {
 private extension ChallengeModifyViewModel {
   @MainActor func modifyChallenge() async {
     guard let imageChange = makeImageChange(from: draft) else { return }
-    
+
     do {
       try await useCase.modifyChallenge(
         id: challengeId,
@@ -213,7 +211,7 @@ private extension ChallengeModifyViewModel {
       requestFailed(with: error)
     }
   }
-  
+
   func modifyPayload(from draft: ChallengeModifyDraft) -> ChallengeModifyPayload {
     return ChallengeModifyPayload(
       name: draft.name,
@@ -225,42 +223,42 @@ private extension ChallengeModifyViewModel {
       hashtags: draft.hashtags
     )
   }
-  
+
   func makeImageChange(from draft: ChallengeModifyDraft) -> ImageChange? {
     guard let newImage = draft.newImage else { return .keep }
-    
+
     guard let (data, type) = newImage.imageToData(maxMB: 8) else {
       let message = "파일 사이즈는 8MB 이하만 가능합니다."
-      fileTooLargeErrorRelay.accept(message)
+      fileTooLargeErrorSubject.send(message)
       return nil
     }
 
     return .replace(data: data, type: type)
   }
-  
+
   func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
-      return networkUnstableRelay.accept(())
+      return networkUnstableSubject.send(())
     }
-    
+
     switch error {
     case .organazieFailed(.notChallengeMemeber):
       let message = "존재하지 않는 챌린지 파티원입니다."
-      notChallengeMemberRelay.accept(message)
+      notChallengeMemberSubject.send(message)
     case .organazieFailed(.challengeNotFound):
       let message = "존재하지 않는 챌린지입니다."
-      notExistChallengeRelay.accept(message)
+      notExistChallengeSubject.send(message)
     case .organazieFailed(.fileSizeExceed):
       let message = "파일 사이즈는 8MB 이하만 가능합니다."
-      fileTooLargeErrorRelay.accept(message)
+      fileTooLargeErrorSubject.send(message)
     case .organazieFailed(.imageTypeUnsurported):
       let message = "이미지는 '.jpeg', '.jpg', '.png', '.gif' 타입만 가능합니다."
-      imageTypeErrorRelay.accept(message)
+      imageTypeErrorSubject.send(message)
     case .organazieFailed(.forbidden):
       let message = "챌린지 파티장 권한이없습니다."
-      notPartyManagerRelay.accept(message)
+      notPartyManagerSubject.send(message)
     default:
-      networkUnstableRelay.accept(())
+      networkUnstableSubject.send(())
     }
   }
 }

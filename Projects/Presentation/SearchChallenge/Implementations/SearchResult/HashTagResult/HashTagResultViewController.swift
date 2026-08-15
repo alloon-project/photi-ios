@@ -6,10 +6,9 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
+import Combine
 import UIKit
 import Coordinator
-import RxCocoa
-import RxSwift
 import SnapKit
 import CoreUI
 import DesignSystem
@@ -27,11 +26,11 @@ final class HashTagResultViewController: UIViewController, ViewControllerable {
   
   // MARK: - Properties
   private let viewModel: HashTagResultViewModel
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private var datasource: DataSourceType?
   
-  private let requestData = PublishRelay<Void>()
-  private let didTapChallenge = PublishRelay<Int>()
+  private let requestData = PassthroughSubject<Void, Never>()
+  private let didTapChallenge = PassthroughSubject<Int, Never>()
   
   // MARK: - UI Components
   private let emptyResultLabel: UILabel = {
@@ -98,8 +97,8 @@ private extension HashTagResultViewController {
 private extension HashTagResultViewController {
   func bind() {
     let input = HashTagResultViewModel.Input(
-      requestData: requestData.asSignal(),
-      didTapChallenge: didTapChallenge.asSignal()
+      requestData: requestData.eraseToAnyPublisher(),
+      didTapChallenge: didTapChallenge.eraseToAnyPublisher()
     )
     let output = viewModel.transform(input: input)
     
@@ -111,23 +110,23 @@ private extension HashTagResultViewController {
   
   func viewModelBind(for output: HashTagResultViewModel.Output) {
     output.initialChallenges
-      .drive(with: self) { owner, challenges in
+      .sinkOnMain(with: self) { owner, challenges in
         owner.initialize(with: challenges)
         owner.emptyResultLabel.isHidden = !challenges.isEmpty
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.challenges
-      .drive(with: self) { owner, challenges in
+      .sinkOnMain(with: self) { owner, challenges in
         owner.append(models: challenges)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
     
     output.networkUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkUnstableAlert()
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -214,11 +213,11 @@ extension HashTagResultViewController: UICollectionViewDelegate {
     
     guard yOffset > (scrollView.contentSize.height - scrollView.bounds.size.height) else { return }
     
-    requestData.accept(())
+    requestData.send(())
   }
   
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     guard let item = datasource?.itemIdentifier(for: indexPath) else { return }
-    didTapChallenge.accept(item.id)
+    didTapChallenge.send(item.id)
   }
 }

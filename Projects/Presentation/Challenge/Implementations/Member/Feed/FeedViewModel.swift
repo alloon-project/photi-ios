@@ -7,8 +7,7 @@
 //
 
 import Foundation
-import RxCocoa
-import RxSwift
+import Combine
 import CoreUI
 import Entity
 import UseCase
@@ -40,11 +39,11 @@ enum ProveMemberType {
 
 final class FeedViewModel: FeedViewModelType {
   weak var coordinator: FeedCoordinatable?
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
   private let challengeId: Int
   private let useCase: ChallengeUseCase
   private let modelMapper = FeedPresentatoinModelMapper()
-  
+
   private var isEnded = false
   private var alignMode: FeedsAlignMode = .recent
   private var proveTime = ""
@@ -55,46 +54,46 @@ final class FeedViewModel: FeedViewModelType {
   private var isFetching: Bool = false {
     didSet {
       guard currentPage != 0 else { return }
-      isFetching ? startFetchingRelay.accept(()) : stopFetchingRelay.accept(())
+      isFetching ? startFetchingSubject.send(()) : stopFetchingSubject.send(())
     }
   }
-  
-  private let isUploadSuccessRelay = PublishRelay<Bool>()
-  private let proofRelay = BehaviorRelay<ProveType>(value: .didNotProve(""))
-  private let proveTimeRelay = BehaviorRelay<String>(value: "")
-  private let proveMemberCountRelay = BehaviorRelay<ProveMemberType>(value: .default(count: 0))
-  private let provePercentRelay = BehaviorRelay<ProgressType>(value: .default(percent: 0))
-  private let feedsRelay = BehaviorRelay<FeedsType>(value: .initialPage([]))
-  private let proveFeedRelay = BehaviorRelay<[FeedPresentationModel]>(value: [])
-  private let startFetchingRelay = PublishRelay<Void>()
-  private let stopFetchingRelay = PublishRelay<Void>()
-  private let alreadyVerifyFeedRelay = PublishRelay<Void>()
-  private let fileTooLargeRelay = PublishRelay<Void>()
+
+  private let isUploadSuccessSubject = PassthroughSubject<Bool, Never>()
+  private let proofSubject = CurrentValueSubject<ProveType, Never>(.didNotProve(""))
+  private let proveTimeSubject = CurrentValueSubject<String, Never>("")
+  private let proveMemberCountSubject = CurrentValueSubject<ProveMemberType, Never>(.default(count: 0))
+  private let provePercentSubject = CurrentValueSubject<ProgressType, Never>(.default(percent: 0))
+  private let feedsSubject = CurrentValueSubject<FeedsType, Never>(.initialPage([]))
+  private let proveFeedSubject = CurrentValueSubject<[FeedPresentationModel], Never>([])
+  private let startFetchingSubject = PassthroughSubject<Void, Never>()
+  private let stopFetchingSubject = PassthroughSubject<Void, Never>()
+  private let alreadyVerifyFeedSubject = PassthroughSubject<Void, Never>()
+  private let fileTooLargeSubject = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let requestData: Signal<Void>
-    let reloadData: Signal<Void>
-    let didTapFeed: Signal<Int>
-    let contentOffset: Signal<Double>
-    let uploadImage: Signal<UIImageWrapper>
-    let requestFeeds: Signal<Void>
-    let feedsAlign: Driver<FeedsAlignMode>
-    let didTapIsLikeButton: Signal<(Bool, Int)>
+    let requestData: AnyPublisher<Void, Never>
+    let reloadData: AnyPublisher<Void, Never>
+    let didTapFeed: AnyPublisher<Int, Never>
+    let contentOffset: AnyPublisher<Double, Never>
+    let uploadImage: AnyPublisher<UIImageWrapper, Never>
+    let requestFeeds: AnyPublisher<Void, Never>
+    let feedsAlign: AnyPublisher<FeedsAlignMode, Never>
+    let didTapIsLikeButton: AnyPublisher<(Bool, Int), Never>
   }
-  
+
   // MARK: - Output
   struct Output {
-    let isUploadSuccess: Signal<Bool>
-    let proveMemberCount: Driver<ProveMemberType>
-    let provePercent: Driver<ProgressType>
-    let proofRelay: Driver<ProveType>
-    let proveFeed: Driver<[FeedPresentationModel]>
-    let feeds: Driver<FeedsType>
-    let startFetching: Signal<Void>
-    let stopFetching: Signal<Void>
-    let alreadyVerifyFeed: Signal<Void>
-    let fileTooLarge: Signal<Void>
+    let isUploadSuccess: AnyPublisher<Bool, Never>
+    let proveMemberCount: AnyPublisher<ProveMemberType, Never>
+    let provePercent: AnyPublisher<ProgressType, Never>
+    let proofRelay: AnyPublisher<ProveType, Never>
+    let proveFeed: AnyPublisher<[FeedPresentationModel], Never>
+    let feeds: AnyPublisher<FeedsType, Never>
+    let startFetching: AnyPublisher<Void, Never>
+    let stopFetching: AnyPublisher<Void, Never>
+    let alreadyVerifyFeed: AnyPublisher<Void, Never>
+    let fileTooLarge: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -106,77 +105,77 @@ final class FeedViewModel: FeedViewModelType {
 
   func transform(input: Input) -> Output {
     fetchBind(input: input)
-       
+
     input.didTapFeed
-      .emit(with: self) { owner, feedId in
+      .sinkOnMain(with: self) { owner, feedId in
         Task { await owner.coordinator?.attachFeedDetail(challengeId: owner.challengeId, feedId: feedId) }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.contentOffset
-      .emit(with: self) { owner, offset in
+      .sinkOnMain(with: self) { owner, offset in
         owner.coordinator?.didChangeContentOffset(offset)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.uploadImage
-      .emit(with: self) { owner, image in
+      .sinkOnMain(with: self) { owner, image in
         owner.upload(image: image)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     return Output(
-      isUploadSuccess: isUploadSuccessRelay.asSignal(),
-      proveMemberCount: proveMemberCountRelay.asDriver(),
-      provePercent: provePercentRelay.asDriver(),
-      proofRelay: proofRelay.asDriver(),
-      proveFeed: proveFeedRelay.asDriver(),
-      feeds: feedsRelay.asDriver(),
-      startFetching: startFetchingRelay.asSignal(),
-      stopFetching: stopFetchingRelay.asSignal(),
-      alreadyVerifyFeed: alreadyVerifyFeedRelay.asSignal(),
-      fileTooLarge: fileTooLargeRelay.asSignal()
+      isUploadSuccess: isUploadSuccessSubject.eraseToAnyPublisher(),
+      proveMemberCount: proveMemberCountSubject.eraseToAnyPublisher(),
+      provePercent: provePercentSubject.eraseToAnyPublisher(),
+      proofRelay: proofSubject.eraseToAnyPublisher(),
+      proveFeed: proveFeedSubject.eraseToAnyPublisher(),
+      feeds: feedsSubject.eraseToAnyPublisher(),
+      startFetching: startFetchingSubject.eraseToAnyPublisher(),
+      stopFetching: stopFetchingSubject.eraseToAnyPublisher(),
+      alreadyVerifyFeed: alreadyVerifyFeedSubject.eraseToAnyPublisher(),
+      fileTooLarge: fileTooLargeSubject.eraseToAnyPublisher()
     )
   }
-  
+
   func fetchBind(input: Input) {
     input.requestData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.fetchData()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.reloadData
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.currentPage = 0
         owner.isLastFeedPage = false
         owner.fetchData()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.requestFeeds
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         guard !owner.isLastFeedPage else { return }
-        
+
         Task { await owner.fetchFeeds() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.feedsAlign
-      .drive(with: self) { owner, align in
+      .sinkOnMain(with: self) { owner, align in
         guard align != owner.alignMode else { return }
         owner.alignMode = align
         owner.currentPage = 0
         owner.isLastFeedPage = false
         Task { await owner.fetchFeeds() }
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     input.didTapIsLikeButton
-      .emit(with: self) { owner, result in
+      .sinkOnMain(with: self) { owner, result in
         owner.update(isLike: result.0, feedId: result.1)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -186,10 +185,10 @@ extension FeedViewModel {
     Task {
       do {
         let isProve = try await useCase.isProve(challengeId: challengeId)
-        
+
         guard isProve != self.isProve else { return }
         self.isProve = isProve
-        isProve ? proofRelay.accept(.didProve) : proofRelay.accept(.didNotProve(proveTime))
+        isProve ? proofSubject.send(.didProve) : proofSubject.send(.didNotProve(proveTime))
       } catch { }
     }
   }
@@ -210,37 +209,37 @@ private extension FeedViewModel {
   func fetchChallengeInfo() async {
     do {
       let challenge = try await useCase.fetchChallengeDetail(id: challengeId)
-      let proveType = proveMemberCountRelay.value
+      let proveType = proveMemberCountSubject.value
       totalMemberCount = challenge.memberCount
-      
+
       isEnded = Date() > challenge.endDate
       if isEnded {
-        provePercentRelay.accept(.ended)
+        provePercentSubject.send(.ended)
       } else if case let .default(count) = proveType {
         updateProvePercent(total: totalMemberCount, prove: count)
       }
-      
+
       let proveTime = challenge.proveTime.toString("HH:mm")
-      proveTimeRelay.accept(proveTime)
+      proveTimeSubject.send(proveTime)
     } catch {
       await requestFailed(with: error)
     }
   }
-  
+
   func fetchProveMemberCount() async {
     let count = try? await useCase.challengeProveMemberCount(challengeId: challengeId)
-    
+
     guard let count else { return }
 
     if isEnded {
-      proveMemberCountRelay.accept(.ended)
-      provePercentRelay.accept(.ended)
+      proveMemberCountSubject.send(.ended)
+      provePercentSubject.send(.ended)
     } else {
-      proveMemberCountRelay.accept(.default(count: count))
+      proveMemberCountSubject.send(.default(count: count))
       updateProvePercent(total: totalMemberCount, prove: count)
     }
   }
-  
+
   @MainActor func fetchFeeds() async {
     guard !isFetching else { return }
     isFetching = true
@@ -255,26 +254,26 @@ private extension FeedViewModel {
         size: 15,
         orderType: alignMode.toOrderType
       )
-      
+
       switch result {
         case let .defaults(feeds):
           let items = convertToFeedsType(from: feeds)
-          feedsRelay.accept(items)
-          
+          feedsSubject.send(items)
+
         case let .lastPage(feeds):
           isLastFeedPage = true
           let items = convertToFeedsType(from: feeds)
-          feedsRelay.accept(items)
+          feedsSubject.send(items)
       }
     } catch {
       requestFailed(with: error)
     }
   }
-  
+
   func fetchIsProof() {
     Task {
       isProve = (try? await useCase.isProve(challengeId: challengeId)) ?? false
-      if isProve { proofRelay.accept(.didProve) }
+      if isProve { proofSubject.send(.didProve) }
     }
   }
 }
@@ -290,16 +289,16 @@ private extension FeedViewModel {
         }
         let feed = try await useCase.uploadChallengeFeedProof(id: challengeId, imageData: imageData, type: type)
         let model = modelMapper.mapToFeedPresentationModels([feed])
-        isUploadSuccessRelay.accept(true)
-        proveFeedRelay.accept(model)
+        isUploadSuccessSubject.send(true)
+        proveFeedSubject.send(model)
         await fetchProveMemberCount()
       } catch {
-        isUploadSuccessRelay.accept(false)
+        isUploadSuccessSubject.send(false)
         await requestFailed(with: error)
       }
     }
   }
-  
+
   func update(isLike: Bool, feedId: Int) {
     Task {
       try? await useCase.updateLikeState(challengeId: challengeId, feedId: feedId, isLike: isLike)
@@ -310,44 +309,45 @@ private extension FeedViewModel {
 // MARK: - Private Methods
 private extension FeedViewModel {
   func bind() {
-    proveTimeRelay
-      .skip(1)
-      .subscribe(with: self) { owner, time in
-        owner.proveTime = time
-        guard !owner.isProve else { return }
-        owner.proofRelay.accept(.didNotProve(time))
+    proveTimeSubject
+      .dropFirst()
+      .sink { [weak self] time in
+        guard let self else { return }
+        self.proveTime = time
+        guard !self.isProve else { return }
+        self.proofSubject.send(.didNotProve(time))
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
-  
+
   func updateProvePercent(total: Int, prove: Int) {
-    guard total != 0 else { return provePercentRelay.accept(.default(percent: 0)) }
+    guard total != 0 else { return provePercentSubject.send(.default(percent: 0)) }
     let percent = Double(prove) / Double(total)
-    provePercentRelay.accept(.default(percent: percent))
+    provePercentSubject.send(.default(percent: percent))
   }
-  
+
   func convertToFeedsType(from feeds: [[Feed]]) -> FeedsType {
     let models = feeds.flatMap { modelMapper.mapToFeedPresentationModels($0) }
-    
+
     guard !models.isEmpty else { return .empty }
-    
+
     return currentPage == 0 ? .initialPage(models) : .default(models)
   }
-  
+
   @MainActor func requestFailed(with error: Error) {
     guard let error = error as? APIError else {
       coordinator?.networkUnstable(); return
     }
-    
+
     switch error {
       case .authenticationFailed:
         coordinator?.authenticatedFailed()
       case let .challengeFailed(reason) where reason == .alreadyUploadFeed:
-        alreadyVerifyFeedRelay.accept(())
+        alreadyVerifyFeedSubject.send(())
       case let .challengeFailed(reason) where reason == .challengeNotFound:
         coordinator?.challengeNotFound()
       case let .challengeFailed(reason) where reason == .fileTooLarge:
-        fileTooLargeRelay.accept(())
+        fileTooLargeSubject.send(())
       default:
         coordinator?.networkUnstable()
     }

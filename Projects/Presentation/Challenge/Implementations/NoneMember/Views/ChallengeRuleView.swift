@@ -7,14 +7,19 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import DesignSystem
 
 final class ChallengeRuleView: UIView, ChallengeInformationPresentable {
   // MARK: - Properties
   var rules: [String] = [] {
     didSet { configure(rules) }
+  }
+
+  var didTapViewAllRulesButton: AnyPublisher<[String], Never> {
+    displayAllRulesButton.tapPublisher
+      .map { [weak self] in self?.rules ?? [] }
+      .eraseToAnyPublisher()
   }
   
   // MARK: UI Components
@@ -162,12 +167,3 @@ private extension ChallengeRuleView {
   }
 }
 
-extension Reactive where Base: ChallengeRuleView {
-  var didTapViewAllRulesButton: ControlEvent<[String]> {
-    let source = base.displayAllRulesButton.rx.tap.map { _ in
-      base.rules
-    }
-    
-    return .init(events: source)
-  }
-}

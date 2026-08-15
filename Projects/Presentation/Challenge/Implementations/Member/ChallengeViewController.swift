@@ -9,8 +9,6 @@
 import UIKit
 import Combine
 import Coordinator
-import RxSwift
-import RxCocoa
 import CoreUI
 import DesignSystem
 
@@ -21,20 +19,19 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     static let mainViewTopOffset: CGFloat = titleViewHeight - segmentControlHeight
     static let segmentControlHeight: CGFloat = 38
   }
-  
+
   // MARK: - Properties
   private let viewModel: ChallengeViewModel
-  private let disposeBag = DisposeBag()
   private var cancellables = Set<AnyCancellable>()
   private var segmentIndex: Int = 0
   private var memberCount: Int = 0
-  
-  private let viewDidLoadRelay = PublishRelay<Void>()
-  private let didTapConfirmButtonAtAlert = PublishRelay<Void>()
-  private let didTapReportButton = PublishRelay<Void>()
-  private let didTapLeaveButton = PublishRelay<Void>()
-  private let didTapEditButton = PublishRelay<Void>()
-  
+
+  private let viewDidLoadSubject = PassthroughSubject<Void, Never>()
+  private let didTapConfirmButtonAtAlertSubject = PassthroughSubject<Void, Never>()
+  private let didTapReportButtonSubject = PassthroughSubject<Void, Never>()
+  private let didTapLeaveButtonSubject = PassthroughSubject<Void, Never>()
+  private let didTapEditButtonSubject = PassthroughSubject<Void, Never>()
+
   // MARK: - UI Components
   private var segmentViewControllers = [UIViewController]()
   private let shareButton = PhotiNavigationButton.shareButton
@@ -53,32 +50,32 @@ final class ChallengeViewController: UIViewController, ViewControllerable {
     view.backgroundColor = .white
     return view
   }()
-  
+
   // MARK: - Initializers
   init(viewModel: ChallengeViewModel) {
     self.viewModel = viewModel
     super.init(nibName: nil, bundle: nil)
   }
-  
+
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   // MARK: - Life Cycles
   override func viewDidLoad() {
     super.viewDidLoad()
     setupUI()
     bind()
     dropDownView.delegate = self
-    viewDidLoadRelay.accept(())
+    viewDidLoadSubject.send(())
   }
-  
+
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     hideTabBar(animated: true)
   }
-  
+
   // MARK: - UI Responder
   override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     view.endEditing(true)
@@ -92,39 +89,39 @@ private extension ChallengeViewController {
     setViewHierarhcy()
     setConstraints()
   }
-  
+
   func setViewHierarhcy() {
     view.addSubviews(titleView, navigationBar, mainView, dropDownView)
     mainView.addSubviews(segmentControl, mainContentView)
   }
-  
+
   func setConstraints() {
     navigationBar.snp.makeConstraints {
       $0.leading.trailing.equalToSuperview()
       $0.top.equalTo(view.safeAreaLayoutGuide)
       $0.height.equalTo(Constants.navigationHeight)
     }
-    
+
     titleView.snp.makeConstraints {
       $0.top.leading.trailing.equalToSuperview()
       $0.height.equalTo(Constants.titleViewHeight)
     }
-    
+
     mainView.snp.makeConstraints {
       $0.top.equalToSuperview().offset(Constants.mainViewTopOffset)
       $0.leading.trailing.bottom.equalToSuperview()
     }
-    
+
     segmentControl.snp.makeConstraints {
       $0.leading.trailing.top.equalToSuperview()
       $0.height.equalTo(Constants.segmentControlHeight)
     }
-    
+
     mainContentView.snp.makeConstraints {
       $0.top.equalTo(segmentControl.snp.bottom)
       $0.bottom.trailing.leading.equalToSuperview()
     }
-    
+
     dropDownView.setConstraints { [weak self] make in
       guard let self else { return }
       make.trailing.equalToSuperview().inset(24)
@@ -137,65 +134,59 @@ private extension ChallengeViewController {
 // MARK: - Bind
 private extension ChallengeViewController {
   func bind() {
-    let backButtonEvent: ControlEvent<Void> = {
-      let events = Observable<Void>.create { [weak navigationBar] observer in
-        guard let bar = navigationBar else { return Disposables.create() }
-        let cancellable = bar.didTapBackButton
-          .sink { observer.onNext(()) }
-        return Disposables.create { cancellable.cancel() }
-      }
-      return ControlEvent(events: events)
-    }()
-    
     let input = ChallengeViewModel.Input(
-      viewDidLoad: viewDidLoadRelay.asSignal(),
-      didTapBackButton: backButtonEvent.asSignal(),
-      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlert.asSignal(),
-      didTapLeaveButton: didTapLeaveButton.asSignal(),
-      didTapReportButton: didTapReportButton.asSignal(),
-      didTapEditButton: didTapEditButton.asSignal(),
-      didTapShareButton: shareButton.rx.tap.asSignal()
+      viewDidLoad: viewDidLoadSubject.eraseToAnyPublisher(),
+      didTapBackButton: navigationBar.didTapBackButton,
+      didTapConfirmButtonAtAlert: didTapConfirmButtonAtAlertSubject.eraseToAnyPublisher(),
+      didTapLeaveButton: didTapLeaveButtonSubject.eraseToAnyPublisher(),
+      didTapReportButton: didTapReportButtonSubject.eraseToAnyPublisher(),
+      didTapEditButton: didTapEditButtonSubject.eraseToAnyPublisher(),
+      didTapShareButton: shareButton.tapPublisher
     )
-    
+
     let output = viewModel.transform(input: input)
     bind(for: output)
     viewBind()
   }
-  
+
   func viewBind() {
     segmentControl.selectedSegment
       .sinkOnMain(with: self) { owner, index in
         owner.updateSegmentViewController(to: index)
       }.store(in: &cancellables)
   }
-  
+
   func bind(for output: ChallengeViewModel.Output) {
     output.challengeInfo
-      .drive(with: self) { owner, model in
+      .sinkOnMain(with: self) { owner, model in
         owner.titleView.configure(with: model)
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.memberCount
-      .drive(rx.memberCount)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, count in
+        owner.memberCount = count
+      }
+      .store(in: &cancellables)
+
     output.dropDownMenus
       .map { $0.map { $0.rawValue } }
-      .drive(dropDownView.rx.dataSource)
-      .disposed(by: disposeBag)
-    
+      .sinkOnMain(with: self) { owner, menus in
+        owner.dropDownView.dataSource = menus
+      }
+      .store(in: &cancellables)
+
     output.challengeNotFound
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentChallengeNotFoundWaring()
       }
-      .disposed(by: disposeBag)
-    
+      .store(in: &cancellables)
+
     output.networnUnstable
-      .emit(with: self) { owner, _ in
+      .sinkOnMain(with: self) { owner, _ in
         owner.presentNetworkWarning(reason: nil)
       }
-      .disposed(by: disposeBag)
+      .store(in: &cancellables)
   }
 }
 
@@ -203,21 +194,21 @@ private extension ChallengeViewController {
 extension ChallengeViewController: ChallengePresentable {
   func attachViewControllerables(_ viewControllerables: ViewControllerable...) {
     segmentViewControllers = viewControllerables.map(\.uiviewController)
-    
+
     attachViewController(segmentIndex: segmentIndex)
   }
-  
+
   func didChangeContentOffsetAtMainContainer(_ offset: Double) {
     let minOffset = navigationBar.frame.maxY - 5
     let maxOffset = Constants.mainViewTopOffset
-    
+
     let offset = offset.bound(lower: minOffset, upper: maxOffset)
     let mainContainerOffset = minOffset + maxOffset - offset
-      
+
     mainView.snp.updateConstraints {
       $0.top.equalToSuperview().offset(mainContainerOffset)
     }
-    
+
     UIView.animate(
       withDuration: 0.1,
       delay: 0,
@@ -226,20 +217,20 @@ extension ChallengeViewController: ChallengePresentable {
       self.view.layoutIfNeeded()
     }
   }
-  
+
   func presentChallengeNotFoundWaring() {
     let alert = AlertViewController(alertType: .confirm, title: "존재하지 않는 챌린지입니다.")
     alert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapConfirmButtonAtAlert.accept(())
+        owner.didTapConfirmButtonAtAlertSubject.send(())
       }.store(in: &cancellables)
     alert.present(to: self, animted: true)
   }
-  
+
   func presentNetworkWarning(reason: String?) {
     presentNetworkUnstableAlert(reason: reason)
   }
-  
+
   func presentFinishModifying() {
     let toastText = "챌린지 수정이 완료됐어요."
     let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
@@ -247,10 +238,10 @@ extension ChallengeViewController: ChallengePresentable {
       $0.bottom.equalToSuperview().inset(64)
       $0.centerX.equalToSuperview()
     }
-    
+
     toastView.present(to: self)
   }
-  
+
   func presentChallengeReported() {
     let toastText = "신고가 완료됐어요. 꼼꼼히 확인하고,\n회원님의 이메일로 결과를 보내드릴게요."
     let toastView = ToastView(tipPosition: .none, text: toastText, icon: .bulbWhite)
@@ -258,10 +249,10 @@ extension ChallengeViewController: ChallengePresentable {
       $0.bottom.equalToSuperview().inset(64)
       $0.centerX.equalToSuperview()
     }
-    
+
     toastView.present(to: self)
   }
-  
+
   func presentShareActivity(challengeId: Int, inviteCode: String?, challengeName: String) {
     let provider = ShareableChallengeProvider(
       image: titleView.titleImage ?? .challengeOrganizeMain,
@@ -279,12 +270,12 @@ extension ChallengeViewController: DropDownDelegate {
   func dropDown(_ dropDown: DropDownView, didSelectRowAt: Int) {
     let data = dropDown.dataSource[didSelectRowAt]
     guard let menu = DropDownMenu(rawValue: data) else { return }
-    
+
     switch menu {
       case .edit:
-        didTapEditButton.accept(())
+        didTapEditButtonSubject.send(())
       case .report:
-        didTapReportButton.accept(())
+        didTapReportButtonSubject.send(())
       case .leave:
         presentLeaveChallengeAlert(memberCount: memberCount)
     }
@@ -298,20 +289,20 @@ private extension ChallengeViewController {
     removeViewController(segmentIndex: segmentIndex)
     attachViewController(segmentIndex: index)
   }
-  
+
   func removeViewController(segmentIndex: Int) {
     guard segmentViewControllers.count > segmentIndex else { return }
-    
+
     let viewController = segmentViewControllers[segmentIndex]
     viewController.willMove(toParent: nil)
     viewController.view.removeFromSuperview()
     viewController.removeFromParent()
     viewController.didMove(toParent: nil)
   }
-  
+
   func attachViewController(segmentIndex: Int) {
     guard segmentViewControllers.count > segmentIndex else { return }
-    
+
     let viewController = segmentViewControllers[segmentIndex]
     viewController.willMove(toParent: self)
     addChild(viewController)
@@ -321,7 +312,7 @@ private extension ChallengeViewController {
       $0.edges.equalToSuperview()
     }
   }
-  
+
   func presentLeaveChallengeAlert(memberCount: Int) {
     let alert = AlertViewController(
       alertType: .canCancel,
@@ -330,15 +321,15 @@ private extension ChallengeViewController {
     )
     alert.confirmButtonTitle = "탈퇴할게요"
     alert.cancelButtonTitle = "취소할게요"
-    
+
     alert.didTapConfirmButton
       .sinkOnMain(with: self) { owner, _ in
-        owner.didTapLeaveButton.accept(())
+        owner.didTapLeaveButtonSubject.send(())
       }.store(in: &cancellables)
-    
+
     alert.present(to: self, animted: true)
   }
-  
+
   func leaveChallengeString(memberCount: Int) -> NSAttributedString {
     if memberCount == 1 {
       return "회원님은 이 챌린지의 마지막 파티원예요.\n지금 탈퇴하면 챌린지가 삭제돼요.\n삭제된 챌린지는 복구할 수 없어요.\n정말 탈퇴하시겠어요?".attributedString(

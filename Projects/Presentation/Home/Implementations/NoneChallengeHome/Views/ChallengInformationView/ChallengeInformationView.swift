@@ -7,8 +7,7 @@
 //
 
 import UIKit
-import RxCocoa
-import RxSwift
+import Combine
 import SnapKit
 import Kingfisher
 import CoreUI
@@ -22,25 +21,29 @@ final class ChallengeInformationView: UIView {
     }
   }
   private(set) var id: Int = 0
-  
+
+  var didTapJoinButton: AnyPublisher<Int, Never> {
+    joinButton.tapPublisher.map { [weak self] _ in self?.id ?? 0 }.eraseToAnyPublisher()
+  }
+
   // MARK: - UI Components
   private let challengeNameLabel = UILabel()
   private let goalContentView = ChallengeContentView(contentCount: .one(title: "목표"))
   private let challengeTimeContentView = ChallengeContentView(
     contentCount: .two(firstTitle: "인증 시간", secondTitle: "챌린지 종료")
   )
-  
+
   private let hashTagCollectionView = HashTagCollectionView(allignMent: .center, shouldRegisterDefaultCell: false)
   private let participateCountView: UIView = {
     let view = UIView()
     view.backgroundColor = .gray100
     view.layer.cornerRadius = 12
-    
+
     return view
   }()
   private let avatarImageView = GroupAvatarView(size: .small)
   private let participateCountLabel = UILabel()
-  fileprivate let joinButton = FilledRoundButton(type: .primary, size: .small, text: "나도 함께하기")
+  private let joinButton = FilledRoundButton(type: .primary, size: .small, text: "나도 함께하기")
   
   // MARK: - Initializers
   init() {
@@ -201,10 +204,3 @@ private extension ChallengeInformationView {
   }
 }
 
-extension Reactive where Base == ChallengeInformationView {
-  var didTapJoinButton: ControlEvent<Int> {
-    let source = base.joinButton.rx.tap.map { _ in base.id }
-    
-    return .init(events: source)
-  }
-}
