@@ -256,12 +256,10 @@ private extension ChallengeGoalViewController {
   }
 
   func viewBind() {
-    let tapGesture = UITapGestureRecognizer()
-    downImageView.addGestureRecognizer(tapGesture)
-    downImageView.isUserInteractionEnabled = true
-    tapGesture.addAction(UIAction { [weak self] _ in
-      self?.showTimePickerBottomSheet()
-    }, for: .ended)
+    downImageView.tapGesturePublisher
+      .sinkOnMain(with: self) { owner, _ in
+        owner.showTimePickerBottomSheet()
+      }.store(in: &cancellables)
 
     dateTextField.didTapButtonPublisher
       .sinkOnMain(with: self) { owner, _ in

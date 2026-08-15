@@ -6,8 +6,7 @@
 //  Copyright © 2025 com.photi. All rights reserved.
 //
 
-import RxCocoa
-import RxSwift
+import Combine
 import UseCase
 
 protocol AppCoordinatable: AnyObject {
@@ -26,19 +25,19 @@ protocol AppViewModelType: AnyObject {
 final class AppViewModel: AppViewModelType {
   weak var coordinator: AppCoordinatable?
   private let useCase: AppUseCase
-  private let disposeBag = DisposeBag()
+  private var cancellables = Set<AnyCancellable>()
 
-  private let allowMoveToMyPage = PublishRelay<Void>()
+  private let allowMoveToMyPage = PassthroughSubject<Void, Never>()
   
   // MARK: - Input
   struct Input {
-    let didTapMyPageTabBarItem: Signal<Void>
-    let didTapLogInButton: Signal<Void>
+    let didTapMyPageTabBarItem: AnyPublisher<Void, Never>
+    let didTapLogInButton: AnyPublisher<Void, Never>
   }
   
   // MARK: - Output
   struct Output {
-    let allowMoveToMyPage: Signal<Void>
+    let allowMoveToMyPage: AnyPublisher<Void, Never>
   }
   
   // MARK: - Initializers
@@ -48,18 +47,16 @@ final class AppViewModel: AppViewModelType {
   
   func transform(input: Input) -> Output {
     input.didTapMyPageTabBarItem
-      .emit(with: self) { owner, _ in
+      .sink(with: self) { owner, _ in
         owner.handleMyPageTabSelection()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
     input.didTapLogInButton
-      .emit(with: self) { owner, _ in
+      .sink(with: self) { owner, _ in
         owner.coordinator?.attachLogIn()
-      }
-      .disposed(by: disposeBag)
+      }.store(in: &cancellables)
     
-    return Output(allowMoveToMyPage: allowMoveToMyPage.asSignal())
+    return Output(allowMoveToMyPage: allowMoveToMyPage.eraseToAnyPublisher())
   }
 }
 
@@ -69,7 +66,7 @@ private extension AppViewModel {
     Task {
       let isLogin = await useCase.isLogIn()
 
-      isLogin ? allowMoveToMyPage.accept(()) : coordinator?.shouldReloadAllPage()
+      isLogin ? allowMoveToMyPage.send(()) : coordinator?.shouldReloadAllPage()
     }
   }
 }

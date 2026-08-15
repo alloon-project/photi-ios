@@ -221,7 +221,9 @@ private extension ChallengePreviewViewController {
       }.store(in: &cancellables)
 
     output.isLoading
-      .sinkOnMain { $0 ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop() }
+      .sinkOnMain(with: self) { _, isLoading in
+        isLoading ? LoadingAnimation.logo.start() : LoadingAnimation.logo.stop()
+      }
       .store(in: &cancellables)
   }
 }
