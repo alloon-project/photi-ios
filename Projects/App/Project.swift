@@ -35,12 +35,19 @@ let project = Project.make(
         .Project.Data.RepositoryImpl,
         .SPM.KakaoSDKAuth,
         .SPM.KakaoSDKUser,
-        .SPM.KakaoSDKCommon
+        .SPM.KakaoSDKCommon,
+        .SPM.GoogleSignIn,
+        .SPM.GTMSessionFetcherCore
       ],
       settings: .settings(
         base: [
           "ASSETCATALOG_COMPILER_APPICON_NAME": "DevAppIcon",
-          "OTHER_LDFLAGS": "-ObjC"
+          "CODE_SIGN_ENTITLEMENTS": "$(SRCROOT)/Photi-PROD.entitlements",
+          "OTHER_LDFLAGS": "-ObjC",
+          "HEADER_SEARCH_PATHS": [
+            "$(inherited)",
+            "$(SRCROOT)/../../Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
+          ]
         ],
         configurations: [
           .debug(name: .debug, xcconfig: "./xcconfigs/Photi.debug.xcconfig"),
@@ -53,6 +60,7 @@ let project = Project.make(
       product: .app,
       bundleId: "com.photi.product",
       infoPlist: .file(path: .relativeToRoot("Projects/App/Info.plist")),
+      entitlements: .relativeToRoot("Projects/App/Photi-PROD.entitlements"),
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
@@ -72,12 +80,18 @@ let project = Project.make(
         .Project.Data.RepositoryImpl,
         .SPM.KakaoSDKAuth,
         .SPM.KakaoSDKUser,
-        .SPM.KakaoSDKCommon
+        .SPM.KakaoSDKCommon,
+        .SPM.GoogleSignIn,
+        .SPM.GTMSessionFetcherCore
       ],
       settings: .settings(
         base: [
           "ASSETCATALOG_COMPILER_APPICON_NAME": "ProdAppIcon",
-          "OTHER_LDFLAGS": "-ObjC"
+          "OTHER_LDFLAGS": "-ObjC",
+          "HEADER_SEARCH_PATHS": [
+            "$(inherited)",
+            "$(SRCROOT)/../../Tuist/Dependencies/SwiftPackageManager/.build/checkouts/gtm-session-fetcher/Sources/Core/Public"
+          ]
         ],
         configurations: [
           .debug(name: .debug, xcconfig: "./xcconfigs/Photi.release.xcconfig"),

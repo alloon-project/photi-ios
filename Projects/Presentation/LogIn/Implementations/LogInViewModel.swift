@@ -15,7 +15,7 @@ import KakaoSDKUser
 
 protocol LogInCoordinatable: AnyObject {
   func attachSignUp()
-  func attachOAuthSignUp(provider: String, idToken: String)
+  func attachOAuthSignUp()
   func attachFindId()
   func attachFindPassword()
   func didFinishLogIn(userName: String)
@@ -28,7 +28,7 @@ protocol LogInViewModelType {
 
   var coordinator: LogInCoordinatable? { get set }
 
-  init(loginUseCase: LogInUseCase)
+  init(loginUseCase: LogInUseCase, oauthUseCase: OAuthUseCase)
 
   func transform(input: Input) -> Output
 }
@@ -38,6 +38,7 @@ final class LogInViewModel: LogInViewModelType {
   weak var coordinator: LogInCoordinatable?
 
   private let loginUseCase: LogInUseCase
+  private let oauthUseCase: OAuthUseCase
   private let loadingAnimationSubject = PassthroughSubject<Bool, Never>()
   private let invalidIdOrPasswordSubject = PassthroughSubject<Void, Never>()
   private let deletedUserSubject = PassthroughSubject<Void, Never>()
@@ -52,9 +53,9 @@ final class LogInViewModel: LogInViewModelType {
     let didTapFindIdButton: AnyPublisher<Void, Never>
     let didTapFindPasswordButton: AnyPublisher<Void, Never>
     let didTapSignUpButton: AnyPublisher<Void, Never>
-    let didTapAppleLoginButton: AnyPublisher<Void, Never>
+    let appleIdToken: AnyPublisher<String, Never>
     let didTapKakaoLoginButton: AnyPublisher<Void, Never>
-    let didTapGoogleLoginButton: AnyPublisher<Void, Never>
+    let googleIdToken: AnyPublisher<String, Never>
   }
   
   // MARK: - Output
@@ -67,8 +68,9 @@ final class LogInViewModel: LogInViewModelType {
   }
   
   // MARK: - Initializers
-  init(loginUseCase: LogInUseCase) {
+  init(loginUseCase: LogInUseCase, oauthUseCase: OAuthUseCase) {
     self.loginUseCase = loginUseCase
+    self.oauthUseCase = oauthUseCase
   }
   
   func transform(input: Input) -> Output {
@@ -92,9 +94,9 @@ final class LogInViewModel: LogInViewModelType {
         owner.coordinator?.didTapBackButton()
       }.store(in: &cancellables)
     
-    input.didTapAppleLoginButton
-      .sinkOnMain(with: self) { owner, _ in
-        // TODO: Apple 로그인 구현
+    input.appleIdToken
+      .sink(with: self) { owner, idToken in
+        Task { await owner.requestOAuthLogin(provider: "APPLE", idToken: idToken) }
       }.store(in: &cancellables)
 
     input.didTapKakaoLoginButton
@@ -102,9 +104,9 @@ final class LogInViewModel: LogInViewModelType {
         owner.requestKakaoLogin()
       }.store(in: &cancellables)
 
-    input.didTapGoogleLoginButton
-      .sinkOnMain(with: self) { owner, _ in
-        // TODO: Google 로그인 구현
+    input.googleIdToken
+      .sink(with: self) { owner, idToken in
+        Task { await owner.requestOAuthLogin(provider: "GOOGLE", idToken: idToken) }
       }.store(in: &cancellables)
     
     let didTapLoginButtonWithInfo = input.didTapLoginButton
@@ -144,6 +146,31 @@ private extension LogInViewModel {
     }
   }
 
+  func requestOAuthLogin(provider: String, idToken: String) async {
+    await MainActor.run {
+      loadingAnimationSubject.send(true)
+    }
+
+    do {
+      let result = try await oauthUseCase.login(provider: provider, idToken: idToken)
+
+      await MainActor.run {
+        switch result {
+          case let .existingUser(username):
+            coordinator?.didFinishLogIn(userName: username)
+          case .newUser:
+            loadingAnimationSubject.send(false)
+            coordinator?.attachOAuthSignUp()
+        }
+      }
+    } catch {
+      await MainActor.run {
+        loadingAnimationSubject.send(false)
+        networkUnstableSubject.send(())
+      }
+    }
+  }
+
   func requestKakaoLogin() {
     let nonce = UUID().uuidString
 
@@ -160,9 +187,7 @@ private extension LogInViewModel {
         return
       }
 
-      Task { @MainActor in
-        self.coordinator?.attachOAuthSignUp(provider: "KAKAO", idToken: idToken)
-      }
+      Task { await self.requestOAuthLogin(provider: "KAKAO", idToken: idToken) }
     }
 
     if UserApi.isKakaoTalkLoginAvailable() {

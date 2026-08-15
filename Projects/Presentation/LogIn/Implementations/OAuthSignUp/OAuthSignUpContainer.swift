@@ -16,9 +16,7 @@ protocol OAuthSignUpDependency {
 protocol OAuthSignUpContainable: Containable {
   func coordinator(
     navigationControllerable: NavigationControllerable,
-    listener: OAuthSignUpListener,
-    provider: String,
-    idToken: String
+    listener: OAuthSignUpListener
   ) -> Coordinating
 }
 
@@ -32,9 +30,7 @@ final class OAuthSignUpContainer:
 
   func coordinator(
     navigationControllerable: NavigationControllerable,
-    listener: OAuthSignUpListener,
-    provider: String,
-    idToken: String
+    listener: OAuthSignUpListener
   ) -> Coordinating {
     let enterIdContainable = EnterIdContainer(dependency: self)
     let agreementContainable = AgreementContainer(dependency: self)
@@ -42,10 +38,7 @@ final class OAuthSignUpContainer:
     let coordinator = OAuthSignUpCoordinator(
       navigationControllerable: navigationControllerable,
       enterIdContainable: enterIdContainable,
-      agreementContainable: agreementContainable,
-      oauthUseCase: dependency.oauthUseCase,
-      provider: provider,
-      idToken: idToken
+      agreementContainable: agreementContainable
     )
     coordinator.listener = listener
     return coordinator

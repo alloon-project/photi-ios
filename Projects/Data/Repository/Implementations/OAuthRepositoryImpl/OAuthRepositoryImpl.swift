@@ -29,9 +29,8 @@ public extension OAuthRepositoryImpl {
   func setUsername(_ username: String) async throws {
     let requestDTO = OAuthUsernameRequestDTO(username: username)
 
-    try await requestAuthorizableAPI(
-      api: OAuthAPI.setUsername(dto: requestDTO),
-      responseType: SuccessResponseDTO.self
+    try await requestAuthorizableAPIWithoutResponse(
+      api: OAuthAPI.setUsername(dto: requestDTO)
     )
   }
 
@@ -103,6 +102,35 @@ private extension OAuthRepositoryImpl {
 
 // MARK: - Private Methods
 private extension OAuthRepositoryImpl {
+  func requestAuthorizableAPIWithoutResponse(
+    api: OAuthAPI,
+    behavior: StubBehavior = .never
+  ) async throws {
+    do {
+      let provider = Provider<OAuthAPI>(
+        stubBehavior: behavior,
+        session: .init(interceptor: AuthenticationInterceptor())
+      )
+
+      let result = try await provider.request(api, type: VoidResponseDTO.self)
+      if (200..<300).contains(result.statusCode) {
+        return
+      } else if result.statusCode == 401 || result.statusCode == 403 {
+        throw APIError.authenticationFailed
+      } else if result.statusCode == 409 {
+        throw APIError.oauthFailed(reason: .usernameAlreadyExists)
+      } else {
+        throw APIError.serverError
+      }
+    } catch {
+      if case NetworkError.networkFailed(reason: .interceptorMapping) = error {
+        throw APIError.authenticationFailed
+      } else {
+        throw error
+      }
+    }
+  }
+
   @discardableResult
   func requestAuthorizableAPI<T: Decodable>(
     api: OAuthAPI,

@@ -53,9 +53,9 @@ extension BaseResponse {
 public struct BaseResponseDTO<ResponseType: Decodable>: Decodable {
   public let code: String
   public let message: String
-  public let data: ResponseType
+  public let data: ResponseType?
   
-  public init(code: String, message: String, data: ResponseType) {
+  public init(code: String, message: String, data: ResponseType?) {
     self.code = code
     self.message = message
     self.data = data

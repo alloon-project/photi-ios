@@ -6,16 +6,22 @@
 //  Copyright © 2024 com.alloon. All rights reserved.
 //
 
+import AuthenticationServices
 import UIKit
 import Combine
 import Coordinator
+import Core
 import SnapKit
 import CoreUI
 import DesignSystem
+import GoogleSignIn
 
 final class LogInViewController: UIViewController, ViewControllerable {
   private var cancellables = Set<AnyCancellable>()
   private let viewModel: LogInViewModel
+  private let appleIdTokenSubject = PassthroughSubject<String, Never>()
+  private let googleIdTokenSubject = PassthroughSubject<String, Never>()
+  private var appleAuthController: ASAuthorizationController?
   
   // MARK: - UI Components
   private let navigationBar = PhotiNavigationBar(
@@ -148,9 +154,9 @@ private extension LogInViewController {
       didTapFindIdButton: findView.findIdTapPublisher,
       didTapFindPasswordButton: findView.findPasswordTapPublisher,
       didTapSignUpButton: signUpButton.tapPublisher,
-      didTapAppleLoginButton: snsLoginView.didTapAppleLoginButton,
+      appleIdToken: appleIdTokenSubject.eraseToAnyPublisher(),
       didTapKakaoLoginButton: snsLoginView.didTapKakaoLoginButton,
-      didTapGoogleLoginButton: snsLoginView.didTapGoogleLoginButton
+      googleIdToken: googleIdTokenSubject.eraseToAnyPublisher()
     )
    
     let output = viewModel.transform(input: input)
@@ -174,6 +180,16 @@ private extension LogInViewController {
     loginButton.tapPublisher
       .sinkOnMain(with: self) { owner, _ in
         owner.view.endEditing(true)
+      }.store(in: &cancellables)
+
+    snsLoginView.didTapAppleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.requestAppleLogin()
+      }.store(in: &cancellables)
+
+    snsLoginView.didTapGoogleLoginButton
+      .sinkOnMain(with: self) { owner, _ in
+        owner.requestGoogleLogin()
       }.store(in: &cancellables)
   }
   
@@ -218,8 +234,72 @@ private extension LogInViewController {
 // MARK: - LogInPresentable
 extension LogInViewController: LogInPresentable { }
 
+// MARK: - Apple Sign In
+extension LogInViewController: ASAuthorizationControllerPresentationContextProviding {
+  func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    view.window ?? UIWindow()
+  }
+}
+
+extension LogInViewController: ASAuthorizationControllerDelegate {
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithAuthorization authorization: ASAuthorization
+  ) {
+    appleAuthController = nil
+    guard
+      let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+      let identityTokenData = credential.identityToken,
+      let idToken = String(data: identityTokenData, encoding: .utf8)
+    else {
+      return
+    }
+    appleIdTokenSubject.send(idToken)
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController,
+    didCompleteWithError error: Error
+  ) {
+    appleAuthController = nil
+    if let authError = error as? ASAuthorizationError, authError.code == .canceled { return }
+  }
+}
+
 // MARK: - Private Methods
 private extension LogInViewController {
+  func requestAppleLogin() {
+    let provider = ASAuthorizationAppleIDProvider()
+    let request = provider.createRequest()
+    request.requestedScopes = [.fullName, .email]
+
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = self
+    controller.presentationContextProvider = self
+    appleAuthController = controller
+    controller.performRequests()
+  }
+
+  func requestGoogleLogin() {
+    let clientId = ServiceConfiguration.shared.googleClientId
+    let serverClientId = ServiceConfiguration.shared.googleServerClientId
+
+    guard !clientId.isEmpty else { return }
+
+    GIDSignIn.sharedInstance.configuration = GIDConfiguration(
+      clientID: clientId,
+      serverClientID: serverClientId
+    )
+
+    GIDSignIn.sharedInstance.signIn(withPresenting: self) { [weak self] result, error in
+      if error != nil { return }
+
+      guard let idToken = result?.user.idToken?.tokenString else { return }
+
+      self?.googleIdTokenSubject.send(idToken)
+    }
+  }
+
   func displayWarningToastView() {
     warningToastView.present(to: self)
   }

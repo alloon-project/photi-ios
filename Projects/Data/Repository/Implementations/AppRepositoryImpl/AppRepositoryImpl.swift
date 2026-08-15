@@ -15,7 +15,10 @@ public class AppRepositoryImpl: AppRepository {
   public init() { }
   
   public func fetchForceUpdateRequired(version: String) async throws -> Bool {
-    let provider = Provider<AppAPI>(stubBehavior: .never)
+    let provider = Provider<AppAPI>(
+      stubBehavior: .never,
+      session: .init(interceptor: nil)
+    )
     let dto = AppVersionRequestDTO(os: "ios", appVersion: version)
     do {
       let result = try await provider.request(.appVersion(dto: dto), type: AppVersionResponseDTO.self)
